@@ -47,8 +47,8 @@
         box-sizing: border-box;
     }
 
-    /* PEEK: если акций больше одной — следующий слайд выглядывает справа */
-    .akciya-slider-wrap.is-peek { padding: 0 12px; }
+    /* PEEK: если акций больше одной — следующий слайд выглядывает справа.
+       Левый край — вровень с остальным контентом (без бокового отступа). */
     .akciya-slider-wrap.is-peek .akciya-slider-track { gap: 12px; }
     .akciya-slider-wrap.is-peek .akciya-slider-track .col-md-3 {
         flex: 0 0 88%;
