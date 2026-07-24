@@ -1,0 +1,115 @@
+/* bootstrap grid */
+.langing_title_block {
+  margin-bottom: 40px;
+}
+.items.landings_list--grid {
+  margin: 0 0px 23px;
+}
+.landings_list--padding {
+  padding: 20px 0 20px 0;
+}
+.landings_list--grid .title_block {
+  padding: 10px 0px 20px;
+}
+.landings_list--grid .landings__item {
+  margin: 0 0 4px;
+}
+.landings_list--grid .landings__item:before {
+  content: "\25CF";
+  display: inline-block;
+  left: 0px;
+  margin-left: 0px;
+  padding: 0px;
+  position: absolute;
+  top: 0px;
+  vertical-align: top;
+  width: 20px;
+}
+.landings_list--grid .landings__show-all {
+  margin-top: 10px;
+}
+/**/
+
+/* links-list */
+.landings_list--links-list a {
+  padding: 2px 0 0 0;
+  margin-bottom: 9px;
+  margin-right: 26px;
+}
+.landings_list--links-list a.active {
+  color: #1d2029;
+}
+/**/
+
+/* chip */
+.landings_list--chip .landings__section-title {
+  margin-bottom: 7px;
+  margin-right: 7px;
+  padding: 3px 11px 4px 0;
+}
+.landings_list--chip a {
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  color: #666;
+  font-size: 0.9286em;
+  margin-bottom: 7px;
+  margin-right: 7px;
+  padding: 3px 11px 4px;
+}
+.landings_list--chip a:hover {
+  color: #fff;
+  background-color: var(--theme-base-color);
+}
+.landings_list--chip a.active {
+  color: #fff;
+}
+/**/
+
+/** common **/
+.landings__section:not(:last-child) {
+  margin-bottom: 13px;
+}
+.landings__section-title--bold {
+  color: #383838;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 40px 0 26px;
+}
+
+.landings__section-items {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.landings_list .hidden_items {
+  display: none;
+}
+
+.landings__show-all {
+  align-items: center;
+  background-color: transparent;
+  border-radius: 4px;
+  border-style: solid;
+  border-width: 1px;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.9286em;
+  padding: 2px 11px 3px;
+  transition: background-color 0.3s ease;
+}
+.landings__show-all:hover{
+  color: #FFF;
+}
+.landings__show-all:focus-visible {
+  box-shadow: 0 0 3px #555;
+}
+.landings__show-all:after {
+  content: "\f107";
+  padding: 1px 0px 0px 5px;
+}
+.landings__show-all.opened:after {
+  content: "\f106";
+}
+
+/**/

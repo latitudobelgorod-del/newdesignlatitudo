@@ -1,0 +1,28 @@
+div.city_chooser_frame {
+    min-width: 900px;
+    max-width: 1300px;
+    width: auto;
+}
+
+
+@media (max-width: 991px) {
+    div.city_chooser_frame {
+        overflow: auto;
+        min-width: 1px;
+    }
+    .favorits_3city .col-md-3{
+        width: 100%;
+    }
+
+}
+@media (min-width: 992px){
+    div.city_chooser_frame div.row.flexbox .col-md-3 {
+        width: 20%;
+    }
+    div.city_chooser_frame{
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+    }
+}

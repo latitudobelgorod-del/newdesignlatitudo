@@ -1,0 +1,26 @@
+# Stock Sync API — Apache rewrite rules
+# For shared hosting with Apache
+
+SetEnv STOCK_SYNC_TOKEN lat1tud0_st0ck_sync_2026
+
+RewriteEngine On
+RewriteBase /local/stock-sync/
+
+# Route all requests to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)$ index.php [L,QSA]
+
+# Deny access to config, mapping, and logs
+<FilesMatch "\.(json|log)$">
+    Require all denied
+</FilesMatch>
+
+<Files "config.php">
+    Require all denied
+</Files>
+
+# Deny access to logs directory
+<IfModule mod_rewrite.c>
+    RewriteRule ^logs/ - [F,L]
+</IfModule>

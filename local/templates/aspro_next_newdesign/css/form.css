@@ -1,0 +1,52 @@
+body .eye-password input[type="password"],
+body .eye-password input[type="text"],
+body .bx-soa-auth .eye-password input[type="password"],
+body .bx-soa-auth .eye-password input[type="text"] {
+  padding-right: 55px;
+}
+.eye-password{
+  position: relative;
+}
+
+.eye-password:after {
+  background-image: url("../images/svg/eye_close.svg");
+  background-position-x: center;
+  background-position-y: center;
+  background-repeat: no-repeat;
+  content: "";
+  cursor: pointer;
+  height: 37px;
+  position: absolute;
+  right: 1px;
+  top: 26.56px;
+  width: 55px;
+}
+
+.row > .eye-password:after {
+  right: 17px;
+}
+
+body .bx-soa-auth .eye-password:after{
+  top: 0;
+}
+
+.eye-password.password-show:after {
+  background-image: url("../images/svg/eye_open.svg");
+}
+
+.jqmWindow input[type="text"]:focus,
+.jqmWindow input[type="password"]:focus,
+.jqmWindow input[type="email"]:focus,
+.jqmWindow input[type="tel"]:focus,
+.jqmWindow textarea:focus,
+.jqmWindow select:focus {
+  background-color: var(--card_bg_hover_black);
+  background: #fff;
+  border-color: var(--stroke_black);
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.form .eye-password input {
+  background-size: 0px !important;
+}

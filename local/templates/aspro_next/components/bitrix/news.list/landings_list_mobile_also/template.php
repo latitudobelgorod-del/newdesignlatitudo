@@ -1,0 +1,67 @@
+<?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+$this->setFrameMode(true);?>
+
+<?if($arResult['ITEMS']):?>
+	<?$i = 0;?>
+<div class="spoil">
+<div class="accordion-type-1">
+			<div class="item-accordion-wrapper">
+				<div class="accordion-head accordion-close collapsed" data-toggle="collapse" data-parent="#accordion2" href="#accordion2">
+					<i class="fa fa-angle-down"></i><span>Также ищут</span>
+				</div>
+				<div id="accordion2" class="panel-collapse collapse" style="height: 0px;">
+					<div class="accordion-body">
+	<div class="items landings_list_inline">
+		<?/*if($arParams["TITLE_BLOCK"]):?>
+			<div class="title_block"><?=$arParams["TITLE_BLOCK"];?></div>
+		<?endif;*/?>
+		<div class="wrap">
+			<div class="clearfix">
+				<?$compare_field = (isset($arParams["COMPARE_FIELD"]) && $arParams["COMPARE_FIELD"] ? $arParams["COMPARE_FIELD"] : "DETAIL_PAGE_URL");
+				$bProp = (isset($arParams["COMPARE_PROP"]) && $arParams["COMPARE_PROP"] == "Y");?>
+				<?foreach($arResult['ITEMS'] as $arItem):?>
+					<?
+					$this->AddEditAction($arItem['ID'], $arItem['EDIT_LINK'], CIBlock::GetArrayByID($arItem["IBLOCK_ID"], "ELEMENT_EDIT"));
+					$this->AddDeleteAction($arItem['ID'], $arItem['DELETE_LINK'], CIBlock::GetArrayByID($arItem["IBLOCK_ID"], "ELEMENT_DELETE"), array("CONFIRM" => GetMessage('CT_BNL_ELEMENT_DELETE_CONFIRM')));
+
+					++$i;
+					$bHidden = ($i > $arParams["SHOW_COUNT"] ? true : false);
+					$url = $arItem[$compare_field];
+					if($bProp)
+						$url = $arItem["PROPERTIES"][$compare_field]["VALUE"];
+//echo $url;
+					?>
+					<div class="item" id="<?=$this->GetEditAreaId($arItem['ID']);?>">
+						<div>
+							<?if(strlen($url)):?>
+								<a class="<?=(strpos($APPLICATION->GetCurDir(), $url) !== false ? 'active' : '')?>" href="<?=$url?>" ><?=$arItem['NAME']?></a>
+							<?else:?>
+								<span><?=$arItem['NAME']?></span>
+							<?endif?>
+						</div>
+					</div>
+					<?if($bHidden && !$bHiddenOK):?>
+						<?
+						$bHiddenOK = true;
+						?>
+						</div>
+						<div class="hidden_items clearfix">
+					<?endif?>
+				<?endforeach?>
+			</div>
+			<?if($bHidden):?>
+				<div class="more"><span data-opened="N" data-text="<?=GetMessage("HIDE");?>"><?=GetMessage("SHOW_ALL");?></span></div>
+			<?endif?>
+		</div>
+		<?file_put_contents($_SERVER['DOCUMENT_ROOT'].'/uipo.txt', print_r($arResult['ITEMS'], 1));?>
+	</div>
+
+					</div>
+				</div>
+			</div>
+
+</div>
+</div>
+
+
+<?endif?>

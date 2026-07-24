@@ -1,0 +1,16 @@
+.news-list-regions a {color:#222;}
+ .news-list-regions ._border {
+    border-bottom: 1px dashed;
+    color: unset;
+    font-size: 13px;
+   
+}
+.news-list-regions .body-info  {padding:0 !important;}
+.news-list-regions .title {padding:0 0 10px!important;}
+.news-list-regions .title-info {padding:20px 10px; font-size:13px;}
+.news-list-regions .title-info div {margin:5px 0;}
+.table-elements .item .text .cont {padding:0px;}
+.item-views.table-elements .item .body-info {padding:0px;}
+body .table-type-block.item-views .row > div .item {padding: 20px 0;}
+.item-views.table-elements .item .body-info .title {padding:0px 0 10px 0;}
+.news-list-regions .title-info {padding:10px 0;}

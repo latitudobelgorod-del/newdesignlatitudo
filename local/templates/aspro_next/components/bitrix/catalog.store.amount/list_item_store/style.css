@@ -1,0 +1,40 @@
+.stores-simple-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+    margin: 15px 0;
+}
+.store-item {
+    border-radius: 4px;
+    padding: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: auto;
+}
+.store-item-green {
+    background: #ebfaef;
+}
+.store-item-orange {
+    background: #fff5e6;
+}
+.store-item-gray {
+    background: #eeeef0;
+}
+.store-name {
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+.store-amount {
+    font-size: 16px;
+}
+.store-amount-green {
+    color: #2ca94c;
+}
+.store-amount-orange {
+    color: #ff9500;
+}
+.order-wait {
+    color: #ff9500;
+}

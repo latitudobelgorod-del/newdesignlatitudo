@@ -1,0 +1,13 @@
+.item-views.staff-items.table-type-block .item .middle-props a 
+{ 
+border-bottom: 1px dashed;
+color: #555;
+}
+body .table-type-block.item-views .row > div .item 
+{
+border-radius:7px;
+margin:10px !important;
+}
+@media (max-width: 767px) {
+body .table-type-block.item-views .row > div .item {margin-bottom:25px !important;}
+}

@@ -1,0 +1,8 @@
+.social-icons-vertical ul li {margin-bottom:15px;padding-left:0;}
+.social-icons-vertical ul li::before {content:"";}
+.social-icons-vertical a {display:flex; align-items:center;}
+.social-icons-vertical .vk span { background: url(/local/templates/aspro_next/images/social.png) -4px -4px no-repeat;}
+.social-icons-vertical .telegram span {background: url(/local/templates/aspro_next/images/social.png) -4px -4px no-repeat;background-position:-153px -104px;}
+.social-icons-vertical .rutube span {background: url(/local/templates/aspro_next/images/social.png) -4px -4px no-repeat;background-position:-203px -104px;}
+.social-icons-vertical .ytb span { background: url(/local/templates/aspro_next/images/social.png) -4px -4px no-repeat;background-position:-204px -4px;}
+.social-icons-vertical span {zoom: 0.8; display: inline-block; height: 40px; margin-right: 10px; position:relative; width: 40px;border-radius:100px;}

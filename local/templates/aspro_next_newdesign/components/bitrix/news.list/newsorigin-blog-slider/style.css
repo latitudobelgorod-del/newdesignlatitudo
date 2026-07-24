@@ -1,0 +1,101 @@
+.news-list__item-cont {
+    padding: 15px 15px !important;
+}
+
+.news-list__item-date {
+    color: #454a4e !important;
+    font-size: 16px !important;
+	  background-color: unset;
+   width:100%;
+	}
+.news-list-akciya .akciya_metka div {
+    font-size: 13px;
+    padding: 5px 15px;
+   box-shadow: unset  !important;
+}
+
+.akciya_metka, .stock_wrapper .akciya_metka {position:relative !important;top:unset !important;}
+.akciya_metka div, .stock_wrapper .akciya_metka div
+{
+	
+    background-color: unset !important; 
+    color: #222 !important;
+	width:100% !important;
+
+}
+
+
+
+.blog-slider {
+ /* border: 1px solid #f2f2f2;*/
+}
+.blog-slider + .banners-slider {
+  --row-start: 3;
+}
+.blog-slider .slider-nav__icon {
+  min-width: auto;
+  min-height: auto;
+}
+.blog-slider .swiper-slide {
+  height: auto;
+}
+.blog-slider .swiper-horizontal.swiper-pagination {
+  bottom: 0px;
+}
+
+/* blog-slider */
+.blog-slider__section{
+  color: #666;
+  font-size: 12px;
+  font-weight: 400;
+}
+.blog-slider__title {
+  color: #1D2839;
+  font-size: 14px;
+  font-weight: 700;
+  flex: 1;
+  text-align: left;
+  word-break: break-word;
+}
+.blog-slider__data {
+  color: #999;
+  font-weight: 400;
+  font-size: 12px;
+}
+.blog-slider__img{
+  flex-basis: 132px;
+  flex-shrink: 0;
+}
+.blog-slider__item {
+  height: 100%;
+  /*padding: 40px 50px 40px 30px; */
+    padding: 0px 0px 30px 0px; 
+}
+.blog-slider__info {
+  margin-left: 16px;
+  align-self: stretch;
+}
+.blog-slider__info .line-block {
+  justify-content: space-between;
+  height: 100%;
+}
+.blog-slider__item .line-block{
+  height: 100%;
+}
+.blog-slider .swiper-pagination-bullet:before {
+  border: 2px solid var(--theme-base-color);
+}
+.blog-slider .swiper-pagination-bullet.swiper-pagination-bullet-active:before {
+  background-color: var(--theme-base-color);
+}
+@media (min-width: 768px) { 
+  .blog-slider .swiper-pagination {
+    display: none;
+  }
+}
+@media (max-width: 450px) {
+  .blog-slider__info {
+    margin-left: 0px;
+    margin-top: 16px;
+  }
+}

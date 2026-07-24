@@ -1,0 +1,48 @@
+.flexbox {
+  display: flex;
+  flex-direction: column;
+}
+.flexbox--reverse {
+  flex-direction: column-reverse;
+}
+.row.flexbox {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.flexbox--row {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.flexbox--wrap {
+  flex-wrap: wrap;
+}
+
+.flexbox--align-start {
+  align-items: flex-start;
+}
+
+.flexbox--justify-content-between {
+  justify-content: space-between;
+}
+
+.bx-mac .row.flexbox:not(.nmac) > div {
+  margin-left: -1px;
+}
+.bx-mac .flexbox.nmac,
+.bx-mac .row.flexbox.nmac {
+  display: block;
+}
+.bx-mac .row.flexbox:after,
+.bx-mac .row.flexbox:before {
+  width: 100%;
+}
+.row.flexbox .item {
+  height: 100%;
+  min-height: 100%;
+}
+.bx-ios .flexbox > div {
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+}
