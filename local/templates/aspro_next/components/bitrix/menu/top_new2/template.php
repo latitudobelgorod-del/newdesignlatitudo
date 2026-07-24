@@ -174,9 +174,9 @@ $iVisibleItemsMenu = ($arTheme['MAX_VISIBLE_ITEMS_MENU']['VALUE'] ? $arTheme['MA
                             <div class="megamenu-header-right">
                                 <a href="/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/" class="megamenu-banner-link">
                                     <div class="megamenu-banner-img-wrapper">
-                                        <img src="https://latitudo.ru/upload/resize_cache/sprint.editor/48d/1200_768_1/qns7sbkk6dqd7be6wv8zfoj5p49t7cla.jpg" alt="Перголы. Новинка! Скоро в продаже" class="megamenu-banner-img">
+                                        <img src="https://latitudo.ru/upload/resize_cache/sprint.editor/48d/1200_768_1/qns7sbkk6dqd7be6wv8zfoj5p49t7cla.jpg" alt="Перголы. В наличии!" class="megamenu-banner-img">
                                         <div class="megamenu-banner-overlay"></div>
-                                        <span class="megamenu-banner-text">Перголы<br>Новинка!<br>Скоро в продаже</span>
+                                        <span class="megamenu-banner-text">Перголы<br>В наличии!</span>
                                     </div>
                                 </a>
                             </div>
