@@ -10,12 +10,22 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
  * Обработчик висит на onAfterResultAdd с высоким sort — чтобы отработать ПОСЛЕ
  * штатного CRM-коннектора (FormCRM::onResultAdded), когда лид уже создан.
  * Всё в try/catch: любые сбои не должны ломать отправку формы.
+ * Лог отладки — /local/php_interface/claim_crm.log (убрать после проверки).
  */
 AddEventHandler('form', 'onAfterResultAdd', 'Latitudo_ClaimFileToCrm', false, 9000);
 
 define('LATITUDO_CLAIM_FORM_ID', 27);
 define('LATITUDO_CLAIM_CRM_FILE_UF', 'UF_CRM_1772713891');
 define('LATITUDO_B24_WEBHOOK', 'https://latitudo.bitrix24.ru/rest/45/rt9aho9sj05d409a/');
+
+function Latitudo_ClaimLog($msg)
+{
+    @file_put_contents(
+        $_SERVER['DOCUMENT_ROOT'] . '/local/php_interface/claim_crm.log',
+        date('Y-m-d H:i:s') . ' ' . $msg . "\n",
+        FILE_APPEND
+    );
+}
 
 function Latitudo_ClaimFileToCrm($WEB_FORM_ID, $RESULT_ID)
 {
@@ -24,7 +34,10 @@ function Latitudo_ClaimFileToCrm($WEB_FORM_ID, $RESULT_ID)
     }
 
     try {
+        Latitudo_ClaimLog('START result=' . $RESULT_ID . ' form=' . $WEB_FORM_ID);
+
         if (!CModule::IncludeModule('form')) {
+            Latitudo_ClaimLog('  модуль form не подключился');
             return;
         }
 
@@ -33,12 +46,15 @@ function Latitudo_ClaimFileToCrm($WEB_FORM_ID, $RESULT_ID)
 
         // --- файл (поле FILE) ---
         $fileId = Latitudo_ClaimExtractFileId($arAnswer);
+        Latitudo_ClaimLog('  fileId=' . $fileId . ' | ключи ответов: ' . implode(',', array_keys((array)$arAnswer)));
         if ($fileId <= 0) {
-            return; // файл не прикреплён — ничего не делаем
+            Latitudo_ClaimLog('  файл не прикреплён — выходим');
+            return;
         }
 
         $file = CFile::GetFileArray($fileId);
         if (!$file) {
+            Latitudo_ClaimLog('  CFile::GetFileArray пусто для ' . $fileId);
             return;
         }
         $path = $_SERVER['DOCUMENT_ROOT'] . $file['SRC'];
@@ -46,11 +62,12 @@ function Latitudo_ClaimFileToCrm($WEB_FORM_ID, $RESULT_ID)
             $path = $_SERVER['DOCUMENT_ROOT'] . CFile::GetPath($fileId);
         }
         if (!is_file($path)) {
-            AddMessage2Log('CLAIM: файл ' . $fileId . ' не найден на диске (result ' . $RESULT_ID . ')', 'claim_file_crm');
+            Latitudo_ClaimLog('  файл ' . $fileId . ' не найден на диске: ' . $path);
             return;
         }
         $fileName = $file['ORIGINAL_NAME'] ? $file['ORIGINAL_NAME'] : $file['FILE_NAME'];
         $b64 = base64_encode(file_get_contents($path));
+        Latitudo_ClaimLog('  файл: ' . $fileName . ' (' . strlen($b64) . ' b64-байт)');
 
         // --- телефон, чтобы найти созданный лид ---
         $phone = '';
@@ -61,7 +78,7 @@ function Latitudo_ClaimFileToCrm($WEB_FORM_ID, $RESULT_ID)
         }
         $phone = preg_replace('/\D+/', '', $phone);
         if ($phone === '') {
-            AddMessage2Log('CLAIM: пустой телефон (result ' . $RESULT_ID . ')', 'claim_file_crm');
+            Latitudo_ClaimLog('  пустой телефон');
             return;
         }
         $last10 = substr($phone, -10);
@@ -74,8 +91,9 @@ function Latitudo_ClaimFileToCrm($WEB_FORM_ID, $RESULT_ID)
             'start'  => 0,
         ));
         $leadId = !empty($resp['result'][0]['ID']) ? (int)$resp['result'][0]['ID'] : 0;
+        Latitudo_ClaimLog('  поиск лида по ' . $last10 . ' → leadId=' . $leadId
+            . (isset($resp['error']) ? ' | list error: ' . $resp['error'] . ' ' . $resp['error_description'] : ''));
         if ($leadId <= 0) {
-            AddMessage2Log('CLAIM: лид по телефону ' . $last10 . ' не найден (result ' . $RESULT_ID . ')', 'claim_file_crm');
             return;
         }
 
@@ -84,11 +102,13 @@ function Latitudo_ClaimFileToCrm($WEB_FORM_ID, $RESULT_ID)
             'id'     => $leadId,
             'fields' => array(LATITUDO_CLAIM_CRM_FILE_UF => array($fileName, $b64)),
         ));
-        if (empty($upd['result'])) {
-            AddMessage2Log('CLAIM: не удалось записать файл в лид ' . $leadId . ': ' . substr(print_r($upd, true), 0, 500), 'claim_file_crm');
+        if (!empty($upd['result'])) {
+            Latitudo_ClaimLog('  OK: файл записан в лид ' . $leadId);
+        } else {
+            Latitudo_ClaimLog('  update FAIL лид ' . $leadId . ': ' . substr(print_r($upd, true), 0, 400));
         }
     } catch (\Throwable $e) {
-        AddMessage2Log('CLAIM file->CRM exception: ' . $e->getMessage(), 'claim_file_crm');
+        Latitudo_ClaimLog('  EXCEPTION: ' . $e->getMessage());
     }
 }
 
