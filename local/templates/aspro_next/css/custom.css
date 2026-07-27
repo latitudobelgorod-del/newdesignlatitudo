@@ -3212,3 +3212,9 @@ div[id*="prop_169"] {/*display:none;*/}
         min-width: 520px;
     }
 }
+
+/* Пункт «Заявить рекламацию» убран из десктопного меню (nav.mega-menu).
+   В мобильном меню (.mobilemenu-v1) и в подвале ссылка остаётся */
+.mega-menu .menu-item.reklamacii_menu {
+    display: none !important;
+}

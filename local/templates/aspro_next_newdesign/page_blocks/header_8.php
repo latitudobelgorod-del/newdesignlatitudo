@@ -17,6 +17,7 @@ $REGION_TAG_PHONESKLAD = "#REGION_TAG_PHONESKLAD#";
 $REGION_TAG_PHONESKLAD_PODP = "#REGION_TAG_PHONESKLAD_PODP#";
 $REGION_TAG_LINKVIDEO = "#REGION_TAG_LINKVIDEO#";
 $REGION_TAG_MAIL = "#REGION_TAG_MAIL#";
+$REGION_TAG_EMAIL_PODMENA = "#REGION_TAG_EMAIL_PODMENA#";
 
 $logoClass = ($arTheme['COLORED_LOGO']['VALUE'] !== 'Y' ? '' : ' colored');
 ?>
@@ -587,8 +588,12 @@ if ($val=='utm_source')
 								
 								</div>
 								
-									<?if ($arRegion['PROPERTY_REGION_TAG_MAIL_VALUE']):?>
+									<?if ($arRegion['PROPERTY_REGION_TAG_MAIL_VALUE'] || $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
+									<?if ((str_contains($utm_source, "ya") || str_contains($utm_source, "tg") || str_contains($utm_source, "vk") || str_contains($utm_source, "maps")) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
+								<div> <span class="fa fa-envelope-o"></span><a class="_border"  href="mailto:<?=$REGION_TAG_EMAIL_PODMENA?>"><?=$REGION_TAG_EMAIL_PODMENA?></a></div>
+									<?else:?>
 								<div> <span class="fa fa-envelope-o"></span><a class="_border"  href="mailto:<?=$REGION_TAG_MAIL?>"><?=$REGION_TAG_MAIL?></a></div>
+									<?endif;?>
 								<?endif;?>
 								
 								

@@ -3185,6 +3185,12 @@ div[id*="prop_169"] span.bx_item_section_name > span, div[id*="prop_311"] span.b
 
 div[id*="prop_169"] {/*display:none;*/}
 
+/* Пункт «Заявить рекламацию» убран из десктопного меню (nav.mega-menu).
+   В мобильном меню (.mobilemenu-v1) и в подвале ссылка остаётся */
+.mega-menu .menu-item.reklamacii_menu {
+    display: none !important;
+}
+
 
 
 

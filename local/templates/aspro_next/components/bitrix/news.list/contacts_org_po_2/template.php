@@ -3,7 +3,8 @@ $this->setFrameMode(true);
 ?>
 
 <?global $arRegion ,$arTheme, $APPLICATION;
-$regionID = ($arRegion ? $arRegion['ID'] : '');?>
+$regionID = ($arRegion ? $arRegion['ID'] : '');
+$REGION_TAG_EMAIL_PODMENA = "#REGION_TAG_EMAIL_PODMENA#";?>
 <?=bitrix_sessid_post();?>
 <?
 foreach (array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term') as $val) {
@@ -173,7 +174,11 @@ if ($ob = $res->GetNextElement()){;
 						<?if ($arItem["DISPLAY_PROPERTIES"]['EMAIL']) :?>
 						<div>
 							<span>
+							<?if ((str_contains($utm_source, "ya") || str_contains($utm_source, "tg") || str_contains($utm_source, "vk") || str_contains($utm_source, "maps")) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
+							<a itemprop="email" href="mailto:<?=$REGION_TAG_EMAIL_PODMENA?>"><?=$REGION_TAG_EMAIL_PODMENA?></a>
+							<?else:?>
 							<a itemprop="email" href="mailto:<?=$arItem['DISPLAY_PROPERTIES']['EMAIL']['DISPLAY_VALUE']?>"><?=$arItem['DISPLAY_PROPERTIES']['EMAIL']['DISPLAY_VALUE']?></a>
+							<?endif;?>
 							</span>	
 						</div>
 						<?endif;?>
