@@ -47,6 +47,15 @@
         box-sizing: border-box;
     }
 
+    /* PEEK: если акций больше одной — следующий слайд выглядывает справа.
+       Левый край — вровень с остальным контентом (без бокового отступа). */
+    .akciya-slider-wrap.is-peek .akciya-slider-track { gap: 12px; }
+    .akciya-slider-wrap.is-peek .akciya-slider-track .col-md-3 {
+        flex: 0 0 88%;
+        width: 88%;
+        max-width: 88%;
+    }
+
     /* Картинка */
     .akciya-slider-track .col-md-3 picture,
     .akciya-slider-track .col-md-3 img {
@@ -197,11 +206,13 @@
         var total = slides.length;
         if (total <= 1) {
             dotsContainer.style.display = 'none';
+            wrap.classList.remove('is-peek');
             return;
         }
+        dotsContainer.style.display = '';
+        wrap.classList.add('is-peek');
 
         var current = 0;
-        var PADDING = 15;
 
         // Создаём точки
         dotsContainer.innerHTML = '';
@@ -218,7 +229,13 @@
         function goTo(idx) {
             current = idx;
             var slideW = slides[0].offsetWidth;
-            track.style.transform = 'translateX(-' + (slideW * current) + 'px)';
+            var gapStr = getComputedStyle(track).columnGap || getComputedStyle(track).gap || '0';
+            var gap = parseFloat(gapStr) || 0;
+            var step = slideW + gap;
+            // не переезжаем дальше правого края (последний слайд встаёт вровень справа)
+            var maxT = Math.max(track.scrollWidth - track.parentElement.clientWidth, 0);
+            var t = Math.min(step * current, maxT);
+            track.style.transform = 'translateX(-' + t + 'px)';
             var dots = dotsContainer.querySelectorAll('button');
             dots.forEach(function(d, i) {
                 d.classList.toggle('active', i === current);

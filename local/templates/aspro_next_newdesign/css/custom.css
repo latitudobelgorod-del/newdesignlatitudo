@@ -3185,23 +3185,36 @@ div[id*="prop_169"] span.bx_item_section_name > span, div[id*="prop_311"] span.b
 
 div[id*="prop_169"] {/*display:none;*/}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Мобильный: таблицы sprint.editor прокручиваются по горизонтали внутри блока,
+   чтобы широкая таблица не растягивала страницу и не ломала шапку */
+@media (max-width: 767px) {
+    .sp-block-table {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+    }
+    .sp-block-table table {
+        min-width: 520px;
+    }
+}
+
 /* Пункт «Заявить рекламацию» убран из десктопного меню (nav.mega-menu).
    В мобильном меню (.mobilemenu-v1) и в подвале ссылка остаётся */
 .mega-menu .menu-item.reklamacii_menu {
     display: none !important;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
