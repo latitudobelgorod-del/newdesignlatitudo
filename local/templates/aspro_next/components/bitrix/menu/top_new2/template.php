@@ -248,24 +248,26 @@ $iVisibleItemsMenu = ($arTheme['MAX_VISIBLE_ITEMS_MENU']['VALUE'] ? $arTheme['MA
                         continue;
                     }
                     $sLandingUrl = trim((string)$arLanding['PROPERTY_CPY_FILTER_TAG_VALUE']);
-                    if ($sLandingUrl !== '') {
+                    // Один и тот же URL встречается у разных посадочных (опечатка в CPY_FILTER_TAG),
+                    // поэтому занятый ключ не перезаписываем — иначе картинка достанется чужой ссылке.
+                    if ($sLandingUrl !== '' && !isset($GLOBALS['MEGAMENU_LANDING_PICS']['URL'][rtrim($sLandingUrl, '/') . '/'])) {
                         $GLOBALS['MEGAMENU_LANDING_PICS']['URL'][rtrim($sLandingUrl, '/') . '/'] = $arLanding['PREVIEW_PICTURE'];
                     }
                     $GLOBALS['MEGAMENU_LANDING_PICS']['NAME'][mb_strtolower(trim($arLanding['NAME']))] = $arLanding['PREVIEW_PICTURE'];
                 }
             }
 
+            // Сначала ищем по названию: текст ссылки в меню пишется по названию посадочной,
+            // и это надёжнее URL, который в данных бывает заполнен с ошибкой.
             $landingPictureID = 0;
-            if (preg_match('/href\s*=\s*["\']([^"\']+)["\']/i', $linkAttributes, $arHrefMatch)) {
+            $sMenuText = mb_strtolower(trim($linkText));
+            if (isset($GLOBALS['MEGAMENU_LANDING_PICS']['NAME'][$sMenuText])) {
+                $landingPictureID = $GLOBALS['MEGAMENU_LANDING_PICS']['NAME'][$sMenuText];
+            }
+            if (!$landingPictureID && preg_match('/href\s*=\s*["\']([^"\']+)["\']/i', $linkAttributes, $arHrefMatch)) {
                 $sMenuHref = rtrim(trim($arHrefMatch[1]), '/') . '/';
                 if (isset($GLOBALS['MEGAMENU_LANDING_PICS']['URL'][$sMenuHref])) {
                     $landingPictureID = $GLOBALS['MEGAMENU_LANDING_PICS']['URL'][$sMenuHref];
-                }
-            }
-            if (!$landingPictureID) {
-                $sMenuText = mb_strtolower(trim($linkText));
-                if (isset($GLOBALS['MEGAMENU_LANDING_PICS']['NAME'][$sMenuText])) {
-                    $landingPictureID = $GLOBALS['MEGAMENU_LANDING_PICS']['NAME'][$sMenuText];
                 }
             }
             $arLandingImg = ($landingPictureID ? CFile::ResizeImageGet($landingPictureID, array('width' => 80, 'height' => 80), BX_RESIZE_IMAGE_EXACT) : false);
