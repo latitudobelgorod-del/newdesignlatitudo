@@ -231,15 +231,58 @@ $iVisibleItemsMenu = ($arTheme['MAX_VISIBLE_ITEMS_MENU']['VALUE'] ? $arTheme['MA
             }
             
             // Создаем новую ссылку с теми же атрибутами, но с новой структурой внутри
+            // Такая ссылка ведёт на посадочную страницу каталога (ИБ 21 «Посадочные в каталоге»),
+            // а не на раздел, поэтому картинки раздела у неё нет — берём анонсную картинку посадочной.
+            // Сопоставляем по свойству CPY_FILTER_TAG (в нём тот же URL), запасной вариант — по названию.
+            if (!isset($GLOBALS['MEGAMENU_LANDING_PICS'])) {
+                $GLOBALS['MEGAMENU_LANDING_PICS'] = array('URL' => array(), 'NAME' => array());
+                $rsLandings = CIBlockElement::GetList(
+                    array(),
+                    array('IBLOCK_ID' => 21, 'ACTIVE' => 'Y'),
+                    false,
+                    false,
+                    array('ID', 'NAME', 'PREVIEW_PICTURE', 'PROPERTY_CPY_FILTER_TAG')
+                );
+                while ($arLanding = $rsLandings->Fetch()) {
+                    if (!$arLanding['PREVIEW_PICTURE']) {
+                        continue;
+                    }
+                    $sLandingUrl = trim((string)$arLanding['PROPERTY_CPY_FILTER_TAG_VALUE']);
+                    if ($sLandingUrl !== '') {
+                        $GLOBALS['MEGAMENU_LANDING_PICS']['URL'][rtrim($sLandingUrl, '/') . '/'] = $arLanding['PREVIEW_PICTURE'];
+                    }
+                    $GLOBALS['MEGAMENU_LANDING_PICS']['NAME'][mb_strtolower(trim($arLanding['NAME']))] = $arLanding['PREVIEW_PICTURE'];
+                }
+            }
+
+            $landingPictureID = 0;
+            if (preg_match('/href\s*=\s*["\']([^"\']+)["\']/i', $linkAttributes, $arHrefMatch)) {
+                $sMenuHref = rtrim(trim($arHrefMatch[1]), '/') . '/';
+                if (isset($GLOBALS['MEGAMENU_LANDING_PICS']['URL'][$sMenuHref])) {
+                    $landingPictureID = $GLOBALS['MEGAMENU_LANDING_PICS']['URL'][$sMenuHref];
+                }
+            }
+            if (!$landingPictureID) {
+                $sMenuText = mb_strtolower(trim($linkText));
+                if (isset($GLOBALS['MEGAMENU_LANDING_PICS']['NAME'][$sMenuText])) {
+                    $landingPictureID = $GLOBALS['MEGAMENU_LANDING_PICS']['NAME'][$sMenuText];
+                }
+            }
+            $arLandingImg = ($landingPictureID ? CFile::ResizeImageGet($landingPictureID, array('width' => 80, 'height' => 80), BX_RESIZE_IMAGE_EXACT) : false);
+
             echo '<a ' . $linkAttributes . '>';
             echo '<div class="megamenu-card-img">';
-            echo '<div class="megamenu-card-img-placeholder">';
-            echo '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1">';
-            echo '<rect x="2" y="2" width="20" height="20" rx="2"/>';
-            echo '<circle cx="8.5" cy="8.5" r="2.5"/>';
-            echo '<path d="M21 15L16 10L5 21"/>';
-            echo '</svg>';
-            echo '</div>';
+            if (is_array($arLandingImg) && $arLandingImg['src']) {
+                echo '<img src="' . $arLandingImg['src'] . '" alt="' . htmlspecialchars($linkText) . '">';
+            } else {
+                echo '<div class="megamenu-card-img-placeholder">';
+                echo '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1">';
+                echo '<rect x="2" y="2" width="20" height="20" rx="2"/>';
+                echo '<circle cx="8.5" cy="8.5" r="2.5"/>';
+                echo '<path d="M21 15L16 10L5 21"/>';
+                echo '</svg>';
+                echo '</div>';
+            }
             echo '</div>';
             echo '<div class="megamenu-card-name">' . htmlspecialchars($linkText) . '</div>';
             echo '</a>';
