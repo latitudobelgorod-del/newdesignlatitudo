@@ -81,6 +81,9 @@
     font-weight: 500;
     font-size: 18px;
     line-height: 25px;
+    /* В макете текст тега набран строчными, а капс задан стилем (textCase: UPPER).
+       Держим так же: в админке правится обычный текст, регистр даёт CSS. */
+    text-transform: uppercase;
     white-space: nowrap;
 }
 .nd-materials__foot {
