@@ -50,7 +50,16 @@
 								<?// .container?>
 							<?else:?>
 							
-								<?CNext::ShowPageType('indexblocks');?>
+								<?// Блоки главной для нового дизайна лежат в /indexblocks_newdesign.php —
+								// все правки главной делаем там. Настройка темы INDEX_TYPE общая на сайт,
+								// поэтому переключить её только для этого шаблона нельзя.
+								// Если своего файла нет, работает штатный выбор по INDEX_TYPE.
+								$ndIndexBlocks = $_SERVER['DOCUMENT_ROOT'].SITE_DIR.'indexblocks_newdesign.php';
+								if (file_exists($ndIndexBlocks)) {
+									include $ndIndexBlocks;
+								} else {
+									CNext::ShowPageType('indexblocks');
+								}?>
 							<?endif;?>
 							<?CNext::get_banners_position('CONTENT_BOTTOM');?>
 						</div> <?// .middle?>
