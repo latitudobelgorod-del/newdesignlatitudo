@@ -72,8 +72,16 @@
     grid-area: slider;
     overflow: hidden;
 }
+/* До инициализации скрипта логотипы лежат плоским списком — показываем их сеткой,
+   чтобы блок был читаемым и без JS. Скрипт добавляет --slider и режет список на слайды. */
 .nd-brands__track {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 24px;
+}
+.nd-brands__track--slider {
     display: flex;
+    gap: 0;
     transition: transform 0.35s ease;
 }
 .nd-brands__slide {
@@ -117,6 +125,7 @@
         font-size: 40px;
         line-height: 46px;
     }
+    .nd-brands__track,
     .nd-brands__slide {
         grid-template-columns: repeat(3, 1fr);
     }
@@ -141,6 +150,7 @@
         width: 100%;
         padding: 12px;
     }
+    .nd-brands__track,
     .nd-brands__slide {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
