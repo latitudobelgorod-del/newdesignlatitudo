@@ -20,14 +20,25 @@
 .nd-materials {
     padding: 36px 0;
 }
+/* Фон во всю ширину экрана. Три линейных градиента поверх фото — как в макете:
+   диагональный к верхнему левому углу (0.9), справа внутрь (0.9), слева внутрь (0.5). */
+.nd-materials__bg {
+    background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 34%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0) 88%, rgba(0, 0, 0, 0.9) 100%),
+        linear-gradient(332deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.9) 100%),
+        #2b2b2b url("../images/newdesign/materials_bg.jpg") center center / cover no-repeat;
+}
+/* Содержимое — в контейнере нового дизайна 1440 */
 .nd-materials__inner {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    max-width: 1440px;
     min-height: 818px;
+    margin: 0 auto;
     padding: 52px;
     color: #fff;
-    background: #2b2b2b url("../images/newdesign/materials_bg.jpg") center center / cover no-repeat;
 }
 .nd-materials__head,
 .nd-materials__foot {

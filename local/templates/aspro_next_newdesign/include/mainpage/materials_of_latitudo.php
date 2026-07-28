@@ -14,6 +14,8 @@ $ndArea = function ($file, $title) use ($ndIncDir) {
 };
 ?>
 <section class="nd-materials">
+	<?// Фон с градиентами тянется во всю ширину экрана, содержимое — в контейнере 1440 ?>
+	<div class="nd-materials__bg">
 	<div class="nd-materials__inner">
 		<div class="nd-materials__head">
 			<h2 class="nd-materials__title"><? $ndArea('materials_title.php', 'Материалы: заголовок'); ?></h2>
@@ -28,5 +30,6 @@ $ndArea = function ($file, $title) use ($ndIncDir) {
 			<div class="nd-materials__advantages"><? $ndArea('materials_advantages.php', 'Материалы: преимущества'); ?></div>
 			<div class="nd-materials__note"><? $ndArea('materials_note.php', 'Материалы: примечание'); ?></div>
 		</div>
+	</div>
 	</div>
 </section>
