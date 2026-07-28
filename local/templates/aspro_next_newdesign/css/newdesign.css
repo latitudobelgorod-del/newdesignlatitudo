@@ -141,6 +141,176 @@ textarea {
 }
 
 /* ============================================================================
+   Главная. Блок «Мы Латитудо» (о компании).
+   Размеры и типографика сняты из макета (Figma «Чистовик», фреймы 1440 и 360).
+   Разметка: include/mainpage/about_company.php этого шаблона.
+
+   Раскладка: в разметке порядок мобильный — текст, фото, цифры. На десктопе
+   фото уезжает в левую колонку и занимает обе строки, поэтому используем grid
+   с явной расстановкой, а не два вложенных столбца.
+   ========================================================================= */
+.nd-about__inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Вторая строка тянется: в макете правая колонка ниже фото, запас остаётся
+       под цифрами, поэтому блок цифр прижат к верху (align-self ниже). */
+    grid-template-rows: auto 1fr;
+    gap: 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 52px;
+    color: #101014;
+}
+.nd-about__text {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    grid-column: 2;
+    grid-row: 1;
+}
+.nd-about__title {
+    margin: 0;
+    padding: 0;
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 57px;
+    color: #101014;
+    /* В макете заголовок набран как «Мы Латитудо», капс задан стилем — держим
+       так же, чтобы в админке правился обычный текст. */
+    text-transform: uppercase;
+}
+.nd-about__desc p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+}
+.nd-about__desc p + p {
+    margin-top: 12px;
+}
+.nd-about__photo {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    min-height: 480px;
+    padding: 28px 24px;
+    border: 1px solid rgba(16, 16, 20, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.nd-about__img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+/* Белая карточка поверх фото с виджетом рейтинга Яндекса.
+   Внутри — iframe 150×50 из регионального свойства, размеры задаёт Яндекс. */
+.nd-about__rating {
+    position: relative;
+    padding: 18px;
+    border-radius: 4px;
+    background: #fff;
+    line-height: 0;
+}
+.nd-about__rating iframe {
+    display: block;
+    border: 0;
+}
+.nd-about__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+}
+.nd-about__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 24px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, 0.05);
+}
+.nd-about__stat-value {
+    font-weight: 500;
+    font-size: 36px;
+    line-height: 40px;
+}
+.nd-about__stat-label {
+    font-size: 12px;
+    line-height: 14px;
+}
+
+/* Планшет: колонки сужаются, заголовок и фото — на размер меньше */
+@media (max-width: 1199px) {
+    .nd-about__inner {
+        padding: 36px;
+    }
+    .nd-about__title {
+        font-size: 40px;
+        line-height: 46px;
+    }
+    .nd-about__photo {
+        min-height: 400px;
+    }
+    .nd-about__stat {
+        padding: 18px 16px;
+    }
+    .nd-about__stat-value {
+        font-size: 30px;
+        line-height: 34px;
+    }
+}
+
+/* Мобильный (макет 360): одна колонка, порядок как в разметке —
+   текст, фото, цифры */
+@media (max-width: 767px) {
+    .nd-about__inner {
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+        gap: 28px;
+        padding: 36px 16px;
+    }
+    .nd-about__text,
+    .nd-about__photo,
+    .nd-about__stats {
+        grid-column: 1;
+        grid-row: auto;
+    }
+    .nd-about__title {
+        font-size: 30px;
+        line-height: 33px;
+    }
+    .nd-about__desc p {
+        font-size: 15px;
+        line-height: 23px;
+    }
+    .nd-about__photo {
+        min-height: 320px;
+        border-radius: 6px;
+    }
+    /* В макете карточка рейтинга растянута по ширине фото, но внутри неё —
+       готовый iframe Яндекса фиксированных 150×50: на всю ширину он оставляет
+       пустое белое поле, поэтому карточка обжимает виджет, как на десктопе. */
+    .nd-about__stats {
+        gap: 4px 5px;
+    }
+    .nd-about__stat {
+        gap: 6px;
+        padding: 16px 12px;
+    }
+    .nd-about__stat-value {
+        font-size: 26px;
+        line-height: 29px;
+    }
+}
+
+/* ============================================================================
    Главная. Блок «Материалы от ЛАТИТУДО — современная замена дереву».
    Размеры и типографика сняты из макета (Figma «Чистовик», фрейм 1440).
    Разметка: include/mainpage/materials_of_latitudo.php этого шаблона.
