@@ -1,0 +1,131 @@
+/* Бренды на главной нового дизайна. Размеры из макета Figma (фрейм 1440). */
+.nd-brands {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 52px;
+    background: #fff;
+}
+.nd-brands__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+.nd-brands__title {
+    margin: 0;
+    padding: 0;
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 57px;
+    color: #101014;
+}
+.nd-brands__controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.nd-brands__all {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: #eeeeef;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.nd-brands__all:hover {
+    background: #e2e2e5;
+    color: #101014;
+}
+.nd-brands__counter {
+    padding: 0 8px;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+    white-space: nowrap;
+}
+.nd-brands__nav {
+    display: flex;
+    gap: 8px;
+}
+.nd-brands__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, 0.1);
+    color: #101014;
+    cursor: pointer;
+}
+.nd-brands__arrow:hover {
+    background: rgba(82, 82, 100, 0.2);
+}
+.nd-brands__arrow[disabled] {
+    opacity: 0.4;
+    cursor: default;
+}
+.nd-brands__viewport {
+    overflow: hidden;
+}
+.nd-brands__track {
+    display: flex;
+    transition: transform 0.35s ease;
+}
+.nd-brands__slide {
+    flex: 0 0 100%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 24px;
+}
+.nd-brands__item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 164px;
+    padding: 34px 24px;
+    border: 2px solid rgba(82, 82, 100, 0.15);
+    border-radius: 6px;
+    text-decoration: none;
+}
+.nd-brands__item:hover {
+    border-color: rgba(82, 82, 100, 0.35);
+}
+.nd-brands__logo {
+    max-width: 100%;
+    max-height: 96px;
+    object-fit: contain;
+}
+.nd-brands__name {
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 22px;
+    color: #101014;
+    text-align: center;
+}
+
+@media (max-width: 1199px) {
+    .nd-brands { padding: 36px; gap: 28px; }
+    .nd-brands__title { font-size: 40px; line-height: 46px; }
+    .nd-brands__slide { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 767px) {
+    .nd-brands { padding: 24px 16px; gap: 20px; }
+    .nd-brands__head { flex-wrap: wrap; gap: 12px; }
+    .nd-brands__title { font-size: 28px; line-height: 31px; }
+    .nd-brands__slide { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .nd-brands__item { min-height: 110px; padding: 16px 12px; }
+    .nd-brands__logo { max-height: 60px; }
+}
