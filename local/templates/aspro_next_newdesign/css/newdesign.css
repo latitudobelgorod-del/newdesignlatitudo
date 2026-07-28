@@ -141,6 +141,172 @@ textarea {
 }
 
 /* ============================================================================
+   Главная. Блок «Для профессионалов отрасли».
+   Размеры сняты из макета (Figma «Чистовик», фреймы 20464:369525 и 20504:80668):
+   контейнер 1440 с полями 52, отступ шапки до карточек 52, карточки по 429
+   с зазором 24, внутри 24 и 36 между текстом и кнопкой.
+   ========================================================================= */
+.nd-pro {
+    display: flex;
+    flex-direction: column;
+    gap: 52px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 52px;
+    background: #fff;
+    color: #101014;
+}
+.nd-pro__head {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.nd-pro__title {
+    margin: 0;
+    padding: 0;
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 57px;
+    color: #101014;
+}
+/* Подзаголовок есть только в мобильном макете */
+.nd-pro__subtitle {
+    display: none;
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 24px;
+    color: #8f8f9a;
+}
+.nd-pro__list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+/* Карточка целиком — ссылка. При наведении заливается красным, а текст,
+   иконка и кнопка белеют: иконки из макета отдают цвет через currentColor. */
+.nd-pro__card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 36px;
+    padding: 24px;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, 0.1);
+    color: #101014;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.nd-pro__card:hover,
+.nd-pro__card:focus {
+    background: #c60000;
+    color: #fff;
+    text-decoration: none;
+}
+.nd-pro__body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 36px;
+}
+.nd-pro__text {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.nd-pro__name {
+    font-weight: 800;
+    font-size: 36px;
+    line-height: 40px;
+}
+.nd-pro__desc {
+    font-size: 18px;
+    line-height: 25px;
+}
+.nd-pro__icon {
+    flex: 0 0 auto;
+    width: 72px;
+    height: 72px;
+}
+.nd-pro__more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    min-width: 120px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, 0.1);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    transition: background-color 0.2s ease;
+}
+.nd-pro__card:hover .nd-pro__more,
+.nd-pro__card:focus .nd-pro__more {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Планшет: карточки в две колонки, заголовок мельче */
+@media (max-width: 1199px) {
+    .nd-pro {
+        gap: 36px;
+        padding: 36px;
+    }
+    .nd-pro__title {
+        font-size: 40px;
+        line-height: 46px;
+    }
+    .nd-pro__list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .nd-pro__name {
+        font-size: 30px;
+        line-height: 34px;
+    }
+}
+
+/* Мобильный (макет 360): одна колонка, появляется подзаголовок,
+   кнопки «Подробнее» в карточках нет */
+@media (max-width: 767px) {
+    .nd-pro {
+        gap: 28px;
+        padding: 36px 16px;
+    }
+    .nd-pro__title {
+        font-size: 28px;
+        line-height: 31px;
+    }
+    .nd-pro__subtitle {
+        display: block;
+    }
+    .nd-pro__list {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .nd-pro__card {
+        gap: 24px;
+    }
+    .nd-pro__body {
+        gap: 24px;
+    }
+    .nd-pro__name {
+        font-size: 26px;
+        line-height: 29px;
+    }
+    .nd-pro__desc {
+        font-size: 17px;
+        line-height: 24px;
+    }
+    .nd-pro__icon {
+        width: 44px;
+        height: 44px;
+    }
+    .nd-pro__more {
+        display: none;
+    }
+}
+
+/* ============================================================================
    Главная. Блок «Мы Латитудо» (о компании).
    Размеры и типографика сняты из макета (Figma «Чистовик», фреймы 1440 и 360).
    Разметка: include/mainpage/about_company.php этого шаблона.
