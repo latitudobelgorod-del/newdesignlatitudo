@@ -139,36 +139,47 @@
         padding: 60px 16px 24px;
     }
     .nd-materials__head {
-        gap: 20px;
+        gap: 32px;
     }
     .nd-materials__title {
         font-size: 28px;
         line-height: 31px;
     }
+    /* В мобильном макете заголовок переносится сам по ширине 328,
+       жёсткий перенос из десктопа здесь не нужен */
+    .nd-materials__title br {
+        display: none;
+    }
     .nd-materials__composition-label,
     .nd-materials__note {
-        font-size: 16px;
-        line-height: 22px;
+        font-size: 17px;
+        line-height: 24px;
     }
     .nd-materials__tag {
-        padding: 4px 10px;
-        font-size: 14px;
-        line-height: 20px;
-        white-space: normal;
+        padding: 6px 14px;
+        font-size: 17px;
+        line-height: 24px;
+        white-space: nowrap;
     }
     .nd-materials__foot {
         gap: 24px;
     }
+    /* Преимущества в мобильном — в две колонки, как в макете */
     .nd-materials__advantages {
-        flex-direction: column;
-        gap: 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px 24px;
     }
     .nd-materials__item {
-        flex: 1 1 auto;
+        flex: none;
     }
     .nd-materials__item-title {
         margin-bottom: 8px;
-        font-size: 22px;
-        line-height: 28px;
+        font-size: 20px;
+        line-height: 26px;
+    }
+    .nd-materials__item-text {
+        font-size: 14px;
+        line-height: 20px;
     }
 }
