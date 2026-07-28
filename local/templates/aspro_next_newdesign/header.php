@@ -61,6 +61,9 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 	<?endif;?>
 
 	<?$arTheme = $APPLICATION->IncludeComponent("aspro:theme.next", ".default", array("COMPONENT_TEMPLATE" => ".default"), false, array("HIDE_ICONS" => "Y"));?>
+	<?// Стили нового дизайна. Подключаем после theme.next (он подключает custom.css),
+	// чтобы наши правила шли в сборке позже и перебивали старые.
+	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign.css', true);?>
 	<?include_once('defines.php');?>
 	<?CNext::SetJSOptions();?>
 <?CNext::ShowPageType('search_title_component');?>
