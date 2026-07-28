@@ -1,0 +1,53 @@
+<? if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die(); ?>
+<?
+/**
+ * Блок «Полезно знать» на главной нового дизайна — статьи инфоблока «Материалы».
+ *
+ * Отбор идёт по свойству SHOW_ON_MAINPAGE («да» / «нет», по умолчанию «нет») —
+ * фильтр собирается в include/mainpage/articles_mainpage.php шаблона.
+ * Если отмеченных статей нет, блок не выводится совсем — вместе с заголовком
+ * и кнопкой, чтобы на главной не оставалась пустая шапка.
+ *
+ * Стили лежат рядом (style.css) — Битрикс подключает их сам.
+ */
+$this->setFrameMode(true);
+
+if (!$arResult['ITEMS']) {
+    return;
+}
+
+$allUrl = trim($arParams['ALL_URL'] ?? '') ?: SITE_DIR.'materials/';
+$badge = trim($arParams['BADGE_TEXT'] ?? '') ?: 'Статья';
+?>
+<section class="nd-articles">
+	<div class="nd-articles__head">
+		<h2 class="nd-articles__title"><?= $arParams['TITLE_BLOCK'] ?: 'Полезно знать' ?></h2>
+		<a class="nd-articles__all" href="<?= $allUrl ?>">Смотреть все</a>
+	</div>
+
+	<div class="nd-articles__list">
+		<? foreach ($arResult['ITEMS'] as $arItem): ?>
+			<?
+			$this->AddEditAction($arItem['ID'], $arItem['EDIT_LINK'], CIBlock::GetArrayByID($arItem['IBLOCK_ID'], 'ELEMENT_EDIT'));
+
+			$src = '';
+			if (is_array($arItem['PREVIEW_PICTURE'])) {
+				$src = $arItem['PREVIEW_PICTURE']['SRC'];
+			} elseif (is_array($arItem['DETAIL_PICTURE'])) {
+				$src = $arItem['DETAIL_PICTURE']['SRC'];
+			}
+			$link = $arItem['DETAIL_PAGE_URL'];
+			$tag = $link ? 'a' : 'div';
+			?>
+			<<?= $tag ?> class="nd-articles__item"<?= $link ? ' href="'.$link.'"' : '' ?> id="<?= $this->GetEditAreaId($arItem['ID']) ?>">
+				<div class="nd-articles__pic">
+					<? if ($src): ?>
+						<img class="nd-articles__img" src="<?= $src ?>" alt="<?= $arItem['NAME'] ?>" loading="lazy">
+					<? endif; ?>
+					<span class="nd-articles__badge"><?= $badge ?></span>
+				</div>
+				<div class="nd-articles__name"><?= $arItem['NAME'] ?></div>
+			</<?= $tag ?>>
+		<? endforeach; ?>
+	</div>
+</section>
