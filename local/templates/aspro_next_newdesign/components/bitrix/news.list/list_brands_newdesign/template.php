@@ -16,8 +16,8 @@ $slides = array_chunk($arResult['ITEMS'], $perSlide);
 $allUrl = trim($arParams['ALL_URL'] ?? '') ?: SITE_DIR.'brands/';
 ?>
 <div class="nd-brands" data-nd-brands>
-	<?// Плоская разметка — раскладку задаёт grid: на десктопе всё в одну строку,
-	   на мобильном кнопка «Смотреть все» уходит под слайдер во всю ширину ?>
+	<?/* Плоская разметка — раскладку задаёт grid: на десктопе всё в одну строку,
+	   на мобильном кнопка «Смотреть все» уходит под слайдер во всю ширину */?>
 	<h2 class="nd-brands__title"><?= $arParams['TITLE_BLOCK'] ?: 'Бренды' ?></h2>
 
 	<a class="nd-brands__all" href="<?= $allUrl ?>">Смотреть все</a>
