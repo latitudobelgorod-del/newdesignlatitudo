@@ -16,25 +16,22 @@ $slides = array_chunk($arResult['ITEMS'], $perSlide);
 $allUrl = trim($arParams['ALL_URL'] ?? '') ?: SITE_DIR.'brands/';
 ?>
 <div class="nd-brands" data-nd-brands>
-	<div class="nd-brands__head">
-		<h2 class="nd-brands__title"><?= $arParams['TITLE_BLOCK'] ?: 'Бренды' ?></h2>
+	<?// Плоская разметка — раскладку задаёт grid: на десктопе всё в одну строку,
+	   на мобильном кнопка «Смотреть все» уходит под слайдер во всю ширину ?>
+	<h2 class="nd-brands__title"><?= $arParams['TITLE_BLOCK'] ?: 'Бренды' ?></h2>
 
-		<div class="nd-brands__controls">
-			<a class="nd-brands__all" href="<?= $allUrl ?>">Смотреть все</a>
+	<a class="nd-brands__all" href="<?= $allUrl ?>">Смотреть все</a>
 
-			<? if (count($slides) > 1): ?>
-				<span class="nd-brands__counter" data-nd-brands-counter>01/<?= str_pad(count($slides), 2, '0', STR_PAD_LEFT) ?></span>
-				<div class="nd-brands__nav">
-					<button type="button" class="nd-brands__arrow nd-brands__arrow--prev" data-nd-brands-prev aria-label="Предыдущие бренды">
-						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-					</button>
-					<button type="button" class="nd-brands__arrow nd-brands__arrow--next" data-nd-brands-next aria-label="Следующие бренды">
-						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-					</button>
-				</div>
-			<? endif; ?>
+	<? if (count($slides) > 1): ?>
+		<div class="nd-brands__nav">
+			<button type="button" class="nd-brands__arrow nd-brands__arrow--prev" data-nd-brands-prev aria-label="Предыдущие бренды">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+			<button type="button" class="nd-brands__arrow nd-brands__arrow--next" data-nd-brands-next aria-label="Следующие бренды">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
 		</div>
-	</div>
+	<? endif; ?>
 
 	<div class="nd-brands__viewport" data-nd-brands-viewport>
 		<div class="nd-brands__track">
