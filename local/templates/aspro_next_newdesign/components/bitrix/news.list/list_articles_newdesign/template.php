@@ -20,10 +20,11 @@ $allUrl = trim($arParams['ALL_URL'] ?? '') ?: SITE_DIR.'materials/';
 $badge = trim($arParams['BADGE_TEXT'] ?? '') ?: 'Статья';
 ?>
 <section class="nd-articles">
-	<div class="nd-articles__head">
-		<h2 class="nd-articles__title"><?= $arParams['TITLE_BLOCK'] ?: 'Полезно знать' ?></h2>
-		<a class="nd-articles__all" href="<?= $allUrl ?>">Смотреть все</a>
-	</div>
+	<?/* Плоская разметка — раскладку задаёт grid: на десктопе кнопка стоит справа
+	   от заголовка, на мобильном уходит под список во всю ширину */?>
+	<h2 class="nd-articles__title"><?= $arParams['TITLE_BLOCK'] ?: 'Полезно знать' ?></h2>
+
+	<a class="nd-articles__all" href="<?= $allUrl ?>">Смотреть все</a>
 
 	<div class="nd-articles__list">
 		<? foreach ($arResult['ITEMS'] as $arItem): ?>

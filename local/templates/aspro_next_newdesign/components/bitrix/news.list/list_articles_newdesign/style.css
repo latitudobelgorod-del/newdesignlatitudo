@@ -5,22 +5,21 @@
    с зазором 24, картинка 429×296, заголовок карточки 18/22.
    ========================================================================= */
 .nd-articles {
-    display: flex;
-    flex-direction: column;
-    gap: 36px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        "title all"
+        "list  list";
+    gap: 36px 24px;
     max-width: 1440px;
     margin: 0 auto;
     padding: 52px;
     background: #fff;
     color: #101014;
 }
-.nd-articles__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-}
 .nd-articles__title {
+    grid-area: title;
+    align-self: center;
     margin: 0;
     padding: 0;
     font-weight: 800;
@@ -30,6 +29,8 @@
 }
 /* Кнопка «Смотреть все» — та же, что в блоке брендов */
 .nd-articles__all {
+    grid-area: all;
+    align-self: center;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -51,6 +52,7 @@
     text-decoration: none;
 }
 .nd-articles__list {
+    grid-area: list;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
@@ -119,16 +121,16 @@
     }
 }
 
-/* Мобильный (макет 360): одна колонка, кнопка уходит под заголовок */
+/* Мобильный (макет 360): одна колонка, две статьи, кнопка уходит под список */
 @media (max-width: 767px) {
     .nd-articles {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "title"
+            "list"
+            "all";
         gap: 20px;
         padding: 36px 16px;
-    }
-    .nd-articles__head {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
     }
     .nd-articles__title {
         font-size: 30px;
@@ -140,6 +142,11 @@
     .nd-articles__list {
         grid-template-columns: 1fr;
         gap: 20px;
+    }
+    /* На мобильном показываем две статьи из трёх — третью прячем стилями,
+       чтобы разметка и кэш компонента оставались одинаковыми для всех ширин */
+    .nd-articles__item:nth-child(n+3) {
+        display: none;
     }
     .nd-articles__name {
         font-size: 17px;
