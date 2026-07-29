@@ -122,6 +122,22 @@
     line-height: 20px;
     color: var(--nd-muted);
 }
+/* метка города — в стиле светлых блоков дизайна: заливка 5 %, радиус 4 */
+.nd-reviews__city {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .05);
+    color: #525264;
+    font-size: 14px;
+    line-height: 20px;
+    white-space: nowrap;
+}
+.nd-reviews__city svg {
+    flex: 0 0 auto;
+}
 
 /* ---------- лента фото в карточке ---------- */
 .nd-reviews__photos {

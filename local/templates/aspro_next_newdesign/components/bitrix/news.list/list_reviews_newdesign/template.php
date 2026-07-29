@@ -240,6 +240,18 @@ $ndResetUrl = $APPLICATION->GetCurPage(false);
 					if ($dateText) {
 						$metaHtml .= '<span class="nd-reviews__date">'.htmlspecialcharsbx($dateText).'</span>';
 					}
+					// город отзыва — меткой; название берём из справочника,
+					// собранного для фильтра, поэтому лишних запросов нет
+					$cityId = (int) ($arItem['PROPERTIES']['CITY_REVIEW']['VALUE'] ?? 0);
+					$cityName = $cityId ? ($ndStat['cityNames'][$cityId] ?? '') : '';
+					if ($cityName) {
+						$metaHtml .= '<span class="nd-reviews__city">'
+							.'<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+							.'<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
+							.' d="M12 21s7-5.686 7-11a7 7 0 1 0-14 0c0 5.314 7 11 7 11"/>'
+							.'<circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>'
+							.htmlspecialcharsbx($cityName).'</span>';
+					}
 					?>
 					<article class="nd-reviews__card" id="<?= $this->GetEditAreaId($arItem['ID']) ?>">
 						<header class="nd-reviews__head">
