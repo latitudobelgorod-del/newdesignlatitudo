@@ -8,6 +8,12 @@
    list_reviews_newdesign, его подключает template.php.
    ========================================================================= */
 .nd-mreviews {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "titles all"
+        "list   list";
+    gap: 36px 16px;
     max-width: 1440px;
     margin: 0 auto;
     padding: 52px;
@@ -15,14 +21,8 @@
     font-family: 'Nunito Sans', Arial, sans-serif;
     color: #101014;
 }
-.nd-mreviews__head {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 36px;
-}
 .nd-mreviews__titles {
+    grid-area: titles;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -44,7 +44,8 @@
 }
 /* Кнопка «Смотреть все» — та же, что в блоках статей и брендов */
 .nd-mreviews__all {
-    flex: 0 0 auto;
+    grid-area: all;
+    align-self: end; /* по макету кнопка выровнена по низу заголовков */
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -66,6 +67,7 @@
     text-decoration: none;
 }
 .nd-mreviews__list {
+    grid-area: list;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px;
@@ -92,17 +94,25 @@
 
 @media (max-width: 767px) {
     .nd-mreviews {
+        /* кнопка уходит под список во всю ширину */
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "titles"
+            "list"
+            "all";
+        gap: 20px;
         padding: 32px 16px;
     }
-    .nd-mreviews__head {
-        /* на мобильном кнопка уходит под заголовки во всю ширину */
-        flex-direction: column;
-        align-items: stretch;
-        gap: 16px;
-        margin-bottom: 24px;
+    .nd-mreviews__all {
+        width: 100%;
     }
     .nd-mreviews__titles {
         gap: 8px;
+    }
+    /* На мобильном показываем два отзыва из трёх — третий прячем стилями,
+       чтобы разметка и кэш компонента оставались одинаковыми для всех ширин */
+    .nd-mreviews__list .nd-reviews__card:nth-child(n+3) {
+        display: none;
     }
     .nd-mreviews__title {
         font-size: 28px;

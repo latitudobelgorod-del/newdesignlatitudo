@@ -56,15 +56,16 @@ $ndSubtitle = trim((string) $arParams['SUBTITLE_BLOCK']);
 $ndAllUrl = trim((string) $arParams['ALL_URL']) ?: SITE_DIR.'company/reviews/';
 ?>
 <section class="nd-mreviews">
-	<div class="nd-mreviews__head">
-		<div class="nd-mreviews__titles">
-			<h2 class="nd-mreviews__title"><?= htmlspecialcharsbx($ndTitle) ?></h2>
-			<? if ($ndSubtitle): ?>
-				<div class="nd-mreviews__subtitle"><?= htmlspecialcharsbx($ndSubtitle) ?></div>
-			<? endif; ?>
-		</div>
-		<a class="nd-mreviews__all" href="<?= $ndAllUrl ?>">Смотреть все</a>
+	<?/* Плоская разметка — раскладку задаёт grid: на десктопе кнопка стоит справа
+	   от заголовков, на мобильном уходит под список во всю ширину */?>
+	<div class="nd-mreviews__titles">
+		<h2 class="nd-mreviews__title"><?= htmlspecialcharsbx($ndTitle) ?></h2>
+		<? if ($ndSubtitle): ?>
+			<div class="nd-mreviews__subtitle"><?= htmlspecialcharsbx($ndSubtitle) ?></div>
+		<? endif; ?>
 	</div>
+
+	<a class="nd-mreviews__all" href="<?= $ndAllUrl ?>">Смотреть все</a>
 
 	<div class="nd-mreviews__list">
 		<? foreach ($arResult['ITEMS'] as $arItem): ?>
