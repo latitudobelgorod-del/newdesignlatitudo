@@ -1,0 +1,144 @@
+/* ============================================================================
+   Страница «Портфолио» нового дизайна: сетка проектов.
+   Размеры из макета (Figma «Чистовик», фрейм 20517:160693): контент 1336,
+   три карточки в ряд по 429 с зазором 24, картинка со скруглением 6,
+   плашки поверх картинки, подпись под ней.
+   ========================================================================= */
+.nd-projects {
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    color: #101014;
+}
+.nd-projects__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+.nd-projects__item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-projects__item:hover,
+.nd-projects__item:focus {
+    color: #101014;
+    text-decoration: none;
+}
+.nd-projects__pic {
+    position: relative;
+    display: block;
+    aspect-ratio: 429 / 272;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .08);
+    overflow: hidden;
+}
+.nd-projects__pic img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .25s ease;
+}
+.nd-projects__item:hover .nd-projects__pic img {
+    transform: scale(1.03);
+}
+
+/* --- ярлык производителя, сверху слева --- */
+.nd-projects__brand {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: #fff;
+    color: #101014;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+/* логотип бренда — тем же файлом, что и в старом дизайне */
+.nd-projects__brand--brand_easydecking::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    background: url(/images/logo_brand_easy.png) no-repeat center / contain;
+}
+
+/* --- плашки снизу слева --- */
+.nd-projects__tags {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.nd-projects__tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    white-space: nowrap;
+}
+.nd-projects__tag--video {
+    background: #0057ff;
+    color: #fff;
+}
+.nd-projects__tag--photo {
+    background: rgba(255, 255, 255, .92);
+    color: #c60000;
+}
+.nd-projects__tag--review {
+    background: #c60000;
+    color: #fff;
+}
+
+.nd-projects__name {
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 400;
+}
+.nd-projects__empty {
+    margin: 0;
+    font-size: 18px;
+    line-height: 25px;
+    color: #8f8f9a;
+}
+.nd-projects__nav {
+    margin-top: 40px;
+}
+
+@media (max-width: 1199px) {
+    .nd-projects__list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-projects__list {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+    .nd-projects__name {
+        font-size: 15px;
+        line-height: 20px;
+    }
+    .nd-projects__nav {
+        margin-top: 24px;
+    }
+}
