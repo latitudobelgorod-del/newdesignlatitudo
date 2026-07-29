@@ -16,6 +16,28 @@ if (!CModule::IncludeModule('iblock')) {
 	return;
 }
 
+/* Акции привязаны к регионам свойством LINK_REGION «Показывать акцию только
+   в этих регионах». Показываем те, что относятся к текущему региону, плюс
+   акции без привязки — они общие для всех. Если регион не определился,
+   фильтр не ставим, иначе главная останется без блока. */
+$GLOBALS['arNdSalesFilter'] = [];
+if (class_exists('CNextRegionality')) {
+	$ndRegion = CNextRegionality::getCurrentRegion();
+	$ndRegionId = is_array($ndRegion) ? (int) ($ndRegion['ID'] ?? 0) : 0;
+	if ($ndRegionId) {
+		// ИЛИ обязательно вкладывать подгруппой: на верхнем уровне оно
+		// распространится на весь фильтр компонента, включая IBLOCK_ID,
+		// и в выборку полезут элементы других инфоблоков
+		$GLOBALS['arNdSalesFilter'] = [
+			[
+				'LOGIC' => 'OR',
+				['PROPERTY_LINK_REGION' => $ndRegionId],
+				['PROPERTY_LINK_REGION' => false],
+			],
+		];
+	}
+}
+
 $APPLICATION->IncludeComponent(
 	'bitrix:news.list',
 	'list_sales_main_newdesign',
@@ -29,13 +51,16 @@ $APPLICATION->IncludeComponent(
 		'SORT_ORDER2' => 'DESC',
 		'FIELD_CODE' => ['ID', 'NAME', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'DATE_ACTIVE_TO'],
 		'PROPERTY_CODE' => [],
-		'FILTER_NAME' => '',
+		'FILTER_NAME' => 'arNdSalesFilter',
 		'CHECK_DATES' => 'Y',
-		'DETAIL_URL' => '',
+		// адрес детальной берём как в настройках инфоблока, иначе ссылка пустая
+		'DETAIL_URL' => SITE_DIR.'sale/#ELEMENT_CODE#/',
 		'AJAX_MODE' => 'N',
 		'CACHE_TYPE' => 'A',
 		'CACHE_TIME' => '36000000',
-		'CACHE_FILTER' => 'N',
+		// фильтр по региону обязан попадать в ключ кэша, иначе все регионы
+		// получат выборку того, кто зашёл первым
+		'CACHE_FILTER' => 'Y',
 		'CACHE_GROUPS' => 'N',
 		'PREVIEW_TRUNCATE_LEN' => '',
 		'ACTIVE_DATE_FORMAT' => 'd.m.Y',
