@@ -1,0 +1,100 @@
+/* ============================================================================
+   Блок «Категории товаров» на главной нового дизайна.
+   Размеры из макета (Figma «Чистовик», фрейм 20463:355525): контейнер 1440
+   с полями 52, отступ заголовка до сетки 36, заголовок 52/57, карточки по 316
+   с зазором 24, картинка квадратная с радиусом 4, подпись 22/26.
+   ========================================================================= */
+.nd-cats {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 52px;
+    background: #fff;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    color: #101014;
+}
+.nd-cats__title {
+    margin: 0 0 36px;
+    padding: 0;
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 57px;
+    color: #101014;
+}
+.nd-cats__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+}
+.nd-cats__item {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-cats__item:hover,
+.nd-cats__item:focus {
+    color: #101014;
+    text-decoration: none;
+}
+.nd-cats__pic {
+    display: block;
+    aspect-ratio: 1 / 1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.nd-cats__pic img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .25s ease;
+}
+.nd-cats__item:hover .nd-cats__pic img {
+    transform: scale(1.03);
+}
+.nd-cats__name {
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 26px;
+}
+
+@media (max-width: 1199px) {
+    .nd-cats {
+        padding: 40px 24px;
+    }
+    .nd-cats__title {
+        margin-bottom: 24px;
+        font-size: 40px;
+        line-height: 46px;
+    }
+    .nd-cats__list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+    }
+    .nd-cats__name {
+        font-size: 18px;
+        line-height: 22px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-cats {
+        padding: 32px 16px;
+    }
+    .nd-cats__title {
+        font-size: 28px;
+        line-height: 34px;
+    }
+    .nd-cats__list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .nd-cats__item {
+        gap: 12px;
+    }
+    .nd-cats__name {
+        font-size: 16px;
+        line-height: 20px;
+    }
+}
