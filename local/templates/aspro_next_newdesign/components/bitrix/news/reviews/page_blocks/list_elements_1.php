@@ -29,10 +29,13 @@ $APPLICATION->IncludeComponent(
 		'IBLOCK_TYPE' => $arParams['IBLOCK_TYPE'],
 		'IBLOCK_ID' => $arParams['IBLOCK_ID'],
 		'NEWS_COUNT' => $arParams['NEWS_COUNT'],
-		'SORT_BY1' => $arParams['SORT_BY1'],
-		'SORT_ORDER1' => $arParams['SORT_ORDER1'],
-		'SORT_BY2' => $arParams['SORT_BY2'],
-		'SORT_ORDER2' => $arParams['SORT_ORDER2'],
+		// Сортировка своя, а не со страницы: там SORT ASC / ID DESC, то есть порядок
+		// импорта. В новом дизайне отзывы идут от свежих по дате самого отзыва.
+		// DATE_REVIEW хранится как «Y-m-d», поэтому строковая сортировка = хронологическая.
+		'SORT_BY1' => 'PROPERTY_DATE_REVIEW',
+		'SORT_ORDER1' => 'DESC',
+		'SORT_BY2' => 'ID',
+		'SORT_ORDER2' => 'DESC',
 		'FIELD_CODE' => $arNdReviewFields,
 		'PROPERTY_CODE' => $arNdReviewProps,
 		'FILTER_NAME' => $arParams['FILTER_NAME'],
