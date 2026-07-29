@@ -110,6 +110,15 @@ $ndCityList = $ndStat['cities'] ?? [];
 arsort($ndCityList);
 
 $ndResetUrl = $APPLICATION->GetCurPage(false);
+
+/* Общий скрипт фильтра и кнопки «Показать ещё» — тот же, что на портфолио.
+   Подключаем тегом здесь: компонент выводится, когда <head> уже отдан. */
+if (!defined('ND_UI_JS')) {
+	define('ND_UI_JS', true);
+	$ndUi = SITE_TEMPLATE_PATH.'/js/newdesign-ui.js';
+	$ndUiAbs = $_SERVER['DOCUMENT_ROOT'].$ndUi;
+	?><script src="<?= $ndUi ?><?= is_file($ndUiAbs) ? '?'.filemtime($ndUiAbs) : '' ?>"></script><?
+}
 ?>
 <form class="nd-filter" method="get" action="<?= $ndResetUrl ?>">
 	<label class="nd-filter__toggle<?= !empty($ndF['photo']) ? ' is-on' : '' ?>">

@@ -22,6 +22,85 @@ $arNdProjectFields = array_values(array_unique(array_filter(array_merge(
 	['ID', 'NAME', 'PREVIEW_PICTURE', 'DETAIL_PICTURE']
 ))));
 
+/* ======================= фильтр над сеткой =======================
+   Состояние держим в GET: review=y, video=y, color[] (XML_ID справочника),
+   brand[] (ID варианта списка). Собранный фильтр кладём в глобальную
+   переменную с именем из FILTER_NAME — её читает news.list. */
+$ndIb = (int) $arParams['IBLOCK_ID'];
+$ndFilterName = $arParams['FILTER_NAME'] ?: 'arProjectFilter';
+
+$ndReview = ($_GET['review'] ?? '') === 'y';
+$ndVideo = ($_GET['video'] ?? '') === 'y';
+$ndColor = array_values(array_filter(array_map('strval', (array) ($_GET['color'] ?? [])), 'strlen'));
+$ndBrand = array_values(array_filter(array_map('intval', (array) ($_GET['brand'] ?? []))));
+
+/* --- списки для выпадающих меню --- */
+$ndColorOptions = [];
+$ndBrandOptions = [];
+
+if ($ndIb) {
+	// цвет — свойство типа «справочник»: имя таблицы лежит в настройках свойства
+	$rsProp = CIBlockProperty::GetList([], ['IBLOCK_ID' => $ndIb, 'CODE' => 'COLOR_IN_FILTER']);
+	if ($prop = $rsProp->Fetch()) {
+		$settings = $prop['USER_TYPE_SETTINGS'];
+		if (is_string($settings)) {
+			$settings = unserialize($settings, ['allowed_classes' => false]);
+		}
+		$table = $settings['TABLE_NAME'] ?? '';
+		if ($table && preg_match('~^[a-z0-9_]+$~i', $table)) {
+			global $DB;
+			$rs = $DB->Query('SELECT UF_XML_ID, UF_NAME FROM '.$table.' ORDER BY UF_SORT, ID');
+			while ($row = $rs->Fetch()) {
+				if ($row['UF_XML_ID'] !== '') {
+					$ndColorOptions[$row['UF_XML_ID']] = $row['UF_NAME'];
+				}
+			}
+		}
+	}
+
+	$rsEnum = CIBlockPropertyEnum::GetList(['SORT' => 'ASC'], ['IBLOCK_ID' => $ndIb, 'CODE' => 'SET_BRAND']);
+	while ($enum = $rsEnum->Fetch()) {
+		$ndBrandOptions[(int) $enum['ID']] = $enum['VALUE'];
+	}
+}
+
+/* --- сам фильтр --- */
+$ndFilter = [];
+if ($ndReview) {
+	$ndFilter['!PROPERTY_REVIEW'] = false;
+}
+if ($ndVideo) {
+	$ndFilter['!PROPERTY_VIDEO'] = false;
+}
+if ($ndBrand) {
+	$ndFilter['PROPERTY_SET_BRAND'] = $ndBrand;
+}
+if ($ndColor) {
+	// COLOR_IN_FILTER множественное: фильтровать по нему напрямую нельзя —
+	// выборка размножит элементы. Собираем ID и фильтруем по ним.
+	$ids = [];
+	$rs = CIBlockElement::GetList([], ['IBLOCK_ID' => $ndIb, 'ACTIVE' => 'Y', 'PROPERTY_COLOR_IN_FILTER' => $ndColor], false, false, ['ID']);
+	while ($r = $rs->Fetch()) {
+		$ids[(int) $r['ID']] = true;
+	}
+	$ndFilter['ID'] = $ids ? array_keys($ids) : [-1];
+}
+
+$GLOBALS[$ndFilterName] = array_merge(
+	is_array($GLOBALS[$ndFilterName] ?? null) ? $GLOBALS[$ndFilterName] : [],
+	$ndFilter
+);
+
+$ndFilterState = [
+	'review' => $ndReview,
+	'video' => $ndVideo,
+	'color' => $ndColor,
+	'brand' => $ndBrand,
+	'colorOptions' => $ndColorOptions,
+	'brandOptions' => $ndBrandOptions,
+	'active' => (bool) ($ndReview || $ndVideo || $ndColor || $ndBrand),
+];
+
 $APPLICATION->IncludeComponent(
 	'bitrix:news.list',
 	'list_projects_newdesign',
@@ -29,6 +108,7 @@ $APPLICATION->IncludeComponent(
 		'IBLOCK_TYPE' => $arParams['IBLOCK_TYPE'],
 		'IBLOCK_ID' => $arParams['IBLOCK_ID'],
 		'NEWS_COUNT' => $arParams['NEWS_COUNT'],
+		'ND_FILTER' => $ndFilterState,
 		'SORT_BY1' => $arParams['SORT_BY1'],
 		'SORT_ORDER1' => $arParams['SORT_ORDER1'],
 		'SORT_BY2' => $arParams['SORT_BY2'],

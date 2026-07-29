@@ -4,9 +4,11 @@
  * 1. Попап полного отзыва. Разметку не собираем на клиенте: у каждой карточки
  *    лежит <template class="nd-reviews__full"> с готовым содержимым, скрипт
  *    просто клонирует его в общее окно #nd-review-modal.
- * 2. Кнопка «Показать ещё» из шаблона навигации pagination_newdesign —
- *    подгружает следующую страницу и дописывает карточки в конец списка.
- *    Кнопка остаётся обычной ссылкой: без JS она просто уводит на страницу 2.
+ * 2. Лента фото в карточке: затемнение со стрелкой, пока есть что листать.
+ *
+ * Фильтр и кнопку «Показать ещё» обслуживает общий js/newdesign-ui.js —
+ * они одинаковые на отзывах и портфолио. После дозагрузки карточек он шлёт
+ * событие nd:appended, по нему пересчитываем ленты фото.
  */
 (function () {
 	'use strict';
@@ -83,48 +85,6 @@
 		}
 	});
 
-	/* ----------------------- фильтры ----------------------- */
-
-	// Со скриптом форма уходит сразу после выбора — кнопки «Применить» прячем.
-	// Раскрытие списков делает сам <details>, нам остаётся закрывать соседние
-	// и клик мимо панели.
-	function initFilter() {
-		var filterForm = document.querySelector('.nd-filter');
-		if (!filterForm || filterForm.classList.contains('is-js')) {
-			return;
-		}
-		filterForm.classList.add('is-js');
-
-		filterForm.addEventListener('change', function () {
-			filterForm.submit();
-		});
-
-		filterForm.addEventListener('toggle', function (e) {
-			if (!e.target.open) {
-				return;
-			}
-			Array.prototype.forEach.call(filterForm.querySelectorAll('.nd-filter__drop[open]'), function (d) {
-				if (d !== e.target) {
-					d.open = false;
-				}
-			});
-		}, true);
-
-		document.addEventListener('click', function (e) {
-			if (filterForm.contains(e.target)) {
-				return;
-			}
-			Array.prototype.forEach.call(filterForm.querySelectorAll('.nd-filter__drop[open]'), function (d) {
-				d.open = false;
-			});
-		});
-	}
-
-	// скрипт шаблона может подключиться до разметки — инициализируем и сразу,
-	// и по готовности документа
-	initFilter();
-	document.addEventListener('DOMContentLoaded', initFilter);
-
 	/* ------------------- лента фото в карточке ------------------- */
 
 	// Затемнение со стрелкой показываем, только пока ленту есть куда листать.
@@ -162,59 +122,6 @@
 	window.addEventListener('resize', syncAllPhotos);
 	window.addEventListener('load', syncAllPhotos);
 	document.addEventListener('DOMContentLoaded', syncAllPhotos);
+	document.addEventListener('nd:appended', syncAllPhotos);
 
-	/* ---------------------- «Показать ещё» ---------------------- */
-
-	var loading = false;
-
-	document.addEventListener('click', function (e) {
-		var more = e.target.closest('[data-nd-pager-more]');
-		if (!more || loading) {
-			return;
-		}
-
-		var list = document.querySelector('.nd-reviews__list');
-		var nav = document.querySelector('.nd-reviews__nav');
-		var href = more.getAttribute('href');
-		if (!list || !nav || !href) {
-			return; // без списка или адреса пусть отработает обычный переход
-		}
-
-		e.preventDefault();
-		loading = true;
-		more.classList.add('is-loading');
-
-		fetch(href, { credentials: 'same-origin' })
-			.then(function (r) {
-				if (!r.ok) {
-					throw new Error('HTTP ' + r.status);
-				}
-				return r.text();
-			})
-			.then(function (html) {
-				var doc = new DOMParser().parseFromString(html, 'text/html');
-				var nextList = doc.querySelector('.nd-reviews__list');
-				var nextNav = doc.querySelector('.nd-reviews__nav');
-				if (!nextList) {
-					throw new Error('в ответе нет списка отзывов');
-				}
-				Array.prototype.slice.call(nextList.children).forEach(function (card) {
-					list.appendChild(document.importNode(card, true));
-				});
-				// навигацию заменяем целиком: у неё сдвинулась текущая страница
-				nav.innerHTML = nextNav ? nextNav.innerHTML : '';
-				syncAllPhotos(); // у дозагруженных карточек тоже есть ленты фото
-				if (window.history && window.history.replaceState) {
-					window.history.replaceState(null, '', href);
-				}
-			})
-			.catch(function () {
-				// не смогли подгрузить — уводим на страницу обычным переходом
-				window.location.href = href;
-			})
-			.then(function () {
-				loading = false;
-				more.classList.remove('is-loading');
-			});
-	});
 })();
