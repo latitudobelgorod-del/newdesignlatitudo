@@ -130,6 +130,75 @@ $ndFull = function ($fileId) {
 	return CFile::GetPath($fileId);
 };
 ?>
+<?
+/* ---------- панель фильтров ----------
+   Оформление как на странице проектов: тумблер, выпадающие списки и сброс.
+   Раскрытие списков — на <details>, чтобы работало и без JS; скрипт только
+   отправляет форму сразу после выбора и закрывает чужие списки. */
+$ndF = is_array($arParams['ND_FILTER']) ? $arParams['ND_FILTER'] : [];
+$ndStat = $ndF['stat'] ?? ['cities' => [], 'cityNames' => [], 'rate' => [], 'photo' => []];
+$ndSelCity = array_flip($ndF['city'] ?? []);
+$ndSelRate = array_flip($ndF['rate'] ?? []);
+$ndRateTitles = ['good' => 'Хорошие', 'neutral' => 'Нейтральные', 'bad' => 'Плохие'];
+
+// города сортируем по числу отзывов — как в макете, от крупных к мелким
+$ndCityList = $ndStat['cities'] ?? [];
+arsort($ndCityList);
+
+$ndResetUrl = $APPLICATION->GetCurPage(false);
+?>
+<form class="nd-filter" method="get" action="<?= $ndResetUrl ?>">
+	<label class="nd-filter__toggle<?= !empty($ndF['photo']) ? ' is-on' : '' ?>">
+		<input type="checkbox" name="photo" value="y"<?= !empty($ndF['photo']) ? ' checked' : '' ?>>
+		<span class="nd-filter__switch" aria-hidden="true"></span>
+		<span class="nd-filter__toggle-text">С фото</span>
+	</label>
+
+	<details class="nd-filter__drop">
+		<summary class="nd-filter__head">
+			<span>Город<?= $ndSelCity ? ' ('.count($ndSelCity).')' : '' ?></span>
+			<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+				<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
+			</svg>
+		</summary>
+		<div class="nd-filter__panel">
+			<? foreach ($ndCityList as $cityId => $cnt): ?>
+				<label class="nd-filter__opt">
+					<input type="checkbox" name="city[]" value="<?= $cityId ?>"<?= isset($ndSelCity[$cityId]) ? ' checked' : '' ?>>
+					<span class="nd-filter__box" aria-hidden="true"></span>
+					<span class="nd-filter__opt-name"><?= htmlspecialcharsbx($ndStat['cityNames'][$cityId] ?? ('#'.$cityId)) ?></span>
+					<span class="nd-filter__opt-cnt"><?= $cnt ?></span>
+				</label>
+			<? endforeach; ?>
+			<button type="submit" class="nd-filter__apply">Применить</button>
+		</div>
+	</details>
+
+	<details class="nd-filter__drop">
+		<summary class="nd-filter__head">
+			<span>Оценка<?= $ndSelRate ? ' ('.count($ndSelRate).')' : '' ?></span>
+			<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+				<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
+			</svg>
+		</summary>
+		<div class="nd-filter__panel">
+			<? foreach ($ndRateTitles as $key => $title): ?>
+				<label class="nd-filter__opt">
+					<input type="checkbox" name="rate[]" value="<?= $key ?>"<?= isset($ndSelRate[$key]) ? ' checked' : '' ?>>
+					<span class="nd-filter__box" aria-hidden="true"></span>
+					<span class="nd-filter__opt-name"><?= $title ?></span>
+					<span class="nd-filter__opt-cnt"><?= (int) ($ndStat['rate'][$key] ?? 0) ?></span>
+				</label>
+			<? endforeach; ?>
+			<button type="submit" class="nd-filter__apply">Применить</button>
+		</div>
+	</details>
+
+	<? if (!empty($ndF['active'])): ?>
+		<a class="nd-filter__reset" href="<?= $ndResetUrl ?>">Сбросить фильтры</a>
+	<? endif; ?>
+</form>
+
 <section class="nd-reviews">
 	<aside class="nd-reviews__summary">
 		<div class="nd-reviews__summary-box">
@@ -144,7 +213,7 @@ $ndFull = function ($fileId) {
 
 	<div class="nd-reviews__main">
 		<? if (!$arResult['ITEMS']): ?>
-			<p class="nd-reviews__empty">Отзывов пока нет.</p>
+			<p class="nd-reviews__empty"><?= !empty($ndF['active']) ? 'По выбранным фильтрам отзывов нет.' : 'Отзывов пока нет.' ?></p>
 		<? else: ?>
 			<div class="nd-reviews__list">
 				<? foreach ($arResult['ITEMS'] as $arItem): ?>

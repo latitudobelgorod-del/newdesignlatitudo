@@ -83,6 +83,48 @@
 		}
 	});
 
+	/* ----------------------- фильтры ----------------------- */
+
+	// Со скриптом форма уходит сразу после выбора — кнопки «Применить» прячем.
+	// Раскрытие списков делает сам <details>, нам остаётся закрывать соседние
+	// и клик мимо панели.
+	function initFilter() {
+		var filterForm = document.querySelector('.nd-filter');
+		if (!filterForm || filterForm.classList.contains('is-js')) {
+			return;
+		}
+		filterForm.classList.add('is-js');
+
+		filterForm.addEventListener('change', function () {
+			filterForm.submit();
+		});
+
+		filterForm.addEventListener('toggle', function (e) {
+			if (!e.target.open) {
+				return;
+			}
+			Array.prototype.forEach.call(filterForm.querySelectorAll('.nd-filter__drop[open]'), function (d) {
+				if (d !== e.target) {
+					d.open = false;
+				}
+			});
+		}, true);
+
+		document.addEventListener('click', function (e) {
+			if (filterForm.contains(e.target)) {
+				return;
+			}
+			Array.prototype.forEach.call(filterForm.querySelectorAll('.nd-filter__drop[open]'), function (d) {
+				d.open = false;
+			});
+		});
+	}
+
+	// скрипт шаблона может подключиться до разметки — инициализируем и сразу,
+	// и по готовности документа
+	initFilter();
+	document.addEventListener('DOMContentLoaded', initFilter);
+
 	/* ------------------- лента фото в карточке ------------------- */
 
 	// Затемнение со стрелкой показываем, только пока ленту есть куда листать.

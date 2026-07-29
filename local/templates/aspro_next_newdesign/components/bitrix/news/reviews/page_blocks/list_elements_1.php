@@ -22,13 +22,96 @@ $arNdReviewFields = array_values(array_unique(array_filter(array_merge(
 	['NAME', 'DETAIL_TEXT', 'DATE_ACTIVE_FROM']
 ))));
 
+/* ======================= фильтры страницы отзывов =======================
+   Состояние держим в GET: city (ID региона), rate (good|neutral|bad),
+   photo (y|n). Счётчики для чипов считаем здесь же одним проходом — шаблону
+   остаётся только нарисовать их, а в ключ кэша компонента они попадают
+   параметром, поэтому кэш сам сбросится, когда отзывов станет больше. */
+$ndIblock = (int) $arParams['IBLOCK_ID'];
+
+/** Группы оценок: как в макете — хорошие 4–5, нейтральные 3, плохие 1–2. */
+$ndRateGroups = ['good' => [4, 5], 'neutral' => [3], 'bad' => [1, 2]];
+
+$ndCity = array_values(array_filter(array_map('intval', (array) ($_GET['city'] ?? []))));
+$ndRate = array_values(array_intersect((array) ($_GET['rate'] ?? []), array_keys($ndRateGroups)));
+$ndPhoto = ($_GET['photo'] ?? '') === 'y';
+
+$ndStat = ['total' => 0, 'cities' => [], 'rate' => ['good' => 0, 'neutral' => 0, 'bad' => 0], 'photo' => ['y' => 0, 'n' => 0]];
+$ndWithPhoto = [];
+
+if ($ndIblock && CModule::IncludeModule('iblock')) {
+	// город и оценка — одиночные свойства, строк ровно столько же, сколько отзывов
+	$rs = CIBlockElement::GetList([], ['IBLOCK_ID' => $ndIblock, 'ACTIVE' => 'Y'], false, false,
+		['ID', 'PROPERTY_CITY_REVIEW', 'PROPERTY_RATING_REVIEW']);
+	while ($r = $rs->Fetch()) {
+		$ndStat['total']++;
+		$cityId = (int) $r['PROPERTY_CITY_REVIEW_VALUE'];
+		if ($cityId) {
+			$ndStat['cities'][$cityId] = ($ndStat['cities'][$cityId] ?? 0) + 1;
+		}
+		$v = (int) round((float) $r['PROPERTY_RATING_REVIEW_VALUE']);
+		if ($v >= 4) {
+			$ndStat['rate']['good']++;
+		} elseif ($v == 3) {
+			$ndStat['rate']['neutral']++;
+		} elseif ($v > 0) {
+			$ndStat['rate']['bad']++;
+		}
+	}
+
+	// PHOTOS_REVIEW — множественное свойство: фильтровать по нему напрямую нельзя,
+	// выборка размножит элементы. Поэтому собираем список ID и фильтруем по нему.
+	$rs = CIBlockElement::GetList([], ['IBLOCK_ID' => $ndIblock, 'ACTIVE' => 'Y', '!PROPERTY_PHOTOS_REVIEW' => false], false, false, ['ID']);
+	while ($r = $rs->Fetch()) {
+		$ndWithPhoto[(int) $r['ID']] = true;
+	}
+	$ndStat['photo']['y'] = count($ndWithPhoto);
+	$ndStat['photo']['n'] = $ndStat['total'] - $ndStat['photo']['y'];
+
+	// названия городов — из инфоблока регионов, на который смотрит CITY_REVIEW
+	if ($ndStat['cities']) {
+		$rs = CIBlockElement::GetList([], ['IBLOCK_ID' => 7, 'ID' => array_keys($ndStat['cities'])], false, false, ['ID', 'NAME']);
+		while ($r = $rs->Fetch()) {
+			$ndStat['cityNames'][(int) $r['ID']] = $r['NAME'];
+		}
+	}
+}
+
+$arNdReviewsFilter = [];
+if ($ndCity) {
+	$arNdReviewsFilter['PROPERTY_CITY_REVIEW'] = $ndCity;
+}
+if ($ndRate) {
+	// несколько групп складываем в один список допустимых оценок
+	$marks = [];
+	foreach ($ndRate as $g) {
+		$marks = array_merge($marks, $ndRateGroups[$g]);
+	}
+	$arNdReviewsFilter['PROPERTY_RATING_REVIEW'] = $marks;
+}
+if ($ndPhoto) {
+	// пустой список превращаем в заведомо несуществующий ID, иначе фильтр отвалится
+	$arNdReviewsFilter['ID'] = $ndWithPhoto ? array_keys($ndWithPhoto) : [-1];
+}
+$GLOBALS['arNdReviewsFilter'] = $arNdReviewsFilter;
+
+$ndFilterState = [
+	'city' => $ndCity,
+	'rate' => $ndRate,
+	'photo' => $ndPhoto,
+	'active' => (bool) ($ndCity || $ndRate || $ndPhoto),
+	'stat' => $ndStat,
+	'groups' => array_keys($ndRateGroups),
+];
+
 $APPLICATION->IncludeComponent(
 	'bitrix:news.list',
 	'list_reviews_newdesign',
 	[
 		'IBLOCK_TYPE' => $arParams['IBLOCK_TYPE'],
 		'IBLOCK_ID' => $arParams['IBLOCK_ID'],
-		'NEWS_COUNT' => $arParams['NEWS_COUNT'],
+		'NEWS_COUNT' => 6, // по макету на странице шесть отзывов
+		'ND_FILTER' => $ndFilterState,
 		// Сортировка своя, а не со страницы: там SORT ASC / ID DESC, то есть порядок
 		// импорта. В новом дизайне отзывы идут от свежих по дате самого отзыва.
 		// DATE_REVIEW хранится как «Y-m-d», поэтому строковая сортировка = хронологическая.
@@ -38,7 +121,7 @@ $APPLICATION->IncludeComponent(
 		'SORT_ORDER2' => 'DESC',
 		'FIELD_CODE' => $arNdReviewFields,
 		'PROPERTY_CODE' => $arNdReviewProps,
-		'FILTER_NAME' => $arParams['FILTER_NAME'],
+		'FILTER_NAME' => 'arNdReviewsFilter',
 		'AJAX_MODE' => 'N',
 		'AJAX_OPTION_JUMP' => 'N',
 		'AJAX_OPTION_STYLE' => 'Y',
@@ -46,7 +129,9 @@ $APPLICATION->IncludeComponent(
 		'AJAX_OPTION_ADDITIONAL' => '',
 		'CACHE_TYPE' => $arParams['CACHE_TYPE'],
 		'CACHE_TIME' => $arParams['CACHE_TIME'],
-		'CACHE_FILTER' => $arParams['CACHE_FILTER'],
+		// со страницы приходит «N», а нам фильтр обязан попадать в ключ кэша,
+		// иначе все выборки склеятся в один кэш
+		'CACHE_FILTER' => 'Y',
 		'CACHE_GROUPS' => $arParams['CACHE_GROUPS'],
 		'PREVIEW_TRUNCATE_LEN' => $arParams['PREVIEW_TRUNCATE_LEN'],
 		'ACTIVE_DATE_FORMAT' => $arParams['LIST_ACTIVE_DATE_FORMAT'],
