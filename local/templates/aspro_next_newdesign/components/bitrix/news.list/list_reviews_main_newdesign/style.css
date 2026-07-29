@@ -1,0 +1,118 @@
+/* ============================================================================
+   Блок «Что говорят о нас» на главной нового дизайна.
+   Размеры из макета (Figma «Чистовик», фрейм 20464:369553): контейнер 1440
+   с полями 52, отступ шапки до карточек 36, заголовок 52/57, подзаголовок 36/40,
+   три карточки по 429 с зазором 24.
+
+   Стили карточки и попапа сюда не дублируются — они приходят из шаблона
+   list_reviews_newdesign, его подключает template.php.
+   ========================================================================= */
+.nd-mreviews {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 52px;
+    background: #fff;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    color: #101014;
+}
+.nd-mreviews__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 36px;
+}
+.nd-mreviews__titles {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+.nd-mreviews__title {
+    margin: 0;
+    padding: 0;
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 57px;
+    color: #101014;
+}
+.nd-mreviews__subtitle {
+    font-weight: 500;
+    font-size: 36px;
+    line-height: 40px;
+    color: #8f8f9a;
+}
+/* Кнопка «Смотреть все» — та же, что в блоках статей и брендов */
+.nd-mreviews__all {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: #eeeeef;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.nd-mreviews__all:hover,
+.nd-mreviews__all:focus {
+    background: #e2e2e5;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-mreviews__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    align-items: stretch;
+}
+
+@media (max-width: 1199px) {
+    .nd-mreviews {
+        padding: 40px 24px;
+    }
+    .nd-mreviews__title {
+        font-size: 40px;
+        line-height: 46px;
+    }
+    .nd-mreviews__subtitle {
+        font-size: 26px;
+        line-height: 32px;
+    }
+    .nd-mreviews__list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-mreviews {
+        padding: 32px 16px;
+    }
+    .nd-mreviews__head {
+        /* на мобильном кнопка уходит под заголовки во всю ширину */
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .nd-mreviews__titles {
+        gap: 8px;
+    }
+    .nd-mreviews__title {
+        font-size: 28px;
+        line-height: 34px;
+    }
+    .nd-mreviews__subtitle {
+        font-size: 18px;
+        line-height: 24px;
+    }
+    .nd-mreviews__list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
