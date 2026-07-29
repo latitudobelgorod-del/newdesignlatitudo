@@ -10,10 +10,12 @@
     gap: 16px;
     font-family: 'Nunito Sans', Arial, sans-serif;
 }
+/* Номера страниц прижаты к левому краю, кнопка «Показать еще» — к правому:
+   так в макете и на отзывах, и на портфолио. */
 .nd-pager__pages {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 2px;
     flex: 1 1 auto;
     flex-wrap: wrap;
@@ -96,6 +98,7 @@
     }
     .nd-pager__pages {
         width: 100%;
+        justify-content: center;
         gap: 0;
     }
     .nd-pager__page,
