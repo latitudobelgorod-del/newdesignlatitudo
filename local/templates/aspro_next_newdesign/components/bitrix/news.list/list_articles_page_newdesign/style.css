@@ -1,0 +1,124 @@
+/* ============================================================================
+   Страница «Статьи» (/materials/) нового дизайна.
+   По макету: контент 1336, четыре карточки в ряд по 316 с зазором 24,
+   картинка со скруглением 4 и плашкой «Статья» в левом нижнем углу,
+   заголовок 18/22 под ней.
+
+   Плашка и картинка повторяют карточку блока «Полезно знать» на главной,
+   но живут отдельно: там сетка из трёх карточек, здесь из четырёх.
+   ========================================================================= */
+.nd-mat {
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    color: #101014;
+}
+
+/* --- ряд ссылок на разделы --- */
+.nd-mat__sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-bottom: 24px;
+}
+.nd-mat__section {
+    color: #c60000;
+    font-size: 16px;
+    line-height: 24px;
+    text-decoration: underline;
+}
+.nd-mat__section:hover,
+.nd-mat__section:focus {
+    color: #a80000;
+    text-decoration: underline;
+}
+
+/* --- сетка --- */
+.nd-mat__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+}
+.nd-mat__item {
+    display: flex;
+    flex-direction: column;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-mat__item:hover,
+.nd-mat__item:focus {
+    color: #101014;
+    text-decoration: none;
+}
+.nd-mat__pic {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    aspect-ratio: 316 / 211;
+    padding: 16px;
+    border-radius: 4px;
+    background: #eeeeef;
+    overflow: hidden;
+}
+.nd-mat__img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.nd-mat__badge {
+    position: relative;
+    padding: 2px 5px;
+    border-radius: 2px;
+    background: #eeeeef;
+    font-size: 12px;
+    line-height: 16px;
+    text-transform: uppercase;
+}
+.nd-mat__name {
+    padding: 12px 0;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 22px;
+}
+.nd-mat__empty {
+    margin: 0;
+    font-size: 18px;
+    line-height: 25px;
+    color: #8f8f9a;
+}
+.nd-mat__nav {
+    margin-top: 40px;
+}
+
+@media (max-width: 1199px) {
+    .nd-mat__list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+    }
+    .nd-mat__name {
+        font-size: 17px;
+        line-height: 21px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-mat__list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+    .nd-mat__pic {
+        padding: 10px;
+    }
+    .nd-mat__name {
+        padding: 10px 0;
+        font-size: 15px;
+        line-height: 19px;
+    }
+    .nd-mat__nav {
+        margin-top: 24px;
+    }
+}
