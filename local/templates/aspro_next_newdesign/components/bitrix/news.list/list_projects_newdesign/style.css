@@ -48,19 +48,21 @@
 }
 
 /* --- ярлык производителя, сверху слева --- */
+/* Белая плашка производителя по макету: 40 px высотой, радиус 4. */
 .nd-projects__brand {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: 12px;
+    left: 12px;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
+    gap: 8px;
+    height: 40px;
+    padding: 0 14px;
     border-radius: 4px;
     background: #fff;
     color: #101014;
-    font-size: 12px;
-    line-height: 16px;
+    font-size: 14px;
+    line-height: 20px;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -68,8 +70,8 @@
 .nd-projects__brand--brand_easydecking::before {
     content: '';
     flex: 0 0 auto;
-    width: 15px;
-    height: 15px;
+    width: 20px;
+    height: 20px;
     background: url(/images/logo_brand_easy.png) no-repeat center / contain;
 }
 
@@ -82,29 +84,32 @@
     flex-wrap: wrap;
     gap: 6px;
 }
+/* Цвета сняты пипеткой с макета: светлая подложка и цветная подпись.
+   Плашка 20 px высотой, радиус 2. */
 .nd-projects__tag {
     display: inline-flex;
     align-items: center;
-    padding: 3px 8px;
-    border-radius: 4px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 2px;
     font-size: 11px;
-    line-height: 16px;
-    font-weight: 700;
+    line-height: 20px;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .02em;
     white-space: nowrap;
 }
 .nd-projects__tag--video {
-    background: #0057ff;
-    color: #fff;
+    background: #e6edff;
+    color: #0048ff;
 }
 .nd-projects__tag--photo {
-    background: rgba(255, 255, 255, .92);
-    color: #c60000;
+    background: #fff3e6;
+    color: #ff8800;
 }
 .nd-projects__tag--review {
-    background: #c60000;
-    color: #fff;
+    background: #ffecea;
+    color: #ff4130;
 }
 
 .nd-projects__name {
