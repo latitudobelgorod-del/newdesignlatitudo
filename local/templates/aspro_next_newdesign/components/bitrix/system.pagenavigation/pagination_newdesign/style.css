@@ -1,0 +1,111 @@
+/* ============================================================================
+   Постраничная навигация нового дизайна.
+   Из макета (Figma «Чистовик», компонент Pagination): ячейка 48×48, радиус 4,
+   зазор 2, шрифт номеров 18/22 700, активная страница — фон #c60000,
+   кнопка «Показать еще» — тёмная #101014 высотой 48.
+   ========================================================================= */
+.nd-pager {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.nd-pager__pages {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+}
+.nd-pager__page,
+.nd-pager__arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    height: 48px;
+    padding: 0 8px;
+    border-radius: 4px;
+    color: #101014;
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background .15s ease, color .15s ease;
+}
+.nd-pager__page:hover,
+.nd-pager__arrow:hover {
+    background: rgba(82, 82, 100, .08);
+    color: #101014;
+    text-decoration: none;
+}
+.nd-pager__page--current,
+.nd-pager__page--current:hover {
+    background: #c60000;
+    color: #fff;
+    cursor: default;
+}
+.nd-pager__arrow--off {
+    opacity: .3;
+    pointer-events: none;
+}
+.nd-pager__gap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 48px;
+    color: #8f8f9a;
+    font-size: 18px;
+    line-height: 22px;
+}
+.nd-pager__more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-width: 142px;
+    height: 48px;
+    padding: 0 16px;
+    border-radius: 4px;
+    background: #101014;
+    color: #fff;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background .15s ease;
+}
+.nd-pager__more:hover,
+.nd-pager__more:focus {
+    background: #2a2a33;
+    color: #fff;
+    text-decoration: none;
+}
+.nd-pager__more.is-loading {
+    opacity: .6;
+    pointer-events: none;
+}
+
+@media (max-width: 767px) {
+    /* на мобильном номера и кнопка не помещаются в строку — ставим друг под друга */
+    .nd-pager {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .nd-pager__pages {
+        width: 100%;
+        gap: 0;
+    }
+    .nd-pager__page,
+    .nd-pager__arrow {
+        min-width: 40px;
+        height: 40px;
+        padding: 0 4px;
+        font-size: 16px;
+    }
+    .nd-pager__more {
+        width: 100%;
+    }
+}

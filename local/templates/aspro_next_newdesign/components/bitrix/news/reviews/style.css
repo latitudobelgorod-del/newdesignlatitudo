@@ -1,0 +1,4 @@
+.add_review{margin:0 0 30px;position:relative;}
+.add_review:after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#F0F0F0;}
+.add_review .button_wrap{position:relative;padding:0 24px 0 0;display:inline-block;vertical-align:top;background:#FFF;z-index:1;}
+.item-views.reviews .module-pagination{border:none;padding: 0px;}
