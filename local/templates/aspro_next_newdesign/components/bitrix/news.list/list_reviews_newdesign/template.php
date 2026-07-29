@@ -25,17 +25,18 @@ $ndIblockId = (int) $arParams['IBLOCK_ID'];
    (одно свойство), и он всё равно попадает в кэш компонента. */
 $ndSum = 0;
 $ndRated = 0;
-$ndTotal = (int) ($arResult['NAV_RESULT'] ? $arResult['NAV_RESULT']->NavRecordCount : count($arResult['ITEMS']));
+$ndCounted = 0;
 
 if ($ndIblockId && CModule::IncludeModule('iblock')) {
 	$rsRating = CIBlockElement::GetList(
 		[],
-		['IBLOCK_ID' => $ndIblockId, 'ACTIVE' => 'Y', '!PROPERTY_RATING_REVIEW' => false],
+		['IBLOCK_ID' => $ndIblockId, 'ACTIVE' => 'Y'],
 		false,
 		false,
 		['ID', 'PROPERTY_RATING_REVIEW']
 	);
 	while ($row = $rsRating->Fetch()) {
+		$ndCounted++;
 		$v = (float) $row['PROPERTY_RATING_REVIEW_VALUE'];
 		if ($v > 0) {
 			$ndSum += $v;
@@ -44,6 +45,13 @@ if ($ndIblockId && CModule::IncludeModule('iblock')) {
 	}
 }
 $ndAvg = $ndRated ? $ndSum / $ndRated : 0;
+
+// Число отзывов берём у навигации — она знает про фильтр списка; если её нет
+// (навигация отключена), падаем на пересчёт по инфоблоку, а в крайнем случае —
+// на количество элементов текущей страницы.
+$ndTotal = isset($arResult['NAV_RESULT']) && is_object($arResult['NAV_RESULT'])
+	? (int) $arResult['NAV_RESULT']->NavRecordCount
+	: ($ndCounted ?: count($arResult['ITEMS']));
 
 /** «42 отзыва» / «1 отзыв» / «5 отзывов» */
 $ndPlural = function ($n, array $forms) {
@@ -55,15 +63,33 @@ $ndPlural = function ($n, array $forms) {
 	return $forms[2];
 };
 
-/* Кнопка «Оставить отзыв» открывает штатную форму Aspro (data-event=jqm),
-   поэтому набор data-атрибутов повторяет оригинальный шаблон reviews. */
-$ndShowAddButton = $arParams['SHOW_ADD_REVIEW_BUTTON'] !== 'N';
+/* ---------- кнопка «Оставить отзыв» ----------
+   Ведёт на карточку организации в Яндекс.Картах того региона, в котором сейчас
+   находится посетитель. Ссылки лежат в пользовательском поле UF_LINK_MAP
+   разделов этого же инфоблока (разделы названы по городам). Если у региона
+   ссылки нет — ведём на Москву, как договорились. */
 $ndAddButtonText = trim((string) $arParams['ADD_REVIEW_BUTTON']) ?: 'Оставить отзыв';
-$ndFormParams = urlencode(serialize([
-	'iblock_type' => $arParams['IBLOCK_TYPE'],
-	'set_name' => 'Y',
-	'deactivate' => !empty($arParams['FORM_CREATE_DEACTIVATED']) ? $arParams['FORM_CREATE_DEACTIVATED'] : 'Y',
-]));
+
+$ndMapLinks = [];
+if ($ndIblockId) {
+	$rsSect = CIBlockSection::GetList([], ['IBLOCK_ID' => $ndIblockId], false, ['ID', 'NAME', 'UF_LINK_MAP']);
+	while ($sect = $rsSect->Fetch()) {
+		if (!empty($sect['UF_LINK_MAP'])) {
+			$ndMapLinks[$sect['NAME']] = $sect['UF_LINK_MAP'];
+		}
+	}
+}
+
+$ndRegionName = '';
+if (class_exists('CNextRegionality')) {
+	$ndRegion = CNextRegionality::getCurrentRegion();
+	if (is_array($ndRegion) && !empty($ndRegion['NAME'])) {
+		$ndRegionName = (string) $ndRegion['NAME'];
+	}
+}
+
+$ndMapLink = $ndMapLinks[$ndRegionName] ?? ($ndMapLinks['Москва'] ?? '');
+$ndShowAddButton = $arParams['SHOW_ADD_REVIEW_BUTTON'] !== 'N' && $ndMapLink !== '';
 
 /** Звезда рядом с оценкой — иконка из макета (ico/star), заливка #ffcc02. */
 $ndStar = '<svg class="nd-reviews__star" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
@@ -99,10 +125,10 @@ $ndThumb = function ($fileId, $size) {
 	return $img['src'] ?? CFile::GetPath($fileId);
 };
 
-// В карточке помещается ровно 5 плиток по 80 px с зазором 6 (5*80 + 4*6 = 424).
-// Если фото больше — последнюю плитку заменяем «шторкой» со стрелкой, она же
-// открывает попап. Логика и градиент — из макета (Frame 2087329093).
-$ndThumbsInCard = 5;
+/** Оригинал фото — его открывает FancyBox по клику. */
+$ndFull = function ($fileId) {
+	return CFile::GetPath($fileId);
+};
 ?>
 <section class="nd-reviews">
 	<aside class="nd-reviews__summary">
@@ -110,11 +136,8 @@ $ndThumbsInCard = 5;
 			<div class="nd-reviews__avg">Общий рейтинг: <?= number_format($ndAvg, 2, '.', '') ?></div>
 			<div class="nd-reviews__total"><?= $ndTotal ?> <?= $ndPlural($ndTotal, ['отзыв', 'отзыва', 'отзывов']) ?></div>
 			<? if ($ndShowAddButton): ?>
-				<span class="nd-reviews__add dyn-jsform"
-					data-param-additional="<?= $ndFormParams ?>"
-					data-event="jqm"
-					data-param-form_id="REVIEW"
-					data-name="send_review"><?= htmlspecialcharsbx($ndAddButtonText) ?></span>
+				<a class="nd-reviews__add" href="<?= htmlspecialcharsbx($ndMapLink) ?>"
+					target="_blank" rel="nofollow noopener"><?= htmlspecialcharsbx($ndAddButtonText) ?></a>
 			<? endif; ?>
 		</div>
 	</aside>
@@ -133,12 +156,10 @@ $ndThumbsInCard = 5;
 					$rating = (float) ($arItem['PROPERTIES']['RATING_REVIEW']['VALUE'] ?? 0);
 					$dateText = $ndDate($arItem);
 					$author = $arItem['NAME'];
-					// текст отзыва хранится как plain text — переносы строк делаем сами
-					$textHtml = nl2br(htmlspecialcharsbx((string) $arItem['DETAIL_TEXT']));
-
-					// сколько плиток показываем в карточке и нужна ли «шторка»
-					$hasMore = $photoCnt > $ndThumbsInCard;
-					$visible = $hasMore ? $ndThumbsInCard - 1 : $photoCnt;
+					// news.list уже прогнал текст через TxtToHTML: переносы строк и &nbsp;
+					// в нём проставлены. Экранировать второй раз нельзя — сущности
+					// вылезут в вёрстку как есть, поэтому выводим как штатные шаблоны.
+					$textHtml = (string) $arItem['DETAIL_TEXT'];
 
 					$metaHtml = '';
 					if ($rating > 0) {
@@ -158,23 +179,22 @@ $ndThumbsInCard = 5;
 						</header>
 
 						<? if ($photoCnt): ?>
-							<div class="nd-reviews__photos">
-								<? for ($i = 0; $i < $visible; $i++): ?>
-									<span class="nd-reviews__photo">
-										<img src="<?= $ndThumb($photos[$i], 80) ?>" alt="" loading="lazy" width="80" height="80">
-									</span>
-								<? endfor; ?>
-								<? if ($hasMore): ?>
-									<button type="button" class="nd-reviews__photo nd-reviews__photo--more" data-nd-review-open
-										aria-label="Показать все фото, всего <?= $photoCnt ?>">
-										<img src="<?= $ndThumb($photos[$visible], 80) ?>" alt="" loading="lazy" width="80" height="80">
-										<span class="nd-reviews__photo-veil">
-											<svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-												<path fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/>
-											</svg>
-										</span>
-									</button>
-								<? endif; ?>
+							<?/* Лента фото: прокручивается вбок, справа — затемнение со стрелкой
+							     (появляется, только когда есть что листать; ставит его скрипт).
+							     Клик по фото открывает оригинал во весь экран через FancyBox. */?>
+							<div class="nd-reviews__photos" data-nd-photos>
+								<div class="nd-reviews__track">
+									<? foreach ($photos as $fileId): ?>
+										<a class="nd-reviews__photo" href="<?= $ndFull($fileId) ?>" data-fancybox="review-<?= $arItem['ID'] ?>">
+											<img src="<?= $ndThumb($fileId, 80) ?>" alt="" loading="lazy" width="80" height="80">
+										</a>
+									<? endforeach; ?>
+								</div>
+								<button type="button" class="nd-reviews__scroll" data-nd-photos-next aria-label="Следующие фото">
+									<svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+										<path fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/>
+									</svg>
+								</button>
 							</div>
 						<? endif; ?>
 
@@ -190,9 +210,9 @@ $ndThumbsInCard = 5;
 							<? if ($photoCnt): ?>
 								<div class="nd-modal__photos">
 									<? foreach ($photos as $fileId): ?>
-										<span class="nd-modal__photo">
+										<a class="nd-modal__photo" href="<?= $ndFull($fileId) ?>" data-fancybox="review-popup-<?= $arItem['ID'] ?>">
 											<img src="<?= $ndThumb($fileId, 106) ?>" alt="" loading="lazy">
-										</span>
+										</a>
 									<? endforeach; ?>
 								</div>
 							<? endif; ?>

@@ -83,6 +83,44 @@
 		}
 	});
 
+	/* ------------------- лента фото в карточке ------------------- */
+
+	// Затемнение со стрелкой показываем, только пока ленту есть куда листать.
+	function syncPhotos(box) {
+		var track = box.querySelector('.nd-reviews__track');
+		if (!track) {
+			return;
+		}
+		var rest = track.scrollWidth - track.clientWidth - track.scrollLeft;
+		box.classList.toggle('is-scrollable', rest > 1);
+	}
+
+	function syncAllPhotos() {
+		Array.prototype.forEach.call(document.querySelectorAll('[data-nd-photos]'), syncPhotos);
+	}
+
+	document.addEventListener('click', function (e) {
+		var next = e.target.closest('[data-nd-photos-next]');
+		if (!next) {
+			return;
+		}
+		e.preventDefault();
+		var box = next.closest('[data-nd-photos]');
+		var track = box.querySelector('.nd-reviews__track');
+		// листаем ровно на видимую часть ленты
+		track.scrollLeft += track.clientWidth;
+	}, true);
+
+	document.addEventListener('scroll', function (e) {
+		if (e.target.classList && e.target.classList.contains('nd-reviews__track')) {
+			syncPhotos(e.target.closest('[data-nd-photos]'));
+		}
+	}, true);
+
+	window.addEventListener('resize', syncAllPhotos);
+	window.addEventListener('load', syncAllPhotos);
+	document.addEventListener('DOMContentLoaded', syncAllPhotos);
+
 	/* ---------------------- «Показать ещё» ---------------------- */
 
 	var loading = false;
@@ -123,6 +161,7 @@
 				});
 				// навигацию заменяем целиком: у неё сдвинулась текущая страница
 				nav.innerHTML = nextNav ? nextNav.innerHTML : '';
+				syncAllPhotos(); // у дозагруженных карточек тоже есть ленты фото
 				if (window.history && window.history.replaceState) {
 					window.history.replaceState(null, '', href);
 				}

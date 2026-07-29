@@ -10,6 +10,13 @@ $isProject = (CSite::inDir(SITE_DIR.'projects/'));
 $isInfo = (CSite::inDir(SITE_DIR.'info/'));
 $isCatalogPage = (CSite::inDir(SITE_DIR.'catalog/'));
 $isWidePage = ($APPLICATION->GetProperty("WIDE_PAGE") == "Y");
+// Новый дизайн, страница отзывов: левого блока «Уточните наличие» здесь нет —
+// его место занимает колонка с общим рейтингом из шаблона list_reviews_newdesign.
+// Свойство ставим до его чтения ниже; сама страница /company/reviews/index.php
+// лежит вне git и общая со старым дизайном, поэтому правим только здесь.
+if (CSite::inDir(SITE_DIR.'company/reviews/')) {
+	$APPLICATION->SetPageProperty("HIDE_LEFT_BLOCK", "Y");
+}
 $isHideLeftBlock = ($APPLICATION->GetProperty("HIDE_LEFT_BLOCK") == "Y");
 $indexType = $arTheme["INDEX_TYPE"]["VALUE"];
 $isShowIndexLeftBlock = ($arTheme["INDEX_TYPE"]["SUB_PARAMS"][$indexType]["WITH_LEFT_BLOCK"]["VALUE"] == "Y");

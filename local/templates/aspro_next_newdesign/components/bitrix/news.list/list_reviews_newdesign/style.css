@@ -60,6 +60,12 @@
     cursor: pointer;
     transition: background .15s ease;
 }
+.nd-reviews__add,
+.nd-reviews__add:hover,
+.nd-reviews__add:focus {
+    color: #fff;
+    text-decoration: none;
+}
 .nd-reviews__add:hover {
     background: #a80000;
 }
@@ -119,19 +125,25 @@
 
 /* ---------- лента фото в карточке ---------- */
 .nd-reviews__photos {
+    position: relative;
+}
+.nd-reviews__track {
     display: flex;
     gap: 6px;
-    overflow: hidden;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* полосу прокрутки прячем: листаем стрелкой и свайпом */
+}
+.nd-reviews__track::-webkit-scrollbar {
+    display: none;
 }
 .nd-reviews__photo {
-    position: relative;
+    display: block;
     flex: 0 0 auto;
     width: 80px;
     height: 80px;
-    padding: 0;
     border: 1px solid var(--nd-line-soft);
     border-radius: 6px;
-    background: none;
     overflow: hidden;
 }
 .nd-reviews__photo img {
@@ -140,17 +152,25 @@
     height: 100%;
     object-fit: cover;
 }
-.nd-reviews__photo--more {
-    cursor: pointer;
-}
-/* «шторка» на последней плитке, когда фото больше, чем влезает в ряд */
-.nd-reviews__photo-veil {
+/* затемнение со стрелкой у правого края — показывает, что лента листается.
+   Скрипт вешает .is-scrollable, пока прокрутка вправо ещё возможна. */
+.nd-reviews__scroll {
     position: absolute;
-    inset: 0;
-    display: flex;
+    top: 0;
+    right: 0;
+    display: none;
     align-items: center;
     justify-content: center;
+    width: 64px;
+    height: 80px;
+    padding: 0;
+    border: 0;
+    border-radius: 0 6px 6px 0;
     background: linear-gradient(to right, rgba(16, 16, 20, 0) 0%, var(--nd-ink) 100%);
+    cursor: pointer;
+}
+.nd-reviews__photos.is-scrollable .nd-reviews__scroll {
+    display: flex;
 }
 
 /* ---------- текст и ссылка ---------- */
@@ -286,22 +306,23 @@
     flex: 0 0 auto;
     padding: 4px 24px 24px;
 }
+/* по макету кнопка светлая: заливка красным на 10 % и красная подпись */
 .nd-modal__btn {
     width: 100%;
     min-height: 56px;
     border: 0;
     border-radius: 4px;
-    background: #c60000;
-    color: #fff;
+    background: rgba(198, 0, 0, .1);
+    color: #c60000;
     font-family: inherit;
     font-size: 16px;
     line-height: 24px;
-    font-weight: 500;
+    font-weight: 700;
     cursor: pointer;
     transition: background .15s ease;
 }
 .nd-modal__btn:hover {
-    background: #a80000;
+    background: rgba(198, 0, 0, .18);
 }
 /* пока открыт попап — страница под ним не скроллится */
 body.nd-modal-open {
