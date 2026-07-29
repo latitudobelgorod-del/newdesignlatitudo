@@ -16,6 +16,9 @@
  */
 $this->setFrameMode(true);
 
+// разметка карточки — общая с блоком «Вдохновитесь нашими проектами» на главной
+require_once $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/parts/project_card.php';
+
 /* ---------- панель фильтров ----------
    Оформление общее с фильтром отзывов (классы .nd-filter*, стили переехали
    в css/newdesign.css). Раскрытие списков — на <details>, чтобы работало
@@ -113,44 +116,8 @@ if (!defined('ND_UI_JS')) {
 				<?
 				$this->AddEditAction($arItem['ID'], $arItem['EDIT_LINK'], CIBlock::GetArrayByID($arItem['IBLOCK_ID'], 'ELEMENT_EDIT'));
 
-				$pic = is_array($arItem['PREVIEW_PICTURE']) ? $arItem['PREVIEW_PICTURE'] : $arItem['DETAIL_PICTURE'];
-				$src = '';
-				if (is_array($pic) && $pic['ID']) {
-					$img = CFile::ResizeImageGet($pic['ID'], ['width' => 858, 'height' => 544], BX_RESIZE_IMAGE_EXACT, true);
-					$src = $img['src'] ?? $pic['SRC'];
-				}
-
-				$brand = $arItem['PROPERTIES']['SET_BRAND'];
-				$hasVideo = !empty($arItem['PROPERTIES']['VIDEO']['VALUE']);
-
-				$gallery = $arItem['PROPERTIES']['GALLEY_BIG']['VALUE'] ?? [];
-				$photoCnt = is_array($gallery) ? count($gallery) : 0;
-
-				// REVIEW — текстовое свойство, у HTML-варианта значение приходит массивом
-				$review = $arItem['PROPERTIES']['REVIEW']['~VALUE'] ?? $arItem['PROPERTIES']['REVIEW']['VALUE'] ?? '';
-				$hasReview = is_array($review) ? (trim((string) $review['TEXT']) !== '') : (trim((string) $review) !== '');
-				?>
-				<a class="nd-projects__item" href="<?= $arItem['DETAIL_PAGE_URL'] ?>" id="<?= $this->GetEditAreaId($arItem['ID']) ?>">
-					<span class="nd-projects__pic">
-						<? if ($src): ?>
-							<img src="<?= $src ?>" alt="<?= htmlspecialcharsbx($arItem['NAME']) ?>" loading="lazy">
-						<? endif; ?>
-
-						<? if (!empty($brand['VALUE'])): ?>
-							<span class="nd-projects__brand nd-projects__brand--<?= htmlspecialcharsbx($brand['VALUE_XML_ID']) ?>"><?= htmlspecialcharsbx($brand['VALUE']) ?></span>
-						<? endif; ?>
-
-						<? if ($hasVideo || $photoCnt || $hasReview): ?>
-							<span class="nd-projects__tags">
-								<? if ($hasVideo): ?><span class="nd-projects__tag nd-projects__tag--video">Видео</span><? endif; ?>
-								<? if ($photoCnt): ?><span class="nd-projects__tag nd-projects__tag--photo"><?= $photoCnt ?> фото</span><? endif; ?>
-								<? if ($hasReview): ?><span class="nd-projects__tag nd-projects__tag--review">Отзыв</span><? endif; ?>
-							</span>
-						<? endif; ?>
-					</span>
-
-					<span class="nd-projects__name"><?= htmlspecialcharsbx($arItem['NAME']) ?></span>
-				</a>
+					ndProjectCard($arItem, $this->GetEditAreaId($arItem['ID']));
+					?>
 			<? endforeach; ?>
 		</div>
 	<? endif; ?>
