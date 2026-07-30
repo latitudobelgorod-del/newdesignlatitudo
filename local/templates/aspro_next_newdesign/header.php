@@ -63,7 +63,9 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 	<?$arTheme = $APPLICATION->IncludeComponent("aspro:theme.next", ".default", array("COMPONENT_TEMPLATE" => ".default"), false, array("HIDE_ICONS" => "Y"));?>
 	<?// Стили нового дизайна. Подключаем после theme.next (он подключает custom.css),
 	// чтобы наши правила шли в сборке позже и перебивали старые.
-	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign.css', true);?>
+	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign.css', true);
+	// Шапка нового дизайна — отдельным файлом, идёт после newdesign.css.
+	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign-header.css', true);?>
 	<?include_once('defines.php');?>
 	<?CNext::SetJSOptions();?>
 <?CNext::ShowPageType('search_title_component');?>
@@ -73,15 +75,17 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 
 		<div class="header_wrap visible-lg visible-md title-v<?=$arTheme["PAGE_TITLE"]["VALUE"];?><?=($isIndex ? ' index' : '')?>">
 			<header id="header">
-				<?CNext::ShowPageType('header');?>
+				<?// Шапка нового дизайна подключается напрямую, а не через
+				// CNext::ShowPageType('header'): тот выбирает файл по настройке темы
+				// HEADER_TYPE, она одна на весь сайт и к шаблону не привязана —
+				// боевой aspro_next тогда тоже переехал бы на новую шапку.
+				include(__DIR__.'/page_blocks/header_newdesign.php');?>
 			</header>
 		</div>
 
-		<?if($arTheme["TOP_MENU_FIXED"]["VALUE"] == 'Y'):?>
-			<div id="headerfixed">
-				<?CNext::ShowPageType('header_fixed');?>
-			</div>
-		<?endif;?>
+		<?// Штатная «прилипающая» шапка (#headerfixed) в новом дизайне не нужна:
+		// header_newdesign.php сам зафиксирован сверху, иначе на скролле было бы
+		// две шапки сразу.?>
 
 		<div id="mobileheader" class="visible-xs visible-sm">
 			<?CNext::ShowPageType('header_mobile');?>

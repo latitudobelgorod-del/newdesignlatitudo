@@ -1,0 +1,720 @@
+/* ============================================================================
+   Шапка нового дизайна Latitudo (десктоп).
+
+   Размеры сняты из макета Figma «Чистовик», компонент Header_Desktop
+   (узел 21029:61339) и попапы 21029:61916 / 21029:62007:
+   контейнер 1440, поля 52 по бокам и 8 сверху/снизу, три строки высотой
+   24 / 48 / 20 с зазором 24 между ними — итого 156.
+
+   Подключается в header.php сразу после newdesign.css, поэтому при равной
+   специфичности перебивает и custom.css, и общие стили нового дизайна.
+   Мобильная шапка (#mobileheader) не затрагивается — она отдельный блок.
+   ========================================================================= */
+
+:root {
+    /* Реальную высоту проставляет newdesign-header.js; 156 — значение из
+       макета, работает до выполнения скрипта. */
+    --nd-header-h: 156px;
+}
+
+.nd-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
+    color: #101014;
+}
+.nd-header__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 8px 52px;
+}
+
+/* Шапка вырвана из потока — освобождаем под неё место. Ниже 992px работает
+   мобильная шапка, .header_wrap скрыт, поэтому отступ там не нужен. */
+body {
+    padding-top: var(--nd-header-h);
+}
+@media (max-width: 991px) {
+    body {
+        padding-top: 0 !important;
+    }
+}
+
+/* ============================== верхняя строка ========================== */
+
+.nd-header__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    min-height: 24px;
+}
+.nd-header__geo,
+.nd-header__contacts {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Город. Разметку даёт штатный компонент aspro:regionality.list.next
+   (шаблон popup_regions) — его же попап выбора города и остаётся.
+   Здесь приводим только внешний вид триггера к макету. */
+.nd-geo__city {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.nd-geo__pin {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+}
+/* В старой шапке этот блок свёрстан как узкий контрол: ширина 20px,
+   overflow:hidden, подпись белая 12px. Перебиваем всё — иначе название
+   города просто обрезается. */
+.nd-geo__city .region_wrapper {
+    width: auto !important;
+    padding: 0 !important;
+    margin: 0;
+    overflow: visible !important;
+}
+.nd-geo__city .city_title,
+.nd-geo__city .js_city_chooser > span:not(:first-child) {
+    display: none !important;
+}
+.nd-geo__city .js_city_chooser {
+    display: inline-flex !important;
+    align-items: center;
+    width: auto !important;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    overflow: visible !important;
+    cursor: pointer;
+}
+.nd-geo__city .js_city_chooser > span:first-child {
+    display: inline !important;
+    width: auto !important;
+    font-weight: 500;
+    font-size: 14px !important;
+    line-height: 20px !important;
+    color: #101014 !important;
+    white-space: nowrap;
+}
+.nd-geo__city .js_city_chooser:hover > span:first-child {
+    color: #c60000 !important;
+}
+
+/* Шоурум / Склад */
+.nd-pop {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+.nd-pop__label {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+    cursor: pointer;
+    user-select: none;
+}
+.nd-pop__label:hover,
+.nd-pop.is-open .nd-pop__label {
+    color: #c60000;
+}
+.nd-pop__body {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+    width: 343px;
+    padding: 24px;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
+    /* Плавность: hidden снимается скриптом за кадр до добавления is-open. */
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.nd-pop__body[hidden] {
+    display: none;
+}
+.nd-pop.is-open .nd-pop__body {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.nd-pop__close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    opacity: 0.5;
+}
+.nd-pop__close:hover {
+    opacity: 1;
+}
+.nd-pop__title {
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 34px;
+    color: #101014;
+}
+.nd-pop__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+.nd-pop__icon {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+}
+.nd-pop__text {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+}
+.nd-pop__text--strong {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 19px;
+}
+.nd-pop__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    height: 48px;
+    padding: 0 12px;
+    border: 2px solid rgba(82, 82, 100, 0.15);
+    border-radius: 3px;
+    background: rgba(16, 16, 20, 0.64);
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 16px;
+    color: #fff;
+    text-decoration: none;
+}
+.nd-pop__btn:hover,
+.nd-pop__btn:focus {
+    background: #101014;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Мессенджеры, телефоны, почта */
+.nd-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.nd-contact:hover,
+.nd-contact:focus {
+    text-decoration: none;
+    opacity: 0.75;
+}
+.nd-contact img {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+}
+/* Подписи мессенджеров в макете окрашены в цвет самого сервиса. */
+.nd-contact--max span {
+    color: #8f3fff;
+}
+.nd-contact--tg span {
+    color: #3aa0e5;
+}
+.nd-contact--wa span {
+    color: #25d366;
+}
+.nd-contact--phone {
+    gap: 0;
+    font-weight: 500;
+}
+.nd-contact--mail {
+    gap: 4px;
+    font-weight: 500;
+}
+
+/* ============================== основная строка ========================= */
+
+.nd-header__main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+}
+
+.nd-logo {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex: 0 0 auto;
+    height: 48px;
+    padding-right: 16px;
+    text-decoration: none;
+}
+.nd-logo:hover,
+.nd-logo:focus {
+    text-decoration: none;
+}
+.nd-logo__mark {
+    flex: 0 0 auto;
+    width: 50px;
+    height: 48px;
+}
+.nd-logo__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+.nd-logo__word {
+    display: block;
+    width: 165px;
+    height: 25px;
+}
+.nd-logo__slogan {
+    font-weight: 500;
+    font-size: 13.8px;
+    line-height: 14px;
+    color: #101014;
+    white-space: nowrap;
+}
+
+/* Кнопки строки: высота 48, радиус 4, поля 16 (12 у обёртки + 4 у подписи). */
+.nd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.nd-btn:hover,
+.nd-btn:focus {
+    text-decoration: none;
+}
+.nd-btn__icon {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+}
+.nd-btn--dark {
+    background: #101014;
+    color: #fff;
+}
+.nd-btn--dark:hover,
+.nd-btn--dark:focus,
+.nd-btn--dark.is-open {
+    background: #2a2a33;
+    color: #fff;
+}
+.nd-btn--muted {
+    background: rgba(82, 82, 100, 0.1);
+    color: #101014;
+}
+.nd-btn--muted:hover,
+.nd-btn--muted:focus {
+    background: rgba(82, 82, 100, 0.18);
+    color: #101014;
+}
+.nd-btn--red {
+    background: #c60000;
+    color: #fff;
+}
+.nd-btn--red:hover,
+.nd-btn--red:focus {
+    background: #a80000;
+    color: #fff;
+}
+
+/* Поиск занимает всё свободное место строки. */
+.nd-search {
+    flex: 1 1 auto;
+    min-width: 160px;
+    position: relative;
+}
+.nd-search__form {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: 48px;
+    padding: 0 12px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, 0.1);
+}
+.nd-search__submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 26px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+.nd-search__submit img {
+    width: 24px;
+    height: 24px;
+}
+/* Тема рисует полям ввода свою рамку и серую заливку (`input[type=text]`
+   с высокой специфичностью) — из-за неё внутри «Найти товар» видна вторая
+   рамка. Гасим принудительно: фон и скругление даёт обёртка .nd-search__form. */
+.nd-search__form .nd-search__input,
+.nd-search__form input.nd-search__input {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 24px !important;
+    min-height: 0 !important;
+    margin: 0;
+    padding: 0 4px 0 8px;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+    outline: none;
+}
+.nd-search__input::placeholder {
+    color: #101014;
+    opacity: 1;
+}
+/* Подсказки search.title. Скрипт компонента (script.js) кладёт их прямо в
+   body отдельным блоком .title-search-result и сам проставляет инлайном
+   position/top/left/width — здесь только внешний вид. */
+.title-search-result.nd-title-search-input {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
+}
+
+.nd-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.nd-cart {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, 0.1);
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+.nd-cart:hover,
+.nd-cart:focus {
+    background: rgba(82, 82, 100, 0.18);
+    text-decoration: none;
+}
+.nd-cart img {
+    width: 24px;
+    height: 24px;
+}
+.nd-cart__count {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 16px;
+    height: 16px;
+    padding: 1px 4px 0;
+    border: 1.5px solid #eeeef0;
+    border-radius: 12px;
+    background: #c60000;
+    font-weight: 500;
+    font-size: 10px;
+    line-height: 12px;
+    letter-spacing: 0.4px;
+    color: #eeeef0;
+}
+/* Класс empted вешает скрипт темы, когда корзина пуста (см. onCompleteAction
+   → loadBasket в js/main.js). Пустой бейдж в макете не показывается. */
+.nd-cart__count.empted {
+    display: none;
+}
+
+/* ============================== нижняя строка =========================== */
+
+/* В макете (Frame 20555) зазоры между всеми пунктами одинаковые — 16.
+   Левая группа лежит в блоке шире своего содержимого, и весь свободный
+   остаток строки приходится на неё; правая группа из-за этого прижата
+   к правому краю, но внутри себя идёт с тем же шагом 16.
+   Поэтому здесь именно flex:1 у левой группы, а не justify-content:
+   space-between — от него правые пункты разъезжаются по всей строке. */
+.nd-header__menu {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 20px;
+}
+.nd-header__menu-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1 1 auto;
+}
+.nd-menu-link {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    text-transform: uppercase;
+    color: #101014;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.nd-menu-link:hover,
+.nd-menu-link:focus {
+    color: #c60000;
+    text-decoration: none;
+}
+/* accent — пункт, помеченный в меню через PARAMS['CLASS'] = 'accent'
+   (в макете так выделены «Акции»); is-active ставит сам компонент меню
+   на пункте текущего раздела. */
+.nd-menu-link--accent,
+.nd-menu-link.is-active {
+    color: #c60000;
+}
+
+/* ============================== каталог ================================= */
+
+.nd-catalog-drop {
+    position: fixed;
+    top: var(--nd-header-h);
+    left: 0;
+    right: 0;
+    z-index: 999;
+    max-height: calc(100vh - var(--nd-header-h));
+    overflow-y: auto;
+    background: #fff;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.nd-catalog-drop.is-open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Оверлей с блюром. Без opacity: полупрозрачный слой создаёт группу
+   композитинга, из-за чего браузер растеризует backdrop-filter уже после
+   перехода и блюр появляется с задержкой. Анимируем сам blur и фон,
+   показ — через visibility. */
+.nd-catalog-overlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--nd-header-h);
+    bottom: 0;
+    z-index: 998;
+    cursor: pointer;
+
+    background: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateZ(0);
+    transition: background-color 0.22s ease,
+                backdrop-filter 0.22s ease,
+                -webkit-backdrop-filter 0.22s ease,
+                visibility 0s linear 0.22s;
+}
+.nd-catalog-overlay.is-open {
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+
+    visibility: visible;
+    pointer-events: auto;
+    transition: background-color 0.22s ease,
+                backdrop-filter 0.22s ease,
+                -webkit-backdrop-filter 0.22s ease,
+                visibility 0s linear 0s;
+}
+
+.nd-cat {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 28px 52px 32px;
+    font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
+}
+/* Колонки, а не грид: у разделов сильно разная высота, в гриде строка
+   тянется по самому длинному и остаются дыры. */
+.nd-cat__cols {
+    column-count: 3;
+    column-gap: 32px;
+}
+.nd-cat__group {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 24px;
+}
+.nd-cat ul,
+.nd-cat li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.nd-cat ul li::before {
+    content: none !important;
+    display: none !important;
+}
+.nd-cat__parent {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 24px;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-cat__parent:hover,
+.nd-cat__parent:focus {
+    color: #c60000;
+    text-decoration: none;
+}
+.nd-cat__children {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.nd-cat__child {
+    display: inline-block;
+    padding: 3px 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-cat__child:hover,
+.nd-cat__child:focus,
+.nd-cat__child.is-active {
+    color: #c60000;
+    text-decoration: none;
+}
+.nd-cat__sub {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin: 2px 0 4px 10px;
+    padding-left: 10px;
+    border-left: 2px solid rgba(82, 82, 100, 0.15);
+}
+.nd-cat__sub-link {
+    display: inline-block;
+    padding: 2px 0;
+    font-size: 13px;
+    line-height: 18px;
+    color: #525264;
+    text-decoration: none;
+}
+.nd-cat__sub-link:hover,
+.nd-cat__sub-link:focus,
+.nd-cat__sub-link.is-active {
+    color: #c60000;
+    text-decoration: none;
+}
+
+/* ============================== адаптив ================================= */
+
+/* Макет нарисован под 1440. От 1200 до 1440 ужимаем поля и подписи, ниже
+   992 десктопная шапка скрыта штатным .header_wrap visible-lg visible-md. */
+@media (max-width: 1439px) {
+    .nd-header__inner {
+        padding: 8px 24px;
+    }
+    .nd-cat {
+        padding: 24px;
+    }
+}
+@media (max-width: 1279px) {
+    .nd-header__inner {
+        gap: 16px;
+    }
+    .nd-header__top,
+    .nd-header__contacts,
+    .nd-header__menu,
+    .nd-header__menu-group {
+        gap: 12px;
+    }
+    .nd-btn {
+        padding: 0 12px;
+        font-size: 15px;
+    }
+    .nd-logo {
+        padding-right: 8px;
+    }
+    .nd-menu-link {
+        font-size: 13px;
+    }
+    .nd-cat__cols {
+        column-count: 2;
+    }
+}
