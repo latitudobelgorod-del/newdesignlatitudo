@@ -192,13 +192,17 @@ $basketCount = (int)$arBasketPrices['BASKET_COUNT'];
 			</div>
 
 			<div class="nd-header__contacts">
-				<a class="nd-contact nd-contact--max" data-event="jqm" data-param-form_id="MAX" data-name="spbuttonMAXheaderNewDesign">
+				<?// Каждая кнопка открывает свою веб-форму (MAX / TELEGRAM / WHATSAPP) — как в боевом
+				// header_8.php. Там заголовок окна брался из текста ссылки, а она подписана
+				// «Написать в MAX»; в макете подпись короткая, поэтому заголовок задаём
+				// отдельным атрибутом data-nd-form-title (его читает js/newdesign-header.js).?>
+				<a class="nd-contact nd-contact--max" data-event="jqm" data-param-form_id="MAX" data-name="spbuttonMAXheaderNewDesign" data-nd-form-title="Написать в MAX">
 					<img src="<?=$imgPath?>/max.svg" alt="" width="16" height="16"><span>MAX</span>
 				</a>
-				<a class="nd-contact nd-contact--tg" data-event="jqm" data-param-form_id="TELEGRAM" data-name="spbuttonTELEGRAMheaderNewDesign">
+				<a class="nd-contact nd-contact--tg" data-event="jqm" data-param-form_id="TELEGRAM" data-name="spbuttonTELEGRAMheaderNewDesign" data-nd-form-title="Написать в Telegram">
 					<img src="<?=$imgPath?>/telegram.svg" alt="" width="16" height="16"><span>Telegram</span>
 				</a>
-				<a class="nd-contact nd-contact--wa" data-event="jqm" data-param-form_id="WHATSAPP" data-name="spbuttonWHATSAPPheaderNewDesign">
+				<a class="nd-contact nd-contact--wa" data-event="jqm" data-param-form_id="WHATSAPP" data-name="spbuttonWHATSAPPheaderNewDesign" data-nd-form-title="Написать в WhatsApp">
 					<img src="<?=$imgPath?>/whatsapp.svg" alt="" width="16" height="16"><span>WhatsApp</span>
 				</a>
 

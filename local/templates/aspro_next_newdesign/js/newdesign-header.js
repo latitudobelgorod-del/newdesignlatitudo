@@ -192,7 +192,11 @@
 		var trigger = e.target.closest('#nd-header [data-event="jqm"]');
 		if (!trigger) return;
 
-		var label = (trigger.textContent || '').replace(/\s+/g, ' ').trim();
+		/* data-nd-form-title задаёт заголовок явно — нужен там, где подпись кнопки
+		   короче названия формы (мессенджеры: подпись «MAX», заголовок «Написать в MAX»).
+		   Без атрибута берём текст кнопки («Оставить заявку»). */
+		var label = trigger.getAttribute('data-nd-form-title')
+			|| (trigger.textContent || '').replace(/\s+/g, ' ').trim();
 		if (label) applyFormTitle(label);
 	});
 
