@@ -1009,6 +1009,95 @@ textarea {
     font-weight: 700;
     color: #101014;
 }
+/* ============ блок «Уточните наличие» в левой колонке ==================
+   Серая карточка со скруглением: заголовок, подпись, круглое фото
+   руководителя региона, имя, телефон, почта и кнопка заявки во всю ширину.
+   Разметка — include/infochat_newdesign.php.
+   ====================================================================== */
+.nd-infochat {
+    padding: 28px 20px;
+    border-radius: 16px;
+    background: #f4f4f6;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    color: #101014;
+    text-align: center;
+}
+.nd-infochat__title {
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 700;
+}
+.nd-infochat__subtitle {
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 22px;
+    color: #52525f;
+}
+/* Доля от ширины карточки — как на макете: колонка бывает и 226 px, и шире */
+.nd-infochat__photo {
+    display: block;
+    width: 60%;
+    max-width: 180px;
+    aspect-ratio: 1;
+    height: auto;
+    margin: 24px auto 0;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.nd-infochat__name {
+    margin: 20px 0 0;
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 700;
+}
+.nd-infochat__contacts {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+.nd-infochat__contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #101014;
+    font-size: 15px;
+    line-height: 22px;
+    text-decoration: none;
+    word-break: break-word;
+}
+.nd-infochat__contact:hover,
+.nd-infochat__contact:focus {
+    color: #c60000;
+    text-decoration: none;
+}
+.nd-infochat__icon {
+    flex: 0 0 auto;
+    color: #52525f;
+}
+/* кнопка по макету: белая, с чёрной рамкой, во всю ширину карточки */
+.nd-infochat__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 24px;
+    padding: 16px 20px;
+    border: 2px solid #101014;
+    border-radius: 6px;
+    background: #fff;
+    color: #101014;
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.nd-infochat__btn:hover,
+.nd-infochat__btn:focus {
+    background: #101014;
+    color: #fff;
+}
+
 /* ======================== акции и скидки (/sale/) ======================
    По макету: заголовок, вводный текст, разделитель, плитки акций в три
    колонки, разделитель, переключатель «Активные / Завершенные».

@@ -35,11 +35,12 @@
 
 <?else:?>
 
+<? // новый дизайн рисует блок своей разметкой, у старого свой include/infochat.php ?>
 <div class="infochat " style="margin-top:20px;">
 			<?$APPLICATION->IncludeComponent("bitrix:main.include", ".default",
 			array(
 				"COMPONENT_TEMPLATE" => ".default",
-				"PATH" => SITE_DIR."include/infochat.php",
+				"PATH" => SITE_DIR."include/infochat_newdesign.php",
 				"AREA_FILE_SHOW" => "file",
 				"AREA_FILE_SUFFIX" => "",
 				"AREA_FILE_RECURSIVE" => "Y",
