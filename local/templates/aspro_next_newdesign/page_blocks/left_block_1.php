@@ -36,7 +36,7 @@
 <?else:?>
 
 <? // новый дизайн рисует блок своей разметкой, у старого свой include/infochat.php ?>
-<div class="infochat " style="margin-top:20px;">
+<div class="infochat nd-infochat-wrap" style="margin-top:20px;">
 			<?$APPLICATION->IncludeComponent("bitrix:main.include", ".default",
 			array(
 				"COMPONENT_TEMPLATE" => ".default",
