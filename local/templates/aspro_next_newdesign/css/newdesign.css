@@ -1014,8 +1014,10 @@ textarea {
    руководителя региона, имя, телефон, почта и кнопка заявки во всю ширину.
    Разметка — include/infochat_newdesign.php.
    ====================================================================== */
+/* Левая колонка бывает узкой (~215 px), поэтому кегли сдержанные, а поля
+   небольшие — иначе заголовок расползается на четыре строки. */
 .nd-infochat {
-    padding: 28px 20px;
+    padding: 24px 16px;
     border-radius: 16px;
     background: #f4f4f6;
     font-family: 'Nunito Sans', Arial, sans-serif;
@@ -1023,14 +1025,14 @@ textarea {
     text-align: center;
 }
 .nd-infochat__title {
-    font-size: 20px;
-    line-height: 26px;
+    font-size: 18px;
+    line-height: 24px;
     font-weight: 700;
 }
 .nd-infochat__subtitle {
-    margin-top: 12px;
-    font-size: 15px;
-    line-height: 22px;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 20px;
     color: #52525f;
 }
 /* Доля от ширины карточки — как на макете: колонка бывает и 226 px, и шире */
@@ -1045,27 +1047,32 @@ textarea {
     object-fit: cover;
 }
 .nd-infochat__name {
-    margin: 20px 0 0;
-    font-size: 16px;
-    line-height: 22px;
+    margin: 18px 0 0;
+    font-size: 15px;
+    line-height: 20px;
     font-weight: 700;
 }
 .nd-infochat__contacts {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     margin-top: 12px;
 }
 .nd-infochat__contact {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    max-width: 100%;
     color: #101014;
-    font-size: 15px;
-    line-height: 22px;
+    font-size: 14px;
+    line-height: 20px;
     text-decoration: none;
     word-break: break-word;
+}
+/* номер не переносим — в узкой колонке он рвётся посреди цифр */
+.nd-infochat__contact[href^="tel:"] span {
+    white-space: nowrap;
 }
 .nd-infochat__contact:hover,
 .nd-infochat__contact:focus {
@@ -1081,15 +1088,16 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 24px;
-    padding: 16px 20px;
+    margin-top: 20px;
+    padding: 14px 12px;
     border: 2px solid #101014;
     border-radius: 6px;
     background: #fff;
     color: #101014;
-    font-size: 16px;
-    line-height: 22px;
+    font-size: 15px;
+    line-height: 20px;
     font-weight: 700;
+    white-space: nowrap;
     cursor: pointer;
 }
 .nd-infochat__btn:hover,
