@@ -766,6 +766,18 @@ body {
     max-height: 56px;
     object-fit: contain;
 }
+
+/* Заглушка, когда картинки нет: у пунктов из menu_ext её не бывает,
+   а у посадочных страниц не заполнен анонсный рисунок. */
+.nd-cat__noimg {
+    width: 32px;
+    height: 32px;
+    color: rgba(82, 82, 100, 0.35);
+}
+.nd-cat__chip-img .nd-cat__noimg {
+    width: 28px;
+    height: 28px;
+}
 .nd-cat__card-label {
     font-weight: 400;
     font-size: 12px;

@@ -9,8 +9,7 @@
  * Источник данных и фильтрация — как на боевом, чтобы список совпадал:
  * тип меню `top_content_multilevel`, дети раздела /catalog/ приходят из
  * `catalog/.top_menu_new.menu_ext.php` (CCustomNext::getSectionChilds), дерево
- * строит result_modifier.php через CNext::getChilds. Показываем только разделы
- * с галкой UF_SECTION_IN_MENU — ровно как боевой.
+ * строит result_modifier.php через CNext::getChilds.
  *
  * Размеры из макета Figma «Чистовик», фрейм «Каталог» (узел 21349:56357):
  * контейнер 1440 с полями 40/52 и зазором 52 между колонками; слева чипы
@@ -20,7 +19,16 @@
  *
  * Стили — css/newdesign-header.css (префикс .nd-cat), переключение групп —
  * js/newdesign-header.js.
+ *
+ * ВАЖНО про производительность: на разделы и подразделы приходится под сотню
+ * CFile::ResizeImageGet плюс запрос к посадочным (ИБ 21). Считать это на каждый
+ * хит дорого, поэтому готовую разметку кладём в кэш. Ключ — от самого дерева
+ * меню, так что правка разделов подхватывается сразу: меню пересобирается,
+ * дерево меняется, ключ становится другим. Картинку посадочной кэш подхватит
+ * в пределах TTL (час).
  */
+
+global $arRegion;
 
 // Находим пункт каталога: его дети — разделы, которые и рисуем.
 $arCatalog = null;
@@ -36,17 +44,42 @@ foreach($arResult as $arItem)
 if(!$arCatalog || empty($arCatalog['CHILD']))
 	return;
 
-// Оставляем разделы, помеченные к показу в меню (как в боевом шаблоне).
+/**
+ * Пункт показываем, если это раздел с галкой «показывать в меню»
+ * (UF_SECTION_IN_MENU), либо пункт, добавленный в menu_ext руками — у такого
+ * ключа SECTION_IN_MENU нет вовсе (так в список попадают «Перголы»).
+ */
+$ndShowItem = function($arItem) {
+	$arParams = isset($arItem['PARAMS']) && is_array($arItem['PARAMS']) ? $arItem['PARAMS'] : array();
+	if(!array_key_exists('SECTION_IN_MENU', $arParams))
+		return true;
+	return !empty($arParams['SECTION_IN_MENU']);
+};
+
 $arSections = array();
 foreach($arCatalog['CHILD'] as $arSection)
 {
-	if(empty($arSection['PARAMS']['SECTION_IN_MENU']))
-		continue;
-	$arSections[] = $arSection;
+	if($ndShowItem($arSection))
+		$arSections[] = $arSection;
 }
 
 if(!$arSections)
 	return;
+
+// ---------------------------------------------------------------- кэш вывода
+$cacheDir = '/nd/catalog_wide';
+$cacheKey = 'nd_cat_'.md5(serialize($arSections).'|'.($arRegion ? $arRegion['ID'] : '').'|'.SITE_ID.'|'.LANGUAGE_ID);
+$cache = \Bitrix\Main\Data\Cache::createInstance();
+
+if($cache->initCache(3600, $cacheKey, $cacheDir))
+{
+	$arCached = $cache->getVars();
+	echo $arCached['HTML'];
+	return;
+}
+
+$cache->startDataCache();
+ob_start();
 
 /**
  * Картинка раздела: в левой колонке 64×64, в плитке 56×56.
@@ -58,6 +91,100 @@ $ndSectionImg = function($arItem, $size) {
 		return null;
 	$img = CFile::ResizeImageGet($id, array('width' => $size, 'height' => $size), BX_RESIZE_IMAGE_PROPORTIONAL, true);
 	return (is_array($img) && $img['src']) ? $img['src'] : null;
+};
+
+/**
+ * Картинки посадочных страниц каталога (ИБ 21) — для ссылок из UF_MENULINK_TOP.
+ * У такой ссылки нет раздела, поэтому берём анонс посадочной: сначала по
+ * названию (текст ссылки пишут по нему, это надёжнее), потом по URL из
+ * свойства CPY_FILTER_TAG. Логика и оговорки — с боевого шаблона.
+ */
+$ndLandingPics = function() {
+	static $arPics;
+	if(isset($arPics))
+		return $arPics;
+
+	$arPics = array('URL' => array(), 'NAME' => array());
+	$res = CIBlockElement::GetList(
+		array(),
+		array('IBLOCK_ID' => 21, 'ACTIVE' => 'Y'),
+		false,
+		false,
+		array('ID', 'NAME', 'PREVIEW_PICTURE', 'PROPERTY_CPY_FILTER_TAG')
+	);
+	while($arLanding = $res->Fetch())
+	{
+		if(!$arLanding['PREVIEW_PICTURE'])
+			continue;
+
+		$url = trim((string)$arLanding['PROPERTY_CPY_FILTER_TAG_VALUE']);
+		// Один URL встречается у разных посадочных (опечатка в CPY_FILTER_TAG),
+		// поэтому занятый ключ не перезаписываем — картинка досталась бы чужой ссылке.
+		if($url !== '')
+		{
+			$key = rtrim($url, '/').'/';
+			if(!isset($arPics['URL'][$key]))
+				$arPics['URL'][$key] = $arLanding['PREVIEW_PICTURE'];
+		}
+		$arPics['NAME'][mb_strtolower(trim($arLanding['NAME']))] = $arLanding['PREVIEW_PICTURE'];
+	}
+
+	return $arPics;
+};
+
+/**
+ * Разбор ссылки из UF_MENULINK_TOP: там лежит готовый HTML вида
+ * `<a href="...">Название</a>`. Возвращает href, текст и картинку посадочной.
+ */
+$ndParseMenuLink = function($sHtml) use ($ndLandingPics) {
+	$sHtml = htmlspecialchars_decode($sHtml);
+	if(!preg_match('/<a\s+([^>]*?)>(.*?)<\/a>/is', $sHtml, $m))
+		return null;
+
+	$attrs = $m[1];
+	$text  = trim(strip_tags($m[2]));
+	$href  = '';
+	if(preg_match('/href\s*=\s*["\']([^"\']+)["\']/i', $attrs, $mh))
+		$href = trim($mh[1]);
+
+	if($text === '' || $href === '')
+		return null;
+
+	$arPics = $ndLandingPics();
+	$picId  = 0;
+	$key    = mb_strtolower($text);
+	if(isset($arPics['NAME'][$key]))
+		$picId = $arPics['NAME'][$key];
+	if(!$picId)
+	{
+		$urlKey = rtrim($href, '/').'/';
+		if(isset($arPics['URL'][$urlKey]))
+			$picId = $arPics['URL'][$urlKey];
+	}
+
+	$src = null;
+	if($picId)
+	{
+		$img = CFile::ResizeImageGet($picId, array('width' => 56, 'height' => 56), BX_RESIZE_IMAGE_PROPORTIONAL, true);
+		if(is_array($img) && $img['src'])
+			$src = $img['src'];
+	}
+
+	return array('LINK' => $href, 'TEXT' => $text, 'IMG' => $src);
+};
+
+/**
+ * Заглушка вместо картинки — как в боевом шаблоне. Нужна не для красоты:
+ * у пунктов, добавленных в menu_ext руками («Перголы»), картинки нет вовсе,
+ * а у ссылок на посадочные (ИБ 21) не заполнен анонсный рисунок — без
+ * заглушки плитка выглядит пустой рамкой.
+ */
+$ndImgPlaceholder = function() {
+	?><svg class="nd-cat__noimg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+		<rect x="2.5" y="2.5" width="19" height="19" rx="2"/>
+		<circle cx="8.5" cy="8.5" r="2"/>
+		<path d="M21 15L16 10L5 21"/>
+	</svg><?
 };
 ?>
 <div class="nd-cat">
@@ -71,8 +198,14 @@ $ndSectionImg = function($arItem, $size) {
 			   data-nd-cat-target="<?=htmlspecialcharsbx($arSection['LINK'])?>"
 			   role="tab">
 				<span class="nd-cat__chip-img">
+					<?// Картинки грузим не сразу: панели скрыты, и штатный loading="lazy"
+					// в скрытом блоке браузер откладывает до показа — из-за этого при
+					// наведении плитки были пустыми. Подменяет src скрипт при первом
+					// открытии каталога (js/newdesign-header.js).?>
 					<?if($img):?>
-						<img src="<?=htmlspecialcharsbx($img)?>" alt="" width="64" height="64" loading="lazy">
+						<img data-nd-src="<?=htmlspecialcharsbx($img)?>" alt="" width="64" height="64">
+					<?else:?>
+						<?$ndImgPlaceholder();?>
 					<?endif;?>
 				</span>
 				<span class="nd-cat__chip-label"><?=htmlspecialcharsbx($arSection['TEXT'])?></span>
@@ -97,29 +230,51 @@ $ndSectionImg = function($arItem, $size) {
 				</div>
 
 				<?
-				// В сетку идут только подразделы, помеченные к показу.
-				$arChilds = array();
+				// Плитки: сначала подразделы, потом ссылки на посадочные страницы
+				// из UF_MENULINK_TOP (в «Ступенях» это «Полнотелая ступень»
+				// и «Пустотелая ступень» — разделами они не являются).
+				$arCards = array();
+
 				if(!empty($arSection['CHILD']))
 				{
 					foreach($arSection['CHILD'] as $arChild)
 					{
-						if(empty($arChild['PARAMS']['SECTION_IN_MENU']))
+						if(!$ndShowItem($arChild))
 							continue;
-						$arChilds[] = $arChild;
+						$arCards[] = array(
+							'LINK'     => $arChild['LINK'],
+							'TEXT'     => $arChild['TEXT'],
+							'IMG'      => $ndSectionImg($arChild, 56),
+							'SELECTED' => !empty($arChild['SELECTED']),
+						);
+					}
+				}
+
+				if(!empty($arSection['PARAMS']['MENULINK_TOP']) && is_array($arSection['PARAMS']['MENULINK_TOP']))
+				{
+					foreach($arSection['PARAMS']['MENULINK_TOP'] as $sLinkHtml)
+					{
+						$arLink = $ndParseMenuLink($sLinkHtml);
+						if($arLink)
+						{
+							$arLink['SELECTED'] = false;
+							$arCards[] = $arLink;
+						}
 					}
 				}
 				?>
-				<?if($arChilds):?>
+				<?if($arCards):?>
 					<div class="nd-cat__grid">
-						<?foreach($arChilds as $arChild):?>
-							<?$childImg = $ndSectionImg($arChild, 56);?>
-							<a class="nd-cat__card<?=(!empty($arChild['SELECTED']) ? ' is-active' : '')?>" href="<?=htmlspecialcharsbx($arChild['LINK'])?>">
+						<?foreach($arCards as $arCard):?>
+							<a class="nd-cat__card<?=($arCard['SELECTED'] ? ' is-active' : '')?>" href="<?=htmlspecialcharsbx($arCard['LINK'])?>">
 								<span class="nd-cat__card-img">
-									<?if($childImg):?>
-										<img src="<?=htmlspecialcharsbx($childImg)?>" alt="" width="56" height="56" loading="lazy">
+									<?if($arCard['IMG']):?>
+										<img data-nd-src="<?=htmlspecialcharsbx($arCard['IMG'])?>" alt="" width="56" height="56">
+									<?else:?>
+										<?$ndImgPlaceholder();?>
 									<?endif;?>
 								</span>
-								<span class="nd-cat__card-label"><?=htmlspecialcharsbx($arChild['TEXT'])?></span>
+								<span class="nd-cat__card-label"><?=htmlspecialcharsbx($arCard['TEXT'])?></span>
 							</a>
 						<?endforeach;?>
 					</div>
@@ -129,3 +284,8 @@ $ndSectionImg = function($arItem, $size) {
 	</div>
 
 </div>
+<?
+$html = ob_get_clean();
+$cache->endDataCache(array('HTML' => $html));
+echo $html;
+?>

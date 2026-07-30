@@ -361,7 +361,10 @@ $basketCount = (int)$arBasketPrices['BASKET_COUNT'];
 			"COUNT_ITEM"            => "6",
 			"DELAY"                 => "N",
 			"MAX_LEVEL"             => "4",
-			"MENU_CACHE_TYPE"       => "N",
+			// Кэш меню включён (на боевом "N"): дерево каталога собирается
+			// запросами к инфоблоку, и на каждый хит это лишняя работа.
+			// Сбрасывается по тегам инфоблока при правке разделов.
+			"MENU_CACHE_TYPE"       => "A",
 			"MENU_CACHE_TIME"       => "3600",
 			"MENU_CACHE_USE_GROUPS" => "N",
 			"CACHE_SELECTED_ITEMS"  => "N",

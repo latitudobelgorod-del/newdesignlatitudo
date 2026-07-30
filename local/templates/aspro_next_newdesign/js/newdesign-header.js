@@ -31,8 +31,27 @@
 	var catalogOverlay = document.getElementById('nd-catalog-overlay');
 	var closeTimer     = null;
 
+	/* Картинки каталога подставляем при первом открытии, а не в разметке.
+	   Панели скрыты через display:none, и в скрытом блоке браузер откладывает
+	   загрузку — из-за этого плитки при наведении оказывались пустыми, а само
+	   переключение выглядело медленным (картинки догружались уже после показа).
+	   Здесь грузим всё разом один раз: файлы мелкие (56–64px). */
+	var catalogImagesLoaded = false;
+
+	function loadCatalogImages() {
+		if (catalogImagesLoaded || !catalogDrop) return;
+		catalogImagesLoaded = true;
+
+		var imgs = catalogDrop.querySelectorAll('img[data-nd-src]');
+		Array.prototype.forEach.call(imgs, function (img) {
+			img.src = img.getAttribute('data-nd-src');
+			img.removeAttribute('data-nd-src');
+		});
+	}
+
 	function openCatalog() {
 		if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+		loadCatalogImages();
 		catalogBtn.classList.add('is-open');
 		catalogDrop.classList.add('is-open');
 		catalogOverlay.classList.add('is-open');
