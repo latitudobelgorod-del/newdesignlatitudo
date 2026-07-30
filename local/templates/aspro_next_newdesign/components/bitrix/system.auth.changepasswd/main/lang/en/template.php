@@ -1,0 +1,29 @@
+<?
+$MESS["AUTH_CHANGE_PASSWORD"] = "Change Password";
+$MESS["AUTH_LOGIN"] = "Login:";
+$MESS["AUTH_EMAIL"] = "Email:";
+$MESS["AUTH_CHECKWORD"] = "Check string:";
+$MESS["AUTH_NEW_PASSWORD"] = "New password:";
+$MESS["AUTH_NEW_PASSWORD_CONFIRM"] = "Password confirmation:";
+$MESS["AUTH_CHANGE"] = "Change Password";
+$MESS["AUTH_REQ"] = "Required Fields";
+$MESS["AUTH_AUTH"] = "Authorization";
+$MESS["AUTH_NEW_PASSWORD_REQ"] = "New password:";
+$MESS["AUTH_SECURE_NOTE"] = "The password will be encrypted in the browser before submitting the form. This will avoid sending the password in clear text.";
+$MESS["AUTH_NONSECURE_NOTE"] = "The password will be sent in clear text. Please enable JavaScript in your browser to encrypt the password before sending.";
+$MESS["REQUIRED_FIELDS"] = "Required fields";
+$MESS["CHANGE_PASSWORD"] = "Change Password";
+$MESS["PASSWORD_MIN_LENGTH"] = "Password length is at least 6 characters";
+$MESS["WRONG_LOGIN_OR_PASSWORD"] = "Invalid username or password";
+$MESS["CHANGE_SUCCESS"] = "You need to log in with a new password to continue.";
+$MESS["LOGIN"] = "Login";
+$MESS["PASSWORDS_DONT_MATCH"] = "Passwords do not match";
+$MESS["REQUIRED_FIELD"] = "This field is required.";
+$MESS["WRONG_PASSWORD_CONFIRM"] = "Invalid password confirmation.";
+$MESS["PASSWORD_MIN_LENGTH_2"] = "The password must be longer than 6 characters.";
+$MESS["FORM_CAPRCHE_TITLE"] = "Please enter the text from the picture";
+$MESS['change_pass_code'] = 'SMS recovery code';
+$MESS["change_pass_phone_number"] = "Phone number";
+$MESS["AUTH_CURRENT_PASSWORD"] = "Current password:";
+$MESS['change_pass_code_sent'] = "An SMS was sent to your number with a recovery code for access to the site.";
+?>

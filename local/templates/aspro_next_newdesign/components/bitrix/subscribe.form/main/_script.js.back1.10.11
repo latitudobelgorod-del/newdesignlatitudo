@@ -1,0 +1,13 @@
+BX.Aspro.Utils.readyDOM(() => {
+  if (typeof obDataSubscribe !== "undefined") {
+    BX.Aspro.Loader.addExt('validate').then(() => {
+      $(`.s_${obDataSubscribe} form.sform`).validate({
+        rules: {
+          "sf_EMAIL": {
+            email: true
+          }
+        }
+      });
+    });
+  }
+});

@@ -1,0 +1,34 @@
+<?
+$MESS["OPINIONS_NAME"] = "Your name";
+$MESS["OPINIONS_EMAIL"] = "Your email";
+$MESS["OPINIONS_SEND"] = "Send";
+$MESS["OPINIONS_PREVIEW"] = "View";
+$MESS["F_C_GOTO_FORUM"] = "Go to the discussion on the forum &gt;&gt;";
+$MESS["F_CAPTCHA_TITLE"] = "Automatic protection protection";
+$MESS["F_CAPTCHA_PROMT"] = "Symbols in the picture";
+$MESS["F_QUOTE_FULL"] = "Quote";
+$MESS["F_WANT_ALLOW_SMILES"] = "Allow emoticons in this message";
+$MESS["F_WANT_SUBSCRIBE_TOPIC"] = "Subscribe to new messages to this topic";
+$MESS["F_LOAD_FILE"] = "Download the file";
+$MESS["F_LOAD_IMAGE"] = "Download the image";
+$MESS["F_QUOTE_HINT"] = "To insert quotes into the answer form, select it and click here";
+$MESS["F_NAME"] = "Name";
+$MESS["JQOUTE_AUTHOR_WRITES"] = "Writes";
+$MESS['JERROR_REQUIRED_FIELD'] = 'Required field';
+$MESS['JERROR_NO_TOPIC_AUTHOR_NAME'] = 'You must enter the name';
+$MESS["JERROR_NO_TOPIC_NAME"] = "You must enter the name of the topic";
+$MESS["JERROR_NO_MESSAGE"] = "You must enter a message";
+$MESS["JERROR_MAX_LEN"] = "Maximum message length is #MAX_LENGTH# symbols. Total symbols: #LENGTH#.";
+$MESS["F_FILE_SIZE"] = "The file size should not exceed #size #.";
+$MESS["F_PREVIEW"] = "Preview of the message";
+$MESS["F_DOWNLOAD"] = "Download";
+$MESS["F_FILE_EXTENSION"] = "Allowed file extension: #EXTENSION#.";
+$MESS["F_HIDE"] = "Hide";
+$MESS["F_SHOW"] = "Show";
+$MESS["F_WAIT"] = "Wait...";
+$MESS["F_DELETE"] = "Delete";
+$MESS["F_DELETE_CONFIRM"] = "The message will be deleted without the possibility of recovery. Delete?";
+$MESS["F_ATTACH_FILES"] = "Attached files";
+$MESS["ANONS_TEXT_FORUM"] = "This product has no reviews.Become the first to leave a review about this product!";
+$MESS["COMM_COMMENT_OK_AND_NOT_APPROVED"] = "The comment is added and will be shown after approval by the moderator.";
+?>

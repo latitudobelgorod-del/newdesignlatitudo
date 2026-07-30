@@ -1,0 +1,27 @@
+.banners-slider__item {
+  margin: 0 !important;
+}
+
+.banners-slider__image {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  display: block;
+}
+@media (min-width: 992px) {
+  .banners-slider__image {
+    height: 140px;
+  }
+}
+@media (max-width: 991px) {
+  .banners-slider__image {
+    padding-bottom: 16%;
+  }
+}
+.banners-slider .slider-nav__icon {
+  min-width: auto;
+  min-height: auto;
+}
+.banners-slider .swiper-horizontal.swiper-pagination {
+  bottom: 0px;
+}

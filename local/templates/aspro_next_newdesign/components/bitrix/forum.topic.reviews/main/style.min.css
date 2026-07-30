@@ -1,0 +1,1 @@
+.reviews-reply-field{position:relative}.reviews-reply-field::before{color:#e62222;content:attr(data-error);display:block;font-size:10px;max-width:80%;overflow:hidden;position:absolute;right:0;text-overflow:ellipsis;top:0;white-space:nowrap}

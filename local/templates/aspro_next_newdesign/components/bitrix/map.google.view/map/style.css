@@ -1,0 +1,40 @@
+.map-detail-items__item--hidden {
+  display: none;
+}
+.map-detail-items__item {
+  padding: 25px 32px;
+}
+.map-detail-items__item-svg {
+  position: absolute;
+  right: 6px;
+  top: 8px;
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  cursor: pointer;
+}
+.map-detail-items__item-svg:not(:hover) svg path {
+  fill: #999;
+}
+.map-detail-items__item-close {
+  width: 10px;
+  height: 10px;
+}
+.map-detail-items__item-title {
+  margin-bottom: 18px;
+}
+.map-detail-items__item-property {
+  margin-top: 10px;
+}
+.map-detail-items__item-buttons {
+  margin-top: 24px;
+}
+@media (max-width: 530px) {
+  .map-detail-items__item {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+.cluster>div {
+  line-height: 56px;
+}
