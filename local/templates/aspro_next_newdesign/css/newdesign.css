@@ -994,3 +994,26 @@ textarea {
     border: 1px solid rgba(82, 82, 100, .25);
     border-radius: 50%;
 }
+
+/* --- справочник с картинками («Виды ограждений») --- */
+/* Названия видов длинные, а пункт ещё и с миниатюрой — панель шире обычной
+   и с прокруткой: значений десяток, в высоту экрана они не всегда влезают. */
+.nd-filter__panel--pics {
+    min-width: 320px;
+    max-height: min(60vh, 460px);
+    overflow-y: auto;
+}
+.nd-filter__pic {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .05);
+    object-fit: contain;
+}
+
+@media (max-width: 767px) {
+    .nd-filter__panel--pics {
+        min-width: 280px;
+    }
+}
