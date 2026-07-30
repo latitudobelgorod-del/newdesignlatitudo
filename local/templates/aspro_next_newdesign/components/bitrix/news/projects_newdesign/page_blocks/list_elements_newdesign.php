@@ -277,6 +277,15 @@ if (!defined('ND_UI_JS')) {
 </form>
 <?
 
+/* Разделы портфолио и SEO-текст раздела. Порядок по макету: фильтры,
+   плашки разделов, текст, сетка. ID раздела ставит section.php; на общей
+   странице /projects/ его нет — плашки выводятся без активной. */
+$ndSectionId = (int) ($ndSectionId ?? 0);
+include __DIR__.'/sections_newdesign.php';
+
+$ndSeoSlot = 'top';
+include __DIR__.'/seotext_newdesign.php';
+
 $APPLICATION->IncludeComponent(
 	'bitrix:news.list',
 	'list_projects_newdesign',
@@ -333,3 +342,6 @@ $APPLICATION->IncludeComponent(
 	],
 	$component
 );
+
+$ndSeoSlot = 'bottom';
+include __DIR__.'/seotext_newdesign.php';

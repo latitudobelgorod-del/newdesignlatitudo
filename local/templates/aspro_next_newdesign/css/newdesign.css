@@ -995,6 +995,87 @@ textarea {
     border-radius: 50%;
 }
 
+/* ===================== разделы портфолио плашками =====================
+   По макету: ряд серых плашек под фильтрами, над сеткой карточек.
+   Активный раздел — фирменным красным.
+   ====================================================================== */
+.nd-projects__h1 {
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto 24px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 34px;
+    line-height: 42px;
+    font-weight: 700;
+    color: #101014;
+}
+.nd-sections {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto 32px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.nd-sections__item {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .08);
+    color: #101014;
+    font-size: 15px;
+    line-height: 22px;
+    text-decoration: none;
+    transition: background .15s ease, color .15s ease;
+}
+a.nd-sections__item:hover,
+a.nd-sections__item:focus {
+    background: rgba(82, 82, 100, .16);
+    color: #101014;
+    text-decoration: none;
+}
+.nd-sections__item--active {
+    background: #c60000;
+    color: #fff;
+}
+
+/* SEO-текст раздела: блоки sprint.editor из карточки раздела */
+.nd-seotext {
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto 32px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.nd-seotext--bottom {
+    margin-top: 40px;
+    margin-bottom: 0;
+}
+.nd-seotext img {
+    max-width: 100%;
+    height: auto;
+}
+
+@media (max-width: 767px) {
+    .nd-projects__h1 {
+        margin-bottom: 16px;
+        font-size: 24px;
+        line-height: 30px;
+    }
+    .nd-sections {
+        margin-bottom: 24px;
+    }
+    .nd-sections__item {
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
 /* --- справочник с картинками («Виды ограждений») --- */
 /* Названия видов длинные, а пункт ещё и с миниатюрой — панель шире обычной
    и с прокруткой: значений десяток, в высоту экрана они не всегда влезают. */

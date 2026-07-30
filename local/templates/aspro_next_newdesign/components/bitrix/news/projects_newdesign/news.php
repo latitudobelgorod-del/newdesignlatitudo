@@ -33,4 +33,8 @@ if ($arParams['USE_RSS'] !== 'N') {
 	CNext::ShowRSSIcon($arResult['FOLDER'].$arResult['URL_TEMPLATES']['rss']);
 }
 
+// Заголовок был у старого дизайна (news.php шаблона `projects`), header.php
+// нового печатает <h1> только для блога — выводим сами, чтобы не потерять.
+?><h1 id="pagetitle" class="nd-projects__h1">Портфолио объектов Латитудо</h1><?
+
 include __DIR__.'/page_blocks/list_elements_newdesign.php';

@@ -11,7 +11,8 @@ if($arParams['CACHE_GROUPS'] == 'Y')
 	$arSectionFilter['GROUPS'] = $GLOBALS["USER"]->GetGroups();
 }
 
-$arSection = CNextCache::CIblockSection_GetList(array("CACHE" => array("TAG" => CNextCache::GetIBlockCacheTag($arParams["IBLOCK_ID"]), "MULTI" => "N")), $arSectionFilter, false, array('ID', 'DESCRIPTION', 'PICTURE', 'DETAIL_PICTURE'), true);
+// SECTION_PAGE_URL нужен новому дизайну: по нему отличаем канонический адрес раздела
+$arSection = CNextCache::CIblockSection_GetList(array("CACHE" => array("TAG" => CNextCache::GetIBlockCacheTag($arParams["IBLOCK_ID"]), "MULTI" => "N")), $arSectionFilter, false, array('ID', 'NAME', 'DESCRIPTION', 'PICTURE', 'DETAIL_PICTURE', 'SECTION_PAGE_URL'), true);
 CNext::AddMeta(
 	array(
 		'og:description' => $arSection['DESCRIPTION'],
@@ -61,9 +62,56 @@ if($arTheme['PROJECTS_PAGE']['VALUE'] == 'list_elements_3' || $arParams["SECTION
 	<?if(!$itemsCnt):?>
 		<div class="alert alert-warning"><?=GetMessage("SECTION_EMPTY")?></div>
 	<?endif;?>
-	
-	<?$sViewElementsTemplate = ($arParams["SECTION_ELEMENTS_TYPE_VIEW"] == "FROM_MODULE" ? $arTheme["PROJECTS_PAGE"]["VALUE"] : $arParams["SECTION_ELEMENTS_TYPE_VIEW"]);?>
-	<?@include_once('page_blocks/'.$sViewElementsTemplate.'.php');?>
+
+	<?
+	/* Новый дизайн рисует раздел тем же блоком, что и общую страницу портфолио:
+	   фильтры, плашки разделов, SEO-текст, сетка карточек. Параметр
+	   SECTION_ELEMENTS_TYPE_VIEW (list_elements_1) остаётся старому дизайну —
+	   у него свой шаблон `projects`.
+
+	   Заголовок раздела в новом дизайне никто не выводит: header.php печатает
+	   <h1> только для блога. Берём SEO-заголовок раздела, как это делал старый
+	   шаблон news-project-catalog1, и ставим его сами. */
+	$ndIb = (int) $arParams['IBLOCK_ID'];
+	$ndSectionId = (int) $arSection['ID'];
+
+	$ndSectionTitle = '';
+	if ($ndSectionId) {
+		$ndIprop = new Bitrix\Iblock\InheritedProperty\SectionValues($ndIb, $ndSectionId);
+		$ndIprop = $ndIprop->getValues();
+
+		$ndSectionTitle = trim((string) ($ndIprop['SECTION_PAGE_TITLE'] ?? ''));
+
+		/* Мету раздела в старом дизайне ставил сам компонент (SET_TITLE=Y).
+		   Здесь news.list вызывается с SET_TITLE=N, поэтому проставляем сами —
+		   иначе на разделе останутся title и description общей страницы. */
+		if ($ndSectionTitle) {
+			$APPLICATION->SetTitle($ndSectionTitle);
+		}
+		foreach (['SECTION_META_TITLE' => 'title', 'SECTION_META_DESCRIPTION' => 'description', 'SECTION_META_KEYWORDS' => 'keywords'] as $ndIpropKey => $ndProp) {
+			$ndValue = trim((string) ($ndIprop[$ndIpropKey] ?? ''));
+			if ($ndValue) {
+				$APPLICATION->SetPageProperty($ndProp, $ndValue);
+			}
+		}
+	}
+	if (!$ndSectionTitle) {
+		$ndSectionTitle = (string) $APPLICATION->GetTitle(false);
+	}
+
+	/* Страницы пагинации и «чужие» адреса раздела из индекса убираем —
+	   логика перенесена из шаблона news-project-catalog1. */
+	$ndCurPage = (int) ($_REQUEST['PAGEN_1'] ?? 0);
+	if ($ndCurPage > 1) {
+		$APPLICATION->AddHeadString('<meta name="yandex" content="noindex, follow" />', true);
+	} elseif ($arSection && $_SERVER['REQUEST_URI'] !== $arSection['SECTION_PAGE_URL']) {
+		$APPLICATION->SetPageProperty('robots', 'noindex, nofollow');
+	}
+	?>
+	<? if ($ndSectionTitle): ?>
+		<h1 id="pagetitle" class="nd-projects__h1"><?= $ndSectionTitle ?></h1>
+	<? endif; ?>
+	<? include __DIR__.'/page_blocks/list_elements_newdesign.php'; ?>
 <?endif;?>
 <?if($arYears && $bFoundSection)
 {			
