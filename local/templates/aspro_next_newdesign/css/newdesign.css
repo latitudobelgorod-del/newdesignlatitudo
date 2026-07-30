@@ -1009,6 +1009,160 @@ textarea {
     font-weight: 700;
     color: #101014;
 }
+/* ======================== акции и скидки (/sale/) ======================
+   По макету: заголовок, вводный текст, разделитель, плитки акций в три
+   колонки, разделитель, переключатель «Активные / Завершенные».
+   Пропорции у баннеров акций разные, поэтому картинку не режем — плитки в
+   ряду бывают разной высоты, как и на макете.
+   ====================================================================== */
+.nd-sale__h1,
+.nd-sale__lead,
+.nd-sale__list,
+.nd-sale__tabs,
+.nd-sale__nav,
+.nd-sale__empty {
+    width: 100%;
+    max-width: 1336px;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    color: #101014;
+}
+.nd-sale__h1 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 34px;
+    line-height: 42px;
+    font-weight: 700;
+}
+.nd-sale__lead {
+    margin-bottom: 0;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(82, 82, 100, .15);
+    font-size: 16px;
+    line-height: 24px;
+}
+.nd-sale__lead p:last-child {
+    margin-bottom: 0;
+}
+.nd-sale__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 24px;
+    margin-top: 32px;
+}
+.nd-sale__item {
+    position: relative;
+    display: block;
+    border-radius: 6px;
+    overflow: hidden;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-sale__item:hover,
+.nd-sale__item:focus {
+    color: #101014;
+    text-decoration: none;
+}
+.nd-sale__pic {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: transform .25s ease;
+}
+.nd-sale__item:hover .nd-sale__pic {
+    transform: scale(1.03);
+}
+/* срок действия — белой плашкой поверх картинки, в правом нижнем углу */
+.nd-sale__date {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: 6px 12px;
+    background: #fff;
+    color: #101014;
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    white-space: nowrap;
+}
+.nd-sale__nav {
+    margin-top: 32px;
+}
+.nd-sale__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(82, 82, 100, .15);
+}
+.nd-sale__tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+    height: 48px;
+    padding: 0 24px;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .08);
+    color: #8f8f9a;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    text-decoration: none;
+}
+a.nd-sale__tab:hover,
+a.nd-sale__tab:focus {
+    background: rgba(82, 82, 100, .16);
+    color: #101014;
+    text-decoration: none;
+}
+.nd-sale__tab--active {
+    background: #c60000;
+    color: #fff;
+}
+.nd-sale__empty {
+    margin-top: 32px;
+    font-size: 18px;
+    line-height: 25px;
+    color: #8f8f9a;
+}
+
+@media (max-width: 1199px) {
+    .nd-sale__list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-sale__h1 {
+        font-size: 24px;
+        line-height: 30px;
+    }
+    .nd-sale__list {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        margin-top: 24px;
+    }
+    .nd-sale__tabs {
+        gap: 8px;
+        margin-top: 32px;
+        padding-top: 24px;
+    }
+    .nd-sale__tab {
+        min-width: 0;
+        flex: 1 1 45%;
+        height: 44px;
+        padding: 0 14px;
+        font-size: 15px;
+    }
+}
+
 /* Шапка страницы портфолио: заголовок слева, кнопка справа, под ними подпись
    и разделитель — по макету общей страницы /projects/. */
 .nd-page-head {

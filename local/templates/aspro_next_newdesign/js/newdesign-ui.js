@@ -63,8 +63,8 @@
 			return;
 		}
 
-		var list = document.querySelector('.nd-reviews__list, .nd-projects__list');
-		var nav = document.querySelector('.nd-reviews__nav, .nd-projects__nav');
+		var list = document.querySelector('.nd-reviews__list, .nd-projects__list, .nd-sale__list');
+		var nav = document.querySelector('.nd-reviews__nav, .nd-projects__nav, .nd-sale__nav');
 		var href = more.getAttribute('href');
 		if (!list || !nav || !href) {
 			return; // без списка или адреса пусть отработает обычный переход
@@ -83,8 +83,8 @@
 			})
 			.then(function (html) {
 				var doc = new DOMParser().parseFromString(html, 'text/html');
-				var nextList = doc.querySelector('.nd-reviews__list, .nd-projects__list');
-				var nextNav = doc.querySelector('.nd-reviews__nav, .nd-projects__nav');
+				var nextList = doc.querySelector('.nd-reviews__list, .nd-projects__list, .nd-sale__list');
+				var nextNav = doc.querySelector('.nd-reviews__nav, .nd-projects__nav, .nd-sale__nav');
 				if (!nextList) {
 					throw new Error('в ответе нет списка');
 				}
