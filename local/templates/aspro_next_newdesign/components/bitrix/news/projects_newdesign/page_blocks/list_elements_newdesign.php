@@ -28,6 +28,8 @@ $arNdProjectFields = array_values(array_unique(array_filter(array_merge(
    глобальную переменную с именем из FILTER_NAME — её читает news.list. */
 $ndIb = (int) $arParams['IBLOCK_ID'];
 $ndFilterName = $arParams['FILTER_NAME'] ?: 'arProjectFilter';
+// ID раздела ставит section.php; на общей странице /projects/ его нет
+$ndSectionId = (int) ($ndSectionId ?? 0);
 
 $ndReview = ($_GET['review'] ?? '') === 'y';
 $ndVideo = ($_GET['video'] ?? '') === 'y';
@@ -104,6 +106,60 @@ if (!function_exists('ndElementIdsByProperty')) {
 	}
 }
 
+if (!function_exists('ndUsedDirectoryValues')) {
+	/**
+	 * Какие значения справочника реально встречаются у элементов раздела.
+	 * Нужно, чтобы в разделе не висел фильтр с пунктами, которых там нет:
+	 * «Виды ограждений» заполняют только у ограждений и заборов.
+	 *
+	 * @param int    $iblockId
+	 * @param string $code       код свойства
+	 * @param int    $sectionId  раздел; 0 — весь инфоблок
+	 * @return array XML_ID => true
+	 */
+	function ndUsedDirectoryValues($iblockId, $code, $sectionId)
+	{
+		$sectionId = (int) $sectionId;
+
+		$cache = new CPHPCache();
+		$cacheId = 'nd_used_'.$iblockId.'_'.$code.'_'.$sectionId;
+		$cacheDir = '/nd/projects_filter';
+
+		if ($cache->InitCache(86400, $cacheId, $cacheDir)) {
+			$vars = $cache->GetVars();
+
+			return is_array($vars['VALUES'] ?? null) ? $vars['VALUES'] : [];
+		}
+
+		$taggedCache = Bitrix\Main\Application::getInstance()->getTaggedCache();
+		$taggedCache->startTagCache($cacheDir);
+		$taggedCache->registerTag('iblock_id_'.$iblockId);
+
+		$filter = ['IBLOCK_ID' => $iblockId, 'ACTIVE' => 'Y', '!PROPERTY_'.$code => false];
+		if ($sectionId > 0) {
+			$filter['SECTION_ID'] = $sectionId;
+			$filter['INCLUDE_SUBSECTIONS'] = 'Y';
+		}
+
+		$values = [];
+		$rs = CIBlockElement::GetList([], $filter, false, false, ['ID', 'PROPERTY_'.$code]);
+		while ($r = $rs->Fetch()) {
+			$value = $r['PROPERTY_'.$code.'_VALUE'] ?? '';
+			if ($value !== '' && $value !== null) {
+				$values[$value] = true;
+			}
+		}
+
+		$taggedCache->endTagCache();
+
+		if ($cache->StartDataCache()) {
+			$cache->EndDataCache(['VALUES' => $values]);
+		}
+
+		return $values;
+	}
+}
+
 /* --- списки для выпадающих меню --- */
 $ndColorOptions = [];
 $ndFenceOptions = [];
@@ -112,6 +168,17 @@ $ndBrandOptions = [];
 if ($ndIb) {
 	$ndColorOptions = ndDirectoryOptions($ndIb, 'COLOR_IN_FILTER');
 	$ndFenceOptions = ndDirectoryOptions($ndIb, 'VIDW_OGRAJDENIY', true);
+
+	/* Внутри раздела оставляем только те значения, что реально встречаются
+	   у его элементов: «Виды ограждений» заполняют у ограждений и заборов, и в
+	   Террасах этот фильтр не нужен — если не осталось ни одного пункта,
+	   выпадающий список не выведется вовсе. */
+	if ($ndSectionId > 0) {
+		$ndUsedColor = ndUsedDirectoryValues($ndIb, 'COLOR_IN_FILTER', $ndSectionId);
+		$ndUsedFence = ndUsedDirectoryValues($ndIb, 'VIDW_OGRAJDENIY', $ndSectionId);
+		$ndColorOptions = array_intersect_key($ndColorOptions, $ndUsedColor);
+		$ndFenceOptions = array_intersect_key($ndFenceOptions, $ndUsedFence);
+	}
 
 	// картинки справочника видов ограждений — сразу в нужном размере
 	foreach ($ndFenceOptions as $xmlId => $opt) {
@@ -278,9 +345,7 @@ if (!defined('ND_UI_JS')) {
 <?
 
 /* Разделы портфолио и SEO-текст раздела. Порядок по макету: фильтры,
-   плашки разделов, текст, сетка. ID раздела ставит section.php; на общей
-   странице /projects/ его нет — плашки выводятся без активной. */
-$ndSectionId = (int) ($ndSectionId ?? 0);
+   плашки разделов, текст, сетка. */
 include __DIR__.'/sections_newdesign.php';
 
 $ndSeoSlot = 'top';
