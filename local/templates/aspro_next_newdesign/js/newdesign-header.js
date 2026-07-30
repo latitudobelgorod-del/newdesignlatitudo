@@ -191,26 +191,35 @@
 	   страницы. Поэтому подставляем сами, как только окно с формой отрисовалось. */
 	var formTitleObserver = null;
 	var formTitleTimer = null;
+	var formTitleInterval = null;
 
+	/* Правим все копии, а не первую: на одно нажатие тема успевает собрать
+	   несколько окон, и в DOM остаются окна от прошлых открытий. Если поправить
+	   только первое, отправиться может форма из соседнего — с текстом страницы
+	   в NAMEFORM. */
 	function setFormTitle(label) {
-		var head = document.querySelector('div.form_head h2.formnameru');
-		if (!head) return;
+		var heads = document.querySelectorAll('div.form_head h2.formnameru, div.form_headin h2.formnameruinline');
+		Array.prototype.forEach.call(heads, function (head) {
+			if (head.textContent !== label) head.textContent = label;
+		});
 
-		if (head.textContent !== label) head.textContent = label;
+		var forms = document.querySelectorAll('.jqmWindow form');
+		Array.prototype.forEach.call(forms, function (form) {
+			/* Полей NAMEFORM в форме бывает несколько (обычное и inline-копия) —
+			   заполняем все: уедет то, которое окажется в отправке. */
+			var nameInputs = form.querySelectorAll('input[data-sid="NAMEFORM"]');
+			if (!nameInputs.length) return;
+			Array.prototype.forEach.call(nameInputs, function (nameInput) {
+				if (nameInput.value !== label) nameInput.value = label;
+			});
 
-		var wrap = head.closest('.form_head');
-		var form = wrap && wrap.parentElement ? wrap.parentElement.querySelector('form') : null;
-		if (!form) return;
-
-		var nameInput = form.querySelector('input[data-sid="NAMEFORM"]');
-		if (nameInput && nameInput.value !== label) nameInput.value = label;
-
-		/* Подпись уходит ещё и в action — оттуда её читает обработчик отправки.
-		   Дважды не добавляем: окно открывается повторно, а форма перерисовывается. */
-		var action = form.getAttribute('action') || '';
-		if (action.indexOf('formhead=') === -1) {
-			form.setAttribute('action', action + '&formhead=' + encodeURIComponent(label));
-		}
+			/* Подпись уходит ещё и в action — оттуда её читает обработчик отправки.
+			   Дважды не добавляем: окно открывается повторно, а форма перерисовывается. */
+			var action = form.getAttribute('action') || '';
+			if (action.indexOf('formhead=') === -1) {
+				form.setAttribute('action', action + '&formhead=' + encodeURIComponent(label));
+			}
+		});
 	}
 
 	/* Форма прилетает аяксом и по дороге перерисовывается несколько раз (в DOM
@@ -219,20 +228,31 @@
 	function applyFormTitle(label) {
 		if (formTitleObserver) formTitleObserver.disconnect();
 		if (formTitleTimer) clearTimeout(formTitleTimer);
+		if (formTitleInterval) clearInterval(formTitleInterval);
 
 		setFormTitle(label);
 
 		formTitleObserver = new MutationObserver(function () { setFormTitle(label); });
 		formTitleObserver.observe(document.body, { childList: true, subtree: true });
 
+		/* Наблюдателя мало: тема дописывает NAMEFORM через jQuery .val(), а это
+		   не мутация DOM — MutationObserver такого не видит. Поэтому пока идёт
+		   загрузка, ещё и переспрашиваем по таймеру. */
+		formTitleInterval = setInterval(function () { setFormTitle(label); }, 200);
+
 		formTitleTimer = setTimeout(function () {
 			if (formTitleObserver) formTitleObserver.disconnect();
 			formTitleObserver = null;
+			clearInterval(formTitleInterval);
+			formTitleInterval = null;
 		}, 8000);
 	}
 
+	/* Беда не только у шапки: у любой кнопки нового дизайна hash.t приезжает
+	   как document. Кнопки вне шапки подключаются к починке явно — атрибутом
+	   data-nd-form-title, чтобы случайно не перехватить чужие триггеры темы. */
 	document.addEventListener('click', function (e) {
-		var trigger = e.target.closest('#nd-header [data-event="jqm"]');
+		var trigger = e.target.closest('#nd-header [data-event="jqm"], [data-event="jqm"][data-nd-form-title]');
 		if (!trigger) return;
 
 		/* data-nd-form-title задаёт заголовок явно — нужен там, где подпись кнопки

@@ -1009,6 +1009,137 @@ textarea {
     font-weight: 700;
     color: #101014;
 }
+/* Шапка страницы портфолио: заголовок слева, кнопка справа, под ними подпись
+   и разделитель — по макету общей страницы /projects/. */
+.nd-page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto;
+}
+.nd-page-head .nd-projects__h1 {
+    margin-bottom: 0;
+}
+.nd-page-head__cta {
+    flex: 0 0 auto;
+}
+/* Сам триггер формы трогать классами нельзя (см. news.php), поэтому красим
+   его отсюда — и с !important: у темы свои .colored/.white с высокой
+   специфичностью. */
+.nd-page-head__cta .callback-block {
+    display: inline-flex !important;
+    align-items: center;
+    height: 48px;
+    margin: 0 !important;
+    padding: 0 24px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: #c60000 !important;
+    color: #fff !important;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px !important;
+    line-height: 24px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.nd-page-head__cta .callback-block:hover,
+.nd-page-head__cta .callback-block:focus {
+    background: #a80000 !important;
+    color: #fff !important;
+}
+.nd-page-head__lead {
+    width: 100%;
+    max-width: 1336px;
+    margin: 16px auto 0;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(82, 82, 100, .15);
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+
+/* Плитки разделов на /projects/: та же сетка, что у карточек проектов, но
+   классы свои — стили карточек лежат в style.css шаблона news.list, а он на
+   этой странице не подключается. */
+.nd-sectiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    width: 100%;
+    max-width: 1336px;
+    margin: 32px auto 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.nd-sectiles__item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-sectiles__item:hover,
+.nd-sectiles__item:focus {
+    color: #101014;
+    text-decoration: none;
+}
+.nd-sectiles__pic {
+    position: relative;
+    display: block;
+    aspect-ratio: 429 / 272;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .08);
+    overflow: hidden;
+}
+.nd-sectiles__pic img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .25s ease;
+}
+.nd-sectiles__item:hover .nd-sectiles__pic img {
+    transform: scale(1.03);
+}
+.nd-sectiles__name {
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 600;
+}
+
+@media (max-width: 1199px) {
+    .nd-sectiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-page-head {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .nd-page-head__cta .callback-block {
+        height: 44px;
+        padding: 0 18px !important;
+        font-size: 15px !important;
+    }
+    .nd-sectiles {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        margin-top: 24px;
+    }
+    .nd-sectiles__name {
+        font-size: 15px;
+        line-height: 20px;
+    }
+}
+
 .nd-sections {
     display: flex;
     flex-wrap: wrap;
