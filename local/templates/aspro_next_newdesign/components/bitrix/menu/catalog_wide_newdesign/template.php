@@ -174,6 +174,36 @@ $ndParseMenuLink = function($sHtml) use ($ndLandingPics) {
 };
 
 /**
+ * Картинка для пункта, у которого своей нет: берём анонс страницы, на которую
+ * он ведёт. Так «Перголы» (пункт добавлен в menu_ext руками и ведёт на статью
+ * в «Материалах») получает картинку статьи. Код элемента — последний сегмент
+ * URL. Вызывается редко и только для таких пунктов, а вывод целиком кэшируется.
+ */
+$ndLinkedPagePicture = function($href, $size) {
+	$path = parse_url((string)$href, PHP_URL_PATH);
+	$code = basename(rtrim((string)$path, '/'));
+	if($code === '' || strpos($code, '.') !== false)
+		return null;
+
+	$res = CIBlockElement::GetList(
+		array(),
+		array('=CODE' => $code, 'ACTIVE' => 'Y', 'ACTIVE_DATE' => 'Y'),
+		false,
+		array('nTopCount' => 1),
+		array('ID', 'PREVIEW_PICTURE', 'DETAIL_PICTURE')
+	);
+	if(!($arElement = $res->Fetch()))
+		return null;
+
+	$picId = (int)($arElement['PREVIEW_PICTURE'] ? $arElement['PREVIEW_PICTURE'] : $arElement['DETAIL_PICTURE']);
+	if($picId <= 0)
+		return null;
+
+	$img = CFile::ResizeImageGet($picId, array('width' => $size, 'height' => $size), BX_RESIZE_IMAGE_PROPORTIONAL, true);
+	return (is_array($img) && $img['src']) ? $img['src'] : null;
+};
+
+/**
  * Заглушка вместо картинки — как в боевом шаблоне. Нужна не для красоты:
  * у пунктов, добавленных в menu_ext руками («Перголы»), картинки нет вовсе,
  * а у ссылок на посадочные (ИБ 21) не заполнен анонсный рисунок — без
@@ -192,7 +222,13 @@ $ndImgPlaceholder = function() {
 	<!-- Слева: разделы -->
 	<div class="nd-cat__aside" role="tablist">
 		<?foreach($arSections as $i => $arSection):?>
-			<?$img = $ndSectionImg($arSection, 64);?>
+			<?
+			$img = $ndSectionImg($arSection, 64);
+			// У пунктов не из каталога (добавлены в menu_ext) картинки раздела нет —
+			// подставляем анонс страницы, на которую ведёт ссылка.
+			if(!$img)
+				$img = $ndLinkedPagePicture($arSection['LINK'], 64);
+			?>
 			<a class="nd-cat__chip<?=($i === 0 ? ' is-active' : '')?>"
 			   href="<?=htmlspecialcharsbx($arSection['LINK'])?>"
 			   data-nd-cat-target="<?=htmlspecialcharsbx($arSection['LINK'])?>"
