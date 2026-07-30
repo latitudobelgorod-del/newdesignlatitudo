@@ -599,87 +599,182 @@ body {
                 visibility 0s linear 0s;
 }
 
+/* ============================== каталог ================================= */
+
+/* Выпадающий каталог — две панели, по макету Figma (фрейм «Каталог», узел
+   21349:56357): контейнер 1440 с полями 40/52, зазор между колонками 52. */
 .nd-cat {
+    display: flex;
+    gap: 52px;
+    align-items: flex-start;
     max-width: 1440px;
     margin: 0 auto;
-    padding: 28px 52px 32px;
+    padding: 40px 52px;
     font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
 }
-/* Колонки, а не грид: у разделов сильно разная высота, в гриде строка
-   тянется по самому длинному и остаются дыры. */
-.nd-cat__cols {
-    column-count: 3;
-    column-gap: 32px;
+
+/* ---- слева: разделы (чипы 377×64, шаг 12) ---- */
+.nd-cat__aside {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 0 0 377px;
+    width: 377px;
 }
-.nd-cat__group {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    margin-bottom: 24px;
+.nd-cat__chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-height: 64px;
+    border-radius: 6px;
+    color: #101014;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
 }
-.nd-cat ul,
-.nd-cat li {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+.nd-cat__chip:hover,
+.nd-cat__chip:focus,
+.nd-cat__chip.is-active {
+    background: rgba(82, 82, 100, 0.05);
+    text-decoration: none;
 }
-.nd-cat ul li::before {
-    content: none !important;
-    display: none !important;
+.nd-cat__chip-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    overflow: hidden;
+    border-radius: 6px;
 }
-.nd-cat__parent {
-    display: block;
-    margin-bottom: 12px;
-    font-weight: 700;
+.nd-cat__chip-img img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.nd-cat__chip-label {
+    flex: 1 1 auto;
+    padding: 0 8px;
+    font-weight: 500;
     font-size: 18px;
-    line-height: 24px;
-    color: #101014;
-    text-decoration: none;
+    line-height: 25.2px;
+    color: inherit;
 }
-.nd-cat__parent:hover,
-.nd-cat__parent:focus {
+.nd-cat__chip-arrow {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    color: rgba(82, 82, 100, 0.5);
+}
+/* Активный раздел: подпись и шеврон красные */
+.nd-cat__chip.is-active .nd-cat__chip-label,
+.nd-cat__chip:hover .nd-cat__chip-label {
     color: #c60000;
-    text-decoration: none;
 }
-.nd-cat__children {
-    display: flex;
+.nd-cat__chip.is-active .nd-cat__chip-arrow,
+.nd-cat__chip:hover .nd-cat__chip-arrow {
+    color: #c60000;
+}
+
+/* ---- справа: подразделы выбранного раздела ---- */
+.nd-cat__panels {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.nd-cat__panel {
+    display: none;
     flex-direction: column;
-    gap: 2px;
+    gap: 40px;
 }
-.nd-cat__child {
-    display: inline-block;
-    padding: 3px 0;
+.nd-cat__panel.is-active {
+    display: flex;
+}
+.nd-cat__panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+.nd-cat__panel-title {
+    font-weight: 800;
+    font-size: 36px;
+    line-height: 39.6px;
+    color: #101014;
+}
+.nd-cat__all {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: #eeeeef;
+    font-weight: 600;
     font-size: 14px;
-    line-height: 20px;
+    line-height: 19.6px;
+    text-transform: uppercase;
+    color: #101014;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+}
+.nd-cat__all:hover,
+.nd-cat__all:focus {
+    background: #e2e2e4;
     color: #101014;
     text-decoration: none;
 }
-.nd-cat__child:hover,
-.nd-cat__child:focus,
-.nd-cat__child.is-active {
-    color: #c60000;
-    text-decoration: none;
+
+/* Плитки: 4 в ряд, зазор 8 (в макете 220×108) */
+.nd-cat__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
 }
-.nd-cat__sub {
+.nd-cat__card {
     display: flex;
     flex-direction: column;
-    gap: 1px;
-    margin: 2px 0 4px 10px;
-    padding-left: 10px;
-    border-left: 2px solid rgba(82, 82, 100, 0.15);
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-height: 108px;
+    padding: 8px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, 0.05);
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
 }
-.nd-cat__sub-link {
-    display: inline-block;
-    padding: 2px 0;
-    font-size: 13px;
-    line-height: 18px;
-    color: #525264;
+.nd-cat__card:hover,
+.nd-cat__card:focus,
+.nd-cat__card.is-active {
+    background: rgba(82, 82, 100, 0.1);
     text-decoration: none;
 }
-.nd-cat__sub-link:hover,
-.nd-cat__sub-link:focus,
-.nd-cat__sub-link.is-active {
+.nd-cat__card-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+}
+.nd-cat__card-img img {
+    max-width: 56px;
+    max-height: 56px;
+    object-fit: contain;
+}
+.nd-cat__card-label {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 14.4px;
+    color: #101014;
+}
+.nd-cat__card:hover .nd-cat__card-label,
+.nd-cat__card.is-active .nd-cat__card-label {
     color: #c60000;
-    text-decoration: none;
 }
 
 /* ============================== адаптив ================================= */

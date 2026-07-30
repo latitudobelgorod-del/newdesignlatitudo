@@ -77,6 +77,30 @@
 		}
 	}
 
+	/* ── Каталог: переключение правой панели по разделу слева ──
+	   Наведение (и фокус с клавиатуры) меняет активный чип и показывает панель
+	   с его подразделами. Сам чип остаётся ссылкой на раздел, поэтому клик
+	   работает как обычный переход — переключение только визуальное. */
+	if (catalogDrop) {
+		var chips = Array.prototype.slice.call(catalogDrop.querySelectorAll('.nd-cat__chip'));
+		var panels = Array.prototype.slice.call(catalogDrop.querySelectorAll('.nd-cat__panel'));
+
+		function activateSection(target) {
+			chips.forEach(function (c) {
+				c.classList.toggle('is-active', c.getAttribute('data-nd-cat-target') === target);
+			});
+			panels.forEach(function (p) {
+				p.classList.toggle('is-active', p.getAttribute('data-nd-cat-panel') === target);
+			});
+		}
+
+		chips.forEach(function (chip) {
+			var target = chip.getAttribute('data-nd-cat-target');
+			chip.addEventListener('mouseenter', function () { activateSection(target); });
+			chip.addEventListener('focus', function () { activateSection(target); });
+		});
+	}
+
 	/* ── Попапы «Шоурум» и «Склад» ── */
 	var pops = Array.prototype.slice.call(document.querySelectorAll('.nd-pop'));
 

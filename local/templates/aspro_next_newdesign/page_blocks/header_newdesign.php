@@ -347,25 +347,29 @@ $basketCount = (int)$arBasketPrices['BASKET_COUNT'];
 
 <!-- Выпадающий каталог -->
 <div class="nd-catalog-drop" id="nd-catalog-drop">
+	<?// Источник данных тот же, что у боевого меню (include/menu/menu.top.php):
+	// тип top_content_multilevel, дети раздела /catalog/ приходят из
+	// catalog/.top_menu_new.menu_ext.php. Так список разделов и подразделов
+	// совпадает с боевым, включая галку «показывать в меню».?>
 	<?$APPLICATION->IncludeComponent(
 		"bitrix:menu",
-		"catalog_menu_top_newdesign",
+		"catalog_wide_newdesign",
 		array(
 			"ALLOW_MULTI_SELECT"    => "N",
-			"CHILD_MENU_TYPE"       => "left",
-			"COMPONENT_TEMPLATE"    => "catalog_menu_top_newdesign",
+			"CHILD_MENU_TYPE"       => "top_menu_new",
+			"COMPONENT_TEMPLATE"    => "catalog_wide_newdesign",
 			"COUNT_ITEM"            => "6",
 			"DELAY"                 => "N",
-			"MAX_LEVEL"             => "3",
+			"MAX_LEVEL"             => "4",
 			"MENU_CACHE_TYPE"       => "N",
 			"MENU_CACHE_TIME"       => "3600",
 			"MENU_CACHE_USE_GROUPS" => "N",
 			"CACHE_SELECTED_ITEMS"  => "N",
-			"ROOT_MENU_TYPE"        => "left",
+			"ROOT_MENU_TYPE"        => "top_content_multilevel",
 			"USE_EXT"               => "Y",
-			"MENU_CACHE_GET_VARS"   => "",
+			"MENU_CACHE_GET_VARS"   => array(),
 		),
-		false
+		false, array("HIDE_ICONS" => "Y")
 	);?>
 </div>
 <div class="nd-catalog-overlay" id="nd-catalog-overlay"></div>
