@@ -1132,7 +1132,9 @@ a.nd-sale__tab:focus {
     color: #8f8f9a;
 }
 
-@media (max-width: 1199px) {
+/* Три колонки держим дольше, чем у карточек портфолио: на баннере акции есть
+   текст, и в две колонки он выходит непропорционально крупным. */
+@media (max-width: 991px) {
     .nd-sale__list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
