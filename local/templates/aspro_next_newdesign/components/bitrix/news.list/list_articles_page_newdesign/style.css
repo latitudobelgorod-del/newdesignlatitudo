@@ -15,6 +15,24 @@
     color: #101014;
 }
 
+/* --- заголовок страницы и разделитель под ним ---
+   H1 печатает header.php шаблона (для блоговых страниц он свой), поэтому
+   оформляем штатный элемент. Отличить общую страницу материалов от детальной
+   статьи можно по колонке: только у неё в header.php нет класса col-md-9
+   (условие там завязано прямо на путь /materials/).
+   Теги под заголовком в макете есть, но пока не выводим. */
+.content-md:not(.col-md-9) > h1#pagetitle {
+    max-width: 1336px;
+    margin: 0 auto 40px;
+    padding: 0 0 40px;
+    border-bottom: 2px solid rgba(82, 82, 100, .15);
+    font-family: "Nunito Sans", Arial, sans-serif;
+    font-size: 52px;
+    line-height: 57px;
+    font-weight: 800;
+    color: #101014;
+}
+
 /* --- ряд ссылок на разделы --- */
 .nd-mat__sections {
     display: flex;
@@ -95,6 +113,13 @@
 }
 
 @media (max-width: 1199px) {
+    .content-md:not(.col-md-9) > h1#pagetitle {
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        font-size: 40px;
+        line-height: 46px;
+    }
+
     .nd-mat__list {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 16px;
@@ -106,6 +131,11 @@
 }
 
 @media (max-width: 767px) {
+    .content-md:not(.col-md-9) > h1#pagetitle {
+        font-size: 30px;
+        line-height: 33px;
+    }
+
     .nd-mat__list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
