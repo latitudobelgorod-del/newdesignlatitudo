@@ -82,7 +82,6 @@ if(!function_exists('ndFooterMenuColumn'))
 	function ndFooterMenuColumn($arColumn, $bOpen = false)
 	{
 		global $APPLICATION;
-		$bServices = ($arColumn['TYPE'] === 'footer_services_newdesign');
 		?>
 		<div class="nd-fmenu__group<?=($bOpen ? ' is-open' : '')?>" data-nd-acc>
 			<div class="nd-fmenu__head" data-nd-acc-head>
@@ -96,7 +95,7 @@ if(!function_exists('ndFooterMenuColumn'))
 			<div class="nd-fmenu__body" data-nd-acc-body>
 				<?$APPLICATION->IncludeComponent(
 					"bitrix:menu",
-					$bServices ? "footer_services_newdesign" : "footer_newdesign",
+					"footer_newdesign",
 					array(
 						"ROOT_MENU_TYPE" => $arColumn['TYPE'],
 						"MENU_CACHE_TYPE" => "N",
@@ -104,9 +103,9 @@ if(!function_exists('ndFooterMenuColumn'))
 						"MENU_CACHE_USE_GROUPS" => "N",
 						"MENU_CACHE_GET_VARS" => array(),
 						"CACHE_SELECTED_ITEMS" => "N",
-						"MAX_LEVEL" => $bServices ? "2" : "1",
+						"MAX_LEVEL" => "1",
 						"CHILD_MENU_TYPE" => "left",
-						"USE_EXT" => $bServices ? "Y" : "N",
+						"USE_EXT" => "N",
 						"DELAY" => "N",
 						"ALLOW_MULTI_SELECT" => "Y",
 					),
