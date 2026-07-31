@@ -1569,3 +1569,141 @@ a.nd-sections__item:focus {
         min-width: 280px;
     }
 }
+
+/* ================== корень каталога /catalog/ ==========================
+   Макет Figma «Чистовик», фрейм «Каталог страница» 21349:57069: контейнер
+   1336, сетка в три колонки по 440 с зазором 8 (и по вертикали тоже 8),
+   карточка — заливка rgba(82,82,100,.1), радиус 4, поля 24, шаг между шапкой
+   и списком 12; иконка 64×64, название 22/26 700, ссылки 16/24 400 с шагом 2.
+   Ширину и центрирование задаём сами, как на остальных внутренних страницах
+   (.nd-sectiles, .nd-page-head): контейнер темы шире макета. */
+.nd-catalog__h1 {
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto;
+    padding: 16px 0 24px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 52px;
+    line-height: 57px;
+    font-weight: 800;
+    color: #101014;
+}
+.nd-catalog {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+/* min-width:0 у карточки и у названия — иначе длинное имя раздела не даёт
+   колонке сжаться и карточка вылезает за экран на мобильном. */
+.nd-catalog__item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    padding: 24px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .1);
+}
+.nd-catalog__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    text-decoration: none;
+}
+.nd-catalog__head:hover,
+.nd-catalog__head:focus {
+    text-decoration: none;
+}
+/* Вырезки из макета лежат на белом фоне, а в Figma у них режим наложения
+   DARKEN — на серой плашке белое исчезает. Повторяем его же, иначе под каждой
+   иконкой белый квадрат. */
+.nd-catalog__icon {
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    mix-blend-mode: darken;
+}
+/* Запасной вариант — фото раздела: заполняем квадрат кадрированием, чтобы
+   миниатюра стояла в ряд с вырезками из макета, а не висела полоской. */
+.nd-catalog__icon--photo {
+    border-radius: 4px;
+    object-fit: cover;
+    mix-blend-mode: normal;
+}
+/* Раздел без иконки: пустое место той же ширины, иначе названия в ряду
+   разъезжаются по левому краю. */
+.nd-catalog__icon--empty {
+    display: block;
+}
+.nd-catalog__name {
+    min-width: 0;
+    font-size: 22px;
+    line-height: 26px;
+    font-weight: 700;
+    color: #101014;
+    overflow-wrap: anywhere;
+}
+.nd-catalog__head:hover .nd-catalog__name {
+    color: #c60000;
+}
+.nd-catalog__subs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+/* Пункт — либо наша ссылка на подраздел, либо готовая разметка из
+   UF_MENULINK_TOP, поэтому красим и сам блок, и вложенную ссылку. */
+.nd-catalog__sub,
+.nd-catalog__sub a {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #101014;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+.nd-catalog__sub a:hover,
+.nd-catalog__sub a:focus {
+    color: #c60000;
+    text-decoration: none;
+}
+
+/* Бренды под плитками — тот же блок, что на главной. Свои поля 52 по бокам он
+   ставит для полноширинной главной; здесь ширину держит контейнер темы. */
+.nd-catalog-brands .nd-brands {
+    max-width: 1336px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+@media (max-width: 1199px) {
+    .nd-catalog__h1 {
+        font-size: 40px;
+        line-height: 46px;
+    }
+    .nd-catalog {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-catalog__h1 {
+        padding: 8px 0 16px;
+        font-size: 28px;
+        line-height: 34px;
+    }
+    .nd-catalog {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .nd-catalog__name {
+        font-size: 20px;
+        line-height: 24px;
+    }
+}
