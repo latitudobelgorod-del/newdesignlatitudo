@@ -98,7 +98,11 @@
 	
 		
 		<footer id="footer">
-			<?CNext::ShowPageType('footer');?>
+			<?// Подвал нового дизайна подключаем напрямую, а не через
+			// CNext::ShowPageType('footer'): тот выбирает файл по настройке темы
+			// FOOTER_TYPE, а она одна на весь сайт и к шаблону не привязана
+			// (та же беда, что с HEADER_TYPE и INDEX_TYPE).
+			include __DIR__.'/page_blocks/footer_newdesign.php';?>
 		</footer>
 	
 		
