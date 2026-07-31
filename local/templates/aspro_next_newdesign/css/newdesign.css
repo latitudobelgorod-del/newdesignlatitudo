@@ -1113,6 +1113,86 @@ textarea {
     color: #fff;
 }
 
+/* --- широкий вариант: детальные страницы проекта и статьи --- */
+/* Макета на него нет, поэтому берём ту же карточку, только фото уходит влево,
+   а текст выравнивается по левому краю. */
+.nd-infochat--wide {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+    padding: 32px;
+    text-align: left;
+}
+.nd-infochat--wide .nd-infochat__person {
+    flex: 0 0 auto;
+    width: 160px;
+    text-align: center;
+}
+.nd-infochat--wide .nd-infochat__photo {
+    width: 160px;
+    max-width: none;
+    margin-top: 0;
+}
+.nd-infochat--wide .nd-infochat__name {
+    margin-top: 14px;
+    font-size: 16px;
+    line-height: 22px;
+}
+.nd-infochat--wide .nd-infochat__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.nd-infochat--wide .nd-infochat__title {
+    font-size: 22px;
+    line-height: 28px;
+}
+.nd-infochat--wide .nd-infochat__subtitle {
+    font-size: 15px;
+    line-height: 22px;
+}
+.nd-infochat--wide .nd-infochat__contacts {
+    align-items: flex-start;
+    margin-top: 16px;
+}
+.nd-infochat--wide .nd-infochat__contact {
+    font-size: 16px;
+    line-height: 24px;
+}
+.nd-infochat--wide .nd-infochat__hint {
+    margin-top: 16px;
+    font-size: 15px;
+    line-height: 22px;
+    color: #52525f;
+}
+.nd-infochat--wide .nd-infochat__btn {
+    display: inline-flex;
+    min-width: 240px;
+    padding: 14px 24px;
+    font-size: 16px;
+}
+
+@media (max-width: 767px) {
+    .nd-infochat--wide {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 24px 16px;
+        text-align: center;
+    }
+    .nd-infochat--wide .nd-infochat__person,
+    .nd-infochat--wide .nd-infochat__photo {
+        width: 140px;
+    }
+    .nd-infochat--wide .nd-infochat__contacts {
+        align-items: center;
+    }
+    .nd-infochat--wide .nd-infochat__btn {
+        display: flex;
+        min-width: 0;
+        width: 100%;
+    }
+}
+
 /* ======================== акции и скидки (/sale/) ======================
    По макету: заголовок, вводный текст, разделитель, плитки акций в три
    колонки, разделитель, переключатель «Активные / Завершенные».

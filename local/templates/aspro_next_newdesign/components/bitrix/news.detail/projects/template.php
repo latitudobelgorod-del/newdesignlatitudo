@@ -264,11 +264,11 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 <div class="item projects-blocks">
 	<div class="row">
 	<div class="col-md-8 col-md-offset-2">
-		<div class="infochat hidden-xs">
+		<div class="infochat nd-infochat-wrap hidden-xs">
 		<?$APPLICATION->IncludeComponent("bitrix:main.include", ".default",
 			array(
 				"COMPONENT_TEMPLATE" => ".default",
-				"PATH" => SITE_DIR."include/infochat_projects.php",
+				"PATH" => SITE_DIR."include/infochat_projects_newdesign.php",
 				"AREA_FILE_SHOW" => "file",
 				"AREA_FILE_SUFFIX" => "",
 				"AREA_FILE_RECURSIVE" => "Y",
@@ -298,11 +298,11 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 
 	</div>		
 		<div class="col-md-12">
-			<div class="infochat visible-xs">
+			<div class="infochat nd-infochat-wrap visible-xs">
 			<?$APPLICATION->IncludeComponent("bitrix:main.include", ".default",
 				array(
 					"COMPONENT_TEMPLATE" => ".default",
-					"PATH" => SITE_DIR."include/infochat.php",
+					"PATH" => SITE_DIR."include/infochat_newdesign.php",
 					"AREA_FILE_SHOW" => "file",
 					"AREA_FILE_SUFFIX" => "",
 					"AREA_FILE_RECURSIVE" => "Y",
