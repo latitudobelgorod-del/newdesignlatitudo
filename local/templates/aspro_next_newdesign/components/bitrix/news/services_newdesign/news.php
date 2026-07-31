@@ -15,11 +15,22 @@
  * страницы — он же в title и хлебных крошках.
  */
 $this->setFrameMode(true);
+
+// Шапку страницы отдаём в отложенную область `nd_page_head`: по макету она
+// идёт над обеими колонками, а этот шаблон рисуется уже внутри правой
+// (слева меню услуг). Заглушку выводит page_blocks/page_title_newdesign.php.
+ob_start();
 ?>
 <div class="nd-page-head nd-services-head">
-	<h1 id="pagetitle" class="nd-services__h1"><?$APPLICATION->ShowTitle(false)?></h1>
+	<?// Именно GetTitle, а не ShowTitle: ShowTitle — отложенная функция, внутри
+	   // собственного буфера она оставила бы маркер, и половина шапки уехала бы
+	   // мимо отложенной области. Заголовок к этому моменту уже задан страницей. ?>
+	<h1 id="pagetitle" class="nd-services__h1"><?=$APPLICATION->GetTitle(false)?></h1>
 	<div class="nd-page-head__cta"><span class="callback-block animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="detail_service" data-nd-form-title="Заказать расчет проекта">Заказать расчет проекта</span></div>
 </div>
+<?
+$APPLICATION->AddViewContent('nd_page_head', ob_get_clean());
+?>
 
 <?if((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || (strtolower($_REQUEST['ajax']) == 'y'))
 {

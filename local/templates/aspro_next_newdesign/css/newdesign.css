@@ -1846,7 +1846,9 @@ a.nd-sections__item:focus {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px;
-    margin-top: 40px;
+    /* Шапка с линией вынесена над колонками (см. .nd-page-head-wrap),
+       поэтому сверху сетка начинается без отступа. */
+    margin-top: 0;
     font-family: 'Nunito Sans', Arial, sans-serif;
 }
 .nd-services__item {
@@ -1956,7 +1958,6 @@ a.nd-sections__item:focus {
     .nd-services {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
-        margin-top: 24px;
     }
 }
 
@@ -1981,12 +1982,19 @@ a.nd-sections__item:focus {
    Селекторы с запасом по специфичности: у темы правила в media.css. */
 .wraps .wrapper_inner,
 body .maxwidth-theme,
-body .nd-crumbs-wrap {
+body .nd-crumbs-wrap,
+body .nd-page-head-wrap {
     max-width: 1440px;
     margin-left: auto;
     margin-right: auto;
     padding-left: 52px;
     padding-right: 52px;
+}
+/* Шапка страницы (H1 + кнопка) идёт над обеими колонками — её наполняет
+   компонент через AddViewContent("nd_page_head"). Отступ снизу вешаем на сам
+   .nd-page-head, чтобы пустая обёртка на других страницах ничего не занимала. */
+.nd-page-head-wrap .nd-page-head {
+    margin-bottom: 40px;
 }
 /* Вложенный .maxwidth-theme внутри такого же контейнера не должен добавлять
    поля второй раз. */
@@ -2043,16 +2051,21 @@ body .maxwidth-theme .maxwidth-theme {
 @media (max-width: 1199px) {
     .wraps .wrapper_inner,
     body .maxwidth-theme,
-    body .nd-crumbs-wrap {
+    body .nd-crumbs-wrap,
+    body .nd-page-head-wrap {
         padding-left: 36px;
         padding-right: 36px;
+    }
+    .nd-page-head-wrap .nd-page-head {
+        margin-bottom: 24px;
     }
 }
 
 @media (max-width: 767px) {
     .wraps .wrapper_inner,
     body .maxwidth-theme,
-    body .nd-crumbs-wrap {
+    body .nd-crumbs-wrap,
+    body .nd-page-head-wrap {
         padding-left: 16px;
         padding-right: 16px;
     }
