@@ -125,7 +125,10 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 				<?$APPLICATION->ShowViewContent('section_bnr_content');?>
 				<?if($APPLICATION->GetProperty("HIDETITLE") !== 'Y'):?>
 					<!--title_content-->
-					<?CNext::ShowPageType('page_title');?>
+					<?// Свой верх страницы: хлебные крошки по макету и без баннеров.
+					   // Штатный ShowPageType('page_title') выбирает файл настройкой темы,
+					   // а она одна на сайт — поэтому подключаем напрямую.?>
+					<?include __DIR__.'/page_blocks/page_title_newdesign.php';?>
 					<!--end-title_content-->
 				<?endif;?>
 				<?$APPLICATION->ShowViewContent('top_section_filter_content');?>
@@ -154,7 +157,8 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 				
 					<div class="middle <?=($is404 ? 'error-page' : '');?>">
 					
-						<?CNext::get_banners_position('CONTENT_TOP');?>
+						<?// Баннеры над контентом в новом дизайне пока не выводим (Ирина, 2026-07-31).
+						   // Было: CNext::get_banners_position('CONTENT_TOP');?>
 						<?if(!$isIndex):?>
 							<div class="container airSticky_stop-block">
 				

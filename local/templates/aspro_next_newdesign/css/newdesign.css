@@ -1973,3 +1973,90 @@ a.nd-sections__item:focus {
         line-height: 22px;
     }
 }
+
+/* ============ основной контейнер и хлебные крошки =======================
+   Контейнер страницы в макете — 1440 с полями 52 (контент 1336), как на
+   главной. У темы .wrapper_inner / .maxwidth-theme шире (1470 с полями 30),
+   из-за этого шапка, крошки и блоки страницы стояли по разным линиям.
+   Селекторы с запасом по специфичности: у темы правила в media.css. */
+.wraps .wrapper_inner,
+body .maxwidth-theme,
+body .nd-crumbs-wrap {
+    max-width: 1440px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 52px;
+    padding-right: 52px;
+}
+/* Вложенный .maxwidth-theme внутри такого же контейнера не должен добавлять
+   поля второй раз. */
+body .maxwidth-theme .maxwidth-theme {
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Хлебные крошки: 12/16 500, разделитель — короткое тире, шаг 4.
+   Полоса под шапкой без серой подложки, как в макете. */
+.nd-crumbs-wrap {
+    width: 100%;
+    padding-top: 24px;
+    padding-bottom: 8px;
+    background: none;
+}
+.nd-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+}
+.nd-crumbs__item {
+    display: inline-flex;
+    align-items: center;
+    color: #101014;
+}
+.nd-crumbs__link,
+.nd-crumbs__link:visited {
+    color: #101014;
+    text-decoration: none;
+}
+.nd-crumbs__link:hover,
+.nd-crumbs__link:focus {
+    color: #c60000;
+    text-decoration: none;
+}
+.nd-crumbs__current {
+    color: #101014;
+}
+.nd-crumbs__sep {
+    display: inline-block;
+    width: 10px;
+    height: 1px;
+    margin: 0 1px;
+    background: #101014;
+}
+
+@media (max-width: 1199px) {
+    .wraps .wrapper_inner,
+    body .maxwidth-theme,
+    body .nd-crumbs-wrap {
+        padding-left: 36px;
+        padding-right: 36px;
+    }
+}
+
+@media (max-width: 767px) {
+    .wraps .wrapper_inner,
+    body .maxwidth-theme,
+    body .nd-crumbs-wrap {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nd-crumbs-wrap {
+        padding-top: 16px;
+    }
+}
