@@ -1,0 +1,241 @@
+/* Контакты региона в новом дизайне. Размеры из макета Figma («Чистовик»,
+   фрейм «Контакты» 20493:77152): галерея 3×441 с зазором 6 и радиусом 4,
+   плашки с полями 24 и заливкой rgba(82,82,100,.05). */
+.nd-region {
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+/* Заголовок региона — 52/57, как на остальных внутренних страницах */
+.nd-region__h1 {
+    margin: 0 0 24px;
+    padding: 0;
+    font-size: 52px;
+    line-height: 57px;
+    font-weight: 800;
+    color: #101014;
+}
+/* галерея */
+.nd-region__gallery {
+    position: relative;
+    margin-bottom: 16px;
+}
+.nd-region__shots {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - 12px) / 3);
+    gap: 6px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+}
+.nd-region__shots::-webkit-scrollbar {
+    display: none;
+}
+.nd-region__shot {
+    display: block;
+    aspect-ratio: 441 / 294;
+    border: 1px solid rgba(14, 17, 23, .12);
+    border-radius: 4px;
+    scroll-snap-align: start;
+    overflow: hidden;
+}
+.nd-region__shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.nd-region__gnav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .9);
+    color: #101014;
+    cursor: pointer;
+}
+.nd-region__gnav--prev { left: 12px; }
+.nd-region__gnav--next { right: 12px; }
+.nd-region__gnav:hover { background: #fff; }
+.nd-region__gnav[disabled] { display: none; }
+
+/* плашки */
+.nd-region__row {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+.nd-region__row--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+/* адрес склада шире, режим работы уже — как в макете (883 и 429) */
+.nd-region__row--store {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+.nd-region__card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 24px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .05);
+}
+.nd-region__label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #8f8f9a;
+}
+.nd-region__label--second {
+    margin-top: 32px;
+}
+.nd-region__label img {
+    flex: 0 0 20px;
+}
+.nd-region__text {
+    font-size: 18px;
+    line-height: 25px;
+    color: #101014;
+    overflow-wrap: anywhere;
+}
+.nd-region__text p {
+    margin: 0;
+}
+.nd-region__links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.nd-region__links a {
+    font-size: 18px;
+    line-height: 25px;
+    color: #c60000;
+    text-decoration: underline;
+}
+.nd-region__links a:hover {
+    color: #a80000;
+}
+/* кнопка «Заказать пропуск» — тёмная во всю ширину плашки */
+.nd-region__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    margin-top: auto;
+    border-radius: 4px;
+    background: #101014;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+.nd-region__btn:hover,
+.nd-region__btn:focus {
+    background: #31313c;
+    color: #fff;
+    text-decoration: none;
+}
+.nd-region__note {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 18px;
+    color: #8f8f9a;
+}
+
+/* карта и кнопки-переключатели */
+.nd-region__maps {
+    margin-top: 6px;
+}
+.nd-region__map {
+    display: none;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.nd-region__map.is-active {
+    display: block;
+}
+.nd-region__map iframe {
+    display: block;
+    width: 100%;
+    height: 449px;
+    border: 0;
+}
+.nd-region__mapnav {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 6px;
+    margin-top: 6px;
+}
+.nd-region__mapbtn {
+    height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .05);
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+    cursor: pointer;
+}
+.nd-region__mapbtn:hover {
+    background: rgba(82, 82, 100, .1);
+}
+.nd-region__mapbtn.is-active {
+    background: rgba(82, 82, 100, .15);
+    font-weight: 600;
+}
+
+@media (max-width: 1199px) {
+    .nd-region__h1 {
+        font-size: 40px;
+        line-height: 46px;
+    }
+}
+
+@media (max-width: 991px) {
+    .nd-region__shots {
+        grid-auto-columns: calc((100% - 6px) / 2);
+    }
+    .nd-region__row--three,
+    .nd-region__row--store {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .nd-region__map iframe {
+        height: 320px;
+    }
+}
+
+@media (max-width: 575px) {
+    .nd-region__h1 {
+        font-size: 30px;
+        line-height: 33px;
+    }
+    .nd-region__shots {
+        grid-auto-columns: 100%;
+    }
+    .nd-region__text,
+    .nd-region__links a {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .nd-region__mapnav {
+        grid-auto-flow: row;
+    }
+}
