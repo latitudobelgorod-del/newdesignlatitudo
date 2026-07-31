@@ -1707,3 +1707,269 @@ a.nd-sections__item:focus {
         line-height: 24px;
     }
 }
+
+/* ============ «Производители и марки» /brands/ =========================
+   Макет Figma «Чистовик», фрейм «Производители» 20738:55460: контейнер 1336,
+   H1 52/57 800, подпись 18/25 400 через 16, линия-разделитель 2px
+   rgba(82,82,100,.15) с отступами по 40, сетка 4×316 с зазором 24,
+   карточка 316×208 с той же рамкой и радиусом 6. */
+.nd-brandspage {
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+    border-bottom: 2px solid rgba(82, 82, 100, .15);
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.nd-brandspage__h1 {
+    margin: 0 0 16px;
+    padding: 0;
+    font-size: 52px;
+    line-height: 57px;
+    font-weight: 800;
+    color: #101014;
+}
+.nd-brandspage__lead,
+.nd-brandspage__lead p {
+    margin: 0;
+    font-size: 18px;
+    line-height: 25px;
+    color: #101014;
+}
+.nd-brandlist {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    width: 100%;
+    max-width: 1336px;
+    margin: 40px auto 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.nd-brandlist__item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 208px;
+    padding: 27px 24px;
+    border: 2px solid rgba(82, 82, 100, .15);
+    border-radius: 6px;
+    text-decoration: none;
+}
+.nd-brandlist__item:hover,
+.nd-brandlist__item:focus {
+    border-color: rgba(82, 82, 100, .35);
+    text-decoration: none;
+}
+.nd-brandlist__logo {
+    max-width: 100%;
+    max-height: 140px;
+    object-fit: contain;
+}
+.nd-brandlist__name {
+    font-size: 18px;
+    line-height: 25px;
+    font-weight: 600;
+    color: #101014;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+.nd-brandlist__nav {
+    max-width: 1336px;
+    margin: 32px auto 0;
+}
+
+@media (max-width: 1199px) {
+    .nd-brandspage__h1 {
+        font-size: 40px;
+        line-height: 46px;
+    }
+    .nd-brandlist {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 32px;
+    }
+    .nd-brandlist__item {
+        min-height: 170px;
+    }
+    .nd-brandlist__logo {
+        max-height: 110px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-brandspage {
+        padding-bottom: 24px;
+    }
+    .nd-brandspage__h1 {
+        font-size: 30px;
+        line-height: 33px;
+    }
+    .nd-brandspage__lead,
+    .nd-brandspage__lead p {
+        font-size: 17px;
+        line-height: 24px;
+    }
+    .nd-brandlist {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 24px;
+    }
+    .nd-brandlist__item {
+        min-height: 128px;
+        padding: 16px 12px;
+    }
+    .nd-brandlist__logo {
+        max-height: 72px;
+    }
+}
+
+/* ================= «Услуги и работы» /services/ ========================
+   Макет Figma «Чистовик», фрейм «Услуги» 20669:39737: H1 52/57 800 слева
+   и красная кнопка справа, под ними линия, дальше меню 288 слева и сетка
+   карточек 3×320 с зазором 24 справа. Ширину колонок держит тема, здесь
+   только оформление. */
+.nd-services-head {
+    padding-bottom: 40px;
+    border-bottom: 2px solid rgba(82, 82, 100, .15);
+}
+.nd-services__h1 {
+    margin: 0;
+    padding: 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 52px;
+    line-height: 57px;
+    font-weight: 800;
+    color: #101014;
+}
+.nd-services {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.nd-services__item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    text-decoration: none;
+}
+.nd-services__item:hover,
+.nd-services__item:focus {
+    text-decoration: none;
+}
+.nd-services__pic {
+    position: relative;
+    display: block;
+    aspect-ratio: 320 / 197;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .1);
+    overflow: hidden;
+}
+.nd-services__pic img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .3s ease;
+}
+.nd-services__item:hover .nd-services__pic img {
+    transform: scale(1.03);
+}
+/* Плашка типа материала — как в макете: светло-розовая, красный текст */
+.nd-services__badge {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    padding: 0 6px;
+    border-radius: 2px;
+    background: #ffecea;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 600;
+    color: #c60000;
+    text-transform: uppercase;
+}
+.nd-services__name {
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 700;
+    color: #101014;
+    overflow-wrap: anywhere;
+}
+.nd-services__item:hover .nd-services__name {
+    color: #c60000;
+}
+.nd-services__nav {
+    margin-top: 32px;
+}
+
+/* Меню в левой колонке нового дизайна: строки-плашки с красной стрелкой,
+   активный пункт тёмный. Разметку даёт тема (.left_block .left_menu),
+   поэтому классы чужие. */
+.left_block .left_menu {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.left_block .left_menu > li.item {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgba(82, 82, 100, .05);
+}
+.left_block .left_menu > li.item > a {
+    display: block;
+    padding: 16px 24px;
+    border-left: 2px solid transparent;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #101014;
+    text-decoration: none;
+}
+.left_block .left_menu > li.item > a:hover,
+.left_block .left_menu > li.item > a:focus {
+    border-left-color: #c60000;
+    color: #c60000;
+    text-decoration: none;
+}
+.left_block .left_menu > li.item.current > a,
+.left_block .left_menu > li.item.active > a {
+    background: #525264;
+    color: #fff;
+}
+
+@media (max-width: 1199px) {
+    .nd-services__h1 {
+        font-size: 40px;
+        line-height: 46px;
+    }
+    .nd-services-head {
+        padding-bottom: 24px;
+    }
+    .nd-services {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 24px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-services__h1 {
+        font-size: 30px;
+        line-height: 33px;
+    }
+    .nd-services {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .nd-services__name {
+        font-size: 17px;
+        line-height: 22px;
+    }
+}
