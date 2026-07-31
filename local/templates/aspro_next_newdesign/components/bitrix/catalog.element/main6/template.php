@@ -1925,14 +1925,13 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 <?$GLOBALS['arrFilterProjects'] = array("ID" => $arResult["PROPERTIES"]["LINK_PORTFOLIO"]["VALUE"]);?>
 			
 
-<hr>
-		<h4>Примеры применения материала:</h4>
-		
-<div class="item-views table-type-block table-elements news-project">
-
+<?/* Блок портфолио товара переверстан по макету: заголовок со счётчиком и
+	   стрелками, карточки как в блоках главной. Старую обёртку с <hr> и
+	   заголовком-строкой рисовал сам шаблон, теперь всё внутри
+	   news.list/list_projects_product_newdesign. */?>
 <?$APPLICATION->IncludeComponent(
 			"bitrix:news.list",
-			"news-project-catalog-pr",
+			"list_projects_product_newdesign",
 			array(
 				"IBLOCK_TYPE" => "aspro_next_content",
 				"IBLOCK_ID" => $arResult["PROPERTIES"]["LINK_PORTFOLIO"]["LINK_IBLOCK_ID"],
@@ -1989,8 +1988,7 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 			),
 			$component, array("HIDE_ICONS" => "Y")
 		);?>
-	<?endif;?>	
-</div>	
+	<?endif;?>
 
 <?/*Вывод привязанных элементов портфолио*/?>
 	

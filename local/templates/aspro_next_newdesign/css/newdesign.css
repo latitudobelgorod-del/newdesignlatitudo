@@ -2060,3 +2060,173 @@ body .maxwidth-theme .maxwidth-theme {
         padding-top: 16px;
     }
 }
+
+/* ================= общая страница контактов /contacts/ =================
+   Макет Figma «Чистовик», фрейм «Контакты» 20493:83740: сетка 1336 в две
+   колонки по 656 с зазором 24; карточка радиус 6, заливка
+   rgba(82,82,100,.05); слева колонка 400 с полями 24 и шагом 16,
+   справа фото 256 во всю высоту с кнопкой «Видео офиса». */
+.nd-contacts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.nd-contacts__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 256px;
+    min-height: 415px;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .05);
+    overflow: hidden;
+}
+.nd-contacts__info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    padding: 24px;
+}
+.nd-contacts__city {
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 700;
+    color: #101014;
+}
+.nd-contacts__city a {
+    color: #101014;
+    text-decoration: none;
+}
+.nd-contacts__city a:hover {
+    color: #c60000;
+}
+.nd-contacts__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+    overflow-wrap: anywhere;
+}
+.nd-contacts__ico {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+}
+.nd-contacts__row--address {
+    font-size: 16px;
+    line-height: 19px;
+    font-weight: 700;
+}
+.nd-contacts__links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.nd-contacts__links a {
+    color: #c60000;
+    text-decoration: none;
+}
+.nd-contacts__links a:hover {
+    text-decoration: underline;
+}
+/* Режим работы приходит HTML-текстом: гасим отступы абзацев, иначе строки
+   расходятся сильнее, чем в макете. */
+.nd-contacts__schedule p {
+    margin: 0;
+}
+.nd-contacts__sep {
+    height: 1px;
+    background: rgba(82, 82, 100, .15);
+}
+.nd-contacts__row--muted {
+    font-weight: 500;
+    color: #8f8f9a;
+}
+.nd-contacts__label {
+    display: block;
+}
+.nd-contacts__media {
+    position: relative;
+    min-height: 100%;
+    background: rgba(82, 82, 100, .1);
+}
+.nd-contacts__pic {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.nd-contacts__video {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 48px;
+    border-radius: 3px;
+    background: rgba(16, 16, 20, .64);
+    font-size: 14px;
+    line-height: 16px;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+}
+.nd-contacts__video:hover,
+.nd-contacts__video:focus {
+    background: rgba(16, 16, 20, .8);
+    color: #fff;
+    text-decoration: none;
+}
+
+@media (max-width: 1199px) {
+    .nd-contacts {
+        gap: 16px;
+    }
+    .nd-contacts__item {
+        grid-template-columns: minmax(0, 1fr) 200px;
+        min-height: 0;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-contacts {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .nd-contacts__item {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .nd-contacts__city {
+        font-size: 22px;
+        line-height: 28px;
+    }
+    .nd-contacts__media {
+        min-height: 220px;
+    }
+}
+/* Заголовок общей страницы контактов — 52/57, как на остальных внутренних */
+.nd-contacts__h1 {
+    width: 100%;
+    max-width: 1336px;
+    margin: 0 auto 24px;
+    padding: 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 52px;
+    line-height: 57px;
+    font-weight: 800;
+    color: #101014;
+}
+@media (max-width: 1199px) {
+    .nd-contacts__h1 { font-size: 40px; line-height: 46px; }
+}
+@media (max-width: 767px) {
+    .nd-contacts__h1 { font-size: 30px; line-height: 33px; }
+}
