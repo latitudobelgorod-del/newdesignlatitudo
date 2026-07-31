@@ -57,6 +57,10 @@ $ndTel = static function ($phone) {
 	     SetTitle(''), потому что имя зависит от региона. Берём SEO-заголовок
 	     элемента, если он заполнен, иначе название — как в старом шаблоне. */?>
 	<? $ndTitle = $arItem['IPROPERTY_VALUES']['ELEMENT_PAGE_TITLE'] ?: $arItem['NAME']; ?>
+	<?/* Обёртка maxwidth-theme обязательна: у /contacts/ в .section.php стоит
+	     WIDE_PAGE=Y, и при нём тема не выводит контейнер .wrapper_inner —
+	     без неё на мобильном контент уезжает за край экрана. */?>
+	<div class="maxwidth-theme">
 	<div class="nd-region" id="<?= $this->GetEditAreaId($arItem['ID']) ?>" itemscope itemtype="http://schema.org/Organization">
 		<h1 id="pagetitle" class="nd-region__h1"><?= $ndTitle ?></h1>
 		<meta itemprop="name" content="<?= $ndTitle ?>">
@@ -166,5 +170,6 @@ $ndTel = static function ($phone) {
 				</div>
 			</div>
 		<? endif; ?>
+	</div>
 	</div>
 <? endforeach; ?>
