@@ -12,13 +12,13 @@
 									
 										<div class="sidearea" >
 											<?if (!$isProject) :?>
-														<div class="infochat ">
+														<div class="infochat nd-infochat-wrap">
 														<?$APPLICATION->IncludeComponent(
 	"bitrix:main.include", 
 	".default", 
 	[
 		"COMPONENT_TEMPLATE" => ".default",
-		"PATH" => SITE_DIR."include/infochat_materials.php",
+		"PATH" => SITE_DIR."include/infochat_materials_newdesign.php",
 		"AREA_FILE_SHOW" => "file",
 		"AREA_FILE_SUFFIX" => "",
 		"AREA_FILE_RECURSIVE" => "Y",
