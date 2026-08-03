@@ -2441,3 +2441,140 @@ a.nd-catmenu__name:focus {
 .nd-catmenu__seo a:hover {
     color: #c60000;
 }
+
+/* ======================================================================
+   Список документов на страницах «Материалы» (news.list/news-documents_newdesign).
+   Макет Figma: сетка в три колонки, иконка 32×40 контуром, название 18/22,
+   ниже строка «Скачать PDF (27,2 Мб)» со стрелкой.
+   ====================================================================== */
+
+.nd-docs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px 24px;
+}
+.nd-docs__cell {
+    min-width: 0;
+}
+.nd-docs__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-docs__item + .nd-docs__item {
+    margin-top: 24px;
+}
+/* Тема подчёркивает все ссылки внутри .editor — в макете подчёркивания нет. */
+.editor .nd-docs__item,
+.editor .nd-docs__item:hover,
+.editor .nd-docs__item:focus,
+.nd-docs__item:hover,
+.nd-docs__item:focus {
+    color: #101014;
+    text-decoration: none;
+    border-bottom: 0;
+}
+.editor .nd-docs__item .nd-docs__name,
+.editor .nd-docs__item .nd-docs__meta {
+    text-decoration: none;
+    border-bottom: 0;
+}
+.nd-docs__ico {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 40px;
+    color: #101014;
+}
+.nd-docs__body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.nd-docs__name {
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 400;
+    color: #101014;
+}
+.nd-docs__item:hover .nd-docs__name {
+    color: #c60000;
+}
+.nd-docs__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #8f8f9a;
+}
+.nd-docs__arrow {
+    flex: 0 0 auto;
+}
+
+@media (max-width: 991px) {
+    .nd-docs {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px 16px;
+    }
+}
+@media (max-width: 575px) {
+    .nd-docs {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Блоговые страницы («Материалы», статьи): по макету боковая колонка
+   слева, контент справа. Разметку тема выдаёт в обратном порядке —
+   переставляем флексом, ширины колонок при этом остаются бутстраповские. */
+@media (min-width: 992px) {
+    .nd-blog-row {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nd-blog-row > .content-md {
+        order: 2;
+    }
+    .nd-blog-row > .right-menu-md {
+        order: 1;
+    }
+    /* Обёртки float-сетки внутри флекс-контейнера сбрасываем, иначе
+       колонки наезжают друг на друга. */
+    .nd-blog-row > [class*="col-"] {
+        float: none;
+    }
+}
+
+/* Заголовок блоговых страниц («Материалы»): по макету он над обеими
+   колонками во всю ширину и отбит чертой. Штатный h1#pagetitle внутри
+   правой колонки гасим — он остаётся в разметке ради скриптов темы. */
+.nd-blog-head {
+    padding-bottom: 40px;
+    margin-bottom: 40px;
+    border-bottom: 2px solid rgba(82, 82, 100, .15);
+}
+.nd-blog-head__title {
+    margin: 0;
+    padding: 0;
+    font-size: 52px;
+    line-height: 57.2px;
+    font-weight: 800;
+    color: #101014;
+}
+/* Заглушка вместо вынесенного наверх заголовка — места не занимает. */
+.nd-blog-row .content-md > #pagetitle:empty {
+    display: none;
+}
+@media (max-width: 991px) {
+    .nd-blog-head {
+        padding-bottom: 24px;
+        margin-bottom: 24px;
+    }
+    body .nd-blog-head__title {
+        font-size: 30px !important;
+        line-height: 33px !important;
+        padding: 0 !important;
+    }
+}

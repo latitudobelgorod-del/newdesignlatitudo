@@ -173,10 +173,25 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 
 								<?endif;?>
 								<?if ($isBlog):?>
-									<div class="row" data-target="#myScrollspy">							
+									<?// В новом дизайне у блоговых страниц колонки идут наоборот:
+									   // боковая слева, контент справа (макет «Материалы»).
+									   // Порядок меняет CSS, разметку не трогаем — на неё завязаны
+									   // и тема, и сам комплексный компонент.?>
+									<?// H1 по макету идёт над обеими колонками, во всю ширину, и отбит чертой.
+										   // Тема печатает его внутри правой колонки — выводим свой выше .row,
+										   // а тот, что ниже, гасим стилями. Берём именно ShowTitle():
+										   // GetTitle() здесь пуст — заголовок ставит компонент ниже
+										   // по странице, а ShowTitle отложенный и подставится в конце.?>
+										<div class="nd-blog-head">
+											<h1 class="nd-blog-head__title"><?$APPLICATION->ShowTitle(false)?></h1>
+										</div>
+										<div class="row nd-blog-row" data-target="#myScrollspy">							
 									<?$APPLICATION->ShowViewContent('under_sidebar_content');?>
 									<div class="<? if (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) != '/materials/') : ?>col-md-9 col-sm-9<?endif;?> col-xs-12 content-md <?=CNext::ShowPageProps("ERROR_404");?>">
-									<h1 id="pagetitle"><?$APPLICATION->ShowTitle(false)?></h1>
+									<?// H1 вынесен выше .row (nd-blog-head) — второй заголовок не выводим,
+										   // иначе на странице два h1. Пустой #pagetitle оставляем:
+										   // на него завязаны скрипты темы.?>
+										<div id="pagetitle"></div>
 									<?endif;?>
 								<?endif;?>
 				
