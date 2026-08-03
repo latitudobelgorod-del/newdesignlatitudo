@@ -1196,10 +1196,25 @@ if($arSection["PLACE"]){
             <? if (!IsSeoDisrupting($arParams)): ?>
 					<? if ($arSection["UF_SHOW_BLOCK_METRIKA"] == "1"): ?>	
 							<script>
-							$(window).scroll(function () {
-							if ($(window).scrollTop() + $(window).height() > $('.social-area').offset().top) {
-							yaCounter62259859.reachGoal('social-area');
-							}
+							$(window).on("scroll.goalSocialArea", function () {
+								// Цель «долистал до блока Вам есть на что посмотреть».
+								// Шлём её один раз за страницу: раньше reachGoal уходил
+								// на каждом событии скролла ниже блока. Одного off() мало —
+								// этот скрипт выводится на странице несколько раз (по разным
+								// условиям), а jQuery в рамках одного события успевает вызвать
+								// и те подписки, что сняты в этом же вызове, — нужен ещё и флаг.
+								if (window.goalSocialAreaSent) return;
+								// Блок ищем внутри обработчика: скрипт стоит в середине
+								// страницы, подвала к моменту подписки ещё нет.
+								var $block = $(".social-area").first();
+								if (!$block.length) return;
+								if ($(window).scrollTop() + $(window).height() > $block.offset().top) {
+									window.goalSocialAreaSent = true;
+									$(window).off("scroll.goalSocialArea");
+									if (typeof yaCounter62259859 !== "undefined") {
+										yaCounter62259859.reachGoal("social-area");
+									}
+								}
 							});
 							</script>	
 							<?else:?>
@@ -1216,10 +1231,25 @@ if($arSection["PLACE"]){
 				<? if($arSeoItem) :?>
 				<? if ($arSeoItem["PROPERTY_SHOW_BLOCK_METRIKA_VALUE"] == "Y"): ?>	
 				<script>
-						$(window).scroll(function () {
-						if ($(window).scrollTop() + $(window).height() > $('.social-area').offset().top) {
-						yaCounter62259859.reachGoal('social-area');
-						}
+						$(window).on("scroll.goalSocialArea", function () {
+							// Цель «долистал до блока Вам есть на что посмотреть».
+							// Шлём её один раз за страницу: раньше reachGoal уходил
+							// на каждом событии скролла ниже блока. Одного off() мало —
+							// этот скрипт выводится на странице несколько раз (по разным
+							// условиям), а jQuery в рамках одного события успевает вызвать
+							// и те подписки, что сняты в этом же вызове, — нужен ещё и флаг.
+							if (window.goalSocialAreaSent) return;
+							// Блок ищем внутри обработчика: скрипт стоит в середине
+							// страницы, подвала к моменту подписки ещё нет.
+							var $block = $(".social-area").first();
+							if (!$block.length) return;
+							if ($(window).scrollTop() + $(window).height() > $block.offset().top) {
+								window.goalSocialAreaSent = true;
+								$(window).off("scroll.goalSocialArea");
+								if (typeof yaCounter62259859 !== "undefined") {
+									yaCounter62259859.reachGoal("social-area");
+								}
+							}
 						});
 						</script>	
 				<? endif; ?>
