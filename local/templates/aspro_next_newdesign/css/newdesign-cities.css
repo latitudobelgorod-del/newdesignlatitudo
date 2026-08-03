@@ -1,0 +1,257 @@
+/* ==========================================================================
+   Окно «Выберите город» нового дизайна.
+
+   Макет Figma «ЛАТИТУДО FINAL _ 2026», страница «Чистовик»:
+   десктоп — узел 20517:154683 (1200×574), мобильный — 20517:155668 (360).
+
+   Подключается тегом из самого шаблона попапа: окно приезжает аяксом,
+   когда <head> уже отдан, и SetAdditionalCSS туда не доедет.
+   Селекторы обёрнуты в .nd-cities, чтобы не задеть старый дизайн —
+   там работает штатный popup_regions.
+   ========================================================================== */
+
+/* Рамка окна принадлежит теме (jqModal, .city_chooser_frame): по макету
+   это белая карточка 1200 с радиусом 4 и мягкой тенью, без внутренних полей. */
+div.city_chooser_frame {
+    min-width: 0;
+    max-width: 1200px;
+    width: 1200px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 24px 88px rgba(0, 0, 0, .2);
+    overflow: hidden;
+}
+
+/* Обёртку окна рисует ajax/city_chooser.php — гасим её поля и рамку,
+   белую карточку по макету даёт сама .city_chooser_frame. */
+.city_chooser_frame .form.nd-city-form {
+    padding: 0;
+    border: 0;
+    background: none;
+}
+/* Крестик закрытия — 44×44 в правом верхнем углу карточки (макет). */
+.city_chooser_frame .form.nd-city-form ~ .close.jqmClose,
+.city_chooser_frame > .close.jqmClose {
+    top: 0;
+    right: 0;
+    width: 44px;
+    height: 44px;
+    z-index: 2;
+}
+
+.nd-cities {
+    font-family: inherit;
+}
+
+/* ============================== шапка =================================== */
+
+.nd-cities__head {
+    padding: 24px 40px;
+}
+.nd-cities__title {
+    font-size: 28px;
+    line-height: 33.6px;
+    font-weight: 700;
+    color: #0c0d0e;
+}
+
+/* Поиск по городам в макете не показан, но разметка нужна автокомплиту темы. */
+.nd-cities #title-search-city {
+    display: none;
+}
+
+/* ========================== карточки городов ============================ */
+
+.nd-cities__cards {
+    display: flex;
+    gap: 8px;
+    padding: 0 40px 24px;
+}
+.nd-citycard {
+    flex: 1 1 0;
+    /* Иначе длинный адрес не даёт колонке сжаться и карточки вылезают за окно. */
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    background: #f6f6f7;
+    color: #101014;
+    text-decoration: none;
+    overflow: hidden;
+}
+.nd-citycard:hover,
+.nd-citycard:focus {
+    color: #101014;
+    text-decoration: none;
+}
+/* Текущий город — зелёная рамка и подложка. */
+.nd-citycard.is-current {
+    background: rgba(52, 199, 135, .05);
+    box-shadow: inset 0 0 0 1px #2ca973;
+}
+
+.nd-citycard__media {
+    position: relative;
+    display: block;
+    height: 102px;
+    background: #101014;
+}
+.nd-citycard__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.nd-citycard__badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 4px 6px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, .64);
+}
+.nd-citycard__badge img {
+    display: block;
+    width: 18px;
+    height: 18px;
+}
+.nd-citycard__badge span {
+    font-size: 6.6px;
+    line-height: 7.3px;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.nd-citycard__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+}
+.nd-citycard__name {
+    font-size: 18px;
+    line-height: 21.6px;
+    font-weight: 700;
+    color: #101014;
+}
+.nd-citycard__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+}
+.nd-citycard__ico {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    color: #101014;
+}
+.nd-citycard__phone {
+    font-size: 14px;
+    line-height: 19.6px;
+    color: #c60000;
+}
+.nd-citycard__addr {
+    min-width: 0;
+    font-size: 12px;
+    line-height: 14.4px;
+    color: #101014;
+}
+.nd-citycard__current {
+    font-size: 12px;
+    line-height: 14.4px;
+    color: #2ca973;
+}
+
+/* ======================= доставка в города ============================== */
+
+.nd-cities__delivery {
+    padding: 24px 40px;
+    background: #393946;
+}
+.nd-cities__dtitle {
+    margin-bottom: 16px;
+    font-size: 18px;
+    line-height: 25.2px;
+    font-weight: 400;
+    color: #fff;
+    text-transform: uppercase;
+}
+.nd-cities__dlist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+}
+.nd-cities__dlink {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    color: #fff;
+    text-decoration: none;
+}
+.nd-cities__dlink:hover,
+.nd-cities__dlink:focus {
+    color: #fff;
+    text-decoration: underline;
+}
+.nd-cities__dlink.is-current {
+    color: #e28080;
+}
+
+/* ============================== мобильный =============================== */
+
+@media (max-width: 991px) {
+
+div.city_chooser_frame {
+    width: auto;
+    max-width: 100%;
+    border-radius: 0;
+}
+
+.nd-cities__head {
+    padding: 36px 16px 20px;
+}
+
+.nd-cities__cards {
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 16px 24px;
+}
+/* На мобильном карточка горизонтальная: фото 110 слева на всю высоту.
+   flex:0 0 auto обязателен — в колонке базис 0 от десктопного flex:1 1 0
+   схлопывает карточку в нулевую высоту, и наружу торчит только фото. */
+.nd-citycard {
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: stretch;
+}
+.nd-citycard__media {
+    flex: 0 0 110px;
+    width: 110px;
+    height: auto;
+    min-height: 177px;
+}
+.nd-citycard__badge {
+    right: auto;
+    left: 6px;
+}
+.nd-citycard__body {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+}
+
+.nd-cities__delivery {
+    padding: 24px 16px;
+}
+.nd-cities__dlist {
+    gap: 20px;
+}
+
+}
