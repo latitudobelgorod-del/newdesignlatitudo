@@ -421,3 +421,22 @@ body.nd-modal-open {
         padding: 4px 16px 16px;
     }
 }
+
+/* H1 страницы отзывов. Макет: десктоп 21289:57101 — 52/57.2 800,
+   мобильный 21289:60504 — 30/33; до сетки 40 (зазор контейнера в макете). */
+.nd-reviews__h1 {
+    margin: 0 0 40px;
+    font-size: 52px;
+    line-height: 57.2px;
+    font-weight: 800;
+    color: #101014;
+}
+@media (max-width: 991px) {
+    /* Тема задаёт мобильному h1 свой размер через !important
+       (media.css), поэтому перебиваем тем же. */
+    body .nd-reviews__h1 {
+        margin-bottom: 24px;
+        font-size: 30px !important;
+        line-height: 33px !important;
+    }
+}

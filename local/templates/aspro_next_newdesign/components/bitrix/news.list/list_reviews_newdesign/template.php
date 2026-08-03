@@ -120,6 +120,16 @@ if (!defined('ND_UI_JS')) {
 	?><script src="<?= $ndUi ?><?= is_file($ndUiAbs) ? '?'.filemtime($ndUiAbs) : '' ?>"></script><?
 }
 ?>
+<?/* H1 страницы. В макете он есть (десктоп 21289:57101 — 52/57.2 800,
+   мобильный 21289:60504 — 30/33), а на странице не выводился вовсе:
+   шаблон комплексного компонента печатает его только для блоговых разделов.
+   Текст берём настоящий — из SetTitle() страницы /company/reviews/index.php,
+   а не из макета. ShowTitle() тут звать нельзя: это отложенная функция,
+   внутри шаблона компонента она оставляет маркер вместо текста. */?>
+<? if ($ndTitle = $APPLICATION->GetTitle(false)): ?>
+	<h1 class="nd-reviews__h1"><?= $ndTitle ?></h1>
+<? endif; ?>
+
 <form class="nd-filter" method="get" action="<?= $ndResetUrl ?>">
 	<label class="nd-filter__toggle<?= !empty($ndF['photo']) ? ' is-on' : '' ?>">
 		<input type="checkbox" name="photo" value="y"<?= !empty($ndF['photo']) ? ' checked' : '' ?>>
