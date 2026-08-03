@@ -65,7 +65,7 @@ if($arResult['CURRENT_REGION'])
 								<?endif;?>
 								<?endforeach;?>
 								
-								<?file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xxx458.txt', print_r($arItem, 1));?>
+								<?/* отладочный дамп, отключён */ //file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xxx458.txt', print_r($arItem, 1));?>
 </div>
 				<?endif;?>
 			

@@ -429,5 +429,5 @@ if ($this->hideCoupon !== 'Y' && !empty($result['COUPON_LIST']))
 		}
 	}
 }
-file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xxx120.txt', print_r($rowData, 1));
+/* отладочный дамп, отключён */ //file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xxx120.txt', print_r($rowData, 1));
 $result['TOTAL_RENDER_DATA'] = $totalData;

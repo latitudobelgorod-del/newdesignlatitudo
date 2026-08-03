@@ -287,5 +287,5 @@ $regionID = ($arRegion ? $arRegion['ID'] : '');?>
 
 </div>
 
-<?file_put_contents($_SERVER['DOCUMENT_ROOT'].'/f5f5f5f.txt', print_r($arItem, 1));?>
+<?/* отладочный дамп, отключён */ //file_put_contents($_SERVER['DOCUMENT_ROOT'].'/f5f5f5f.txt', print_r($arItem, 1));?>
 

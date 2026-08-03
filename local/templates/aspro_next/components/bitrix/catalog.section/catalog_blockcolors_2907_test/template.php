@@ -476,7 +476,7 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 				
 			</div><?/*item_block*/?>
 				  
-									<?file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xxx2025.txt', print_r($arItem, 1));?>
+									<?/* отладочный дамп, отключён */ //file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xxx2025.txt', print_r($arItem, 1));?>
 
         <?if(isset($arItem['OFFERS']) && count($arItem['OFFERS'])>0){
             $offer_unit_yes = false;

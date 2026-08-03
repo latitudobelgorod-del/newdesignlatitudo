@@ -135,6 +135,6 @@ if ($ob = $res->GetNextElement()){;
 </div>
 
 
-	<?file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xxx1277.txt', print_r($ar_res, 1));?>
+	<?/* отладочный дамп, отключён */ //file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xxx1277.txt', print_r($ar_res, 1));?>
 							
 							

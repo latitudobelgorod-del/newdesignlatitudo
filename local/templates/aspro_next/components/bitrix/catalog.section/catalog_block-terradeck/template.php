@@ -407,7 +407,7 @@
 										</div>
 									<?}?>
 								<?}?>
-								<?file_put_contents($_SERVER['DOCUMENT_ROOT'].'/scsc.txt', print_r($arSkuTemplate, 1));?>
+								<?/* отладочный дамп, отключён */ //file_put_contents($_SERVER['DOCUMENT_ROOT'].'/scsc.txt', print_r($arSkuTemplate, 1));?>
 							
 								
 								

@@ -63,5 +63,5 @@ if($ar_res = $res->GetNext()) {
 	
 
 
-<?file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xx440001x.txt', print_r($ar_res["SECTION_PAGE_URL"], 1));?>
+<?/* отладочный дамп, отключён */ //file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xx440001x.txt', print_r($ar_res["SECTION_PAGE_URL"], 1));?>
 

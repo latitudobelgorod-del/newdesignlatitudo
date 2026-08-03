@@ -53,7 +53,7 @@ $this->setFrameMode(true);?>
 				<div class="more"><span data-opened="N" data-text="<?=GetMessage("HIDE");?>"><?=GetMessage("SHOW_ALL");?></span></div>
 			<?endif?>
 		</div>
-		<?file_put_contents($_SERVER['DOCUMENT_ROOT'].'/uipo.txt', print_r($arResult['ITEMS'], 1));?>
+		<?/* отладочный дамп, отключён */ //file_put_contents($_SERVER['DOCUMENT_ROOT'].'/uipo.txt', print_r($arResult['ITEMS'], 1));?>
 	</div>
 
 					</div>

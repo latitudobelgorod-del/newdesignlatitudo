@@ -95,5 +95,5 @@ $CURRENT_DEPTH = $arSection["DEPTH_LEVEL"];
 
 
 
-<?file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xx44000004445x.txt', print_r($arResult["SECTIONS"], 1));?>
+<?/* отладочный дамп, отключён */ //file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xx44000004445x.txt', print_r($arResult["SECTIONS"], 1));?>
 
