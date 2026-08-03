@@ -1196,11 +1196,22 @@ if($arSection["PLACE"]){
             <? if (!IsSeoDisrupting($arParams)): ?>
 					<? if ($arSection["UF_SHOW_BLOCK_METRIKA"] == "1"): ?>	
 							<script>
-							$(window).scroll(function () {
-							if ($(window).scrollTop() + $(window).height() > $('.social-area').offset().top) {
-							yaCounter62259859.reachGoal('social-area');
-							}
-							});
+							(function(){
+								// Цель метрики «долистал до блока Вам есть на что посмотреть».
+								// В старом дизайне это .social-area (include/footer/f-desk.php),
+								// в новом — промо видеозвонка .nd-fpromo в подвале. Если блока
+								// на странице нет, просто не подписываемся: раньше тут падало
+								// .offset() у пустой выборки и с ним весь обработчик готовности.
+								var $block = $(".social-area, .nd-fpromo").first();
+								if (!$block.length) return;
+								$(window).scroll(function () {
+									if ($(window).scrollTop() + $(window).height() > $block.offset().top) {
+										if (typeof yaCounter62259859 !== "undefined") {
+											yaCounter62259859.reachGoal("social-area");
+										}
+									}
+								});
+							})();
 							</script>	
 							<?else:?>
 							 
@@ -1216,12 +1227,23 @@ if($arSection["PLACE"]){
 				<? if($arSeoItem) :?>
 				<? if ($arSeoItem["PROPERTY_SHOW_BLOCK_METRIKA_VALUE"] == "Y"): ?>	
 				<script>
-						$(window).scroll(function () {
-						if ($(window).scrollTop() + $(window).height() > $('.social-area').offset().top) {
-						yaCounter62259859.reachGoal('social-area');
-						}
-						});
-						</script>	
+							(function(){
+								// Цель метрики «долистал до блока Вам есть на что посмотреть».
+								// В старом дизайне это .social-area (include/footer/f-desk.php),
+								// в новом — промо видеозвонка .nd-fpromo в подвале. Если блока
+								// на странице нет, просто не подписываемся: раньше тут падало
+								// .offset() у пустой выборки и с ним весь обработчик готовности.
+								var $block = $(".social-area, .nd-fpromo").first();
+								if (!$block.length) return;
+								$(window).scroll(function () {
+									if ($(window).scrollTop() + $(window).height() > $block.offset().top) {
+										if (typeof yaCounter62259859 !== "undefined") {
+											yaCounter62259859.reachGoal("social-area");
+										}
+									}
+								});
+							})();
+							</script>	
 				<? endif; ?>
 				<? endif; ?>
 				
