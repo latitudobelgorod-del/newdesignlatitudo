@@ -104,6 +104,13 @@
 			// (та же беда, что с HEADER_TYPE и INDEX_TYPE).
 			include __DIR__.'/page_blocks/footer_newdesign.php';?>
 		</footer>
+
+		<?// Прибитая нижняя панель мобильного нового дизайна и её шторки
+		// («Меню» и «Связаться с нами»). Выводим после подвала, чтобы шторки
+		// лежали поверх контента; на десктопе блок скрыт классами темы.?>
+		<div class="visible-xs visible-sm">
+			<?include __DIR__.'/page_blocks/nav_bottom_newdesign.php';?>
+		</div>
 	
 		
 		

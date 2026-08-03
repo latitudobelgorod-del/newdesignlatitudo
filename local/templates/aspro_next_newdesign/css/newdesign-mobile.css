@@ -1,0 +1,558 @@
+/* ==========================================================================
+   Мобильный новый дизайн: шапка, прибитая нижняя панель, панель «Меню»
+   и шторка «Связаться с нами».
+
+   Макет Figma «ЛАТИТУДО FINAL _ 2026», страница «Чистовик»:
+   шапка и панель — фрейм «Главная» 360×800 (20498:111272),
+   состояния панели — 20506:34484 / 34531 / 34578,
+   панель «Меню» — 20506:103302, шторка контактов — 20506:104021.
+
+   Всё внутри @media (max-width: 991px): выше работает десктопная шапка
+   (.header_wrap скрыт темой классами visible-lg/visible-md).
+   Подключается из header.php после newdesign-header.css.
+   ========================================================================== */
+
+:root {
+    --nd-mheader-h: 64px;
+    --nd-navbar-h: 56px;
+}
+
+/* Иконка-маска. SVG выгружены из Figma с зашитым цветом, поэтому красим
+   их не заливкой, а маской по currentColor — иначе активная вкладка
+   нижней панели не покраснеет. */
+.nd-ico {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+@media (max-width: 991px) {
+
+/* ============================== шапка =================================== */
+
+.nd-mheader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    height: var(--nd-mheader-h);
+    padding: 0 16px;
+    background: #fff;
+}
+/* Полоска появляется только на прокрутке: в макете шапка лежит на
+   картинке-обложке и границы у неё нет, а на белом контенте без неё
+   шапка сливается с текстом. */
+.nd-mheader.is-scrolled {
+    border-bottom: 1px solid rgba(82, 82, 100, .15);
+}
+
+/* Шапка вырвана из потока — освобождаем под неё место. Правило перебивает
+   padding-top:0 !important из newdesign-header.css (там оно гасило отступ
+   под десктопную шапку). */
+body {
+    padding-top: var(--nd-mheader-h) !important;
+    /* Под прибитую нижнюю панель. */
+    padding-bottom: calc(var(--nd-navbar-h) + env(safe-area-inset-bottom, 0px)) !important;
+}
+/* Панель админки сдвигает страницу вниз — шапку тоже. */
+body.bx-panel-fixed .nd-mheader {
+    top: 47px;
+}
+
+.nd-mlogo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    text-decoration: none;
+}
+.nd-mlogo:hover,
+.nd-mlogo:focus {
+    text-decoration: none;
+}
+.nd-mlogo__mark {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 40px;
+}
+.nd-mlogo__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 5px;
+    min-width: 0;
+    height: 40px;
+}
+.nd-mlogo__word {
+    width: 138px;
+    height: 20px;
+    max-width: 100%;
+}
+.nd-mlogo__slogan {
+    font-size: 11.5px;
+    line-height: 11.5px;
+    font-weight: 500;
+    color: #000;
+    white-space: nowrap;
+}
+
+.nd-mcity {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 500;
+    color: #101014;
+}
+.nd-mcity__pin {
+    width: 16px;
+    height: 16px;
+}
+
+/* ========================= нижняя панель ================================ */
+
+.nd-navbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1002;
+    display: flex;
+    background: #fff;
+    border-top: 1px solid rgba(82, 82, 100, .25);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nd-navbar__tab {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: var(--nd-navbar-h);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #101014;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.nd-navbar__tab:hover,
+.nd-navbar__tab:focus,
+.nd-navbar__tab:active {
+    color: #101014;
+    text-decoration: none;
+}
+.nd-navbar__tab.is-active,
+.nd-navbar__tab.is-active:hover,
+.nd-navbar__tab.is-active:focus {
+    color: #c60000;
+}
+.nd-navbar__ico {
+    position: relative;
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+.nd-navbar__label {
+    font-size: 10px;
+    line-height: 10px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+/* Счётчик корзины. Классы .count/.empted обязательны — их снимает и вешает
+   скрипт темы при добавлении товара. */
+.nd-navbar__count {
+    position: absolute;
+    top: -4px;
+    left: 15px;
+    min-width: 12px;
+    height: 12px;
+    padding: 0 3px;
+    border: 1.125px solid #fff;
+    border-radius: 9px;
+    background: #c60000;
+    color: #fff;
+    font-size: 7.5px;
+    line-height: 9px;
+    font-weight: 500;
+    letter-spacing: .3px;
+    text-align: center;
+    white-space: nowrap;
+}
+.nd-navbar__count.empted {
+    display: none;
+}
+
+/* ============================== шторки ================================== */
+
+.nd-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 1003;
+}
+.nd-sheet[hidden] {
+    display: none;
+}
+.nd-sheet__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(82, 82, 100, .3);
+}
+
+/* Панель «Меню» — во весь экран, но выше прибитой нижней панели. */
+.nd-sheet--full {
+    bottom: calc(var(--nd-navbar-h) + env(safe-area-inset-bottom, 0px));
+}
+.nd-sheet--full .nd-sheet__panel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Шторка контактов — снизу. Затемнение обрываем над нижней панелью:
+   в макете она остаётся белой и активная вкладка на ней видна. */
+.nd-sheet--bottom {
+    bottom: calc(var(--nd-navbar-h) + env(safe-area-inset-bottom, 0px));
+}
+.nd-sheet--bottom .nd-sheet__panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    overflow: hidden;
+}
+
+.nd-sheet__head {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+}
+.nd-sheet__grip {
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 0 auto 16px;
+    border-radius: 999px;
+    background: rgba(82, 82, 100, .1);
+}
+.nd-sheet__headrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.nd-sheet__title {
+    font-size: 18px;
+    line-height: 21.6px;
+    font-weight: 700;
+    color: #0e1117;
+}
+.nd-sheet__closetext {
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 400;
+    color: #8f8f9a;
+}
+
+/* ========================== панель «Меню» =============================== */
+
+.nd-mmenu-head {
+    position: relative;
+    flex: 0 0 auto;
+    padding: 20px 60px 8px 16px;
+}
+.nd-mmenu-head__city {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.nd-mmenu-head__pin {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    margin-left: 4px;
+    color: #101014;
+}
+.nd-mmenu-head__name {
+    font-size: 18px;
+    line-height: 25.2px;
+    font-weight: 500;
+    color: #101014;
+}
+.nd-mmenu-head__change {
+    display: block;
+    margin-left: 40px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 400;
+    color: #8f8f9a;
+    text-decoration: underline;
+}
+.nd-sheet__close {
+    position: absolute;
+    top: 10px;
+    right: 6px;
+    width: 44px;
+    height: 44px;
+    padding: 10px;
+    border: 0;
+    background: none;
+    color: #101014;
+}
+
+.nd-mmenu-search {
+    flex: 0 0 auto;
+    padding: 20px 16px;
+}
+.nd-msearch__form {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.nd-msearch__submit {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    margin-left: 4px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #101014;
+}
+/* У темы input[type=text] со своей рамкой, заливкой и высокой
+   специфичностью — гасится только через !important. */
+.nd-msearch__input,
+.nd-msearch input[type="text"].nd-msearch__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 25px !important;
+    padding: 0 0 0 8px !important;
+    border: 0 !important;
+    border-left: 1px solid #101014 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    font-size: 18px !important;
+    line-height: 25.2px !important;
+    font-weight: 500;
+    color: #101014 !important;
+}
+.nd-msearch__input::placeholder {
+    color: #8f8f9a;
+    opacity: 1;
+}
+/* Выпадашка подсказок штатного search.title. */
+.nd-msearch .title-search-result {
+    left: 0;
+    right: 0;
+    width: auto;
+}
+
+.nd-mmenu-body {
+    flex: 1 1 auto;
+    padding: 16px;
+}
+.nd-mmenu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.nd-mmenu__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    color: #525264;
+    text-decoration: none;
+}
+.nd-mmenu__item:hover,
+.nd-mmenu__item:focus {
+    color: #525264;
+    text-decoration: none;
+}
+.nd-mmenu__ico {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 24px;
+    padding-left: 4px;
+    color: #101014;
+}
+.nd-mmenu__ico .nd-ico {
+    width: 24px;
+    height: 24px;
+}
+.nd-mmenu__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 18px;
+    line-height: 25.2px;
+    font-weight: 400;
+}
+.nd-mmenu__item--strong,
+.nd-mmenu__item--strong:hover,
+.nd-mmenu__item--strong:focus {
+    color: #101014;
+}
+.nd-mmenu__item--strong .nd-mmenu__text {
+    font-size: 18px;
+    line-height: 21.6px;
+    font-weight: 700;
+}
+.nd-mmenu__item.is-active,
+.nd-mmenu__item.is-active:hover {
+    color: #c60000;
+}
+.nd-mmenu__arrow {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    background-color: #8f8f9a;
+    -webkit-mask: url("../images/newdesign/mobile/chevron.svg") no-repeat center / contain;
+    mask: url("../images/newdesign/mobile/chevron.svg") no-repeat center / contain;
+}
+
+/* ==================== шторка «Связаться с нами» ========================= */
+
+.nd-contacts {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.nd-contacts__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-contacts__row:hover,
+.nd-contacts__row:focus {
+    color: #101014;
+    text-decoration: none;
+}
+.nd-contacts__ico {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    margin-left: 4px;
+    margin-right: 4px;
+    color: #101014;
+}
+.nd-contacts__body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.nd-contacts__val {
+    font-size: 18px;
+    line-height: 21.6px;
+    font-weight: 700;
+}
+.nd-contacts__note {
+    font-size: 12px;
+    line-height: 14.4px;
+    font-weight: 400;
+    color: #101014;
+}
+.nd-contacts__addr {
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 400;
+    color: #101014;
+}
+.nd-contacts__addr p {
+    margin: 0;
+}
+/* Подписи мессенджеров в макете залиты градиентом. */
+.nd-contacts__row--max .nd-contacts__val,
+.nd-contacts__row--tg .nd-contacts__val,
+.nd-contacts__row--wa .nd-contacts__val {
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.nd-contacts__row--max .nd-contacts__val {
+    background-image: linear-gradient(180deg, #8f3fff 0%, #3aa0e5 100%);
+}
+.nd-contacts__row--tg .nd-contacts__val {
+    background-image: linear-gradient(180deg, #3aa0e5 0%, #2a70a0 100%);
+}
+.nd-contacts__row--wa .nd-contacts__val {
+    background-image: linear-gradient(180deg, #25d366 0%, #1a9a4a 100%);
+}
+.nd-contacts__more {
+    display: block;
+    padding: 10px 0 10px 40px;
+    font-size: 18px;
+    line-height: 25.2px;
+    font-weight: 400;
+    color: #525264;
+    text-decoration: none;
+}
+.nd-contacts__more:hover,
+.nd-contacts__more:focus {
+    color: #525264;
+    text-decoration: none;
+}
+
+/* Пока открыта шторка, страница под ней не скроллится. */
+body.nd-sheet-open {
+    overflow: hidden;
+}
+
+/* Прилипшая сбоку корзина темы в макете не нужна: корзина переехала
+   в нижнюю панель. Кнопка «наверх» остаётся, но поднимается над панелью.
+   Класс .basket_fly у самой шторки брать нельзя — он же висит на .wrapper1
+   как модификатор темы, и правило погасило бы всю страницу. */
+.basket_wrapp.fly {
+    display: none !important;
+}
+.scroll-to-top {
+    bottom: calc(var(--nd-navbar-h) + 16px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+}

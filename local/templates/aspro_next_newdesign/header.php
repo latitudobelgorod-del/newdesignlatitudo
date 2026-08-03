@@ -65,7 +65,10 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 	// чтобы наши правила шли в сборке позже и перебивали старые.
 	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign.css', true);
 	// Шапка нового дизайна — отдельным файлом, идёт после newdesign.css.
-	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign-header.css', true);?>
+	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign-header.css', true);
+	// Мобильные шапка и нижняя панель — последними, они перебивают отступы,
+	// которые newdesign-header.css задаёт под десктопную шапку.
+	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign-mobile.css', true);?>
 	<?include_once('defines.php');?>
 	<?CNext::SetJSOptions();?>
 <?CNext::ShowPageType('search_title_component');?>
@@ -87,11 +90,13 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 		// header_newdesign.php сам зафиксирован сверху, иначе на скролле было бы
 		// две шапки сразу.?>
 
-		<div id="mobileheader" class="visible-xs visible-sm">
-			<?CNext::ShowPageType('header_mobile');?>
-			<div id="mobilemenu" class="<?=($arTheme["HEADER_MOBILE_MENU_OPEN"]["VALUE"] == '1' ? 'leftside':'dropdown')?> <?=($arTheme['HEADER_MOBILE_MENU_COMPACT']['VALUE'] == 'Y' ? ' menu-compact ':'')?>">
-				<?CNext::ShowPageType('header_mobile_menu');?>
-			</div>
+		<?// Мобильная шапка нового дизайна. Штатные ShowPageType('header_mobile')
+		// и выпадающее #mobilemenu не выводим: меню переехало в прибитую нижнюю
+		// панель (page_blocks/nav_bottom_newdesign.php, подключается из footer.php).
+		// Скрипты темы, завязанные на #mobileheader/#mobilemenu, проверяют
+		// наличие этих элементов, поэтому без них ничего не ломается.?>
+		<div class="visible-xs visible-sm">
+			<?include(__DIR__.'/page_blocks/header_mobile_newdesign.php');?>
 		</div>
 
 		<?CNext::get_banners_position('TOP_UNDERHEADER');?>
