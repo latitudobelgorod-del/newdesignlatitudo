@@ -1,0 +1,113 @@
+/* ==========================================================================
+   Меню разделов каталога в левой колонке нового дизайна.
+   Оформление то же, что у меню левой колонки на прочих страницах
+   (плашки rgba(82,82,100,.05), красная стрелка на ховере), плюс свёртка
+   подразделов на <details>.
+   ========================================================================== */
+
+.nd-catmenu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nd-catmenu__group {
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .05);
+}
+/* Стрелку-маркер браузера убираем — рисуем свою. */
+.nd-catmenu__group > summary {
+    list-style: none;
+}
+.nd-catmenu__group > summary::-webkit-details-marker {
+    display: none;
+}
+
+.nd-catmenu__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+}
+.nd-catmenu__group--flat .nd-catmenu__head {
+    cursor: default;
+}
+
+.nd-catmenu__name {
+    flex: 1 1 auto;
+    /* Иначе длинное название не даёт колонке сжаться. */
+    min-width: 0;
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 600;
+    color: #101014;
+    text-decoration: none;
+}
+a.nd-catmenu__name:hover,
+a.nd-catmenu__name:focus {
+    color: #c60000;
+    text-decoration: none;
+}
+.nd-catmenu__group.is-current > .nd-catmenu__head .nd-catmenu__name {
+    color: #525264;
+}
+
+.nd-catmenu__arrow {
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    margin-right: 2px;
+    border-right: 2px solid #8f8f9a;
+    border-bottom: 2px solid #8f8f9a;
+    transform: rotate(45deg) translate(-2px, -2px);
+    transition: transform .15s ease, border-color .15s ease;
+}
+.nd-catmenu__head:hover .nd-catmenu__arrow {
+    border-color: #c60000;
+}
+.nd-catmenu__group[open] > .nd-catmenu__head .nd-catmenu__arrow {
+    transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+.nd-catmenu__list {
+    margin: 0;
+    padding: 0 12px 12px 24px;
+    list-style: none;
+}
+/* Тема дорисовывает спискам свои маркеры-точки — гасим. */
+.nd-catmenu__list > li:before {
+    display: none;
+}
+.nd-catmenu__item {
+    margin: 0;
+    padding: 4px 0;
+}
+.nd-catmenu__link {
+    font-size: 14px;
+    line-height: 19px;
+    color: #525264;
+    text-decoration: none;
+}
+.nd-catmenu__link:hover,
+.nd-catmenu__link:focus {
+    color: #c60000;
+    text-decoration: none;
+}
+.nd-catmenu__item.is-current > .nd-catmenu__link {
+    font-weight: 700;
+    color: #101014;
+}
+
+/* Анкоры из UF_LINKSEO — как и в старом шаблоне, отдельной строкой. */
+.nd-catmenu__seo {
+    padding: 2px 12px 2px 24px;
+    font-size: 13px;
+    line-height: 18px;
+}
+.nd-catmenu__seo a {
+    color: #8f8f9a;
+}
+.nd-catmenu__seo a:hover {
+    color: #c60000;
+}

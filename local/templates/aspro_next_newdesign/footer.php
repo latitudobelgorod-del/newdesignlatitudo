@@ -73,7 +73,10 @@
 						<?// .right_block?>				
 						<?if($APPLICATION->GetProperty("HIDE_LEFT_BLOCK") != "Y" && !(defined('ERROR_404') && !defined('ERROR_PAGEN'))):?>
 							<div class="left_block">
-								<?CNext::ShowPageType('left_block');?>
+								<?// Левая колонка нового дизайна подключается напрямую:
+								// штатный ShowPageType выбирает файл настройкой темы,
+								// а она одна на сайт (та же беда, что с HEADER_TYPE).
+								include __DIR__.'/page_blocks/left_block_newdesign.php';?>
 		                    </div>
 						<?endif;?>							
 						
