@@ -90,6 +90,21 @@
     pointer-events: none;
 }
 
+/* На страницах редактора контент-менеджера навигация лежит внутри .editor,
+   а тема подчёркивает там все ссылки с большей специфичностью. */
+.editor .nd-pager__page,
+.editor .nd-pager__page:hover,
+.editor .nd-pager__page:focus,
+.editor .nd-pager__arrow,
+.editor .nd-pager__arrow:hover,
+.editor .nd-pager__arrow:focus,
+.editor .nd-pager__more,
+.editor .nd-pager__more:hover,
+.editor .nd-pager__more:focus {
+    text-decoration: none;
+    border-bottom: 0;
+}
+
 @media (max-width: 767px) {
     /* на мобильном номера и кнопка не помещаются в строку — ставим друг под друга */
     .nd-pager {
