@@ -57,14 +57,39 @@
 
 	var loading = false;
 
+	/**
+	 * Имя блока берём из обёртки навигации: `nd-mat__nav` → `nd-mat`.
+	 * Список ищем как `<блок>__list`, а если такого нет — сам `<блок>`
+	 * (у брендов карточки лежат прямо в `.nd-brandlist`). Так кнопка работает
+	 * на всех страницах со сквозной навигацией — отзывы, портфолио, акции,
+	 * материалы, бренды — и не надо вести список селекторов.
+	 */
+	function ndPagerBlock(more) {
+		var wrap = more.closest('[class*="__nav"]');
+		var name = wrap ? /(?:^|\s)([\w-]+)__nav(?:\s|$)/.exec(wrap.className) : null;
+		if (!name) {
+			return null;
+		}
+		return {
+			nav: wrap,
+			navSel: '.' + name[1] + '__nav',
+			// именно двумя запросами: в одной группе селекторов победил бы
+			// внешний `.nd-mat` — он идёт в разметке раньше своего `__list`
+			findList: function (root) {
+				return root.querySelector('.' + name[1] + '__list') || root.querySelector('.' + name[1]);
+			}
+		};
+	}
+
 	document.addEventListener('click', function (e) {
-		var more = e.target.closest('[data-nd-pager-more]');
+		var more = e.target.closest ? e.target.closest('[data-nd-pager-more]') : null;
 		if (!more || loading) {
 			return;
 		}
 
-		var list = document.querySelector('.nd-reviews__list, .nd-projects__list, .nd-sale__list');
-		var nav = document.querySelector('.nd-reviews__nav, .nd-projects__nav, .nd-sale__nav');
+		var block = ndPagerBlock(more);
+		var list = block ? block.findList(document) : null;
+		var nav = block ? block.nav : null;
 		var href = more.getAttribute('href');
 		if (!list || !nav || !href) {
 			return; // без списка или адреса пусть отработает обычный переход
@@ -83,8 +108,8 @@
 			})
 			.then(function (html) {
 				var doc = new DOMParser().parseFromString(html, 'text/html');
-				var nextList = doc.querySelector('.nd-reviews__list, .nd-projects__list, .nd-sale__list');
-				var nextNav = doc.querySelector('.nd-reviews__nav, .nd-projects__nav, .nd-sale__nav');
+				var nextList = block.findList(doc);
+				var nextNav = doc.querySelector(block.navSel);
 				if (!nextList) {
 					throw new Error('в ответе нет списка');
 				}

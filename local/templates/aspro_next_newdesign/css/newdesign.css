@@ -2513,6 +2513,58 @@ a.nd-catmenu__name:focus {
 .nd-docs__arrow {
     flex: 0 0 auto;
 }
+.nd-docs__nav {
+    margin-top: 40px;
+}
+
+/* Кнопки под статьёй «Материалов»: «Назад к списку» и «Следующая статья».
+   По макету — серые плашки без рамки, текст по центру со стрелкой. */
+.nd-artnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 40px;
+}
+.nd-artnav__btn,
+.editor .nd-artnav__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 240px;
+    min-height: 48px;
+    padding: 12px 24px;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .07);
+    color: #101014;
+    font-size: 15px;
+    line-height: 20px;
+    text-decoration: none;
+}
+.nd-artnav__btn:hover,
+.nd-artnav__btn:focus,
+.editor .nd-artnav__btn:hover,
+.editor .nd-artnav__btn:focus {
+    background: rgba(82, 82, 100, .12);
+    color: #101014;
+    text-decoration: none;
+    border-bottom: 0;
+}
+.nd-artnav__ico {
+    flex: 0 0 auto;
+    color: #101014;
+}
+
+@media (max-width: 575px) {
+    .nd-artnav {
+        gap: 8px;
+    }
+    .nd-artnav__btn {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+}
 
 @media (max-width: 991px) {
     .nd-docs {
@@ -2523,6 +2575,9 @@ a.nd-catmenu__name:focus {
 @media (max-width: 575px) {
     .nd-docs {
         grid-template-columns: 1fr;
+    }
+    .nd-docs__nav {
+        margin-top: 24px;
     }
 }
 

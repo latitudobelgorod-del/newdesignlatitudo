@@ -10,12 +10,22 @@
  * темы и голый размер файла заменены именно здесь.
  *
  * Вызывается из блока Sprint.Editor iblock_elements__aspro-licenses.php
- * (тоже копия внутри шаблона нового дизайна).
+ * (тоже копия внутри шаблона нового дизайна) — постраничка включается
+ * там же, в настройках блока: NEWS_COUNT и DISPLAY_BOTTOM_PAGER.
  *
  * Стили — .nd-docs* в css/newdesign.css.
  */
 if(!$arResult["ITEMS"])
 	return;
+
+/* Скрипт кнопки «Показать ещё» — тот же, что на отзывах и портфолио.
+   Подключаем тегом здесь: блок выводится, когда <head> уже отдан. */
+if (!defined('ND_UI_JS')) {
+	define('ND_UI_JS', true);
+	$ndUi = SITE_TEMPLATE_PATH.'/js/newdesign-ui.js';
+	$ndUiAbs = $_SERVER['DOCUMENT_ROOT'].$ndUi;
+	?><script src="<?= $ndUi ?><?= is_file($ndUiAbs) ? '?'.filemtime($ndUiAbs) : '' ?>"></script><?
+}
 ?>
 <div class="nd-docs">
 	<?foreach($arResult["ITEMS"] as $arItem):?>
@@ -60,3 +70,8 @@ if(!$arResult["ITEMS"])
 		</div>
 	<?endforeach;?>
 </div>
+
+<?// Навигация лежит рядом с сеткой, а не внутри — иначе стала бы её ячейкой.?>
+<?if($arResult["NAV_STRING"]):?>
+	<div class="nd-docs__nav"><?=$arResult["NAV_STRING"]?></div>
+<?endif;?>

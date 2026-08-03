@@ -9,6 +9,41 @@ $APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/animation/animate.min.cs
 
 $arElement = CNextCache::CIblockElement_GetList(array('CACHE' => array('TAG' => CNextCache::GetIBlockCacheTag($arParams['IBLOCK_ID']), 'MULTI' => 'N')), $arItemFilter, false, false, array('ID', 'PREVIEW_TEXT', 'IBLOCK_SECTION_ID', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'DETAIL_PAGE_URL', 'LIST_PAGE_URL', 'PROPERTY_LINK_PROJECTS', 'PROPERTY_LINK_GOODS', 'PROPERTY_LINK_REVIEWS', 'PROPERTY_LINK_STAFF', 'PROPERTY_LINK_SERVICES'));
 
+/* Кнопка «Следующая статья» в макете есть всегда, а страница /materials/
+   вызывает компонент с SHOW_NEXT_ELEMENT=N — поэтому соседа ищем сами,
+   в том же порядке, что и список статей (SORT_BY1/SORT_BY2 страницы),
+   и по всему инфоблоку: на /materials/ разделов нет, статьи лежат в корне. */
+$ndNextElement = array();
+$ndAllElements = CNextCache::CIblockElement_GetList(
+	array(
+		$arParams["SORT_BY1"] => $arParams["SORT_ORDER1"],
+		$arParams["SORT_BY2"] => $arParams["SORT_ORDER2"],
+		'CACHE' => array('TAG' => CNextCache::GetIBlockCacheTag($arParams['IBLOCK_ID']), 'MULTI' => 'Y'),
+	),
+	array("IBLOCK_ID" => $arParams["IBLOCK_ID"], "ACTIVE" => "Y"),
+	false,
+	false,
+	array('ID', 'DETAIL_PAGE_URL', 'IBLOCK_ID', 'SORT')
+);
+if($ndAllElements && $arElement['ID'])
+{
+	$ndKeys = array_keys($ndAllElements);
+	foreach($ndKeys as $ndPos => $ndKey)
+	{
+		if((int)$ndAllElements[$ndKey]['ID'] !== (int)$arElement['ID'])
+			continue;
+
+		// С последней статьи уводим на первую — кнопка в макете есть всегда,
+		// а «Монтажные схемы и инструкции» как раз идут последними.
+		$ndNextKey = isset($ndKeys[$ndPos + 1]) ? $ndKeys[$ndPos + 1] : $ndKeys[0];
+		if($ndNextKey !== $ndKey)
+			$ndNextElement = $ndAllElements[$ndNextKey];
+		break;
+	}
+	if($ndNextElement && is_array($ndNextElement["DETAIL_PAGE_URL"]))
+		$ndNextElement["DETAIL_PAGE_URL"] = current($ndNextElement["DETAIL_PAGE_URL"]);
+}
+
 if($arParams["SHOW_NEXT_ELEMENT"] == "Y")
 {
 	$arSort=array($arParams["SORT_BY1"] => $arParams["SORT_ORDER1"], $arParams["SORT_BY2"] => $arParams["SORT_ORDER2"]);
@@ -75,21 +110,10 @@ if($arParams["SHOW_NEXT_ELEMENT"] == "Y")
 <?endif;?>
 <div style="clear:both"></div>
 <div class="projects-blocks">
-<div class="infochat nd-infochat-wrap hidden-xs">
-											<?$APPLICATION->IncludeComponent("bitrix:main.include", ".default",
-			array(
-				"COMPONENT_TEMPLATE" => ".default",
-				"PATH" => SITE_DIR."include/infochat_projects_newdesign.php",
-				"AREA_FILE_SHOW" => "file",
-				"AREA_FILE_SUFFIX" => "",
-				"AREA_FILE_RECURSIVE" => "Y",
-				"EDIT_TEMPLATE" => "standard.php"
-			),
-			false
-		);?>
-		</div>
-
-<div class="infochat nd-infochat-wrap visible-xs">
+<?// Широкий блок «Уточните наличие и условия доставки» под статьёй убран
+   // (Ирина, 2026-08-03): тот же блок стоит в левой колонке, получался дубль.
+   // Колонка скрыта на xs и sm — там блок остаётся, но уже узкий.?>
+<div class="infochat nd-infochat-wrap visible-xs visible-sm">
 											<?$APPLICATION->IncludeComponent("bitrix:main.include", ".default",
 			array(
 				"COMPONENT_TEMPLATE" => ".default",
@@ -105,20 +129,18 @@ if($arParams["SHOW_NEXT_ELEMENT"] == "Y")
 </div>
 <div style="clear:both"></div>
 
-<?if($arParams["SHOW_NEXT_ELEMENT"] == "Y"):?>
-	<div class="row links-block">
-		<div class="col-md-12 links">
-			<a class="back-url url-block" href="<?=$arResult['FOLDER'].$arResult['URL_TEMPLATES']['news']?>"><i class="fa fa-angle-left"></i><span><?=($arParams["T_PREV_LINK"] ? $arParams["T_PREV_LINK"] : GetMessage('BACK_LINK'));?></span></a>
-			<?if($arElementNext):?>
-				<a class="next-url url-block" href="<?=$arElementNext['DETAIL_PAGE_URL']?>"><i class="fa fa-angle-right"></i><span><?=($arParams["T_NEXT_LINK"] ? $arParams["T_NEXT_LINK"] : GetMessage('NEXT_LINK'));?></span></a>
-			<?endif;?>
-		</div>
-	</div>
-<?else:?>
-	<div class="row">
-
-		<div class="col-md-6">
-			<a class="back-url url-block" href="<?=$arResult['FOLDER'].$arResult['URL_TEMPLATES']['news']?>"><i class="fa fa-angle-left"></i><span><?=($arParams["T_PREV_LINK"] ? $arParams["T_PREV_LINK"] : GetMessage('BACK_LINK'));?></span></a>
-		</div>
-	</div>
-<?endif;?>
+<?// Кнопки под статьёй по макету: серые плашки со стрелками — «Назад к списку»
+   // и «Следующая статья». Разметка своя (.nd-artnav), синие рамки темы
+   // (.url-block) в новом дизайне не используем. Стили — в css/newdesign.css.?>
+<nav class="nd-artnav">
+	<a class="nd-artnav__btn" href="<?=$arResult['FOLDER'].$arResult['URL_TEMPLATES']['news']?>">
+		<svg class="nd-artnav__ico" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		<span><?=($arParams["T_PREV_LINK"] ? $arParams["T_PREV_LINK"] : GetMessage('BACK_LINK'));?></span>
+	</a>
+	<?if($ndNextElement['DETAIL_PAGE_URL']):?>
+		<a class="nd-artnav__btn" href="<?=$ndNextElement['DETAIL_PAGE_URL']?>">
+			<span><?=($arParams["T_NEXT_LINK"] ? $arParams["T_NEXT_LINK"] : 'Следующая статья');?></span>
+			<svg class="nd-artnav__ico" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		</a>
+	<?endif;?>
+</nav>

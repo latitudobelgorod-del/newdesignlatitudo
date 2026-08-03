@@ -15,6 +15,15 @@ $this->setFrameMode(true);
 
 $ndBadge = trim((string) $arParams['BADGE_TEXT']) ?: 'Статья';
 
+/* Скрипт кнопки «Показать ещё» — тот же, что на отзывах и портфолио.
+   Подключаем тегом здесь: компонент выводится, когда <head> уже отдан. */
+if (!defined('ND_UI_JS')) {
+	define('ND_UI_JS', true);
+	$ndUi = SITE_TEMPLATE_PATH.'/js/newdesign-ui.js';
+	$ndUiAbs = $_SERVER['DOCUMENT_ROOT'].$ndUi;
+	?><script src="<?= $ndUi ?><?= is_file($ndUiAbs) ? '?'.filemtime($ndUiAbs) : '' ?>"></script><?
+}
+
 $ndSections = [];
 if ((int) $arParams['IBLOCK_ID'] && CModule::IncludeModule('iblock')) {
 	$rs = CIBlockSection::GetList(
