@@ -13,15 +13,23 @@
 /* Рамка окна принадлежит теме (jqModal, .city_chooser_frame): по макету
    это белая карточка 1200 с радиусом 4 и мягкой тенью, без внутренних полей. */
 div.city_chooser_frame {
+    /* Центрируем сами: тема ставила окну отступы под свою ширину, а у нас
+       она другая (1200 по макету), и окно уезжало в левый верхний угол. */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
     min-width: 0;
-    max-width: 1200px;
+    max-width: calc(100vw - 40px);
     width: 1200px;
+    max-height: calc(100vh - 40px);
     padding: 0;
     border: 0;
     border-radius: 4px;
     background: #fff;
     box-shadow: 0 24px 88px rgba(0, 0, 0, .2);
-    overflow: hidden;
+    overflow: hidden auto;
 }
 
 /* Обёртку окна рисует ajax/city_chooser.php — гасим её поля и рамку,
@@ -31,14 +39,34 @@ div.city_chooser_frame {
     border: 0;
     background: none;
 }
-/* Крестик закрытия — 44×44 в правом верхнем углу карточки (макет). */
-.city_chooser_frame .form.nd-city-form ~ .close.jqmClose,
-.city_chooser_frame > .close.jqmClose {
+/* Крестик закрытия — область 44×44 в правом верхнем углу карточки,
+   внутри иконка ico/close 24×24 (макет, узел 20517:154705).
+   Тема рисует там свой тонкий значок из иконочного шрифта — гасим его
+   и подставляем ту же иконку из выгрузки макета. */
+.city_chooser_frame:has(.nd-cities) > .close.jqmClose {
     top: 0;
     right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 44px;
     height: 44px;
+    margin: 0;
+    padding: 0;
+    opacity: 1;
     z-index: 2;
+}
+.city_chooser_frame:has(.nd-cities) > .close.jqmClose i {
+    display: block;
+    width: 24px;
+    height: 24px;
+    background: #101014;
+    -webkit-mask: url("../images/newdesign/mobile/close24.svg") no-repeat center / contain;
+    mask: url("../images/newdesign/mobile/close24.svg") no-repeat center / contain;
+}
+.city_chooser_frame:has(.nd-cities) > .close.jqmClose i:before,
+.city_chooser_frame:has(.nd-cities) > .close.jqmClose i:after {
+    display: none;
 }
 
 .nd-cities {
@@ -208,10 +236,20 @@ div.city_chooser_frame {
 
 @media (max-width: 991px) {
 
+/* На мобильном окно раскрывается на весь экран — центрирование не нужно. */
 div.city_chooser_frame {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
     width: auto;
-    max-width: 100%;
+    max-width: none;
+    max-height: none;
     border-radius: 0;
+    /* Тема отбивает окно от левого края на 10px и делает это правилом
+       с большей специфичностью — снимаем через !important. */
+    margin: 0 !important;
 }
 
 .nd-cities__head {
