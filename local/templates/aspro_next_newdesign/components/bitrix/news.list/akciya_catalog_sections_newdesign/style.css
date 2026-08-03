@@ -1,0 +1,26 @@
+.news-list__item-cont {
+    padding: 15px 15px !important;
+}
+
+.news-list__item-date {
+    color: #454a4e !important;
+    font-size: 16px !important;
+	  background-color: unset;
+   
+	}
+.news-list-akciya .akciya_metka div {
+    font-size: 13px;
+    padding: 5px 15px;
+   box-shadow: unset  !important;
+}
+
+
+.akciya_metka div, .stock_wrapper .akciya_metka div
+{
+	
+    background-color: unset !important; 
+    color: #222 !important;
+	
+
+}
+.akciya_metka, .stock_wrapper .akciya_metka {position:relative !important;top:unset !important;}

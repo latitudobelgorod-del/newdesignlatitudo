@@ -2330,21 +2330,21 @@ body .maxwidth-theme .maxwidth-theme {
 
 /* ==========================================================================
    Меню разделов каталога в левой колонке нового дизайна.
-   Оформление то же, что у меню левой колонки на прочих страницах
-   (плашки rgba(82,82,100,.05), красная стрелка на ховере), плюс свёртка
-   подразделов на <details>.
+   Макет Figma «Чистовик», фрейм «Категория» 23495:57181: список без плашек
+   и рамок, шеврон 8F8F9A слева от названия, название 16/20 700 #101014,
+   подразделы 16/22 400 тем же левым краем, шаг 48 между разделами и 36
+   между подразделами, снизу линия-разделитель перед блоком «Уточните
+   наличие». Свёртка — на <details>.
    ========================================================================== */
 
 .nd-catmenu {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(82, 82, 100, .15);
+    font-family: 'Nunito Sans', Arial, sans-serif;
 }
 
-.nd-catmenu__group {
-    border-radius: 4px;
-    background: rgba(82, 82, 100, .05);
-}
 /* Стрелку-маркер браузера убираем — рисуем свою. */
 .nd-catmenu__group > summary {
     list-style: none;
@@ -2353,14 +2353,17 @@ body .maxwidth-theme .maxwidth-theme {
     display: none;
 }
 
+/* align-items: flex-start — у названий в две строки («Комплектующие для
+   террасной доски») шеврон в макете стоит на уровне первой строки. */
 .nd-catmenu__head {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
+    align-items: flex-start;
+    padding: 14px 0;
     cursor: pointer;
 }
 .nd-catmenu__group--flat .nd-catmenu__head {
+    /* Без подразделов шеврона нет — держим тот же левый край названия. */
+    padding-left: 34px;
     cursor: default;
 }
 
@@ -2368,9 +2371,9 @@ body .maxwidth-theme .maxwidth-theme {
     flex: 1 1 auto;
     /* Иначе длинное название не даёт колонке сжаться. */
     min-width: 0;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 20px;
-    font-weight: 600;
+    font-weight: 700;
     color: #101014;
     text-decoration: none;
 }
@@ -2379,30 +2382,32 @@ a.nd-catmenu__name:focus {
     color: #c60000;
     text-decoration: none;
 }
-.nd-catmenu__group.is-current > .nd-catmenu__head .nd-catmenu__name {
-    color: #525264;
-}
 
+/* Шеврон рисуем повёрнутым квадратом: 9×9 после поворота занимает ~13 по
+   ширине, как в макете. В разметке он идёт после названия — переносим
+   влево через order, чтобы не трогать шаблон компонента. */
 .nd-catmenu__arrow {
+    order: -1;
     flex: 0 0 auto;
-    width: 10px;
-    height: 10px;
-    margin-right: 2px;
-    border-right: 2px solid #8f8f9a;
-    border-bottom: 2px solid #8f8f9a;
-    transform: rotate(45deg) translate(-2px, -2px);
+    width: 9px;
+    height: 9px;
+    margin: 4px 15px 0 3px;
+    border-right: 1.5px solid #8f8f9a;
+    border-bottom: 1.5px solid #8f8f9a;
+    transform: rotate(45deg);
     transition: transform .15s ease, border-color .15s ease;
 }
 .nd-catmenu__head:hover .nd-catmenu__arrow {
     border-color: #c60000;
 }
 .nd-catmenu__group[open] > .nd-catmenu__head .nd-catmenu__arrow {
-    transform: rotate(-135deg) translate(-2px, -2px);
+    margin-top: 7px;
+    transform: rotate(-135deg);
 }
 
 .nd-catmenu__list {
     margin: 0;
-    padding: 0 12px 12px 24px;
+    padding: 0 0 6px 34px;
     list-style: none;
 }
 /* Тема дорисовывает спискам свои маркеры-точки — гасим. */
@@ -2411,12 +2416,12 @@ a.nd-catmenu__name:focus {
 }
 .nd-catmenu__item {
     margin: 0;
-    padding: 4px 0;
+    padding: 7px 0;
 }
 .nd-catmenu__link {
-    font-size: 14px;
-    line-height: 19px;
-    color: #525264;
+    font-size: 16px;
+    line-height: 22px;
+    color: #101014;
     text-decoration: none;
 }
 .nd-catmenu__link:hover,
@@ -2426,20 +2431,22 @@ a.nd-catmenu__name:focus {
 }
 .nd-catmenu__item.is-current > .nd-catmenu__link {
     font-weight: 700;
-    color: #101014;
 }
 
-/* Анкоры из UF_LINKSEO — как и в старом шаблоне, отдельной строкой. */
+/* Анкоры из UF_LINKSEO — как и в старом шаблоне, отдельной строкой,
+   но по макету в один ряд с подразделами. */
 .nd-catmenu__seo {
-    padding: 2px 12px 2px 24px;
-    font-size: 13px;
-    line-height: 18px;
+    padding: 7px 0 7px 34px;
+    font-size: 16px;
+    line-height: 22px;
 }
 .nd-catmenu__seo a {
-    color: #8f8f9a;
+    color: #101014;
+    text-decoration: none;
 }
 .nd-catmenu__seo a:hover {
     color: #c60000;
+    text-decoration: none;
 }
 
 /* ======================================================================
@@ -2631,5 +2638,204 @@ a.nd-catmenu__name:focus {
         font-size: 30px !important;
         line-height: 33px !important;
         padding: 0 !important;
+    }
+}
+
+/* ============ подразделы и акция над списком товаров ===================
+   Макет Figma «Чистовик», страница раздела каталога: под H1 идёт ряд из
+   плиток подразделов и баннера акции справа. Плитка — светло-серая
+   карточка ~184×108 (картинка сверху, название 14/17 снизу), баннер —
+   колонка 350 со слайдером и точками в левом нижнем углу.
+   Число колонок в сетке не фиксируем: рядом с баннером по ширине
+   встаёт 5 плиток, без баннера — 7, ровно как в макете. */
+/* H1 раздела: тема печатает его внутри правой колонки — мы уводим заголовок
+   в ту же отложенную область над колонками. Размер как на остальных
+   внутренних страницах нового дизайна (52/57.2 800), с запасом по
+   специфичности: у темы свои правила для #pagetitle. */
+body .nd-cat-head {
+    padding-bottom: 28px;
+}
+body .nd-cat-head #pagetitle {
+    margin: 0;
+    padding: 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 52px;
+    line-height: 57.2px;
+    font-weight: 800;
+    color: #101014;
+}
+.nd-subsec-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+    margin: 0 0 40px;
+    padding-bottom: 40px;
+    border-bottom: 2px solid rgba(82, 82, 100, .15);
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.nd-subsec-row__grid {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.nd-subsec-row__banner {
+    flex: 0 0 350px;
+    max-width: 350px;
+    min-width: 0;
+}
+.nd-subsec {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+    gap: 8px;
+}
+.nd-subsec__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    min-height: 108px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .05);
+    text-align: center;
+    text-decoration: none;
+}
+.nd-subsec__item:hover,
+.nd-subsec__item:focus {
+    background: rgba(82, 82, 100, .1);
+    text-decoration: none;
+}
+.nd-subsec__pic {
+    display: block;
+    line-height: 0;
+}
+/* Картинки разделов — вырезки на белом фоне. Как и на плитках каталога,
+   гасим белое режимом наложения, иначе под фото белый прямоугольник. */
+.nd-subsec__pic img {
+    max-width: 100%;
+    max-height: 56px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    mix-blend-mode: darken;
+}
+.nd-subsec__name {
+    display: block;
+    font-size: 14px;
+    line-height: 17px;
+    font-weight: 400;
+    color: #101014;
+    overflow-wrap: anywhere;
+}
+.nd-subsec__item:hover .nd-subsec__name {
+    color: #c60000;
+}
+
+/* Баннер акции: слайдер во всю ширину колонки. Точки рисуем только
+   когда акций больше одной — их ставит скрипт шаблона. */
+.nd-akc {
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+}
+.nd-akc__viewport {
+    overflow: hidden;
+}
+.nd-akc__track {
+    display: flex;
+    transition: transform .35s ease;
+    will-change: transform;
+}
+.nd-akc__slide {
+    flex: 0 0 100%;
+    max-width: 100%;
+    display: block;
+    line-height: 0;
+    text-decoration: none;
+}
+.nd-akc__slide img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.nd-akc__name {
+    display: block;
+    padding: 24px;
+    font-size: 16px;
+    line-height: 22px;
+    color: #101014;
+}
+.nd-akc__dots {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.nd-akc__dots button {
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .5);
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    transition: width .25s, border-radius .25s, background .2s;
+}
+.nd-akc__dots button.active {
+    width: 20px;
+    border-radius: 3.5px;
+    background: #fff;
+}
+
+@media (max-width: 1199px) {
+    body .nd-cat-head #pagetitle {
+        font-size: 40px;
+        line-height: 46px;
+    }
+    .nd-subsec-row {
+        gap: 24px;
+    }
+    .nd-subsec-row__banner {
+        flex-basis: 300px;
+        max-width: 300px;
+    }
+}
+
+/* На узких экранах баннер уходит под сетку — колонка в 300px рядом с
+   двумя плитками уже не читается. */
+@media (max-width: 991px) {
+    body .nd-cat-head {
+        padding-bottom: 20px;
+    }
+    body .nd-cat-head #pagetitle {
+        font-size: 30px;
+        line-height: 33px;
+    }
+    .nd-subsec-row {
+        flex-wrap: wrap;
+        gap: 24px;
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+    }
+    .nd-subsec-row__grid,
+    .nd-subsec-row__banner {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+    .nd-subsec {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 575px) {
+    .nd-subsec {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

@@ -268,6 +268,12 @@ if($isAjaxFilter == "Y")
 
 
 <?// ВЕРХНИЙ СЕО; ?>
+<?/* Новый макет: баннер акции стоит справа от плиток подразделов, поэтому
+	здесь его разметку только собираем в буфер, а печатаем ниже — вместе
+	с сеткой подразделов, в общем флекс-ряду. Сам ряд вместе с H1 уезжает
+	над колонками — см. конец файла. */?>
+<?$ndAkciyaHtml = '';?>
+<?$ndRowHtml = '';?>
 <? if (!$arSeoItem): ?>
             <? if ($arParams["SHOW_SECTION_DESC"] != 'N' && strpos($_SERVER['REQUEST_URI'], 'PAGEN') === false): ?>
                 <? if ($posSectionDescr == "BOTH"): ?>
@@ -301,8 +307,10 @@ if($isAjaxFilter == "Y")
 			<? if (!substr_count($_SERVER['REQUEST_URI'], '/filter/')) : ?>
 					<? if (!IsSeoDisrupting($arParams)): ?>
 					
-					<?//блок с акциями?>
-										<? include_once(__DIR__ . "/../include/km_akciya.php") ?>
+					<?//блок с акциями — печатается ниже, в ряду с плитками подразделов?>
+										<?ob_start();?>
+										<? include_once(__DIR__ . "/../include/km_akciya_newdesign.php") ?>
+										<?$ndAkciyaHtml = trim(ob_get_clean());?>
 					<?//блок с акциями?>
 	
 	
@@ -369,40 +377,62 @@ if($arSection["PLACE"]){
 <?$GLOBALS['arSectionDopRazdel'] = array('UF_PLACE_SECT' => array('20',''));?>
 	 
 <? if (!substr_count($_SERVER['REQUEST_URI'], '/filter/')) : ?>
-	   <? if ($iSectionsCount): ?>			
-            <div class="section_block">
-			 <? if (!IsSeoDisrupting($arParams)): ?>
+	<?
+	/* Плитки подразделов — тоже в буфер: ниже сетка и баннер акции
+	   собираются в один флекс-ряд. Нет акции — ряд схлопывается в одну
+	   сетку на всю ширину, нет подразделов — остаётся один баннер.
 
-                <? $APPLICATION->IncludeComponent(
-                    "bitrix:catalog.section.list",
-                    "subsections_list_dop_razd",
-                    array(
-                        "IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
-                        "IBLOCK_ID" => $arParams["IBLOCK_ID"],
-                        "SECTION_ID" => $arResult["VARIABLES"]["SECTION_ID"],
-                        "SECTION_CODE" => $arResult["VARIABLES"]["SECTION_CODE"],
-                        "DISPLAY_PANEL" => $arParams["DISPLAY_PANEL"],
-						"FILTER_NAME" => "arSectionDopRazdel",
-                        "CACHE_TYPE" => "A",
-                        "CACHE_TIME" => "172800",
-                        "CACHE_GROUPS" => $arParams["CACHE_GROUPS"],
-                        "SECTION_URL" => $arResult["FOLDER"] . $arResult["URL_TEMPLATES"]["section"],
-                        "COUNT_ELEMENTS" => "N",
-                        "ADD_SECTIONS_CHAIN" => ((!$iSectionsCount || $arParams['INCLUDE_SUBSECTIONS'] !== "N") ? 'N' : 'Y'),
-                        "SHOW_SECTION_LIST_PICTURES" => $arParams["SHOW_SECTION_PICTURES"],
-                        "TOP_DEPTH" => "1",
-                    ),
-                    $component
-                ); ?>
-				
-               <? endif; ?>
+	   FILTER_NAME не передаём намеренно: в новом дизайне раздел показывает
+	   все свои активные подразделы, независимо от UF_PLACE_SECT (Ирина,
+	   2026-08-03). Старый дизайн так же, как и раньше, делит их на верхний
+	   и нижний блоки через arSectionDopRazdel / arSectionBottomPlace. */
+	$ndSubsecHtml = '';
+	if ($iSectionsCount && !IsSeoDisrupting($arParams)) {
+		ob_start();
+		$APPLICATION->IncludeComponent(
+			"bitrix:catalog.section.list",
+			"subsections_list_dop_razd_newdesign",
+			array(
+				"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
+				"IBLOCK_ID" => $arParams["IBLOCK_ID"],
+				"SECTION_ID" => $arResult["VARIABLES"]["SECTION_ID"],
+				"SECTION_CODE" => $arResult["VARIABLES"]["SECTION_CODE"],
+				"DISPLAY_PANEL" => $arParams["DISPLAY_PANEL"],
+				"CACHE_TYPE" => "A",
+				"CACHE_TIME" => "172800",
+				"CACHE_GROUPS" => $arParams["CACHE_GROUPS"],
+				"SECTION_URL" => $arResult["FOLDER"] . $arResult["URL_TEMPLATES"]["section"],
+				"COUNT_ELEMENTS" => "N",
+				"ADD_SECTIONS_CHAIN" => ((!$iSectionsCount || $arParams['INCLUDE_SUBSECTIONS'] !== "N") ? 'N' : 'Y'),
+				"SHOW_SECTION_LIST_PICTURES" => $arParams["SHOW_SECTION_PICTURES"],
+				"TOP_DEPTH" => "1",
+			),
+			$component
+		);
+		$ndSubsecHtml = trim(ob_get_clean());
+	}
+	?>
+	<? if ($ndSubsecHtml || $ndAkciyaHtml): ?>
+		<?// Ряд по макету идёт над обеими колонками, под H1, — копим его разметку
+		   // и в конце файла отдаём в отложенную область вместе с заголовком.?>
+		<?ob_start();?>
+		<div class="section_block nd-subsec-row<?=($ndAkciyaHtml ? '' : ' nd-subsec-row--nobanner')?>">
+			<? if ($ndSubsecHtml): ?>
+				<div class="nd-subsec-row__grid"><?=$ndSubsecHtml?></div>
+			<? endif; ?>
+			<? if ($ndAkciyaHtml): ?>
+				<div class="nd-subsec-row__banner"><?=$ndAkciyaHtml?></div>
+			<? endif; ?>
+		</div>
+		<?$ndRowHtml = ob_get_clean();?>
+	<? endif; ?>
+	<? if ($iSectionsCount): ?>
+		<div class="section_block">
 			<?//КМ между подразделами и элементами?>
 			<? include_once(__DIR__ . "/../include/km_mezhdu_podrazdelami_i_elementami.php") ?>
 			<?//КМ между подразделами и элементами?>
-			 </div>
-			 
-			 
-		<? endif; ?>
+		</div>
+	<? endif; ?>
  <? endif; ?>
  
  
@@ -784,10 +814,13 @@ if($arSection["PLACE"]){
 <?//echo printPre($arSection);?>
 <?//echo printPre($section);?>
 <?/*21 - где выводить раздел bottom - внизу*/?>
+<?/* Нижний блок подразделов в новом дизайне не выводим: наверху теперь идут
+   все активные подразделы раздела, и этот блок повторял бы те из них,
+   у которых UF_PLACE_SECT = 21. */?>
 <?$GLOBALS['arSectionBottomPlace'] = array('UF_PLACE_SECT' => '21');?>
-	 
+
             <div class="section_block">
-					 <? if (!IsSeoDisrupting($arParams)): ?>
+					 <? if (false && !IsSeoDisrupting($arParams)): ?>
 
 						<? $APPLICATION->IncludeComponent(
 							"bitrix:catalog.section.list",
@@ -1447,6 +1480,27 @@ if($arTheme["HIDE_SITE_NAME_TITLE"]["VALUE"] == "N" && ($bBitrixAjax || $isAjaxF
 		<?endif;?>	
 
 
+
+<?
+/* Шапка раздела для нового дизайна: H1 и ряд «плитки подразделов + баннер
+   акции». По макету они идут над обеими колонками, во всю ширину, а этот
+   шаблон рисуется уже внутри правой (слева фильтр). Отдаём их в отложенную
+   область `nd_page_head` — заглушку под неё выводит
+   page_blocks/page_title_newdesign.php.
+
+   Собираем именно здесь, в самом конце файла, и через GetTitle, а не
+   ShowTitle: ShowTitle — отложенная функция, она закрывает текущий буфер и
+   открывает свой, поэтому внутри ob_start() половина разметки уехала бы мимо
+   области. К этому моменту заголовок уже проставлен catalog.section — ниже на
+   том же GetTitle построен и ответ ajax-фильтра. */
+$ndTitle = $APPLICATION->GetTitle(false);
+if (strlen($ndTitle) || strlen($ndRowHtml)) {
+	$APPLICATION->AddViewContent(
+		'nd_page_head',
+		(strlen($ndTitle) ? '<div class="nd-cat-head"><h1 id="pagetitle">'.$ndTitle.'</h1></div>' : '').$ndRowHtml
+	);
+}
+?>
 
 <?if($isAjaxFilter):?>
 	<?global $APPLICATION;?>

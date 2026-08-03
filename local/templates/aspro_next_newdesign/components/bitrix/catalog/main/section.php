@@ -1,6 +1,10 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();?>
 <?$this->setFrameMode(true);?>
-	<h1 id="pagetitle"><?$APPLICATION->ShowTitle(false)?></h1>
+<?// H1 по макету стоит над обеими колонками, во всю ширину — а этот шаблон
+   // рисуется уже внутри правой (слева фильтр). Заголовок вместе с рядом
+   // подразделов уходит в отложенную область `nd_page_head` в самом конце
+   // page_blocks/list_elements_1.php; заглушку под неё выводит
+   // page_blocks/page_title_newdesign.php.?>
 
 <?
 use Bitrix\Main\Loader,
