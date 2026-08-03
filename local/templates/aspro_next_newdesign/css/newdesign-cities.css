@@ -56,6 +56,19 @@ div.city_chooser_frame {
     opacity: 1;
     z-index: 2;
 }
+/* У темы на ховере крестик заливается красным — в макете этого нет,
+   иконка просто чуть темнеет. */
+.city_chooser_frame:has(.nd-cities) > .close.jqmClose,
+.city_chooser_frame:has(.nd-cities) > .close.jqmClose:hover,
+.city_chooser_frame:has(.nd-cities) > .close.jqmClose:focus,
+.city_chooser_frame:has(.nd-cities) > .close.jqmClose:active {
+    background: none;
+    border: 0;
+    box-shadow: none;
+}
+.city_chooser_frame:has(.nd-cities) > .close.jqmClose:hover i {
+    background: #525264;
+}
 .city_chooser_frame:has(.nd-cities) > .close.jqmClose i {
     display: block;
     width: 24px;
