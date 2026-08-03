@@ -1223,14 +1223,23 @@ if($arSection["PLACE"]){
 							<script>
 							(function(){
 								// Цель метрики «долистал до блока Вам есть на что посмотреть».
-								// В старом дизайне это .social-area (include/footer/f-desk.php),
-								// в новом — промо видеозвонка .nd-fpromo в подвале. Если блока
-								// на странице нет, просто не подписываемся: раньше тут падало
-								// .offset() у пустой выборки и с ним весь обработчик готовности.
-								var $block = $(".social-area, .nd-fpromo").first();
-								if (!$block.length) return;
-								$(window).scroll(function () {
+								// В старом дизайне этот блок — .social-area (include/footer/f-desk.php),
+								// в новом — промо видеозвонка .nd-fpromo в подвале.
+								// Ищем его внутри обработчика, а не при подписке: скрипт выводится
+								// в середине страницы, подвала к этому моменту ещё нет.
+								// Нет блока — молча выходим: раньше тут падало .offset()
+								// у пустой выборки, потому что .social-area нет в новом дизайне.
+								$(window).on("scroll.ndGoalSocialArea", function () {
+									if (window.ndGoalSocialAreaSent) return;
+									var $block = $(".social-area, .nd-fpromo").first();
+									if (!$block.length) return;
 									if ($(window).scrollTop() + $(window).height() > $block.offset().top) {
+										// Цель шлём один раз за страницу. Одного off() мало: этот
+										// скрипт выводится на странице несколько раз (по разным
+										// условиям), а jQuery на одном событии успевает вызвать все
+										// подписки, снятые в том же вызове, — нужен ещё и флаг.
+										window.ndGoalSocialAreaSent = true;
+										$(window).off("scroll.ndGoalSocialArea");
 										if (typeof yaCounter62259859 !== "undefined") {
 											yaCounter62259859.reachGoal("social-area");
 										}
@@ -1254,14 +1263,23 @@ if($arSection["PLACE"]){
 				<script>
 							(function(){
 								// Цель метрики «долистал до блока Вам есть на что посмотреть».
-								// В старом дизайне это .social-area (include/footer/f-desk.php),
-								// в новом — промо видеозвонка .nd-fpromo в подвале. Если блока
-								// на странице нет, просто не подписываемся: раньше тут падало
-								// .offset() у пустой выборки и с ним весь обработчик готовности.
-								var $block = $(".social-area, .nd-fpromo").first();
-								if (!$block.length) return;
-								$(window).scroll(function () {
+								// В старом дизайне этот блок — .social-area (include/footer/f-desk.php),
+								// в новом — промо видеозвонка .nd-fpromo в подвале.
+								// Ищем его внутри обработчика, а не при подписке: скрипт выводится
+								// в середине страницы, подвала к этому моменту ещё нет.
+								// Нет блока — молча выходим: раньше тут падало .offset()
+								// у пустой выборки, потому что .social-area нет в новом дизайне.
+								$(window).on("scroll.ndGoalSocialArea", function () {
+									if (window.ndGoalSocialAreaSent) return;
+									var $block = $(".social-area, .nd-fpromo").first();
+									if (!$block.length) return;
 									if ($(window).scrollTop() + $(window).height() > $block.offset().top) {
+										// Цель шлём один раз за страницу. Одного off() мало: этот
+										// скрипт выводится на странице несколько раз (по разным
+										// условиям), а jQuery на одном событии успевает вызвать все
+										// подписки, снятые в том же вызове, — нужен ещё и флаг.
+										window.ndGoalSocialAreaSent = true;
+										$(window).off("scroll.ndGoalSocialArea");
 										if (typeof yaCounter62259859 !== "undefined") {
 											yaCounter62259859.reachGoal("social-area");
 										}
