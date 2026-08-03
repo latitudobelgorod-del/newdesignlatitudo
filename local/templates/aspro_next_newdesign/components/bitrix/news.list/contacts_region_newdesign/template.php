@@ -173,3 +173,7 @@ $ndTel = static function ($phone) {
 	</div>
 	</div>
 <? endforeach; ?>
+
+<?/* Тизеры-преимущества под контактами (макет 20560:104625 / 20560:104712).
+   Блок общий с общей страницей контактов — лежит в page_blocks шаблона. */?>
+<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/page_blocks/contacts_teasers_newdesign.php';?>
