@@ -422,10 +422,14 @@ body.nd-modal-open {
     }
 }
 
-/* H1 страницы отзывов. Макет: десктоп 21289:57101 — 52/57.2 800,
-   мобильный 21289:60504 — 30/33; до сетки 40 (зазор контейнера в макете). */
+/* H1 страницы отзывов с разделителем под ним.
+   Макет: десктоп 21289:57101 — 52/57.2 800, отступ 40, линия 2px
+   rgba(82,82,100,.15) во всю ширину контейнера (21289:57112), снова 40;
+   мобильный 21289:60504 — 30/33, отступы 24 и 36 (линия 21289:60509). */
 .nd-reviews__h1 {
     margin: 0 0 40px;
+    padding-bottom: 40px;
+    border-bottom: 2px solid rgba(82, 82, 100, .15);
     font-size: 52px;
     line-height: 57.2px;
     font-weight: 800;
@@ -435,7 +439,9 @@ body.nd-modal-open {
     /* Тема задаёт мобильному h1 свой размер через !important
        (media.css), поэтому перебиваем тем же. */
     body .nd-reviews__h1 {
-        margin-bottom: 24px;
+        margin-bottom: 36px;
+        /* Отступы h1 тема тоже задаёт через !important. */
+        padding-bottom: 24px !important;
         font-size: 30px !important;
         line-height: 33px !important;
     }
