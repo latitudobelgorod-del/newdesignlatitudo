@@ -259,10 +259,20 @@
             });
             if (!badges.length) return;
 
+            /* Ни на одном складе нет положительного остатка — плашку не рисуем
+               вовсе. Отличить «указан ноль» от «количество не заведено» в
+               разметке нельзя: result_modifier подставляет 0 всем складам, где
+               записи нет. Так же ведёт себя штатный updateStoresList у товаров
+               с торговыми предложениями — он прячет блок при нулевой сумме. */
             var hasStock = badges.some(function (b) { return /store-badge-(green|orange)/.test(b.className); });
+            if (!hasStock) {
+                box.style.display = 'none';
+                return;
+            }
+
             var inner = badges.map(function (b) { return b.outerHTML; }).join('');
-            list.innerHTML = '<div class="stores-trigger ' + (hasStock ? 'stores-trigger-green' : 'stores-trigger-gray') + '">'
-                + (hasStock ? 'В наличии' : 'Под заказ') + ' <span class="stores-arrow">▼</span></div>'
+            list.innerHTML = '<div class="stores-trigger stores-trigger-green">В наличии'
+                + ' <span class="stores-arrow">▼</span></div>'
                 + '<div class="stores-dropdown" style="display:none;">' + inner + '</div>';
 
             var ci = card.closest('.catalog_item');

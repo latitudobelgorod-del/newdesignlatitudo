@@ -1455,12 +1455,6 @@
     }
 
     /* ----- Карточка ----- */
-    /* цена в макете без приписки единицы: она выбирается кнопками ниже */
-    .nd-catlist .catalog_item_wrapp .offers_price .price_measure,
-    .nd-catlist .catalog_item_wrapp .price_measure {
-        display: none !important;
-    }
-
     /* кружки цвета переносятся на вторую строку, а не прокручиваются */
     .nd-catlist .catalog_item_wrapp .list__catalog_sku,
     .nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu ul {
