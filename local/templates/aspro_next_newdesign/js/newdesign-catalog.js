@@ -95,6 +95,7 @@
             var imgw = card.querySelector('.image_wrapper_block');
             var vid = card.querySelector('.colproduct_video');
             if (vid && imgw && vid.parentNode !== imgw) imgw.appendChild(vid);
+            updateVideo(card);
 
             /* Артикул: в шаблоне два блока (для оффера и без) — оставляем заполненный,
                префикс «Артикул:» в макете не выводится. */
@@ -233,6 +234,7 @@
 
             updateOldPrice(card);
             updateTotal(card);
+            updateVideo(card);
 
             var cw = card.querySelector('.counter_wrapp'),
                 ic = card.querySelector('.in-cart'),
@@ -256,6 +258,42 @@
                 var added = icShown || forced;
                 cw.classList.toggle('nd-incart', added);
             }
+        } catch (e) { }
+    }
+
+    /* Кнопка «видео». Ссылку на ролик Аспро проставляет только при выборе
+       торгового предложения (offers[].PROD_VIDEO); до этого в href лежит адрес
+       товара, и fancybox честно пытается загрузить страницу — отсюда «The
+       requested content cannot be loaded». Берём адрес сами, а без ролика
+       кнопку прячем.
+       Rutube переводим на embed-адрес и открываем во фрейме: обычную страницу
+       ролика fancybox не распознаёт (YouTube и Vimeo он умеет сам). */
+    function updateVideo(card) {
+        try {
+            var vid = card.querySelector('.colproduct_video');
+            if (!vid) return;
+
+            var obj = findCardObject(card);
+            var offer = obj && obj.offers && obj.offers[obj.offerNum];
+            var url = (offer && offer.PROD_VIDEO) || vid.getAttribute('data-nd-video') || '';
+
+            /* href, оставшийся от Аспро, ссылкой на ролик не считаем */
+            if (!/^https?:\/\//i.test(url)) {
+                vid.style.display = 'none';
+                return;
+            }
+
+            var rutube = /rutube\.ru\/(?:video|play\/embed)\/([0-9a-f]+)/i.exec(url);
+            if (rutube) {
+                url = 'https://rutube.ru/play/embed/' + rutube[1];
+                vid.setAttribute('data-type', 'iframe');
+            } else if (!/youtu|vimeo/i.test(url)) {
+                vid.setAttribute('data-type', 'iframe');
+            }
+
+            vid.setAttribute('data-nd-video', url);
+            vid.setAttribute('href', url);
+            vid.style.display = '';
         } catch (e) { }
     }
 

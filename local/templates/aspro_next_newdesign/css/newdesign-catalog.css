@@ -143,8 +143,10 @@
     min-height: 0 !important;
     margin: 0 0 10px !important;
     padding: 0 !important;
-    background: rgba(82, 82, 100, .1);
-    border: 1px solid rgba(82, 82, 100, .15);
+    /* Рамку вокруг фото не рисуем: в макете снимок лежит на светлой подложке
+       без обводки (её видно только там, где картинка не заполняет квадрат). */
+    background: rgba(82, 82, 100, .06);
+    border: 0 !important;
     border-radius: 3px;
     overflow: hidden;
 }
@@ -170,12 +172,16 @@
     display: block;
 }
 
-/* Кнопка видео — круг в левом нижнем углу картинки */
+/* Кнопка видео — круг в левом нижнем углу картинки.
+   Отступы с !important: тема ставит .colproduct_video bottom:-15px, и кнопка
+   вылезала за нижний край блока (а он с overflow:hidden — её срезало). */
 .nd-catlist .catalog_item_wrapp .colproduct_video {
     display: block !important;
-    position: absolute;
-    left: 8px;
-    bottom: 8px;
+    position: absolute !important;
+    left: 8px !important;
+    bottom: 8px !important;
+    top: auto !important;
+    right: auto !important;
     z-index: 5;
     width: 32px !important;
     height: 32px !important;
@@ -253,6 +259,15 @@
     pointer-events: none;
 }
 
+/* Тема центрирует миниатюру строкой в 170px (line-height на блоке картинки),
+   и inline-flex плашка наличия уезжала на середину фото. Сбрасываем строку
+   и размер шрифта на всей группе бейджей. */
+.nd-catlist .catalog_item_wrapp .nd-badges,
+.nd-catlist .catalog_item_wrapp .nd-badges * {
+    line-height: normal !important;
+    font-size: 10px;
+}
+
 .nd-catlist .catalog_item_wrapp .nd-badges > * {
     pointer-events: auto;
 }
@@ -274,6 +289,7 @@
     border-radius: 0 0 2px 0 !important;
     font-size: 10px !important;
     line-height: 13px !important;
+    vertical-align: top;
     font-weight: 700 !important;
     text-transform: uppercase;
     letter-spacing: .01em;
@@ -845,7 +861,10 @@
 .nd-catlist .catalog_item_wrapp a.to-cart,
 .nd-catlist .catalog_item_wrapp .counter_wrapp .button_block .to-cart.btn.white,
 .nd-catlist .catalog_item_wrapp .counter_wrapp .button_block .to-cart.btn.btn-default.white {
-    display: inline-flex !important;
+    /* display без !important: положив товар в корзину, Аспро прячет эту кнопку
+       инлайновым style, а !important в таблице стилей инлайн перебивает —
+       красная корзина оставалась рядом с серой «В корзине» */
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 48px !important;
@@ -879,13 +898,14 @@
     display: none !important;
 }
 
+/* иконка — тележка, как в макете (не пакет) */
 .nd-catlist .catalog_item_wrapp .to-cart:after {
     content: '';
     display: inline-block;
     flex: 0 0 auto;
     width: 24px;
     height: 24px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M7 6V5a5 5 0 0 1 10 0v1h3a1 1 0 0 1 1 1.06l-.7 12A3 3 0 0 1 17.3 22H6.7a3 3 0 0 1-3-2.94L3 7.06A1 1 0 0 1 4 6h3Zm2 0h6V5a3 3 0 1 0-6 0v1Z'/%3E%3C/svg%3E") center/22px no-repeat;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 3h2.2l2.1 10.3a1.6 1.6 0 0 0 1.6 1.3h8.3a1.6 1.6 0 0 0 1.6-1.2l1.6-6.4H5.6'/%3E%3Ccircle cx='9.5' cy='19.5' r='1.6'/%3E%3Ccircle cx='17' cy='19.5' r='1.6'/%3E%3C/g%3E%3C/svg%3E") center/22px no-repeat;
 }
 
 /* Состояние «в корзине» — серая кнопка на всю ширину, счётчик скрыт.
