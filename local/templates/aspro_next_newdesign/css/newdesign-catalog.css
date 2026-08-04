@@ -34,11 +34,12 @@
 .nd-catlist .catalog_block {
     display: grid !important;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1px;
+    gap: 0;
     margin: 0 !important;
     padding: 0 !important;
-    background: rgba(82, 82, 100, .15);
+    background: none;
     border: 1px solid rgba(82, 82, 100, .15);
+    border-width: 1px 0 0 1px;
     border-radius: 4px;
     overflow: hidden;
 }
@@ -65,6 +66,11 @@
     margin: 0 !important;
     padding: 0 !important;
     background: #fff;
+    /* Линии рисуем на самих ячейках (правая и нижняя), а не зазором сетки:
+       в конце списка ряд бывает неполным, и подложка сетки светилась серым
+       квадратом на месте недостающих карточек. */
+    border-right: 1px solid rgba(82, 82, 100, .15);
+    border-bottom: 1px solid rgba(82, 82, 100, .15);
 }
 
 /* ---------------------------------------------------------------------------
@@ -110,9 +116,12 @@
 }
 
 /* Наследие темы: .blockcolors ... .catalog_item{margin:0 -1px 0 0} —
-   отрицательный отступ вылезал на соседнюю карточку и закрывал линию. */
+   отрицательный отступ вылезал на соседнюю карточку и закрывал линию.
+   position:static — чтобы артикул считал отступы от самой карточки, а не от
+   этого блока (он начинается уже внутри поля 16 и номер уезжал на картинку). */
 .nd-catlist .catalog_item_wrapp .catalog_item {
     margin-right: 0 !important;
+    position: static !important;
 }
 
 .nd-catlist .catalog_item_wrapp .inner_wrap > * {
@@ -189,6 +198,9 @@
     max-width: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    /* тема ставит left:50% + сдвиг трансформом — половина круга уезжала
+       за левый край картинки и обрезалась */
+    transform: none !important;
     font-size: 0 !important;
     text-decoration: none;
     border-radius: 50%;
@@ -400,11 +412,37 @@
     background: none !important;
     border: 0 !important;
     color: #525264;
-    font-size: 10px;
-    line-height: 13px;
+    font-size: 10px !important;
+    /* line-height у темы 170px (ею центрируется миниатюра) — иначе номер
+       съезжает вниз; по макету он стоит чуть выше плашки наличия */
+    line-height: 13px !important;
     font-weight: 400;
     text-align: right;
     white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   Свёрнутый ряд чипов: показываем один ряд и кнопку «…»
+   ------------------------------------------------------------------------ */
+.nd-catlist-sort__tags .section_tag_top .tag_ank.nd-tag-hidden {
+    display: none;
+}
+
+.nd-catlist-sort__more {
+    display: inline-block;
+    padding: 6px 12px;
+    background: rgba(82, 82, 100, .07);
+    border: 0;
+    border-radius: 4px;
+    color: #101014;
+    font-size: 14px;
+    line-height: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.nd-catlist-sort__more:hover {
+    background: rgba(82, 82, 100, .14);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1045,7 +1083,13 @@
 
 /* своя строка «Общая стоимость» (штатная .total_summ появляется только при
    смене количества и прячется при количестве 1 — в макете она видна всегда) */
+/* Показывается только после того, как покупатель тронул счётчик —
+   класс ставит скрипт (в макете строка появляется вместе с пересчётом). */
 .nd-catlist .catalog_item_wrapp .counter_wrapp .nd-total {
+    display: none;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-total-on .nd-total {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -1098,7 +1142,9 @@
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    /* картинку акции не режем: в макете это готовый макет-баннер на светлой
+       подложке, пропорции у разных акций разные */
+    object-fit: contain;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1228,10 +1274,12 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Постраничная навигация под сеткой
+   Постраничная навигация под сеткой. Отступ 24 по макету; селектор без
+   .nd-catlist — блок навигации лежит рядом с обёрткой, а не внутри неё.
    ------------------------------------------------------------------------ */
-.nd-catlist .bottom_nav {
+.bottom_nav.nd-catlist__nav {
     margin-top: 24px;
+    padding-top: 0;
 }
 
 /* ---------------------------------------------------------------------------

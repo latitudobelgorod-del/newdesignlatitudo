@@ -549,9 +549,21 @@ $ar_res = $res->GetNext();
 			<?$show = $arParams["PAGE_ELEMENT_COUNT"];?>
 			<?if( isMobilelat() ):?>
 				   <? $show = "10"; ?>
-			<?else:?>  
+			<?else:?>
 				   <? $show = $arParams["PAGE_ELEMENT_COUNT"]; ?>
 			<?endif;?>
+
+			<?/* Плитки акций занимают ячейки той же сетки, поэтому считаем их
+			   заранее и на столько же уменьшаем число товаров на странице —
+			   иначе последний ряд остаётся неполным. Саму разметку печатаем
+			   ниже, после списка. */?>
+			<? include(__DIR__ . "/../include/promo_catalog_newdesign.php") ?>
+			<?
+			$ndPromoCount = (int)$GLOBALS['ND_CATALOG_PROMO_COUNT'];
+			if($ndPromoCount > 0 && $show > $ndPromoCount){
+				$show = $show - $ndPromoCount;
+			}
+			?>
 			
 			
 			<?if($isAjax === 'N'){?>
@@ -722,9 +734,9 @@ $ar_res = $res->GetNext();
 
 					), $component, array("HIDE_ICONS" => $isAjax)
 				);?>
-					<?/* Плитки акций для сетки товаров: печатаются скрытым пулом,
-					   по ячейкам их раскладывает js/newdesign-catalog.js. */?>
-					<? include(__DIR__ . "/../include/promo_catalog_newdesign.php") ?>
+					<?/* Плитки акций для сетки товаров: разметку собрали выше,
+					   по ячейкам её раскладывает js/newdesign-catalog.js. */?>
+					<?=$GLOBALS['ND_CATALOG_PROMO_HTML']?>
 					</div>
 				<!--noindex-->
 				<script class="smart-filter-filter" data-skip-moving="true">

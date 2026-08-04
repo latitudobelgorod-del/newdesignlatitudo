@@ -13,7 +13,16 @@
  * Разметка печатается ПУЛОМ вне сетки, а по ячейкам её раскладывает
  * js/newdesign-catalog.js: позиция в макете задана рядом («последняя ячейка
  * второго ряда»), а число колонок зависит от ширины экрана.
+ *
+ * Файл подключается ДО вывода товаров: разметка складывается в
+ * $GLOBALS['ND_CATALOG_PROMO_HTML'], а по числу плиток
+ * ($GLOBALS['ND_CATALOG_PROMO_COUNT']) уменьшается количество товаров на
+ * странице — иначе плитки сдвигают хвост списка и в последнем ряду остаются
+ * пустые клетки.
  */
+$GLOBALS['ND_CATALOG_PROMO_HTML'] = '';
+$GLOBALS['ND_CATALOG_PROMO_COUNT'] = 0;
+ob_start();
 
 /* Никаких global: файл подключается в область видимости шаблона комплексного
    компонента, и `global $arSection` подменил бы его локальный $arSection
@@ -84,6 +93,7 @@ if($ndPromoIblockId && $arSection["ID"]){
 				if(!$ndPromoFile)
 					continue;
 				$ndPromoUrl = (strlen($ndPromoItem["PROPERTY_REDIRECT_VALUE"]) ? $ndPromoItem["PROPERTY_REDIRECT_VALUE"] : $ndPromoItem["DETAIL_PAGE_URL"]);
+				++$GLOBALS['ND_CATALOG_PROMO_COUNT'];
 				?>
 				<div class="item_block nd-promo-cell">
 					<a href="<?=htmlspecialcharsbx($ndPromoUrl)?>">
@@ -94,4 +104,6 @@ if($ndPromoIblockId && $arSection["ID"]){
 		</div>
 	<?endif;
 }
+
+$GLOBALS['ND_CATALOG_PROMO_HTML'] = ob_get_clean();
 ?>

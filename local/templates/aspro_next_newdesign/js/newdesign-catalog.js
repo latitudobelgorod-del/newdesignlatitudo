@@ -83,6 +83,23 @@
                 total.className = 'nd-total';
                 total.innerHTML = '<span class="nd-total__label">Общая стоимость</span><span class="nd-total__value"></span>';
                 cwrap.appendChild(total);
+
+                /* Строка появляется, только когда покупатель тронул счётчик —
+                   как в макете. Слушаем и свои кнопки компонента единиц, и
+                   штатный счётчик Аспро, и ручной ввод. */
+                var showTotal = function () {
+                    cwrap.classList.add('nd-total-on');
+                    updateTotal(card);
+                };
+                cwrap.addEventListener('click', function (e) {
+                    if (e.target.closest('.measure-button, .counter_block .plus, .counter_block .minus')) showTotal();
+                });
+                cwrap.addEventListener('change', function (e) {
+                    if (e.target.closest('.measure-field, .counter_block input')) showTotal();
+                });
+                cwrap.addEventListener('input', function (e) {
+                    if (e.target.closest('.measure-field, .counter_block input')) showTotal();
+                });
             }
 
             /* Дерево SKU с одним-единственным цветом не переключатель, а дубль:
@@ -429,6 +446,49 @@
     }
 
     /* ---------------------------------------------------------------------
+       Чипы тегов: в макете они свёрнуты в один ряд, остальные прячет «…»
+       ------------------------------------------------------------------ */
+    function collapseTags() {
+        try {
+            var box = document.querySelector('.nd-catlist-sort__tags .section_tag_top');
+            if (!box || box.__ndOpened) return;
+
+            var chips = [].slice.call(box.querySelectorAll('.tag_ank'));
+            if (!chips.length) return;
+
+            var more = box.querySelector('.nd-catlist-sort__more');
+            if (!more) {
+                more = document.createElement('span');
+                more.className = 'nd-catlist-sort__more';
+                more.textContent = '…';
+                more.title = 'Показать все теги';
+                more.addEventListener('click', function () {
+                    box.__ndOpened = true;
+                    chips.forEach(function (c) { c.classList.remove('nd-tag-hidden'); });
+                    more.remove();
+                });
+                box.appendChild(more);
+            }
+
+            /* Считаем по фактическому положению: в ряд попадают чипы, чей
+               верх совпадает с верхом первого. Кнопке «…» оставляем место. */
+            chips.forEach(function (c) { c.classList.remove('nd-tag-hidden'); });
+            var top0 = chips[0].getBoundingClientRect().top;
+            var limit = box.getBoundingClientRect().right - more.getBoundingClientRect().width - 8;
+            var cut = -1;
+            for (var i = 0; i < chips.length; i++) {
+                var r = chips[i].getBoundingClientRect();
+                if (r.top > top0 + 2 || r.right > limit) { cut = i; break; }
+            }
+            if (cut < 0) {
+                more.remove();
+                return;
+            }
+            for (var j = cut; j < chips.length; j++) chips[j].classList.add('nd-tag-hidden');
+        } catch (e) { }
+    }
+
+    /* ---------------------------------------------------------------------
        Сортировка — выпадающий список
        ------------------------------------------------------------------ */
     function initSort() {
@@ -462,6 +522,7 @@
 
         patchOfferCurrency();
         initSort();
+        collapseTags();
         placePromo();
 
         [].forEach.call(document.querySelectorAll('.nd-catlist .catalog_item_wrapp.item'), function (card) {
@@ -504,7 +565,7 @@
 
     window.addEventListener('resize', function () {
         if (window.__ndRz) return;
-        window.__ndRz = setTimeout(function () { window.__ndRz = 0; placePromo(); }, 200);
+        window.__ndRz = setTimeout(function () { window.__ndRz = 0; placePromo(); collapseTags(); }, 200);
     });
 
     /* список перерисовывается ajax'ом (фильтр, «показать ещё») */
