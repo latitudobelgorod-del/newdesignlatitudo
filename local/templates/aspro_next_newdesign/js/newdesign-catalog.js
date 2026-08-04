@@ -275,6 +275,9 @@
                 + ' <span class="stores-arrow">▼</span></div>'
                 + '<div class="stores-dropdown" style="display:none;">' + inner + '</div>';
 
+            /* блок скрыт стилями до готовности — показываем его сами */
+            box.style.display = 'block';
+
             var ci = card.closest('.catalog_item');
             if (ci) ci.classList.add('has-stores-block');
 

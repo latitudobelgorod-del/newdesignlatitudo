@@ -288,7 +288,13 @@
     pointer-events: auto;
 }
 
+/* До того как скрипт соберёт плашку, блок скрыт: сервер отдаёт плоский
+   список складов («Белгород: 76 Воронеж: 91 …»), и он мелькал на загрузке.
+   Показывают блок только скрипты — штатный updateStoresList (товары с
+   торговыми предложениями) и наш ensureStoresTrigger, оба инлайновым style,
+   поэтому здесь display без !important. */
 .nd-catlist .catalog_item_wrapp .product-item-stores {
+    display: none;
     position: static !important;
     margin: 0 !important;
     font-size: inherit;
