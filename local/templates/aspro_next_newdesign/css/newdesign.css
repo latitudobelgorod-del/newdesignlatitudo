@@ -2839,3 +2839,289 @@ body .nd-cat-head #pagetitle {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+/* ================= фильтр каталога в левой колонке =====================
+   Макет Figma «Чистовик», фрейм «Категория» 23495:57181: заголовок
+   «Фильтры» 24/28 800, группы без плашек с шевроном 8F8F9A слева,
+   название 16/20 700, шаг 48; цена — два поля 125×52 в рамке без
+   ползунка; чекбокс 20×20 (отмеченный красный), строка 36; внизу одна
+   кнопка «Сбросить фильтры» во всю ширину в чёрной рамке.
+   Разметку даёт catalog.smart.filter/main_newdesign — там же авто-применение
+   вместо кнопки «Показать». Селекторы с запасом: у темы свои правила
+   для .bx_filter в styles.css и media.css. */
+.nd-filter {
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.nd-filter__title {
+    padding: 0 0 20px;
+    font-size: 24px;
+    line-height: 28px;
+    font-weight: 800;
+    color: #101014;
+}
+
+/* Плашки, рамки и отступы темы снимаем — по макету группы идут списком. */
+body .nd-filter .bx_filter_section,
+body .nd-filter .bx_filter_parameters,
+body .nd-filter .bx_filter_block,
+body .nd-filter .bx_filter_parameters_box,
+body .nd-filter .bx_filter_parameters_box_container,
+body .nd-filter .bx_filter_button_box {
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}
+
+/* Заголовок группы: шеврон слева, отбивка 14 сверху и снизу — шаг 48. */
+body .nd-filter .bx_filter_parameters_box_title {
+    position: relative;
+    margin: 0;
+    padding: 14px 0 14px 34px;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 700;
+    color: #101014;
+    text-transform: none;
+    cursor: pointer;
+}
+body .nd-filter .bx_filter_parameters_box_title > div {
+    margin: 0;
+    padding: 0;
+}
+body .nd-filter .bx_filter_parameters_box_title:before {
+    content: none !important;
+}
+/* Свой шеврон вместо иконки темы: повёрнутый квадрат слева, как в меню
+   разделов. Тема рисует свою стрелку этим же :after — перекрываем целиком. */
+body .nd-filter .bx_filter_parameters_box_title:after {
+    content: "" !important;
+    position: absolute !important;
+    top: 18px;
+    left: 3px;
+    right: auto;
+    width: 9px;
+    height: 9px;
+    margin: 0;
+    border: none;
+    border-right: 1.5px solid #8f8f9a;
+    border-bottom: 1.5px solid #8f8f9a;
+    background: none;
+    font-size: 0;
+    transform: rotate(45deg);
+    transition: transform .15s ease, border-color .15s ease;
+}
+body .nd-filter .bx_filter_parameters_box.active > .bx_filter_parameters_box_title:after {
+    top: 21px;
+    transform: rotate(-135deg);
+}
+body .nd-filter .bx_filter_parameters_box_title:hover:after {
+    border-color: #c60000;
+}
+/* Подсказка-вопросик внутри заголовка остаётся строчной. */
+body .nd-filter .bx_filter_parameters_box_title .char_name {
+    display: inline;
+}
+
+body .nd-filter .bx_filter_parameters_box_container {
+    padding-bottom: 6px;
+}
+/* Свёрнутая группа: тема прячет содержимое своим скриптом, но нам нужно,
+   чтобы это работало и до его отработки. */
+body .nd-filter .bx_filter_parameters_box:not(.active) > .bx_filter_block {
+    display: none;
+}
+
+/* Настоящий <input> темы стоит перед подписью и рисуется штатным квадратом —
+   прячем, квадрат рисуем сами на .bx_filter_input_checkbox. Не display:none:
+   иначе перестанет работать клик по подписи и :checked. */
+body .nd-filter input[type="checkbox"],
+body .nd-filter input[type="radio"] {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    opacity: 0 !important;
+}
+/* Все прочие «квадраты» темы на подписи гасим — рисуем свой один. */
+body .nd-filter .bx_filter_param_label:before,
+body .nd-filter .bx_filter_param_label:after,
+body .nd-filter .bx_filter_param_text:before,
+body .nd-filter .bx_filter_param_text:after {
+    content: none !important;
+}
+
+/* Цена: тема прячет поля до инициализации ползунка, а ползунок мы убрали —
+   возвращаем видимость полям принудительно. */
+body .nd-filter .bx_filter_parameters_box.price_numbers,
+body .nd-filter .price_numbers .bx_filter_block,
+body .nd-filter .price_numbers .bx_filter_parameters_box_container,
+body .nd-filter .price_numbers .wrapp_all_inputs {
+    display: block !important;
+}
+
+/* Строка значения. Разметка темы: скрытый <input>, за ним <label>, внутри
+   <span class="bx_filter_input_checkbox"> с текстом. Квадрат рисуем сами
+   псевдоэлементом этого span. */
+body .nd-filter .bx_filter_param_label,
+body .nd-filter .bx_filter_param_label.nab,
+body .nd-filter .bx_filter_param_label.pal {
+    display: block;
+    margin: 0;
+    padding: 8px 0;
+    background: none;
+    cursor: pointer;
+}
+body .nd-filter .bx_filter_input_checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #101014;
+}
+body .nd-filter .bx_filter_input_checkbox:after {
+    content: none !important;
+}
+body .nd-filter .bx_filter_input_checkbox:before {
+    content: "" !important;
+    position: static !important;
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    border: 1.5px solid #d4d4da;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: none;
+    transition: border-color .15s ease, background-color .15s ease;
+}
+body .nd-filter input[type="checkbox"]:checked + .bx_filter_param_label .bx_filter_input_checkbox:before,
+body .nd-filter input[type="radio"]:checked + .bx_filter_param_label .bx_filter_input_checkbox:before,
+body .nd-filter .bx_filter_param_label.active .bx_filter_input_checkbox:before {
+    border-color: #c60000;
+    background: #c60000 url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3.2 3.2L11 1.4' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center no-repeat;
+}
+/* Тема отбивает подпись от штатного квадрата через margin-left — у нас
+   отступ даёт gap флекса, поэтому обнуляем. */
+body .nd-filter .bx_filter_input_checkbox .bx_filter_param_text,
+body .nd-filter .bx_filter_param_text,
+body .nd-filter .bx_filter_param_text1 {
+    display: block;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #101014;
+    text-align: left;
+}
+/* Логотипы брендов идут отдельной картинкой внутри подписи. */
+body .nd-filter .bx_filter_param_text img {
+    max-height: 20px;
+    width: auto;
+    vertical-align: middle;
+}
+body .nd-filter .bx_filter_param_label:hover .bx_filter_input_checkbox {
+    color: #c60000;
+}
+
+/* Цена: два поля в рамке, ползунок темы прячем. */
+body .nd-filter .price_numbers .bx_ui_slider_track,
+body .nd-filter .price_numbers .wrapp_slider,
+body .nd-filter .price_numbers .divider {
+    display: none !important;
+}
+body .nd-filter .price_numbers .wrapp_change_inputs {
+    display: flex !important;
+    float: none;
+    gap: 10px;
+    width: 100%;
+}
+body .nd-filter .price_numbers .bx_filter_parameters_box_container_block {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    width: auto;
+}
+body .nd-filter .price_numbers .bx_filter_input_container {
+    height: 52px;
+    padding: 0;
+    border: 1.5px solid #e5e5e8;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: none;
+}
+body .nd-filter .price_numbers .bx_filter_input_container input {
+    width: 100%;
+    height: 100%;
+    padding: 0 14px;
+    border: none;
+    background: none;
+    box-shadow: none;
+    font-size: 16px;
+    line-height: 20px;
+    color: #101014;
+}
+body .nd-filter .price_numbers .bx_filter_input_container input::placeholder {
+    color: #8f8f9a;
+}
+
+/* «Показать» не выводим — применение мгновенное (скрипт в шаблоне
+   кликает по этой же кнопке). Плашку с количеством тоже прячем. */
+body .nd-filter #set_filter,
+body .nd-filter .bx_filter_popup_result {
+    display: none !important;
+}
+body .nd-filter .bx_filter_button_box {
+    padding-top: 32px;
+}
+body .nd-filter .nd-filter__reset {
+    display: block;
+    width: 100%;
+    height: 46px;
+    margin: 0;
+    padding: 0 16px;
+    border: 2px solid #101014;
+    border-radius: 6px;
+    background: none;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 700;
+    color: #101014;
+    text-align: center;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+body .nd-filter .nd-filter__reset:hover,
+body .nd-filter .nd-filter__reset:focus {
+    background: #101014;
+    color: #fff;
+}
+
+/* Ссылка «Показать все» в длинных списках значений. */
+body .nd-filter .hidden_values .values_expander,
+body .nd-filter .bx_filter_block .values_expander {
+    padding: 6px 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: #8f8f9a;
+}
+
+@media (max-width: 991px) {
+    .nd-filter__title {
+        padding-bottom: 16px;
+        font-size: 20px;
+        line-height: 24px;
+    }
+}

@@ -1,7 +1,11 @@
 <?if('Y' == $arParams['USE_FILTER']):?>
 	<?$APPLICATION->IncludeComponent(
 		"bitrix:catalog.smart.filter",
-		($arParams["AJAX_FILTER_CATALOG"]=="Y" ? "main_ajax" : "main"),
+		// Новый дизайн рисует фильтр своим шаблоном (заголовок «Фильтры»,
+		// свёрнутые группы, одна кнопка «Сбросить фильтры», применение сразу).
+		// Ajax-вариант темы не используем — SEF-адреса /filter/ и пагинация
+		// остаются штатными.
+		"main_newdesign",
 		Array(
 			"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
 			"IBLOCK_ID" => $arParams["IBLOCK_ID"],
