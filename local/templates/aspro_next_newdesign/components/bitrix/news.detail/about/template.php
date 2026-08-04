@@ -86,7 +86,14 @@ $date_activeto = MakeTimeStamp($arResult["DATE_ACTIVE_TO"], "DD.MM.YYYY HH:MI:SS
 $goy=$arResult["IPROPERTY_VALUES"]["ELEMENT_PAGE_TITLE"];}
 else {$goy=$arResult['NAME'];}
 ?>
-	<h1 id="pagetitle"><?=$goy?></h1>
+<?// H1 по макету идёт над обеими колонками, во всю ширину и отбит серой
+   // чертой, а шаблон рисуется внутри правой (слева меню раздела). Отдаём
+   // заголовок в отложенную область `nd_page_head` — заглушку под неё
+   // выводит page_blocks/page_title_newdesign.php. Здесь это безопасно:
+   // $goy — обычная строка, отложенных функций внутри буфера нет.?>
+<?ob_start();?>
+	<div class="nd-cat-head"><h1 id="pagetitle"><?=$goy?></h1></div>
+<?$APPLICATION->AddViewContent('nd_page_head', ob_get_clean());?>
 <?$convers1 = ConvertDateTime($arResult["DATE_ACTIVE_TO"], "DD.MM.YYYY", "ru");?>
 <?if($arResult['COMPANY']):?>
 	<div class="wraps barnd-block">

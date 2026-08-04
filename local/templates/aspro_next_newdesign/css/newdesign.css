@@ -2655,6 +2655,14 @@ a.nd-catmenu__name:focus {
 body .nd-cat-head {
     padding-bottom: 28px;
 }
+/* Если под заголовком ничего не приехало (у раздела нет подразделов и акции,
+   страницы инфоблока «Информация»), черту-разделитель рисуем на самой шапке —
+   иначе заголовок висит без отбивки. */
+.nd-page-head-wrap .nd-cat-head:last-child {
+    padding-bottom: 40px;
+    margin-bottom: 40px;
+    border-bottom: 2px solid rgba(82, 82, 100, .15);
+}
 body .nd-cat-head #pagetitle {
     margin: 0;
     padding: 0;
@@ -2813,6 +2821,10 @@ body .nd-cat-head #pagetitle {
 @media (max-width: 991px) {
     body .nd-cat-head {
         padding-bottom: 20px;
+    }
+    .nd-page-head-wrap .nd-cat-head:last-child {
+        padding-bottom: 24px;
+        margin-bottom: 24px;
     }
     body .nd-cat-head #pagetitle {
         font-size: 30px;
