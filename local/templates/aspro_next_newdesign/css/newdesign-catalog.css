@@ -893,6 +893,17 @@
     text-align: center;
 }
 
+/* У штатных кнопок счётчика тема рисует значок псевдоэлементом, а внутри
+   лежит ещё и текстовый «-» / «+» — в карточке получалось по два знака.
+   Значок гасим, оставляем текст. */
+.nd-catlist .catalog_item_wrapp .counter_wrapp .counter_block .minus:before,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .counter_block .plus:before,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .counter_block .minus:after,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .counter_block .plus:after {
+    content: none !important;
+    display: none !important;
+}
+
 .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus,
 .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
     flex: 0 0 auto !important;
