@@ -2834,9 +2834,39 @@ body .nd-cat-head #pagetitle {
     }
 }
 
-@media (max-width: 575px) {
+/* На мобильном по макету («Категория», 360) плитка разворачивается в строку:
+   картинка слева, название справа по левому краю, две колонки. */
+@media (max-width: 767px) {
     .nd-subsec {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .nd-subsec__item {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+        min-height: 76px;
+        padding: 10px;
+        text-align: left;
+    }
+    .nd-subsec__pic {
+        flex: 0 0 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .nd-subsec__pic img {
+        max-width: 40px;
+        max-height: 44px;
+    }
+    .nd-subsec__name {
+        font-size: 13px;
+        line-height: 16px;
+    }
+    /* Разделы без картинки: подпись занимает всю ширину плитки. */
+    .nd-subsec__item--noimg {
+        justify-content: flex-start;
     }
 }
 
