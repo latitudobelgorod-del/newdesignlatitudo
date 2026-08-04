@@ -29,6 +29,17 @@ $ndIsExpanded = function($arItem) use (&$ndBoxIndex) {
 };
 ?>
 <?if($arResult["ITEMS"]){?>
+	<?/* Мобильная панель фильтра (макет Figma «Фильтры» 21408:72598).
+		Тегами прямо в разметке: шаблон рисуется, когда <head> уже отдан.
+		Защита от повторного подключения — фильтр выводится ещё и по ajax. */?>
+	<?if(!defined('ND_FILTER_MOBILE_ASSETS')){
+		define('ND_FILTER_MOBILE_ASSETS', true);
+		$ndFmCss = $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/css/newdesign-filter-mobile.css';
+		$ndFmJs = $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-filter-mobile.js';
+		?>
+		<link href="<?=SITE_TEMPLATE_PATH?>/css/newdesign-filter-mobile.css?<?=(file_exists($ndFmCss) ? filemtime($ndFmCss) : '')?>" rel="stylesheet" />
+		<script src="<?=SITE_TEMPLATE_PATH?>/js/newdesign-filter-mobile.js?<?=(file_exists($ndFmJs) ? filemtime($ndFmJs) : '')?>"></script>
+	<?}?>
 	<div class="bx_filter bx_filter_vertical swipeignore nd-filter">
 		<div class="bx_filter_section">
 			<form name="<?echo $arResult["FILTER_NAME"]."_form"?>" action="<?echo $arResult["FORM_ACTION"]?>" method="get" class="smartfilter">
