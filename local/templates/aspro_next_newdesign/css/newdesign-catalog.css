@@ -84,6 +84,10 @@
     width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
+    /* margin:0 обязателен: тема даёт карточке margin-bottom:-1px (схлопывала
+       границы соседей в старой сетке), и белый фон карточки закрашивал
+       нижнюю линию ячейки — горизонтальных линий в сетке не было видно */
+    margin: 0 !important;
     padding: 16px !important;
     background: #fff;
     border: 0 !important;
