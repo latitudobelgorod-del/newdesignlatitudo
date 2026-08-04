@@ -726,10 +726,102 @@ body {
 }
 
 /* Плитки: 4 в ряд, зазор 8 (в макете 220×108) */
+/* Плитки подразделов и баннер акции — в один ряд (макет: баннер справа) */
+.nd-cat__body {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+}
+
 .nd-cat__grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Баннер акции раздела */
+.nd-cat__promo {
+    position: relative;
+    flex: 0 0 300px;
+    display: block;
+    width: 300px;
+    border-radius: 4px;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.nd-cat__promo img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.nd-cat__promo-till {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: 2px 8px;
+    background: rgba(16, 16, 20, .65);
+    color: #fff;
+    font-size: 10px;
+    line-height: 14px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
+
+/* Производители раздела */
+.nd-cat__brands {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(82, 82, 100, .15);
+}
+
+.nd-cat__brands-title {
+    margin-bottom: 12px;
+    color: #101014;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 700;
+}
+
+.nd-cat__brands-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.nd-cat__brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 152px;
+    height: 56px;
+    padding: 8px 12px;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 4px;
+    background: #fff;
+    text-decoration: none;
+}
+
+.nd-cat__brand:hover {
+    border-color: rgba(82, 82, 100, .35);
+}
+
+.nd-cat__brand img {
+    max-width: 100%;
+    max-height: 40px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.nd-cat__brand-name {
+    color: #101014;
+    font-size: 13px;
+    line-height: 16px;
+    text-align: center;
 }
 .nd-cat__card {
     display: flex;

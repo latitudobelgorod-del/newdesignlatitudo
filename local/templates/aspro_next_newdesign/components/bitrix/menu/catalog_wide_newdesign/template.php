@@ -216,6 +216,170 @@ $ndImgPlaceholder = function() {
 		<path d="M21 15L16 10L5 21"/>
 	</svg><?
 };
+
+/**
+ * ID раздела по ссылке пункта меню. В параметрах пункта его нет (menu_ext
+ * кладёт только IBLOCK_ID, DEPTH_LEVEL и пользовательские поля), поэтому
+ * один раз строим карту «адрес раздела → ID».
+ */
+$ndSectionIdByLink = function($link) {
+	static $arMap;
+
+	if(!isset($arMap))
+	{
+		$arMap = array();
+		$catalogId = (int)CNextCache::$arIBlocks[SITE_ID]['aspro_next_catalog']['aspro_next_catalog'][0];
+		if($catalogId > 0)
+		{
+			$res = CIBlockSection::GetList(
+				array('LEFT_MARGIN' => 'ASC'),
+				array('IBLOCK_ID' => $catalogId, 'ACTIVE' => 'Y', 'GLOBAL_ACTIVE' => 'Y'),
+				false,
+				array('ID', 'SECTION_PAGE_URL')
+			);
+			while($arSect = $res->GetNext())
+			{
+				$arMap[rtrim($arSect['SECTION_PAGE_URL'], '/').'/'] = (int)$arSect['ID'];
+			}
+		}
+	}
+
+	$key = rtrim((string)$link, '/').'/';
+
+	return isset($arMap[$key]) ? $arMap[$key] : 0;
+};
+
+/**
+ * Акция раздела: элемент ИБ «Акции и скидки», привязанный к разделу или его
+ * родителям свойством LINK_SECT_CATALOG. Если привязка не заполнена, акция
+ * общая и в меню раздела не показывается — иначе одна и та же плашка висела бы
+ * во всех разделах. Учитываем регион, как остальные блоки акций.
+ */
+$ndSectionPromo = function($sectionId) {
+	$sectionId = (int)$sectionId;
+	if($sectionId <= 0)
+		return null;
+
+	$iblockId = (int)CNextCache::$arIBlocks[SITE_ID]['aspro_next_content']['aspro_next_stock'][0];
+	if($iblockId <= 0)
+		return null;
+
+	global $arRegion;
+
+	$arFilter = array(
+		'IBLOCK_ID' => $iblockId,
+		'ACTIVE' => 'Y',
+		'ACTIVE_DATE' => 'Y',
+		'PROPERTY_LINK_SECT_CATALOG' => $sectionId,
+	);
+	if($arRegion && $arRegion['ID'])
+	{
+		$arFilter[] = array(
+			'LOGIC' => 'OR',
+			array('PROPERTY_LINK_REGION' => false),
+			array('PROPERTY_LINK_REGION' => $arRegion['ID']),
+		);
+	}
+
+	$res = CIBlockElement::GetList(
+		array('SORT' => 'ASC', 'ID' => 'DESC'),
+		$arFilter,
+		false,
+		array('nTopCount' => 1),
+		array('ID', 'IBLOCK_ID', 'NAME', 'ACTIVE_TO', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'DETAIL_PAGE_URL', 'PROPERTY_REDIRECT')
+	);
+	if(!($arPromo = $res->GetNext()))
+		return null;
+
+	$picId = (int)($arPromo['PREVIEW_PICTURE'] ? $arPromo['PREVIEW_PICTURE'] : $arPromo['DETAIL_PICTURE']);
+	if($picId <= 0)
+		return null;
+
+	$img = CFile::ResizeImageGet($picId, array('width' => 600, 'height' => 600), BX_RESIZE_IMAGE_PROPORTIONAL, true);
+	if(!is_array($img) || !$img['src'])
+		return null;
+
+	$till = '';
+	if($arPromo['ACTIVE_TO'])
+	{
+		// ConvertDateTime понимает только свои токены — иначе месяц не подставится
+		$till = ConvertDateTime($arPromo['ACTIVE_TO'], 'DD.MM.YYYY');
+	}
+
+	return array(
+		'NAME' => $arPromo['NAME'],
+		'LINK' => (strlen($arPromo['PROPERTY_REDIRECT_VALUE']) ? $arPromo['PROPERTY_REDIRECT_VALUE'] : $arPromo['DETAIL_PAGE_URL']),
+		'IMG'  => $img['src'],
+		'TILL' => $till,
+	);
+};
+
+/**
+ * Производители раздела: берём только те бренды, что реально встречаются
+ * у активных товаров раздела (вместе с подразделами). Считаем группировкой
+ * по свойству — так это один запрос вместо выборки всех товаров.
+ */
+$ndSectionBrands = function($sectionId) {
+	$sectionId = (int)$sectionId;
+	if($sectionId <= 0)
+		return array();
+
+	$catalogId = (int)CNextCache::$arIBlocks[SITE_ID]['aspro_next_catalog']['aspro_next_catalog'][0];
+	if($catalogId <= 0)
+		return array();
+
+	$res = CIBlockElement::GetList(
+		array(),
+		array(
+			'IBLOCK_ID' => $catalogId,
+			'ACTIVE' => 'Y',
+			'SECTION_ID' => $sectionId,
+			'INCLUDE_SUBSECTIONS' => 'Y',
+			'!PROPERTY_BRAND' => false,
+		),
+		array('PROPERTY_BRAND'),
+		false,
+		array('ID')
+	);
+
+	// при группировке значение свойства приходит в ключе с суффиксом _VALUE
+	$arBrandIds = array();
+	while($arRow = $res->Fetch())
+	{
+		$id = (int)$arRow['PROPERTY_BRAND_VALUE'];
+		if($id > 0)
+			$arBrandIds[$id] = $id;
+	}
+	if(!$arBrandIds)
+		return array();
+
+	$arBrands = array();
+	$rsBrands = CIBlockElement::GetList(
+		array('SORT' => 'ASC', 'NAME' => 'ASC'),
+		array('ID' => array_values($arBrandIds), 'ACTIVE' => 'Y'),
+		false,
+		false,
+		array('ID', 'IBLOCK_ID', 'NAME', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'DETAIL_PAGE_URL')
+	);
+	while($arBrand = $rsBrands->GetNext())
+	{
+		$picId = (int)($arBrand['PREVIEW_PICTURE'] ? $arBrand['PREVIEW_PICTURE'] : $arBrand['DETAIL_PICTURE']);
+		$src = null;
+		if($picId > 0)
+		{
+			$img = CFile::ResizeImageGet($picId, array('width' => 200, 'height' => 80), BX_RESIZE_IMAGE_PROPORTIONAL, true);
+			if(is_array($img) && $img['src'])
+				$src = $img['src'];
+		}
+		$arBrands[] = array(
+			'NAME' => $arBrand['NAME'],
+			'LINK' => $arBrand['DETAIL_PAGE_URL'],
+			'IMG'  => $src,
+		);
+	}
+
+	return $arBrands;
+};
 ?>
 <div class="nd-cat">
 
@@ -299,20 +463,59 @@ $ndImgPlaceholder = function() {
 					}
 				}
 				?>
-				<?if($arCards):?>
-					<div class="nd-cat__grid">
-						<?foreach($arCards as $arCard):?>
-							<a class="nd-cat__card<?=($arCard['SELECTED'] ? ' is-active' : '')?>" href="<?=htmlspecialcharsbx($arCard['LINK'])?>">
-								<span class="nd-cat__card-img">
-									<?if($arCard['IMG']):?>
-										<img data-nd-src="<?=htmlspecialcharsbx($arCard['IMG'])?>" alt="" width="56" height="56">
-									<?else:?>
-										<?$ndImgPlaceholder();?>
-									<?endif;?>
-								</span>
-								<span class="nd-cat__card-label"><?=htmlspecialcharsbx($arCard['TEXT'])?></span>
+				<?
+				// Акция и производители — по товарам этого раздела (макет:
+				// баннер справа от плиток, логотипы строкой внизу). Раздел
+				// берём из параметров пункта меню; у пунктов не из каталога
+				// («Перголы») его нет — там блоков не будет.
+				$ndSectionId = $ndSectionIdByLink($arSection['LINK']);
+				$arPromo = $ndSectionId ? $ndSectionPromo($ndSectionId) : null;
+				$arBrands = $ndSectionId ? $ndSectionBrands($ndSectionId) : array();
+				?>
+				<?if($arCards || $arPromo):?>
+					<div class="nd-cat__body">
+						<?if($arCards):?>
+							<div class="nd-cat__grid">
+								<?foreach($arCards as $arCard):?>
+									<a class="nd-cat__card<?=($arCard['SELECTED'] ? ' is-active' : '')?>" href="<?=htmlspecialcharsbx($arCard['LINK'])?>">
+										<span class="nd-cat__card-img">
+											<?if($arCard['IMG']):?>
+												<img data-nd-src="<?=htmlspecialcharsbx($arCard['IMG'])?>" alt="" width="56" height="56">
+											<?else:?>
+												<?$ndImgPlaceholder();?>
+											<?endif;?>
+										</span>
+										<span class="nd-cat__card-label"><?=htmlspecialcharsbx($arCard['TEXT'])?></span>
+									</a>
+								<?endforeach;?>
+							</div>
+						<?endif;?>
+
+						<?if($arPromo):?>
+							<a class="nd-cat__promo" href="<?=htmlspecialcharsbx($arPromo['LINK'])?>">
+								<img data-nd-src="<?=htmlspecialcharsbx($arPromo['IMG'])?>" alt="<?=htmlspecialcharsbx($arPromo['NAME'])?>">
+								<?if($arPromo['TILL']):?>
+									<span class="nd-cat__promo-till">Акция до <?=htmlspecialcharsbx($arPromo['TILL'])?></span>
+								<?endif;?>
 							</a>
-						<?endforeach;?>
+						<?endif;?>
+					</div>
+				<?endif;?>
+
+				<?if($arBrands):?>
+					<div class="nd-cat__brands">
+						<div class="nd-cat__brands-title">Производители</div>
+						<div class="nd-cat__brands-list">
+							<?foreach($arBrands as $arBrand):?>
+								<a class="nd-cat__brand" href="<?=htmlspecialcharsbx($arBrand['LINK'])?>" title="<?=htmlspecialcharsbx($arBrand['NAME'])?>">
+									<?if($arBrand['IMG']):?>
+										<img data-nd-src="<?=htmlspecialcharsbx($arBrand['IMG'])?>" alt="<?=htmlspecialcharsbx($arBrand['NAME'])?>">
+									<?else:?>
+										<span class="nd-cat__brand-name"><?=htmlspecialcharsbx($arBrand['NAME'])?></span>
+									<?endif;?>
+								</a>
+							<?endforeach;?>
+						</div>
 					</div>
 				<?endif;?>
 			</div>
