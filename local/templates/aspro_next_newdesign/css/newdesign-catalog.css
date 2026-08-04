@@ -1262,15 +1262,33 @@
     font-weight: 600;
 }
 
-/* Мобильная строка «Сначала популярные / Фильтры» */
+/* Кнопка «Фильтры» — только на мобильном (в макете стоит в строке сортировки) */
 .nd-catlist-sort__filter {
     display: none;
     align-items: center;
     gap: 8px;
     color: #101014;
     font-size: 16px;
+    line-height: 24px;
     font-weight: 600;
     cursor: pointer;
+    white-space: nowrap;
+}
+
+.nd-catlist-sort__filter:before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23101014' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M2.5 4h15l-6 7v5.5l-3 1.5V11z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* иконка сортировки из макета — только на мобильном */
+.nd-catlist-sort__current:before {
+    content: '';
+    display: none;
+    width: 20px;
+    height: 20px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cg fill='none' stroke='%23101014' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3v14M6 17l-3-3M14 17V3M14 3l3 3'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1383,12 +1401,97 @@
         font-size: 11px;
     }
 
+    /* ----- Панель над сеткой: строка «сортировка / фильтры», под ней чипы --- */
     .nd-catlist-sort {
         flex-wrap: wrap;
+        gap: 12px 16px;
+        margin-bottom: 12px;
+    }
+
+    /* порядок по макету: сортировка и «Фильтры» первой строкой, чипы — второй */
+    .nd-catlist-sort__select {
+        order: 1;
+        flex: 1 1 auto;
     }
 
     .nd-catlist-sort__filter {
         display: inline-flex;
+        order: 2;
+    }
+
+    .nd-catlist-sort__tags {
+        order: 3;
+        flex: 0 0 100%;
+        width: 100%;
+    }
+
+    .nd-catlist-sort__current:before {
+        display: block;
+    }
+
+    .nd-catlist-sort__current {
+        gap: 8px;
+    }
+
+    /* стрелку выпадашки на мобильном не рисуем — в макете её нет */
+    .nd-catlist-sort__current:after {
+        display: none;
+    }
+
+    .nd-catlist-sort__list {
+        left: 0;
+        right: auto;
+    }
+
+    /* штатную кнопку фильтра темы прячем — вместо неё своя в строке сортировки */
+    .nd-catlist .adaptive_filter,
+    .right_block1 > .adaptive_filter,
+    .inner_wrapper > .adaptive_filter {
+        display: none !important;
+    }
+
+    /* ----- Карточка ----- */
+    /* цена в макете без приписки единицы: она выбирается кнопками ниже */
+    .nd-catlist .catalog_item_wrapp .offers_price .price_measure,
+    .nd-catlist .catalog_item_wrapp .price_measure {
+        display: none !important;
+    }
+
+    /* кружки цвета переносятся на вторую строку, а не прокручиваются */
+    .nd-catlist .catalog_item_wrapp .list__catalog_sku,
+    .nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu ul {
+        flex-wrap: wrap !important;
+        overflow: visible !important;
+    }
+
+    /* единицы измерения отдельной строкой под длинами */
+    .nd-catlist .catalog_item_wrapp .item_info > .measure-unit-block {
+        display: flex !important;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin: 0 0 10px !important;
+    }
+
+    /* метки на картинке: свёрнуты в строку, остальные раскрывает стрелка */
+    .nd-catlist .catalog_item_wrapp .nd-badges__tags {
+        align-items: center;
+    }
+
+    .nd-catlist .catalog_item_wrapp .nd-badges__more {
+        flex: 0 0 auto;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='none' stroke='%23101014' stroke-width='1.4' stroke-linecap='round' d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E") center/12px no-repeat;
+        box-shadow: 0 1px 3px rgba(16, 16, 20, .2);
+        cursor: pointer;
+    }
+
+    /* ----- Постраничка: кнопка «Показать ещё» над номерами ----- */
+    .bottom_nav.nd-catlist__nav .nd-pager__more {
+        order: -1;
+        width: 100%;
     }
 
     .nd-catlist-note {

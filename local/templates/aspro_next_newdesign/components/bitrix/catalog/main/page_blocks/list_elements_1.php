@@ -548,7 +548,8 @@ $ar_res = $res->GetNext();
 			
 			<?$show = $arParams["PAGE_ELEMENT_COUNT"];?>
 			<?if( isMobilelat() ):?>
-				   <? $show = "10"; ?>
+				   <?/* на мобильном по макету 4 ряда по две карточки */?>
+				   <? $show = "8"; ?>
 			<?else:?>
 				   <? $show = $arParams["PAGE_ELEMENT_COUNT"]; ?>
 			<?endif;?>

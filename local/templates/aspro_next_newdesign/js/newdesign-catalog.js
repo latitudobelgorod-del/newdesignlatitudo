@@ -23,6 +23,10 @@
 
     var READY = 'nd-ready';
 
+    function isMobile() {
+        return window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+    }
+
     /* ---------------------------------------------------------------------
        Перестановка блоков карточки
        ------------------------------------------------------------------ */
@@ -56,7 +60,9 @@
                     price.parentNode.insertBefore(prow, price);
                 }
                 if (price.parentNode !== prow) prow.appendChild(price);
-                if (units && units.parentNode !== prow) prow.appendChild(units);
+                /* На десктопе единицы измерения стоят в строке цены, на
+                   мобильном по макету — отдельной строкой под длинами. */
+                if (units && !isMobile() && units.parentNode !== prow) prow.appendChild(units);
 
                 var orow = info.querySelector('.nd-old-row');
                 if (!orow) {
@@ -70,6 +76,12 @@
                 if (title && title.previousElementSibling !== orow) info.insertBefore(title, orow.nextSibling);
                 if (colors && title && colors.previousElementSibling !== title) info.insertBefore(colors, title.nextSibling);
                 if (sku && sku.previousElementSibling !== (colors || title)) info.insertBefore(sku, (colors || title).nextSibling);
+
+                /* мобильный: единицы измерения — своей строкой под длинами */
+                if (units && isMobile()) {
+                    var after = sku || colors || title;
+                    if (after && units.previousElementSibling !== after) info.insertBefore(units, after.nextSibling);
+                }
 
                 rublesToSign(price);
             }
@@ -108,6 +120,8 @@
             var scu = card.querySelector('.item_info .bx_item_detail_scu');
             if (scu && scu.querySelectorAll('ul li').length < 2) scu.style.display = 'none';
 
+            collapseCardTags(card);
+
             /* кнопка видео и плашка гарантии — внутрь блока картинки */
             var imgw = card.querySelector('.image_wrapper_block');
             var vid = card.querySelector('.colproduct_video');
@@ -133,6 +147,53 @@
             }
 
             card.classList.add(READY);
+        } catch (e) { }
+    }
+
+    /* Метки на картинке. Карточка на мобильном вдвое уже, и три метки
+       закрывают половину фото — по макету показываем те, что влезли в строку,
+       остальные раскрывает круглая стрелка. На десктопе показываем все. */
+    function collapseCardTags(card) {
+        try {
+            var box = card.querySelector('.nd-badges__tags');
+            if (!box) return;
+
+            var chips = [].slice.call(box.querySelectorAll('.nd-tag'));
+            if (chips.length < 2) return;
+
+            var btn = box.querySelector('.nd-badges__more');
+
+            if (!isMobile() || box.classList.contains('is-open')) {
+                chips.forEach(function (c) { c.style.display = ''; });
+                if (btn && !isMobile()) btn.remove();
+                return;
+            }
+
+            if (!btn) {
+                btn = document.createElement('span');
+                btn.className = 'nd-badges__more';
+                btn.setAttribute('aria-label', 'Показать все метки');
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    box.classList.add('is-open');
+                    chips.forEach(function (c) { c.style.display = ''; });
+                    btn.remove();
+                });
+                box.appendChild(btn);
+            }
+
+            chips.forEach(function (c) { c.style.display = ''; });
+            var top0 = chips[0].getBoundingClientRect().top;
+            var hidden = 0;
+            chips.forEach(function (c, i) {
+                if (i === 0) return;
+                if (c.getBoundingClientRect().top > top0 + 2) {
+                    c.style.display = 'none';
+                    hidden++;
+                }
+            });
+            if (!hidden) btn.remove();
         } catch (e) { }
     }
 
@@ -504,6 +565,19 @@
         document.addEventListener('click', function () {
             sel.classList.remove('opened');
         });
+
+        /* «Фильтры» на мобильном — штатный триггер темы лежит отдельным блоком
+           над списком, а по макету кнопка стоит в строке сортировки */
+        var fbtn = document.querySelector('[data-nd-filter-opener]');
+        var opener = document.querySelector('.adaptive_filter .filter_opener');
+        if (fbtn && opener) {
+            fbtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                opener.click();
+            });
+        } else if (fbtn) {
+            fbtn.style.display = 'none';
+        }
     }
 
     /* ------------------------------------------------------------------ */
@@ -563,9 +637,21 @@
     setTimeout(run, 4200);
     setTimeout(run, 6000);
 
+    /* При смене ширины карточку надо пересобрать: единицы измерения на
+       мобильном стоят под длинами, на десктопе — в строке цены. */
     window.addEventListener('resize', function () {
         if (window.__ndRz) return;
-        window.__ndRz = setTimeout(function () { window.__ndRz = 0; placePromo(); collapseTags(); }, 200);
+        window.__ndRz = setTimeout(function () {
+            window.__ndRz = 0;
+            var mob = isMobile();
+            if (window.__ndMob !== mob) {
+                window.__ndMob = mob;
+                run();
+            } else {
+                placePromo();
+                collapseTags();
+            }
+        }, 200);
     });
 
     /* список перерисовывается ajax'ом (фильтр, «показать ещё») */

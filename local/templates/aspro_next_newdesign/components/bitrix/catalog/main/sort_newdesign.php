@@ -74,6 +74,10 @@ $ndTagsHtml = isset($GLOBALS['ND_CATALOG_TAGS_HTML']) ? trim($GLOBALS['ND_CATALO
 <div class="sort_header nd-catlist-sort view_<?=$display?>">
 	<div class="nd-catlist-sort__tags"><?=$ndTagsHtml?></div>
 
+	<?/* Кнопка «Фильтры» из мобильного макета. Своей панели фильтра не заводим —
+	   жмём штатный триггер темы (.filter_opener), он открывает ту же шторку. */?>
+	<span class="nd-catlist-sort__filter" data-nd-filter-opener>Фильтры</span>
+
 	<div class="nd-catlist-sort__select">
 		<span class="nd-catlist-sort__current"><?=$ndCurrentSortTitle?></span>
 		<div class="nd-catlist-sort__list">
