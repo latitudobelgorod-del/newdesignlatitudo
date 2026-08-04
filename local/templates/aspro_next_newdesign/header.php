@@ -95,7 +95,10 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 		// панель (page_blocks/nav_bottom_newdesign.php, подключается из footer.php).
 		// Скрипты темы, завязанные на #mobileheader/#mobilemenu, проверяют
 		// наличие этих элементов, поэтому без них ничего не ломается.?>
-		<div class="visible-xs visible-sm">
+		<?/* nd-mheader-wrap: у этой обёртки свой контекст наложения (тема даёт
+		   ей z-index 2), а контент страницы лежит в .wraps с z-index 3 — без
+		   поднятия карточки проезжали поверх прибитой шапки. */?>
+		<div class="visible-xs visible-sm nd-mheader-wrap">
 			<?include(__DIR__.'/page_blocks/header_mobile_newdesign.php');?>
 		</div>
 

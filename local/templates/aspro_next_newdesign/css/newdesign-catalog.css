@@ -132,10 +132,15 @@
     flex-shrink: 0 !important;
 }
 
+/* Блок с текстом не растягиваем: иначе у коротких карточек (без цветов и
+   длин) название уезжало вниз, к самому счётчику. По макету оно идёт сразу
+   под ценой, а к низу прибит только блок покупки. */
 .nd-catlist .catalog_item_wrapp .item_info {
     display: flex !important;
     flex-direction: column !important;
+    flex: 0 0 auto !important;
     flex-shrink: 0 !important;
+    justify-content: flex-start !important;
     height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -843,6 +848,14 @@
     background-size: 15px;
     border: 0 !important;
     cursor: pointer;
+}
+
+/* Там, где счётчик строит компонент единиц измерения, штатный .counter_block
+   лишний — компонент прячет его сам, но не всегда успевает, и в карточке
+   появлялись вторые «−» и «+». Класс .nd-native-counter скрипт ставит только
+   тем карточкам, где родной счётчик действительно рабочий. */
+.nd-catlist .catalog_item_wrapp .counter_wrapp:not(.nd-native-counter) .counter_block {
+    display: none !important;
 }
 
 /* Товар без офферов: работает нативный счётчик Аспро (.counter_block).
