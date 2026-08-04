@@ -40,7 +40,7 @@ $arrow = function ($dir) {
 		.'<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="'.$d.'"/></svg>';
 };
 ?>
-<nav class="nd-pager" aria-label="Страницы отзывов">
+<nav class="nd-pager" aria-label="Страницы">
 	<div class="nd-pager__pages">
 		<? if ($current > 1): ?>
 			<a class="nd-pager__arrow" href="<?= $ndPageUrl($current - 1) ?>" rel="prev" aria-label="Предыдущая страница"><?= $arrow('prev') ?></a>

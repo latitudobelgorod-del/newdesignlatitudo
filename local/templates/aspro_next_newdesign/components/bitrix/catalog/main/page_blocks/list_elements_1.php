@@ -243,14 +243,11 @@ if($isAjaxFilter == "Y")
 	
 	
 	
-	<?
-	//sort
-	ob_start();
-	include_once(__DIR__."/../sort.php");
-	$sortHtml = ob_get_clean();
-	$listElementsTemplate = $template;
-	?>
-	
+	<?/* Панель сортировки печатается ниже, на своём месте в разметке
+	   (include ../sort_newdesign.php): в новом дизайне рядом с ней стоят чипы
+	   посадочных страниц, а их разметка собирается позже — в блоке верхних
+	   тегов. Раньше здесь панель складывали в буфер $sortHtml. */?>
+
 <?endif;?>
 
 
@@ -474,14 +471,24 @@ $ar_res = $res->GetNext();
                 <? $GLOBALS["arLandingSections"] = $arLandingFilter; ?>
                
 		<?//КМ верхние теги?>
-			<? include_once(__DIR__ . "/../include/km_top_tag.php") ?>
+			<?/* Чипы тегов раздела по макету стоят в одной строке с сортировкой,
+			   поэтому их разметку только собираем — печатает её sort_newdesign.php.
+			   Это блок sprint.editor .section_tag_top (ссылки .tag_ank). */?>
+			<?
+			ob_start();
+			include(__DIR__ . "/../include/km_top_tag_newdesign.php");
+			$GLOBALS['ND_CATALOG_TAGS_HTML'] = ob_get_clean();
+			?>
+			<? include(__DIR__ . "/../include/landings_tags_newdesign.php") ?>
 			<?//КМ верхние теги?>
-			
-			
-				
+
+
 				<?//UF_COMMENT_PRICE (Комментарий о цене) - вывод пользовательского свойства раздела / заполнено в Террасной доске / Фасадах / Заборах?>
 			<?if($arSection["UF_COMMENT_PRICE"]):?>
-			 <div class="uf_comment_price"><?= $arSection["UF_COMMENT_PRICE"] ?></div>
+			 <div class="uf_comment_price nd-catlist-note">
+				<span class="nd-catlist-note__icon">!</span>
+				<span class="nd-catlist-note__text"><?= $arSection["UF_COMMENT_PRICE"] ?></span>
+			 </div>
 			<?endif;?>
 			<?//UF_COMMENT_PRICE (Комментарий о цене) - вывод пользовательского свойства раздела / заполнено в Террасной доске / Фасадах / Заборах?>
 				
@@ -524,7 +531,10 @@ $ar_res = $res->GetNext();
 			<?}?>
 
 			<?// sort?>
-			<?=$sortHtml;?>
+			<?
+			include(__DIR__."/../sort_newdesign.php");
+			$listElementsTemplate = $template;
+			?>
 
 			<?if($isAjax === 'Y'){
 				$APPLICATION->RestartBuffer();
@@ -658,7 +668,10 @@ $ar_res = $res->GetNext();
 						"DISPLAY_BOTTOM_PAGER" => $arParams["DISPLAY_BOTTOM_PAGER"],
 						"PAGER_TITLE" => $arParams["PAGER_TITLE"],
 						"PAGER_SHOW_ALWAYS" => $arParams["PAGER_SHOW_ALWAYS"],
-						"PAGER_TEMPLATE" => $arParams["PAGER_TEMPLATE"],
+						/* постраничка нового дизайна: номера 48×48, красная активная
+						   и кнопка «Показать ещё» справа — тот же шаблон, что на
+						   отзывах, портфолио и материалах */
+						"PAGER_TEMPLATE" => "pagination_newdesign",
 						"PAGER_DESC_NUMBERING" => $arParams["PAGER_DESC_NUMBERING"],
 						"PAGER_DESC_NUMBERING_CACHE_TIME" => $arParams["PAGER_DESC_NUMBERING_CACHE_TIME"],
 						"PAGER_SHOW_ALL" => $arParams["PAGER_SHOW_ALL"],
@@ -709,7 +722,10 @@ $ar_res = $res->GetNext();
 
 					), $component, array("HIDE_ICONS" => $isAjax)
 				);?>
-					</div>	
+					<?/* Плитки акций для сетки товаров: печатаются скрытым пулом,
+					   по ячейкам их раскладывает js/newdesign-catalog.js. */?>
+					<? include(__DIR__ . "/../include/promo_catalog_newdesign.php") ?>
+					</div>
 				<!--noindex-->
 				<script class="smart-filter-filter" data-skip-moving="true">
                         <?if($SMART_FILTER_FILTER) {?>

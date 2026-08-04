@@ -1,0 +1,1331 @@
+/* ============================================================================
+   Список товаров раздела — новый дизайн.
+   Макет: Figma «Категория» 20464:371289 (десктоп 1440) и 20508:87978 (моб. 360).
+
+   Подключается ТОЛЬКО шаблоном catalog.section/catalog_blockcolors_newdesign
+   (тегом <link> прямо в разметке — шаблон рисуется, когда <head> уже отдан,
+   поэтому SetAdditionalCSS сюда не доезжает; та же история, что с блоками
+   главной).
+
+   Разметку даёт штатный шаблон Аспро, порядок блоков в карточке переставляет
+   js/newdesign-catalog.js. Поэтому здесь много !important: тема и
+   template_styles.css бьют по тем же селекторам с высокой специфичностью.
+
+   Токены макета:
+     чернила       #101014
+     приглушённый  #757583 / #8f8f9a
+     линия         rgba(82,82,100,.15)
+     подложка      rgba(82,82,100,.1)
+     акцент        #c60000
+     «в наличии»   #34c787
+   ========================================================================= */
+
+.nd-catlist,
+.nd-catlist .catalog_item_wrapp {
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+   Сетка. В макете карточки стоят вплотную, разделённые волосяной линией,
+   и весь блок обведён такой же рамкой. Делаем это гридом с gap:1px на
+   цветной подложке — так линия ровно одна между соседями (у border'ов
+   на карточках они бы удваивались).
+   ------------------------------------------------------------------------ */
+.nd-catlist .catalog_block {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: rgba(82, 82, 100, .15);
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* У сетки класс .row — бутстраповские .row:before/:after (клирфикс) в гриде
+   становятся полноценными ячейками и съедают первую и последнюю клетки. */
+.nd-catlist .catalog_block:before,
+.nd-catlist .catalog_block:after {
+    content: none !important;
+    display: none !important;
+}
+
+/* Ячейка. Гасим бутстраповские колонки шаблона (col-lg-3 и компанию). */
+.nd-catlist .catalog_block .item_block {
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: none !important;
+    float: none !important;
+    /* колонка, а не блок: карточка тянется на всю высоту ячейки, и блок
+       покупки у всех карточек ряда встаёт на одну линию (margin-top:auto) */
+    display: flex !important;
+    flex-direction: column !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff;
+}
+
+/* ---------------------------------------------------------------------------
+   Карточка
+   ------------------------------------------------------------------------ */
+.nd-catlist .catalog_item_wrapp.item {
+    position: relative;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 16px !important;
+    background: #fff;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-align: left;
+    overflow: visible;
+}
+
+/* Аспро вешает инлайновые height на .item_info и .item-title (выравнивание
+   высот в ряду). На гриде это не нужно и режет контент — снимаем. */
+.nd-catlist .catalog_item_wrapp .item_info[style],
+.nd-catlist .catalog_item_wrapp .item-title[style],
+.nd-catlist .catalog_item_wrapp .cost.prices[style] {
+    height: auto !important;
+}
+
+.nd-catlist .catalog_item_wrapp .catalog_item,
+.nd-catlist .catalog_item_wrapp .inner_wrap {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Наследие темы: .blockcolors ... .catalog_item{margin:0 -1px 0 0} —
+   отрицательный отступ вылезал на соседнюю карточку и закрывал линию. */
+.nd-catlist .catalog_item_wrapp .catalog_item {
+    margin-right: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .inner_wrap > * {
+    flex-shrink: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .item_info {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+}
+
+.nd-catlist .catalog_item_wrapp .item_info > * {
+    flex: 0 0 auto !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Картинка — квадрат 1:1 с рамкой и светлой подложкой (в макете фото товара
+   лежит на плашке, а не в край карточки).
+   ------------------------------------------------------------------------ */
+.nd-catlist .catalog_item_wrapp .image_wrapper_block {
+    position: relative;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 0 10px !important;
+    padding: 0 !important;
+    background: rgba(82, 82, 100, .1);
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.nd-catlist .catalog_item_wrapp .image_wrapper_block .thumb {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    height: 0 !important;
+    padding: 0 0 100% 0 !important;
+    margin: 0 !important;
+    overflow: hidden;
+}
+
+.nd-catlist .catalog_item_wrapp .image_wrapper_block .thumb img {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    object-fit: cover !important;
+    display: block;
+}
+
+/* Кнопка видео — круг в левом нижнем углу картинки */
+.nd-catlist .catalog_item_wrapp .colproduct_video {
+    display: block !important;
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    z-index: 5;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 0 !important;
+    text-decoration: none;
+    border-radius: 50%;
+    background: #101014 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='13' viewBox='0 0 12 13'%3E%3Cpath fill='%23fff' d='M11.2 5.63a1 1 0 0 1 0 1.74l-9 5.2A1 1 0 0 1 .7 11.7V1.3A1 1 0 0 1 2.2.43l9 5.2Z'/%3E%3C/svg%3E") center/12px no-repeat;
+}
+
+.nd-catlist .catalog_item_wrapp .colproduct_video:before {
+    content: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .colproduct_video:hover {
+    opacity: .85;
+}
+
+/* Плашка гарантии — правый нижний угол картинки. Эмблема лежит красной
+   картинкой (/images/icons/warranty_NN.png), в макете она белая на чёрном:
+   красим фильтром, а не отдельным файлом. */
+.nd-catlist .catalog_item_wrapp .warranty_3,
+.nd-catlist .catalog_item_wrapp .warranty_7,
+.nd-catlist .catalog_item_wrapp .warranty_10,
+.nd-catlist .catalog_item_wrapp .warranty_15,
+.nd-catlist .catalog_item_wrapp .warranty_25 {
+    position: absolute !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    top: auto !important;
+    left: auto !important;
+    z-index: 5;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 4px;
+    background-color: transparent !important;
+    background-size: 26px 26px !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    filter: brightness(0) invert(1);
+    mix-blend-mode: normal;
+}
+
+/* белым эмблему делает filter, но он же убивает чёрную подложку —
+   рисуем её отдельным слоем через псевдоэлемент-обёртку */
+.nd-catlist .catalog_item_wrapp .image_wrapper_block .nd-warranty-box {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 4;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: #101014;
+}
+
+/* ---------------------------------------------------------------------------
+   Бейджи над картинкой: «в наличии» (нативный блок складов Аспро) и метки
+   товара (.sticker_sale_text). Оба лежат внутри рамки картинки, в её
+   левом верхнем углу.
+   ------------------------------------------------------------------------ */
+.nd-catlist .catalog_item_wrapp .nd-badges {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    pointer-events: none;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-badges > * {
+    pointer-events: auto;
+}
+
+.nd-catlist .catalog_item_wrapp .product-item-stores {
+    position: static !important;
+    margin: 0 !important;
+    font-size: inherit;
+}
+
+.nd-catlist .catalog_item_wrapp .product-item-stores .stores-list {
+    display: block !important;
+    position: relative;
+}
+
+.nd-catlist .catalog_item_wrapp .stores-trigger {
+    margin: 0 !important;
+    padding: 3px 6px !important;
+    border-radius: 0 0 2px 0 !important;
+    font-size: 10px !important;
+    line-height: 13px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: .01em;
+}
+
+.nd-catlist .catalog_item_wrapp .stores-trigger-green {
+    background: #34c787 !important;
+    color: #fff !important;
+}
+
+.nd-catlist .catalog_item_wrapp .stores-trigger-gray {
+    background: rgba(82, 82, 100, .55) !important;
+    color: #fff !important;
+}
+
+.nd-catlist .catalog_item_wrapp .stores-trigger-orange {
+    background: #ff8800 !important;
+    color: #fff !important;
+}
+
+.nd-catlist .catalog_item_wrapp .stores-arrow {
+    font-size: 7px;
+}
+
+.nd-catlist .catalog_item_wrapp .stores-dropdown {
+    border-radius: 4px;
+    padding: 8px 10px;
+    min-width: 140px;
+}
+
+.nd-catlist .catalog_item_wrapp .store-badge {
+    font-size: 11px;
+    line-height: 16px;
+}
+
+/* Метки товара. Цвет — по смыслу метки, класс ставит шаблон. */
+.nd-catlist .catalog_item_wrapp .nd-badges__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 0 4px;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-tag {
+    display: inline-block;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    background: rgba(82, 82, 100, .1);
+    color: #525264;
+    /* метки задают текстом вручную, попадаются длинные («Распродажа остатков
+       склада г. Белгород») — переносим по словам, а не режем карточку */
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-tag--sale {
+    background: #f0edfb;
+    color: #5e3fb8;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-tag--strong {
+    background: #fff3e6;
+    color: #ff8800;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-tag--rest {
+    background: #ffecea;
+    color: #ff4130;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-tag--new {
+    background: #e8f8f0;
+    color: #17a06a;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-tag--delivery {
+    background: #ffecea;
+    color: #c60000;
+}
+
+/* штатный блок меток прячем — его содержимое перенесено в .nd-badges */
+.nd-catlist .catalog_item_wrapp .stickers {
+    display: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Артикул — правый верхний угол карточки, поверх поля.
+   ------------------------------------------------------------------------ */
+.nd-catlist .catalog_item_wrapp .article_block.item-article,
+.nd-catlist .catalog_item_wrapp .article_block_nooffer {
+    position: absolute !important;
+    top: 6px !important;
+    right: 6px !important;
+    left: auto !important;
+    bottom: auto !important;
+    z-index: 7;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    border: 0 !important;
+    color: #525264;
+    font-size: 10px;
+    line-height: 13px;
+    font-weight: 400;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   Цена и единицы измерения
+   ------------------------------------------------------------------------ */
+.nd-catlist .catalog_item_wrapp .nd-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin: 0 0 4px;
+}
+
+.nd-catlist .catalog_item_wrapp .cost.prices {
+    display: flex !important;
+    align-items: center;
+    flex: 0 1 auto;
+    min-width: 0;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+    white-space: nowrap;
+}
+
+.nd-catlist .catalog_item_wrapp .cost .price,
+.nd-catlist .catalog_item_wrapp .cost.prices .price {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .offers_price,
+.nd-catlist .catalog_item_wrapp .price_value_block {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+    font-size: 22px;
+    line-height: 26px;
+    font-weight: 700;
+    color: #101014;
+    white-space: nowrap;
+}
+
+.nd-catlist .catalog_item_wrapp .offers_price .price_measure,
+.nd-catlist .catalog_item_wrapp .price_measure {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+/* Переключатель единиц — компонент maxyss:measure_unit */
+.nd-catlist .catalog_item_wrapp .measure-unit-block {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+    gap: 2px;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .measure-unit {
+    margin: 0 !important;
+    padding: 2px 6px !important;
+    min-width: 30px;
+    border: 1px solid #525264 !important;
+    border-radius: 4px !important;
+    background: #fff;
+    color: #101014;
+    font-size: 14px !important;
+    line-height: 20px;
+    font-weight: 400;
+    text-align: center;
+    cursor: pointer;
+}
+
+.nd-catlist .catalog_item_wrapp .measure-unit:hover {
+    color: #101014;
+    border-color: #101014 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .measure-unit.measure-unit-active,
+.nd-catlist .catalog_item_wrapp .measure-unit.measure-unit-active:hover {
+    background: #101014 !important;
+    border-color: #101014 !important;
+    color: #fff !important;
+}
+
+.nd-catlist .catalog_item_wrapp .measure-unit-block .textmeasure {
+    display: none !important;
+}
+
+/* Старая цена и скидка */
+.nd-catlist .catalog_item_wrapp .nd-old-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-old-row__old {
+    color: #8f8f9a;
+    text-decoration: line-through;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-old-row__diff {
+    color: #ff4130;
+}
+
+/* ---------------------------------------------------------------------------
+   Название
+   ------------------------------------------------------------------------ */
+.nd-catlist .catalog_item_wrapp .item-title {
+    margin: 0 0 10px !important;
+    min-height: 0 !important;
+    text-align: left !important;
+}
+
+.nd-catlist .catalog_item_wrapp .item-title a,
+.nd-catlist .catalog_item_wrapp .item-title a span,
+.nd-catlist .catalog_item_wrapp .item-title span {
+    color: #101014 !important;
+    font-size: 16px !important;
+    line-height: 21px !important;
+    font-weight: 500 !important;
+    border: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .item-title a:hover span {
+    color: #c60000 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Кружки цвета. В списке это отдельные товары-цвета (.list__catalog_sku,
+   догружается ajax'ом), у товаров с офферами — штатное дерево SKU.
+   ------------------------------------------------------------------------ */
+.nd-catlist .catalog_item_wrapp .list__catalog_sku {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: flex-start !important;
+    gap: 4px;
+    margin: 0 0 10px !important;
+    padding: 1px !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+
+.nd-catlist .catalog_item_wrapp .list__catalog_sku:empty {
+    display: none !important;
+    margin: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item {
+    margin: 0 !important;
+    padding: 0 !important;
+    float: none !important;
+    list-style: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item a {
+    display: block;
+    padding: 0 !important;
+    border: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item img {
+    display: block;
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 50% !important;
+    object-fit: cover;
+}
+
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item.active img {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 2px #a80000;
+}
+
+/* нативные квадратные рамки/фоны вокруг активного и наведённого свотча */
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item.active,
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item.active a,
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item:hover,
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item:hover a {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item.active:before,
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item.active:after,
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item:hover:before,
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item:hover:after {
+    display: none !important;
+    content: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item:not(.active):hover img {
+    box-shadow: none !important;
+}
+
+/* дерево SKU: цвет */
+.nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu {
+    position: static !important;
+    margin: 0 0 10px !important;
+}
+
+.nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu .bx_item_section_name {
+    display: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu .bx_scu_scroller_container,
+.nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu .bx_scu {
+    position: static !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+.nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu ul {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+    margin: 0 !important;
+    padding: 1px !important;
+    height: auto !important;
+    position: static !important;
+}
+
+.nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu ul li {
+    list-style: none !important;
+    float: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+}
+
+.nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu ul li .cnt1,
+.nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu ul li .cnt_item {
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    background-size: cover !important;
+    background-position: center !important;
+}
+
+.nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu ul li.active .cnt_item {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 2px #a80000 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Длина — плашки под цветами
+   ------------------------------------------------------------------------ */
+.nd-catlist .catalog_item_wrapp .sku_props,
+.nd-catlist .catalog_item_wrapp .sku_props > div,
+.nd-catlist .catalog_item_wrapp .wrapper_sku,
+.nd-catlist .catalog_item_wrapp .bx_catalog_item_scu {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .bx_item_detail_size {
+    margin: 0 0 10px !important;
+}
+
+.nd-catlist .catalog_item_wrapp .bx_item_detail_size .bx_item_section_name {
+    display: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .bx_item_detail_size ul {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 3px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .bx_item_detail_size li {
+    list-style: none;
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    background: #fff !important;
+    border: 1px solid #525264 !important;
+    border-radius: 4px !important;
+    overflow: hidden;
+    text-align: center;
+}
+
+.nd-catlist .catalog_item_wrapp .bx_item_detail_size li .cnt {
+    padding: 2px 6px !important;
+    background: transparent !important;
+    color: #101014 !important;
+    font-size: 14px !important;
+    line-height: 20px !important;
+    white-space: nowrap;
+}
+
+.nd-catlist .catalog_item_wrapp .bx_item_detail_size li.active {
+    background: rgba(82, 82, 100, .1) !important;
+    border-color: #525264 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .bx_item_detail_size li.active .cnt {
+    color: #101014 !important;
+    font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------------
+   Счётчик и корзина. Блок покупки прибит к низу карточки — карточки в ряду
+   получаются одной высоты (высоту нигде не фиксируем, только flex).
+   ------------------------------------------------------------------------ */
+.nd-catlist .catalog_item_wrapp .inner_wrap > .offer_buy_block,
+.nd-catlist .catalog_item_wrapp .inner_wrap > .counter_wrapp {
+    margin-top: auto !important;
+    padding: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .offer_buy_block {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 4px;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-wrapper {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-wrapper .measure-block {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    width: 100% !important;
+    height: 48px;
+    margin: 0 !important;
+    padding: 0 6px;
+    background: rgba(82, 82, 100, .1);
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-field {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    padding: 0 4px !important;
+    background: transparent !important;
+    border: 0 !important;
+    color: #101014;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-button {
+    flex: 0 0 auto !important;
+    width: 28px;
+    height: 36px;
+    background-color: transparent !important;
+    background-size: 15px;
+    border: 0 !important;
+    cursor: pointer;
+}
+
+/* Товар без офферов: работает нативный счётчик Аспро (.counter_block).
+   У товара С офферами он есть в разметке, но скрыт компонентом — класс
+   .nd-native-counter ставит JS только там, где счётчик реально рабочий. */
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block {
+    flex: 1 1 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 48px !important;
+    margin: 0 !important;
+    padding: 0 6px;
+    background: rgba(82, 82, 100, .1);
+    border: 1px solid rgba(82, 82, 100, .15) !important;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block input.text {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #101014;
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus,
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
+    flex: 0 0 auto !important;
+    width: 28px !important;
+    height: 36px !important;
+    line-height: 34px !important;
+    background: transparent !important;
+    border: 0 !important;
+    color: #101014;
+    font-size: 20px;
+    text-align: center;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp .button_block {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    display: flex !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Кнопка «в корзину» — красный квадрат только с иконкой */
+.nd-catlist .catalog_item_wrapp .to-cart.btn,
+.nd-catlist .catalog_item_wrapp a.to-cart,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .button_block .to-cart.btn.white,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .button_block .to-cart.btn.btn-default.white {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 48px !important;
+    min-width: 48px !important;
+    height: 48px !important;
+    align-self: stretch;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #c60000 !important;
+    border: 0 !important;
+    border-color: #c60000 !important;
+    border-radius: 4px !important;
+    font-size: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .to-cart.btn:hover,
+.nd-catlist .catalog_item_wrapp a.to-cart:hover,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .button_block .to-cart.btn.white:hover,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .button_block .to-cart.btn.btn-default.white:hover {
+    background: #a80000 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .to-cart,
+.nd-catlist .catalog_item_wrapp .to-cart * {
+    color: #fff !important;
+    font-size: 0 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .to-cart i,
+.nd-catlist .catalog_item_wrapp .to-cart .fa {
+    display: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .to-cart:after {
+    content: '';
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M7 6V5a5 5 0 0 1 10 0v1h3a1 1 0 0 1 1 1.06l-.7 12A3 3 0 0 1 17.3 22H6.7a3 3 0 0 1-3-2.94L3 7.06A1 1 0 0 1 4 6h3Zm2 0h6V5a3 3 0 1 0-6 0v1Z'/%3E%3C/svg%3E") center/22px no-repeat;
+}
+
+/* Состояние «в корзине» — серая кнопка на всю ширину, счётчик скрыт.
+   display НЕ форсим: Аспро прячет эту кнопку инлайновым style, и !important
+   показывал бы её всегда. Раскладку включает класс .nd-incart. */
+.nd-catlist .catalog_item_wrapp .in-cart,
+.nd-catlist .catalog_item_wrapp a.in-cart,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .button_block a.in-cart.btn,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .button_block a.in-cart.btn.btn-default {
+    align-items: center;
+    justify-content: center;
+    width: 100% !important;
+    height: 48px !important;
+    margin: 0 !important;
+    background: rgba(82, 82, 100, .1) !important;
+    border: 0 !important;
+    border-radius: 4px !important;
+    color: #525264 !important;
+    font-size: 14px !important;
+    font-weight: 700;
+    text-align: center;
+}
+
+.nd-catlist .catalog_item_wrapp .in-cart *,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .button_block a.in-cart.btn.btn-default * {
+    color: #525264 !important;
+    font-size: 14px !important;
+}
+
+.nd-catlist .catalog_item_wrapp .in-cart:after,
+.nd-catlist .catalog_item_wrapp .in-cart i {
+    display: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-incart .measure-wrapper,
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-incart .counter_block {
+    display: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-incart .button_block {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-incart .to-cart {
+    display: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-incart .in-cart {
+    display: inline-flex !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Чипы тегов раздела (.section_tag_top .tag_ank) — в строке с сортировкой
+   ------------------------------------------------------------------------ */
+.nd-catlist-sort__tags .section_tag_top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* каждая ссылка обёрнута своим .tag_ank — контейнером служит .section_tag_top */
+.nd-catlist-sort__tags .tag_ank {
+    display: inline-block;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    border: 0 !important;
+}
+
+.nd-catlist-sort__tags .tag_ank a {
+    display: inline-block;
+    margin: 0 !important;
+    padding: 6px 12px;
+    background: rgba(82, 82, 100, .07);
+    border: 0 !important;
+    border-radius: 4px;
+    color: #101014 !important;
+    font-size: 14px;
+    line-height: 20px;
+    text-decoration: none !important;
+    white-space: nowrap;
+}
+
+.nd-catlist-sort__tags .tag_ank a:hover {
+    background: rgba(82, 82, 100, .14);
+}
+
+/* Кнопка «Заказать» (товар без цены/наличия) — красный контур на всю ширину */
+.nd-catlist .catalog_item_wrapp .button_block.wide {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+}
+
+.nd-catlist .catalog_item_wrapp .to-order.btn,
+.nd-catlist .catalog_item_wrapp .button_block.wide .to-order {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 100% !important;
+    height: 48px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    background: #fff !important;
+    border: 1px solid #c60000 !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+}
+
+.nd-catlist .catalog_item_wrapp .to-order.btn span,
+.nd-catlist .catalog_item_wrapp .button_block.wide .to-order span {
+    color: #c60000 !important;
+    font-size: 16px !important;
+    line-height: 24px !important;
+    font-weight: 700 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .to-order.btn:hover {
+    background: #c60000 !important;
+}
+
+.nd-catlist .catalog_item_wrapp .to-order.btn:hover span {
+    color: #fff !important;
+}
+
+.nd-catlist .catalog_item_wrapp .to-order i {
+    display: none !important;
+}
+
+/* родная подпись компонента единиц ломает строку счётчика — прячем */
+.nd-catlist .catalog_item_wrapp .measure-block-desc {
+    display: none !important;
+}
+
+/* своя строка «Общая стоимость» (штатная .total_summ появляется только при
+   смене количества и прячется при количестве 1 — в макете она видна всегда) */
+.nd-catlist .catalog_item_wrapp .counter_wrapp .nd-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex: 0 0 100%;
+    width: 100%;
+    order: 10;
+    margin: 10px 0 0;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-total__label {
+    color: #757583;
+    font-size: 12px;
+    line-height: 17px;
+}
+
+.nd-catlist .catalog_item_wrapp .nd-total__value {
+    color: #101014;
+    font-size: 14px;
+    line-height: 17px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* штатную «Общую стоимость» темы не показываем — значение дублирует нашу */
+.nd-catlist .catalog_item_wrapp .counter_wrapp .total_summ {
+    display: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Плитка акции — обычная ячейка сетки.
+   ------------------------------------------------------------------------ */
+.nd-catlist .nd-promo-cell {
+    display: block;
+    background: #fff;
+    min-width: 0;
+}
+
+.nd-catlist .nd-promo-cell a,
+.nd-catlist .nd-promo-cell .nd-promo-cell__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0;
+    background: rgba(82, 82, 100, .05);
+}
+
+.nd-catlist .nd-promo-cell img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ---------------------------------------------------------------------------
+   Верхняя панель: подсказка, теги, сортировка
+   ------------------------------------------------------------------------ */
+.nd-catlist-note {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 0 0 24px;
+    padding: 16px 24px;
+    background: #525264;
+    border-radius: 4px;
+    color: #fff;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.nd-catlist-note__icon {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 30px;
+    text-align: center;
+}
+
+.nd-catlist-sort {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 16px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+
+.nd-catlist-sort__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.nd-catlist-sort__select {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.nd-catlist-sort__current {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    color: #101014;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.nd-catlist-sort__current:after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23101014' stroke-width='1.6' d='m4 6 4 4 4-4'/%3E%3C/svg%3E") center/contain no-repeat;
+    transition: transform .15s;
+}
+
+.nd-catlist-sort__select.opened .nd-catlist-sort__current:after {
+    transform: rotate(180deg);
+}
+
+.nd-catlist-sort__list {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    z-index: 30;
+    min-width: 220px;
+    margin-top: 4px;
+    padding: 8px 0;
+    background: #fff;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(16, 16, 20, .12);
+}
+
+.nd-catlist-sort__select.opened .nd-catlist-sort__list {
+    display: block;
+}
+
+.nd-catlist-sort__list a {
+    display: block;
+    padding: 8px 16px;
+    color: #101014 !important;
+    font-size: 14px;
+    line-height: 20px;
+    text-decoration: none !important;
+    border: 0 !important;
+    white-space: nowrap;
+}
+
+.nd-catlist-sort__list a:hover {
+    background: rgba(82, 82, 100, .07);
+}
+
+.nd-catlist-sort__list a.current {
+    color: #c60000 !important;
+    font-weight: 600;
+}
+
+/* Мобильная строка «Сначала популярные / Фильтры» */
+.nd-catlist-sort__filter {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    color: #101014;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ---------------------------------------------------------------------------
+   Постраничная навигация под сеткой
+   ------------------------------------------------------------------------ */
+.nd-catlist .bottom_nav {
+    margin-top: 24px;
+}
+
+/* ---------------------------------------------------------------------------
+   Планшет и мобильный
+   ------------------------------------------------------------------------ */
+@media (max-width: 1199px) {
+    .nd-catlist .catalog_block {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-catlist .catalog_block {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .nd-catlist .catalog_item_wrapp.item {
+        padding: 8px !important;
+    }
+
+    /* цена и единицы в одну строку не влезают — единицы уезжают под цену */
+    .nd-catlist .catalog_item_wrapp .nd-price-row {
+        flex-wrap: wrap !important;
+        gap: 4px;
+    }
+
+    .nd-catlist .catalog_item_wrapp .nd-price-row .measure-unit-block {
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        justify-content: flex-start;
+        flex-wrap: wrap !important;
+    }
+
+    .nd-catlist .catalog_item_wrapp .offers_price,
+    .nd-catlist .catalog_item_wrapp .offers_price .price_measure,
+    .nd-catlist .catalog_item_wrapp .price_measure {
+        font-size: 20px;
+        line-height: 24px;
+    }
+
+    .nd-catlist .catalog_item_wrapp .item-title a,
+    .nd-catlist .catalog_item_wrapp .item-title a span,
+    .nd-catlist .catalog_item_wrapp .item-title span {
+        font-size: 14px !important;
+        line-height: 18px !important;
+    }
+
+    /* кружки цвета — одной строкой с прокруткой, иначе рвут карточку */
+    .nd-catlist .catalog_item_wrapp .list__catalog_sku,
+    .nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu ul {
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scrollbar-width: none;
+    }
+
+    .nd-catlist .catalog_item_wrapp .list__catalog_sku::-webkit-scrollbar,
+    .nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu ul::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nd-catlist .catalog_item_wrapp .list__catalog_sku .list__sku-item,
+    .nd-catlist .catalog_item_wrapp .item_info .bx_item_detail_scu ul li {
+        flex: 0 0 auto !important;
+    }
+
+    /* длина — плашки на всю ширину карточки */
+    .nd-catlist .catalog_item_wrapp .bx_item_detail_size li {
+        flex: 1 1 auto !important;
+    }
+
+    /* Счётчик в узкой карточке: кнопки и поля уже, иначе значение обрезается */
+    .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-wrapper .measure-block,
+    .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block {
+        padding: 0 2px;
+        height: 44px;
+    }
+
+    .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-button,
+    .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus,
+    .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
+        width: 22px !important;
+    }
+
+    .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-field,
+    .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block input.text {
+        padding: 0 !important;
+        font-size: 14px;
+    }
+
+    .nd-catlist .catalog_item_wrapp .to-cart.btn,
+    .nd-catlist .catalog_item_wrapp a.to-cart,
+    .nd-catlist .catalog_item_wrapp .counter_wrapp .button_block .to-cart.btn.white,
+    .nd-catlist .catalog_item_wrapp .counter_wrapp .button_block .to-cart.btn.btn-default.white {
+        width: 44px !important;
+        min-width: 44px !important;
+        height: 44px !important;
+    }
+
+    .nd-catlist .catalog_item_wrapp .nd-total__label {
+        font-size: 11px;
+    }
+
+    .nd-catlist-sort {
+        flex-wrap: wrap;
+    }
+
+    .nd-catlist-sort__filter {
+        display: inline-flex;
+    }
+
+    .nd-catlist-note {
+        padding: 12px 16px;
+        font-size: 13px;
+        line-height: 18px;
+    }
+}
