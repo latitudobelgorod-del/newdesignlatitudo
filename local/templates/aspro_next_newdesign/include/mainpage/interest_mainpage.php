@@ -94,14 +94,38 @@ if (!$ndHitEnumId) {
 $GLOBALS['arNdInterestSale'] = ['ID' => array_values($ndSaleGoods)];
 $GLOBALS['arNdInterestHit'] = ['PROPERTY_HIT' => $ndHitEnumId];
 
+/**
+ * Вкладку показываем, только если по её условию реально есть активные
+ * товары (Ирина, 2026-08-05: «если хитов месяца нет, то и кнопки не должно
+ * быть»). Проверять наличие самой привязки мало: акция может ссылаться на
+ * снятый с публикации товар, а значение HIT_MONTH — быть заведённым
+ * в справочнике, но никому не проставленным.
+ * Третьим аргументом пустой массив — это COUNT одним запросом, без выборки.
+ */
+$ndCount = function ($arFilter) use ($ndCatalogIblock) {
+	if (!$arFilter) {
+		return 0;
+	}
+
+	return (int) CIBlockElement::GetList(
+		[],
+		array_merge(
+			['IBLOCK_ID' => $ndCatalogIblock, 'ACTIVE' => 'Y', 'ACTIVE_DATE' => 'Y'],
+			$arFilter
+		),
+		[]
+	);
+};
+
 $ndTabs = [];
-if ($ndSaleGoods) {
+if ($ndSaleGoods && $ndCount($GLOBALS['arNdInterestSale'])) {
 	$ndTabs['sale'] = ['NAME' => 'Акции', 'FILTER' => 'arNdInterestSale'];
 }
-if ($ndHitEnumId) {
+if ($ndHitEnumId && $ndCount($GLOBALS['arNdInterestHit'])) {
 	$ndTabs['hit'] = ['NAME' => 'Хиты месяца', 'FILTER' => 'arNdInterestHit'];
 }
 
+// Ни одной вкладки — блока на странице нет вовсе
 if (!$ndTabs) {
 	return;
 }
