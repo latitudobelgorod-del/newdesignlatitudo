@@ -115,7 +115,7 @@
 		openSub = null;
 	}
 
-	function openSubPanel(name) {
+	function showSub(name) {
 		var sub = subs[name];
 		if (!sub) return false;
 		closeSubs();
@@ -143,19 +143,65 @@
 		return true;
 	}
 
+	/* Каждое открытие кладём записью в историю: тогда системная кнопка
+	   «назад» телефона возвращает на предыдущую панель, а не уводит с сайта.
+	   Адрес не меняем — только состояние. */
+	var canHistory = !!(window.history && window.history.pushState);
+	var subDepth = 0;
+
+	function openSubPanel(name) {
+		if (!showSub(name)) return false;
+		if (canHistory) {
+			window.history.pushState({ ndSub: name }, '');
+			subDepth++;
+		}
+		return true;
+	}
+
+	/* Панель закрыли не кнопкой «назад» (крестик, другая вкладка) — снимаем
+	   все свои записи разом, иначе кнопка телефона открывала бы закрытые
+	   панели заново. */
+	function dropSubHistory() {
+		if (!subDepth) return;
+		var n = subDepth;
+		subDepth = 0;
+		window.history.go(-n);
+	}
+
 	/* «Назад»: к родительской панели, а если её нет — к панели «Меню»
-	   (когда её открывали) или просто закрыть. */
-	function subBack() {
+	   (когда её открывали) или просто закрыть. Через историю, чтобы кнопка
+	   в шапке и кнопка телефона вели себя одинаково. */
+	function subBackNow() {
 		if (!openSub) return;
 		var parent = subs[openSub].getAttribute('data-nd-msub-parent');
 		if (parent && subs[parent]) {
-			openSubPanel(parent);
+			showSub(parent);
 			return;
 		}
 		closeSubs();
 		if (openName === 'menu') document.body.classList.add('nd-sheet-open');
 		else if (!openName) document.body.classList.remove('nd-sheet-open');
 	}
+
+	function subBack() {
+		if (!openSub) return;
+		if (canHistory && window.history.state && window.history.state.ndSub) {
+			window.history.back();
+			return;
+		}
+		subBackNow();
+	}
+
+	window.addEventListener('popstate', function (e) {
+		var name = e.state && e.state.ndSub;
+		if (name && subs[name]) {
+			if (subDepth > 0) subDepth--;
+			showSub(name);
+			return;
+		}
+		subDepth = 0;
+		if (openSub) subBackNow();
+	});
 
 	document.addEventListener('click', function (e) {
 		if (!e.target.closest) return;
@@ -189,6 +235,7 @@
 		var opener = e.target.closest('[data-nd-open]');
 		if (opener) {
 			e.preventDefault();
+			dropSubHistory();
 			closeSubs();
 			open(opener.getAttribute('data-nd-open'));
 			return;
@@ -196,6 +243,7 @@
 
 		if (e.target.closest('[data-nd-close]')) {
 			e.preventDefault();
+			dropSubHistory();
 			closeSubs();
 			close();
 			document.body.classList.remove('nd-sheet-open');
