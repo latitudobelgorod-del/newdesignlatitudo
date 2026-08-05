@@ -28,6 +28,14 @@
 }
 
 /* ---------- левая колонка ---------- */
+/* В колонке две карточки: сводка и блок «Уточните наличие и условия
+   доставки» — отбиваем их друг от друга. */
+.nd-reviews__summary {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-self: start;
+}
 .nd-reviews__summary-box {
     display: flex;
     flex-direction: column;

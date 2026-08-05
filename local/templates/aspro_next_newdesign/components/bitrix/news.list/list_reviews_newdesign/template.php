@@ -192,6 +192,23 @@ if (!defined('ND_UI_JS')) {
 					target="_blank" rel="nofollow noopener"><?= htmlspecialcharsbx($ndAddButtonText) ?></a>
 			<? endif; ?>
 		</div>
+
+		<? /* Карточка менеджера «Уточните наличие и условия доставки» — та же
+		      включаемая область, что под статьями в /materials/ (Ирина,
+		      2026-08-05), чтобы правилась из публички в одном месте. */ ?>
+		<div class="infochat nd-infochat-wrap">
+			<? $APPLICATION->IncludeComponent('bitrix:main.include', '.default',
+				[
+					'COMPONENT_TEMPLATE' => '.default',
+					'PATH' => SITE_DIR.'include/infochat_newdesign.php',
+					'AREA_FILE_SHOW' => 'file',
+					'AREA_FILE_SUFFIX' => '',
+					'AREA_FILE_RECURSIVE' => 'Y',
+					'EDIT_TEMPLATE' => 'standard.php',
+				],
+				false
+			); ?>
+		</div>
 	</aside>
 
 	<div class="nd-reviews__main">
