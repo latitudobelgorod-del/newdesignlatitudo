@@ -373,6 +373,22 @@ body.nd-modal-open {
         grid-template-columns: minmax(0, 1fr);
         gap: 24px;
     }
+    /* В одну колонку блок «Уточните наличие» должен уйти под список
+       отзывов (Ирина, 2026-08-05). Колонка раскрывается через
+       display:contents — тогда её карточки становятся ячейками сетки
+       и их можно переставить порядком. */
+    .nd-reviews__summary {
+        display: contents;
+    }
+    .nd-reviews__summary-box {
+        order: 1;
+    }
+    .nd-reviews__main {
+        order: 2;
+    }
+    .nd-reviews__summary .nd-infochat-wrap {
+        order: 3;
+    }
     .nd-reviews__list {
         grid-template-columns: minmax(0, 1fr);
         gap: 16px;
