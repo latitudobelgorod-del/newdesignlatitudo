@@ -367,7 +367,8 @@ $ndSectionBrands = function($sectionId) {
 		$src = null;
 		if($picId > 0)
 		{
-			$img = CFile::ResizeImageGet($picId, array('width' => 200, 'height' => 80), BX_RESIZE_IMAGE_PROPORTIONAL, true);
+			// с запасом под ретину: плитка 168×92, поля 12/16
+			$img = CFile::ResizeImageGet($picId, array('width' => 320, 'height' => 176), BX_RESIZE_IMAGE_PROPORTIONAL, true);
 			if(is_array($img) && $img['src'])
 				$src = $img['src'];
 		}

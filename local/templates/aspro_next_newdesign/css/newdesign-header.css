@@ -771,11 +771,10 @@ body {
     letter-spacing: .02em;
 }
 
-/* Производители раздела */
+/* Производители раздела — плитки по макету: 168×92, зазор 8, радиус 8,
+   логотип вписан целиком с полями. */
 .nd-cat__brands {
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(82, 82, 100, .15);
+    margin-top: 28px;
 }
 
 .nd-cat__brands-title {
@@ -796,22 +795,25 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 152px;
-    height: 56px;
-    padding: 8px 12px;
+    box-sizing: border-box;
+    width: 168px;
+    height: 92px;
+    padding: 12px 16px;
     border: 1px solid rgba(82, 82, 100, .15);
-    border-radius: 4px;
+    border-radius: 8px;
     background: #fff;
     text-decoration: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
 }
 
 .nd-cat__brand:hover {
-    border-color: rgba(82, 82, 100, .35);
+    border-color: rgba(82, 82, 100, .3);
+    box-shadow: 0 2px 8px rgba(16, 16, 20, .06);
 }
 
 .nd-cat__brand img {
     max-width: 100%;
-    max-height: 40px;
+    max-height: 100%;
     width: auto;
     height: auto;
     object-fit: contain;
