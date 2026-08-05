@@ -213,6 +213,232 @@ body.bx-panel-fixed .nd-mheader {
     display: none;
 }
 
+/* ===================== панели второго уровня (.nd-msub) ================= */
+
+/* Каталог, его подразделы и разделы пунктов меню. Макеты Figma:
+   «Каталог» 20512:85302, «Категория» 20512:85390, «Каталог услуг»
+   20566:28664 (все 320 шириной). Лежат поверх панели «Меню», поэтому
+   z-index на единицу выше, а низ так же обрезан прибитой панелью. */
+.nd-msub {
+    position: fixed;
+    inset: 0;
+    bottom: calc(var(--nd-navbar-h) + env(safe-area-inset-bottom, 0px));
+    z-index: 1004;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+}
+.nd-msub[hidden] {
+    display: none;
+}
+
+/* Шапка 64 с кнопками 44×44 по краям — как у панели «Меню». */
+.nd-msub__head {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 6px;
+    padding: 10px 6px;
+    background: #f6f6f7;
+}
+.nd-msub__back,
+.nd-msub__close {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    /* Стрелка и крестик рисуются маской: в выгрузке из Figma цвет зашит
+       в файл, а нам нужен currentColor. */
+    color: #101014;
+}
+.nd-msub__back::before,
+.nd-msub__close::before {
+    content: "";
+    display: block;
+    width: 24px;
+    height: 24px;
+    margin: 0 auto;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+/* Отдельной иконки «влево» в выгрузке нет — разворачиваем шеврон. */
+.nd-msub__back::before {
+    -webkit-mask-image: url("../images/newdesign/mobile/chevron.svg");
+    mask-image: url("../images/newdesign/mobile/chevron.svg");
+    -webkit-mask-size: 20px 20px;
+    mask-size: 20px 20px;
+    transform: scaleX(-1);
+}
+.nd-msub__close::before {
+    -webkit-mask-image: url("../images/newdesign/mobile/close24.svg");
+    mask-image: url("../images/newdesign/mobile/close24.svg");
+}
+
+.nd-msub__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+    color: #101014;
+    font-size: 18px;
+    line-height: 21.6px;
+    font-weight: 700;
+}
+/* Второй уровень: вместо заголовка — крошка с именем родителя. */
+.nd-msub__crumb {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: #101014;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+}
+
+.nd-msub__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 8px 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Строка: миниатюра 64, название, стрелка. Разделитель — как в макете,
+   от левого края с отступом 10, у последней строки не рисуем. */
+.nd-msub__row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 6px 6px 6px 10px;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-msub__row:not(:last-child) {
+    box-shadow: inset 0 -1px 0 rgba(82, 82, 100, .15);
+}
+.nd-msub__row:active {
+    background: rgba(82, 82, 100, .05);
+}
+.nd-msub__pic {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    overflow: hidden;
+    color: rgba(82, 82, 100, .35);
+}
+/* Картинки режутся квадратом на сервере, поэтому просто заполняем ячейку:
+   в макете они занимают весь квадрат 64×64. */
+.nd-msub__pic img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+}
+/* Логотипы брендов, наоборот, вписываем целиком — они на белом фоне. */
+.nd-msub__row--logo .nd-msub__pic img {
+    object-fit: contain;
+}
+.nd-msub__noimg {
+    width: 28px;
+    height: 28px;
+}
+.nd-msub__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 16px;
+    line-height: 20.8px;
+    font-weight: 500;
+}
+/* Шеврон 16 в области 44×44 — как в макете. */
+.nd-msub__arrow {
+    flex: 0 0 44px;
+    height: 44px;
+    background-color: #8f8f9a;
+    -webkit-mask: url("../images/newdesign/mobile/chevron.svg") no-repeat center / 16px 16px;
+    mask: url("../images/newdesign/mobile/chevron.svg") no-repeat center / 16px 16px;
+}
+
+/* Список без картинок («Услуги», «Партнерам») — текст с отступом 16. */
+.nd-msub__list--text .nd-msub__row {
+    padding: 10px 6px 10px 16px;
+}
+
+/* Первая строка «Все услуги» — ссылка на сам раздел: пункт меню теперь
+   только раскрывает панель, попасть на страницу больше неоткуда. */
+.nd-msub__row--all .nd-msub__name {
+    font-weight: 700;
+}
+/* В списке с миниатюрами строка «Все …» картинки не имеет — отбиваем её
+   на ширину миниатюры, иначе подписи стоят по разным линиям. */
+.nd-msub__list:not(.nd-msub__list--text) .nd-msub__row--all {
+    padding-left: 90px;
+}
+
+/* Шапка-карточка раздела на втором уровне (макет 20512:85390). */
+.nd-msub__cur {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 16px;
+    padding: 16px 16px 16px 10px;
+    border-bottom: 2px solid rgba(82, 82, 100, .15);
+}
+.nd-msub__cur-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+.nd-msub__cur-name {
+    color: #101014;
+    font-size: 18px;
+    line-height: 21.6px;
+    font-weight: 700;
+}
+.nd-msub__all {
+    color: #c60000;
+    font-size: 12px;
+    line-height: 14.4px;
+    font-weight: 500;
+    text-decoration: none;
+}
+.nd-msub__all::after {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-left: 2px;
+    vertical-align: -1px;
+    background-color: currentColor;
+    -webkit-mask: url("../images/newdesign/mobile/chevron.svg") no-repeat center / 12px 12px;
+    mask: url("../images/newdesign/mobile/chevron.svg") no-repeat center / 12px 12px;
+}
+
+/* Подразделы: без разделителей, название обычным начертанием,
+   количество товаров — надстрочной цифрой. */
+.nd-msub__list--sub .nd-msub__row {
+    box-shadow: none;
+    border-radius: 6px;
+    padding: 6px 16px 6px 10px;
+}
+.nd-msub__name--sub {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+}
+.nd-msub__cnt {
+    margin-left: 4px;
+    color: #525264;
+    font-size: 12px;
+    line-height: 14.4px;
+    font-weight: 400;
+}
+
 /* ============================== шторки ================================== */
 
 .nd-sheet {

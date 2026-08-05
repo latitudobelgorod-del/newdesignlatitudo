@@ -186,6 +186,36 @@ $ndIco = function($name) use ($imgPath) {
 </div>
 <!-- /Панель «Меню» -->
 
+<!-- Панели второго уровня: каталог и разделы пунктов меню -->
+<?// Макеты Figma: «Каталог» 20512:85302, «Категория» 20512:85390,
+// «Каталог услуг» 20566:28664. Панель находит свой пункт по адресу
+// (data-nd-msub-key = href), как и выпадающие панели десктопной шапки.?>
+<?$APPLICATION->IncludeComponent(
+	"bitrix:menu",
+	"catalog_mobile_newdesign",
+	array(
+		"ALLOW_MULTI_SELECT"    => "N",
+		"CHILD_MENU_TYPE"       => "top_menu_new",
+		"COMPONENT_TEMPLATE"    => "catalog_mobile_newdesign",
+		"COUNT_ITEM"            => "6",
+		"DELAY"                 => "N",
+		"MAX_LEVEL"             => "4",
+		"MENU_CACHE_TYPE"       => "A",
+		"MENU_CACHE_TIME"       => "3600",
+		"MENU_CACHE_USE_GROUPS" => "N",
+		"CACHE_SELECTED_ITEMS"  => "N",
+		"ROOT_MENU_TYPE"        => "top_content_multilevel",
+		"USE_EXT"               => "Y",
+		"MENU_CACHE_GET_VARS"   => array(),
+	),
+	false, array("HIDE_ICONS" => "Y")
+);?>
+<?
+$ndDropsMode = 'mobile';
+include(__DIR__.'/header_drops_newdesign.php');
+?>
+<!-- /Панели второго уровня -->
+
 <!-- Шторка «Связаться с нами» -->
 <div class="nd-sheet nd-sheet--bottom" id="nd-sheet-contacts" hidden>
 	<div class="nd-sheet__overlay" data-nd-close></div>

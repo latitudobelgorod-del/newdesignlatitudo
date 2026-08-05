@@ -27,8 +27,13 @@
 
 global $arRegion;
 
+// Тот же блок рисует и мобильные панели поверх меню (макет 20566:28664
+// «Каталог услуг»): выборки одни и те же, отличается только разметка.
+// Режим задаёт вызывающий код переменной $ndDropsMode.
+$ndDropsMode = (isset($ndDropsMode) && $ndDropsMode === 'mobile') ? 'mobile' : 'desktop';
+
 $ndDropsCacheDir = '/nd/header_drops';
-$ndDropsCacheKey = 'nd_drops_'.SITE_ID.'_'.LANGUAGE_ID.'_'.($arRegion ? $arRegion['ID'] : '');
+$ndDropsCacheKey = 'nd_drops_'.$ndDropsMode.'_'.SITE_ID.'_'.LANGUAGE_ID.'_'.($arRegion ? $arRegion['ID'] : '');
 $ndDropsCache    = \Bitrix\Main\Data\Cache::createInstance();
 
 if($ndDropsCache->initCache(3600, $ndDropsCacheKey, $ndDropsCacheDir))
@@ -167,6 +172,42 @@ $arDrops = array(
 	array('KEY' => SITE_DIR.'brands/',   'TITLE' => 'Производители',  'TYPE' => 'brands', 'ITEMS' => $ndDropBrands()),
 );
 ?>
+<?if($ndDropsMode === 'mobile'):?>
+	<?// ---- мобильные панели (макет «Каталог услуг» 20566:28664) ----
+	// Шапка «‹ Название ✕», ниже список: у кого есть картинка — строка
+	// с миниатюрой 64, у остальных только текст со стрелкой.?>
+	<?foreach($arDrops as $arDrop):?>
+		<?if(!$arDrop['ITEMS']) continue;?>
+		<div class="nd-msub" data-nd-msub="drop-<?=md5($arDrop['KEY'])?>" data-nd-msub-key="<?=htmlspecialcharsbx($arDrop['KEY'])?>" hidden>
+			<div class="nd-msub__head">
+				<button class="nd-msub__back" type="button" data-nd-msub-back aria-label="Назад"></button>
+				<span class="nd-msub__title"><?=htmlspecialcharsbx($arDrop['TITLE'])?></span>
+				<button class="nd-msub__close" type="button" data-nd-close aria-label="Закрыть"></button>
+			</div>
+			<div class="nd-msub__list<?=($arDrop['TYPE'] === 'chips' ? ' nd-msub__list--text' : '')?>">
+				<?// Ссылка на сам раздел — первой строкой: у панели нет другого
+				// способа туда попасть, пункт меню теперь только раскрывает список.?>
+				<a class="nd-msub__row nd-msub__row--all" href="<?=htmlspecialcharsbx($arDrop['KEY'])?>">
+					<span class="nd-msub__name">Все <?=htmlspecialcharsbx(mb_strtolower($arDrop['TITLE']))?></span>
+					<i class="nd-msub__arrow"></i>
+				</a>
+				<?foreach($arDrop['ITEMS'] as $arItem):?>
+					<a class="nd-msub__row<?=($arDrop['TYPE'] === 'brands' ? ' nd-msub__row--logo' : '')?>" href="<?=htmlspecialcharsbx($arItem['LINK'])?>">
+						<?if($arDrop['TYPE'] !== 'chips'):?>
+							<span class="nd-msub__pic">
+								<?if(!empty($arItem['IMG'])):?>
+									<img data-nd-src="<?=htmlspecialcharsbx($arItem['IMG'])?>" alt="" width="64" height="64">
+								<?endif;?>
+							</span>
+						<?endif;?>
+						<span class="nd-msub__name"><?=htmlspecialcharsbx($arItem['TEXT'])?></span>
+						<i class="nd-msub__arrow"></i>
+					</a>
+				<?endforeach;?>
+			</div>
+		</div>
+	<?endforeach;?>
+<?else:?>
 <?foreach($arDrops as $arDrop):?>
 	<?if(!$arDrop['ITEMS']) continue;?>
 	<div class="nd-drop" data-nd-drop="<?=htmlspecialcharsbx($arDrop['KEY'])?>">
@@ -213,6 +254,7 @@ $arDrops = array(
 		</div>
 	</div>
 <?endforeach;?>
+<?endif;?>
 <?
 $ndDropsHtml = ob_get_clean();
 $ndDropsTagged->endTagCache();
