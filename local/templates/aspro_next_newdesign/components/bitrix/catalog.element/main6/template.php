@@ -1916,194 +1916,37 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 </div>
 </div>
 
-		
-<?/*Вывод привязанных элементов портфолио*/?>
-
-
-<div class="examples"></div>
-<?if($arResult["PROPERTIES"]["LINK_PORTFOLIO"]["VALUE"]):?>
-<?$GLOBALS['arrFilterProjects'] = array("ID" => $arResult["PROPERTIES"]["LINK_PORTFOLIO"]["VALUE"]);?>
-			
-
-<?/* Блок портфолио товара переверстан по макету: заголовок со счётчиком и
-	   стрелками, карточки как в блоках главной. Старую обёртку с <hr> и
-	   заголовком-строкой рисовал сам шаблон, теперь всё внутри
-	   news.list/list_projects_product_newdesign. */?>
-<?$APPLICATION->IncludeComponent(
-			"bitrix:news.list",
-			"list_projects_product_newdesign",
-			array(
-				"IBLOCK_TYPE" => "aspro_next_content",
-				"IBLOCK_ID" => $arResult["PROPERTIES"]["LINK_PORTFOLIO"]["LINK_IBLOCK_ID"],
-				"NEWS_COUNT" => "20",
-				"SORT_BY1" => "SORT",
-				"SORT_ORDER1" => "ASC",
-				"SORT_BY2" => "ID",
-				"SORT_ORDER2" => "DESC",
-				"FILTER_NAME" => "arrFilterProjects",
-				"FIELD_CODE" => array(
-					0 => "NAME",
-					1 => "PREVIEW_TEXT",
-					3 => "PREVIEW_PICTURE",
-					4 => "",
-				),
-				"PROPERTY_CODE" => array(
-					0 => "PERIOD",
-					1 => "REDIRECT",
-					2 => "",
-				),
-				"CHECK_DATES" => "Y",
-				"DETAIL_URL" => "",
-				"AJAX_MODE" => "N",
-				"AJAX_OPTION_JUMP" => "N",
-				"AJAX_OPTION_STYLE" => "Y",
-				"AJAX_OPTION_HISTORY" => "N",
-				'CACHE_TYPE' => 'A',
-				'CACHE_TIME' => '172800',
-				"CACHE_FILTER" => "Y",
-				"CACHE_GROUPS" => "N",
-				"PREVIEW_TRUNCATE_LEN" => "",
-				"ACTIVE_DATE_FORMAT" => "d.m.Y",
-				"SET_TITLE" => "N",
-				"SET_STATUS_404" => "N",
-				"INCLUDE_IBLOCK_INTO_CHAIN" => "N",
-				"ADD_SECTIONS_CHAIN" => "N",
-				"HIDE_LINK_WHEN_NO_DETAIL" => "N",
-				"PARENT_SECTION" => "",
-				"PARENT_SECTION_CODE" => "",
-				"INCLUDE_SUBSECTIONS" => "Y",
-				"PAGER_TEMPLATE" => ".default",
-				"DISPLAY_TOP_PAGER" => "N",
-				"DISPLAY_BOTTOM_PAGER" => "N",
-				"PAGER_TITLE" => "Новости",
-				"PAGER_SHOW_ALWAYS" => "N",
-				"PAGER_DESC_NUMBERING" => "N",
-				"PAGER_DESC_NUMBERING_CACHE_TIME" => "36000",
-				"PAGER_SHOW_ALL" => "N",
-				"VIEW_TYPE" => "list",
-				"BIG_BLOCK" => "Y",
-				"IMAGE_POSITION" => "left",
-				"COUNT_IN_LINE" => "2",
-				"TITLE" => ($arParams["BLOCK_SERVICES_NAME"] ? $arParams["BLOCK_SERVICES_NAME"] : GetMessage("SERVICES_TITLE")),
-			),
-			$component, array("HIDE_ICONS" => "Y")
-		);?>
-	<?endif;?>
-
-<?/*Вывод привязанных элементов портфолио*/?>
-	
-	
-	
-<?/*Видео на детальной странице*/?>
-<?if($arVideo):?>
-<div class="wraps hidden_print">
-			<hr>
-			<h4>
-				<?=($arParams["TAB_VIDEO_NAME"] ? $arParams["TAB_VIDEO_NAME"] : GetMessage("VIDEO_TAB"));?>
-				<?if(count($arVideo) > 1):?>
-					<span class="count empty">&nbsp;(<?=count($arVideo)?>)</span>
-				<?endif;?>
-			</h4>
-			<div class="video_block">
-				<?if(count($arVideo) > 1):?>
-					<table class="video_table">
-						<tbody>
-							<?foreach($arVideo as $v => $value):?>
-								<?if(($v + 1) % 2):?>
-									<tr>
-								<?endif;?>
-								<td width="50%"><?=str_replace('src=', 'width="458" height="257" src=', str_replace(array('width', 'height'), array('data-width', 'data-height'), $value));?></td>
-								<?if(!(($v + 1) % 2)):?>
-									</tr>
-								<?endif;?>
-							<?endforeach;?>
-							<?if(($v + 1) % 2):?>
-								</tr>
-							<?endif;?>
-						</tbody>
-					</table>
-				<?else:?>
-					<?=$arVideo[0]?>
-				<?endif;?>
-			</div>
-</div>
-<?endif;?>
-<?/*Видео на детальной странице*/?>
-
-<?/*Галерея фото*/?>
-<?if($arResult['MORE_PHOTO_1']):?>
-<div class="wraps galerys-block">
-<hr>
-<h4><?=($arParams["BLOCK_ADDITIONAL_GALLERY_NAME"] ? $arParams["BLOCK_ADDITIONAL_GALLERY_NAME"] : GetMessage("ADDITIONAL_GALLERY_TITLE"))?></h4>
-							<div class="gallery-block">
-							<div class="gallery-wrapper">
-								<div class="inner">
-									<?if(count($arResult["MORE_PHOTO_1"]) > 1):?>
-										<div class="small-gallery-wrapper">
-											<div style="padding-bottom:40px;" class="thmb1 flexslider unstyled small-gallery center-nav" data-plugin-options='{"slideshow": "false", "useCSS": true, "animation": "slide", "animationLoop": true, "itemWidth": 60, "itemMargin": 20, "minItems": 1, "maxItems": 9, "slide_counts": 1, "asNavFor": ".gallery-wrapper .bigs"}' id="carousel1">
-												<ul class="slides items">
-													<?foreach($arResult["MORE_PHOTO_1"] as $arPhoto):?>
-														<li class="item">
-															<img class="img-responsive inline lazy" border="0" src="<?=$arPhoto["THUMB"]["src"]?>" title="<?=$arPhoto['TITLE']?>" alt="<?=$arPhoto['ALT']?>" />
-														</li>
-													<?endforeach;?>
-												</ul>
-
-											</div>
-										</div>
-									<?endif;?>
-									<div class="flexslider dark bigs big_slider color-controls" id="slider" data-plugin-options='{"animation": "slide", "useCSS": true, "directionNav": true, "controlNav" :true, "animationLoop": true, "slideshow": false, "sync": ".gallery-wrapper .small-gallery", "counts": [1, 1, 1]}'>
-										<ul class="slides items">
-											<?foreach($arResult['MORE_PHOTO_1'] as $i => $arPhoto):?>
-												<li class="col-md-12 item">
-												
-														<img src="<?=$arPhoto['PREVIEW']['src']?>" class="img-responsive inline lazy" title="<?=$arPhoto['TITLE']?>" alt="<?=$arPhoto['ALT']?>" />
-														<p><?=$arPhoto['TITLE']?></p>
-														
-												
-
-												</li>
-
-											<?endforeach;?>
-										</ul>
-									</div>
-								</div>
-							</div>
-							</div>
-
-
-
-</div>
-<?endif;?>
-<?/*Галерея фото*/?>
-
-						
-						
-					
-						
-					</div>
-				
-			<?endif;?>
-	
-
-	</div>
-    
-
-
-
-
-
 <?/*С этим товаром покупают*/?>
 <!--    --><?//echo "<pre>"; print_r('С этим товаром покупают'); echo "</pre>";?>
 <?if($arResult["EXPANDABLES"]):?>
-<h4><?=($arParams["DETAIL_EXPANDABLES_TITLE"] ? $arParams["DETAIL_EXPANDABLES_TITLE"] : GetMessage("DETAIL_EXPANDABLES_TITLE"))?></h4>
+<?/* Новый дизайн: карточка та же, что в списке раздела
+      (catalog.section/catalog_blockcolors_newdesign), но лентой со стрелками
+      и счётчиком — макет Figma «Карточка товара». Плиток акций здесь нет:
+      их разметку печатает скрытый пул include/promo_catalog_newdesign.php,
+      а он подключается только на странице раздела.
+      Стили .nd-related — в css/newdesign-catalog.css, лента — в
+      js/newdesign-catalog.js (оба тянет сам шаблон списка). */?>
+<div class="nd-related">
+	<div class="nd-related__head">
+		<h2 class="nd-related__title"><?=($arParams["DETAIL_EXPANDABLES_TITLE"] ? $arParams["DETAIL_EXPANDABLES_TITLE"] : GetMessage("DETAIL_EXPANDABLES_TITLE"))?></h2>
+		<div class="nd-related__nav">
+			<span class="nd-related__counter"></span>
+			<button class="nd-related__arrow nd-related__arrow--prev" type="button" aria-label="Предыдущие товары">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+			<button class="nd-related__arrow nd-related__arrow--next" type="button" aria-label="Следующие товары">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+		</div>
+	</div>
+	<div class="nd-related__body">
 <?$GLOBALS['arrFilterAccess'] = array("ID" => $arResult["PROPERTIES"]["EXPANDABLES"]["VALUE"],array("!ID" => $arResult["ID"]));?>
 			
 <!--        --><?//echo "<pre>"; print_r($arParams); echo "</pre>";?>
 			
 		 <? $APPLICATION->IncludeComponent(
                 "bitrix:catalog.section",
-                "catalog_blockcolors_slide_editor",
+                "catalog_blockcolors_newdesign",
                 Array(
                     "IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
                     "IBLOCK_ID" => $arParams["IBLOCK_ID"],
@@ -2232,7 +2075,7 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
                     "SALE_STIKER" => "SALE_TEXT",
                     "STIKERS_PROP" => "HIT",
                     "SHOW_RATING" => "N",
-                    "COMPONENT_TEMPLATE" => "catalog_blockcolors_slide_editor",
+                    "COMPONENT_TEMPLATE" => "catalog_blockcolors_newdesign",
                     "SECTION_USER_FIELDS" => array(
                         0 => "",
                         1 => "",
@@ -2254,8 +2097,187 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
                 "HIDE_ICONS" => $isAjax
             )
 ); ?>
+	</div>
+</div>
 	<?endif;?>
 <?/*С этим товаром покупают*/?>
+	
+	
+	
+<?/*Видео на детальной странице*/?>
+<?if($arVideo):?>
+<div class="wraps hidden_print">
+			<hr>
+			<h4>
+				<?=($arParams["TAB_VIDEO_NAME"] ? $arParams["TAB_VIDEO_NAME"] : GetMessage("VIDEO_TAB"));?>
+				<?if(count($arVideo) > 1):?>
+					<span class="count empty">&nbsp;(<?=count($arVideo)?>)</span>
+				<?endif;?>
+			</h4>
+			<div class="video_block">
+				<?if(count($arVideo) > 1):?>
+					<table class="video_table">
+						<tbody>
+							<?foreach($arVideo as $v => $value):?>
+								<?if(($v + 1) % 2):?>
+									<tr>
+								<?endif;?>
+								<td width="50%"><?=str_replace('src=', 'width="458" height="257" src=', str_replace(array('width', 'height'), array('data-width', 'data-height'), $value));?></td>
+								<?if(!(($v + 1) % 2)):?>
+									</tr>
+								<?endif;?>
+							<?endforeach;?>
+							<?if(($v + 1) % 2):?>
+								</tr>
+							<?endif;?>
+						</tbody>
+					</table>
+				<?else:?>
+					<?=$arVideo[0]?>
+				<?endif;?>
+			</div>
+</div>
+<?endif;?>
+<?/*Видео на детальной странице*/?>
+
+<?/*Галерея фото*/?>
+<?if($arResult['MORE_PHOTO_1']):?>
+<div class="wraps galerys-block">
+<hr>
+<h4><?=($arParams["BLOCK_ADDITIONAL_GALLERY_NAME"] ? $arParams["BLOCK_ADDITIONAL_GALLERY_NAME"] : GetMessage("ADDITIONAL_GALLERY_TITLE"))?></h4>
+							<div class="gallery-block">
+							<div class="gallery-wrapper">
+								<div class="inner">
+									<?if(count($arResult["MORE_PHOTO_1"]) > 1):?>
+										<div class="small-gallery-wrapper">
+											<div style="padding-bottom:40px;" class="thmb1 flexslider unstyled small-gallery center-nav" data-plugin-options='{"slideshow": "false", "useCSS": true, "animation": "slide", "animationLoop": true, "itemWidth": 60, "itemMargin": 20, "minItems": 1, "maxItems": 9, "slide_counts": 1, "asNavFor": ".gallery-wrapper .bigs"}' id="carousel1">
+												<ul class="slides items">
+													<?foreach($arResult["MORE_PHOTO_1"] as $arPhoto):?>
+														<li class="item">
+															<img class="img-responsive inline lazy" border="0" src="<?=$arPhoto["THUMB"]["src"]?>" title="<?=$arPhoto['TITLE']?>" alt="<?=$arPhoto['ALT']?>" />
+														</li>
+													<?endforeach;?>
+												</ul>
+
+											</div>
+										</div>
+									<?endif;?>
+									<div class="flexslider dark bigs big_slider color-controls" id="slider" data-plugin-options='{"animation": "slide", "useCSS": true, "directionNav": true, "controlNav" :true, "animationLoop": true, "slideshow": false, "sync": ".gallery-wrapper .small-gallery", "counts": [1, 1, 1]}'>
+										<ul class="slides items">
+											<?foreach($arResult['MORE_PHOTO_1'] as $i => $arPhoto):?>
+												<li class="col-md-12 item">
+												
+														<img src="<?=$arPhoto['PREVIEW']['src']?>" class="img-responsive inline lazy" title="<?=$arPhoto['TITLE']?>" alt="<?=$arPhoto['ALT']?>" />
+														<p><?=$arPhoto['TITLE']?></p>
+														
+												
+
+												</li>
+
+											<?endforeach;?>
+										</ul>
+									</div>
+								</div>
+							</div>
+							</div>
+
+
+
+</div>
+<?endif;?>
+<?/*Галерея фото*/?>
+
+						
+						
+					
+						
+					</div>
+				
+			<?endif;?>
+	
+
+	</div>
+    
+
+
+
+
+
+		
+<?/*Вывод привязанных элементов портфолио*/?>
+
+
+<div class="examples"></div>
+<?if($arResult["PROPERTIES"]["LINK_PORTFOLIO"]["VALUE"]):?>
+<?$GLOBALS['arrFilterProjects'] = array("ID" => $arResult["PROPERTIES"]["LINK_PORTFOLIO"]["VALUE"]);?>
+			
+
+<?/* Блок портфолио товара переверстан по макету: заголовок со счётчиком и
+	   стрелками, карточки как в блоках главной. Старую обёртку с <hr> и
+	   заголовком-строкой рисовал сам шаблон, теперь всё внутри
+	   news.list/list_projects_product_newdesign. */?>
+<?$APPLICATION->IncludeComponent(
+			"bitrix:news.list",
+			"list_projects_product_newdesign",
+			array(
+				"IBLOCK_TYPE" => "aspro_next_content",
+				"IBLOCK_ID" => $arResult["PROPERTIES"]["LINK_PORTFOLIO"]["LINK_IBLOCK_ID"],
+				"NEWS_COUNT" => "20",
+				"SORT_BY1" => "SORT",
+				"SORT_ORDER1" => "ASC",
+				"SORT_BY2" => "ID",
+				"SORT_ORDER2" => "DESC",
+				"FILTER_NAME" => "arrFilterProjects",
+				"FIELD_CODE" => array(
+					0 => "NAME",
+					1 => "PREVIEW_TEXT",
+					3 => "PREVIEW_PICTURE",
+					4 => "",
+				),
+				"PROPERTY_CODE" => array(
+					0 => "PERIOD",
+					1 => "REDIRECT",
+					2 => "",
+				),
+				"CHECK_DATES" => "Y",
+				"DETAIL_URL" => "",
+				"AJAX_MODE" => "N",
+				"AJAX_OPTION_JUMP" => "N",
+				"AJAX_OPTION_STYLE" => "Y",
+				"AJAX_OPTION_HISTORY" => "N",
+				'CACHE_TYPE' => 'A',
+				'CACHE_TIME' => '172800',
+				"CACHE_FILTER" => "Y",
+				"CACHE_GROUPS" => "N",
+				"PREVIEW_TRUNCATE_LEN" => "",
+				"ACTIVE_DATE_FORMAT" => "d.m.Y",
+				"SET_TITLE" => "N",
+				"SET_STATUS_404" => "N",
+				"INCLUDE_IBLOCK_INTO_CHAIN" => "N",
+				"ADD_SECTIONS_CHAIN" => "N",
+				"HIDE_LINK_WHEN_NO_DETAIL" => "N",
+				"PARENT_SECTION" => "",
+				"PARENT_SECTION_CODE" => "",
+				"INCLUDE_SUBSECTIONS" => "Y",
+				"PAGER_TEMPLATE" => ".default",
+				"DISPLAY_TOP_PAGER" => "N",
+				"DISPLAY_BOTTOM_PAGER" => "N",
+				"PAGER_TITLE" => "Новости",
+				"PAGER_SHOW_ALWAYS" => "N",
+				"PAGER_DESC_NUMBERING" => "N",
+				"PAGER_DESC_NUMBERING_CACHE_TIME" => "36000",
+				"PAGER_SHOW_ALL" => "N",
+				"VIEW_TYPE" => "list",
+				"BIG_BLOCK" => "Y",
+				"IMAGE_POSITION" => "left",
+				"COUNT_IN_LINE" => "2",
+				"TITLE" => ($arParams["BLOCK_SERVICES_NAME"] ? $arParams["BLOCK_SERVICES_NAME"] : GetMessage("SERVICES_TITLE")),
+			),
+			$component, array("HIDE_ICONS" => "Y")
+		);?>
+	<?endif;?>
+
+<?/*Вывод привязанных элементов портфолио*/?>
 
 <?/*Услуги*/?>
 <?/*if($arResult["SERVICES"]):?>

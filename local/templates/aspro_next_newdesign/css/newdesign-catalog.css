@@ -1528,3 +1528,130 @@
         line-height: 18px;
     }
 }
+
+/* ===========================================================================
+   «С этим товаром покупают» на детальной товара (.nd-related)
+
+   Карточка та же, что в списке раздела, но лентой со стрелками и счётчиком —
+   макет Figma «Карточка товара». Плиток акций здесь нет: их печатает пул
+   include/promo_catalog_newdesign.php, а он подключается только на странице
+   раздела. Логика ленты — в js/newdesign-catalog.js.
+   ======================================================================== */
+.nd-related {
+    margin-bottom: 40px;
+    /* Разделительная полоса под блоком — по макету. */
+    padding-bottom: 40px;
+    border-bottom: 1px solid rgba(82, 82, 100, .15);
+    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+}
+.nd-related__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+.nd-related__title {
+    margin: 0;
+    color: #101014;
+    font-size: 34px;
+    line-height: 42px;
+    font-weight: 800;
+}
+.nd-related__nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+.nd-related__counter {
+    margin-right: 8px;
+    color: #8f8f9a;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+/* Стрелки и счётчик — те же, что в блоке «Проекты с товаром» ниже
+   (.nd-relprojects__arrow): в макете это один и тот же элемент. */
+.nd-related__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .1);
+    color: #101014;
+    cursor: pointer;
+}
+.nd-related__arrow:hover {
+    background: rgba(82, 82, 100, .2);
+}
+.nd-related__arrow[disabled] {
+    opacity: .4;
+    cursor: default;
+}
+
+/* Сетка списка становится лентой. Специфичность на класс выше правила
+   .nd-catlist .catalog_block (там grid !important), поэтому !important
+   обязателен и здесь. */
+.nd-related .nd-catlist .catalog_block {
+    display: flex !important;
+    /* у сетки класс .flexbox с переносом — иначе карточки складываются
+       во второй ряд и лента никуда не прокручивается */
+    flex-wrap: nowrap !important;
+    grid-template-columns: none !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.nd-related .nd-catlist .catalog_block::-webkit-scrollbar {
+    display: none;
+}
+.nd-related .nd-catlist .catalog_block .item_block {
+    flex: 0 0 20% !important;
+    max-width: 20% !important;
+    scroll-snap-align: start;
+}
+
+/* Постраничка и заголовок шаблона списка в этом блоке не нужны. */
+.nd-related .nd-catlist__nav,
+.nd-related .nd-catlist > hr,
+.nd-related .nd-catlist > h5 {
+    display: none !important;
+}
+
+@media (max-width: 1439px) {
+    .nd-related .nd-catlist .catalog_block .item_block {
+        flex-basis: 25% !important;
+        max-width: 25% !important;
+    }
+}
+@media (max-width: 1199px) {
+    .nd-related__title {
+        font-size: 28px;
+        line-height: 32px;
+    }
+    .nd-related .nd-catlist .catalog_block .item_block {
+        flex-basis: 33.3333% !important;
+        max-width: 33.3333% !important;
+    }
+}
+@media (max-width: 767px) {
+    .nd-related__title {
+        font-size: 22px;
+        line-height: 26px;
+    }
+    .nd-related__head {
+        margin-bottom: 16px;
+    }
+    .nd-related .nd-catlist .catalog_block .item_block {
+        flex-basis: 50% !important;
+        max-width: 50% !important;
+    }
+}

@@ -701,6 +701,72 @@
         } catch (e) { }
     }
 
+
+    /* ---------------------------------------------------------------------
+       «С этим товаром покупают» — лента вместо сетки.
+
+       Разметку блока печатает catalog.element/main6/component_epilog.php,
+       карточки — тот же шаблон списка, поэтому здесь только стрелки и
+       счётчик. Листаем на видимую страницу (ширину ленты), счётчик
+       показывает номер первой видимой карточки и общее число, как в макете
+       («01/08»).
+       ------------------------------------------------------------------ */
+    function pad2(n) {
+        return (n < 10 ? '0' : '') + n;
+    }
+
+    function initRelated(box) {
+        if (box.ndRelatedReady) return;
+        var track = box.querySelector('.catalog_block');
+        if (!track) return;
+        var items = track.querySelectorAll('.item_block');
+        if (!items.length) return;
+
+        box.ndRelatedReady = true;
+
+        var counter = box.querySelector('.nd-related__counter');
+        var prev = box.querySelector('.nd-related__arrow--prev');
+        var next = box.querySelector('.nd-related__arrow--next');
+
+        function sync() {
+            var step = items[0].getBoundingClientRect().width || 1;
+            var first = Math.round(track.scrollLeft / step) + 1;
+            if (first > items.length) first = items.length;
+            if (counter) counter.textContent = pad2(first) + '/' + pad2(items.length);
+
+            /* Конец ленты ловим с запасом в 1px: при дробной ширине карточки
+               scrollLeft не дотягивает до scrollWidth - clientWidth. */
+            var atStart = track.scrollLeft <= 1;
+            var atEnd = track.scrollLeft >= track.scrollWidth - track.clientWidth - 1;
+            if (prev) prev.disabled = atStart;
+            if (next) next.disabled = atEnd;
+            box.classList.toggle('is-static', track.scrollWidth <= track.clientWidth + 1);
+        }
+
+        function page(dir) {
+            track.scrollLeft += dir * track.clientWidth;
+            /* scroll-behavior:smooth — событие scroll придёт позже, но
+               счётчик обновляем и сразу, чтобы стрелка не мигала. */
+            setTimeout(sync, 350);
+        }
+
+        if (prev) prev.addEventListener('click', function () { page(-1); });
+        if (next) next.addEventListener('click', function () { page(1); });
+        track.addEventListener('scroll', sync, { passive: true });
+        window.addEventListener('resize', sync);
+        sync();
+    }
+
+    function initAllRelated() {
+        Array.prototype.forEach.call(document.querySelectorAll('.nd-related'), initRelated);
+    }
+
+    if (document.readyState !== 'loading') initAllRelated();
+    else document.addEventListener('DOMContentLoaded', initAllRelated);
+    /* Блок приезжает отложенным component_epilog'ом — переспрашиваем. */
+    setTimeout(initAllRelated, 800);
+    setTimeout(initAllRelated, 2000);
+
     if (document.readyState !== 'loading') markInitialScripts();
     else document.addEventListener('DOMContentLoaded', markInitialScripts);
 
