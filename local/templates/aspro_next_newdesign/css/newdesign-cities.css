@@ -82,8 +82,10 @@ div.city_chooser_frame {
     display: none;
 }
 
+/* Шрифт макета. Окно рисует тема, и без своего font-family оно
+   наследовало её PT Sans, а в макете весь блок на Nunito Sans. */
 .nd-cities {
-    font-family: inherit;
+    font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
 }
 
 /* ============================== шапка =================================== */
@@ -122,15 +124,15 @@ div.city_chooser_frame {
     text-decoration: none;
     overflow: hidden;
 }
+/* Текущий город — зелёная рамка и подложка; при наведении подсвечиваем
+   карточку так же (просьба Ирины, 2026-08-05). */
 .nd-citycard:hover,
-.nd-citycard:focus {
-    color: #101014;
-    text-decoration: none;
-}
-/* Текущий город — зелёная рамка и подложка. */
+.nd-citycard:focus,
 .nd-citycard.is-current {
     background: rgba(52, 199, 135, .05);
     box-shadow: inset 0 0 0 1px #2ca973;
+    color: #101014;
+    text-decoration: none;
 }
 
 .nd-citycard__media {
