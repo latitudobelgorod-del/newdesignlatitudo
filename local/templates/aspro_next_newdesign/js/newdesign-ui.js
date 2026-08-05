@@ -133,3 +133,42 @@
 			});
 	});
 })();
+
+/* Вкладки блока «Может заинтересовать» на главной (.nd-interest).
+
+   Обе панели печатает сервер, скрытая лежит с hidden — так карточки уже
+   готовы и переключение мгновенное. После показа шлём nd:appended: на это
+   событие подписан js/newdesign-catalog.js, который переставляет блоки
+   карточки и досчитывает цены (в скрытом блоке размеры считать нечем). */
+(function () {
+	'use strict';
+
+	var blocks = document.querySelectorAll('.nd-interest');
+	if (!blocks.length) return;
+
+	Array.prototype.forEach.call(blocks, function (block) {
+		var tabs = block.querySelectorAll('[data-nd-interest-tab]');
+		var panes = block.querySelectorAll('[data-nd-interest-pane]');
+		if (tabs.length < 2) return;
+
+		Array.prototype.forEach.call(tabs, function (tab) {
+			tab.addEventListener('click', function () {
+				var key = tab.getAttribute('data-nd-interest-tab');
+				if (tab.classList.contains('is-active')) return;
+
+				Array.prototype.forEach.call(tabs, function (t) {
+					var on = t === tab;
+					t.classList.toggle('is-active', on);
+					t.setAttribute('aria-selected', on ? 'true' : 'false');
+				});
+				Array.prototype.forEach.call(panes, function (p) {
+					var on = p.getAttribute('data-nd-interest-pane') === key;
+					p.classList.toggle('is-active', on);
+					p.hidden = !on;
+				});
+
+				document.dispatchEvent(new CustomEvent('nd:appended'));
+			});
+		});
+	});
+})();

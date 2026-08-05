@@ -3167,3 +3167,104 @@ body .nd-filter .bx_filter_block .values_expander {
         line-height: 24px;
     }
 }
+
+/* ===========================================================================
+   Главная: блок «Может заинтересовать» (.nd-interest)
+
+   Две вкладки — «Акции» и «Хиты месяца», под ними сетка карточек каталога
+   5×2 из макета. Сама карточка приходит из шаблона списка раздела
+   (catalog_blockcolors_newdesign), поэтому здесь только вкладки и число
+   колонок; всё остальное живёт в css/newdesign-catalog.css.
+   ======================================================================== */
+.nd-interest {
+    max-width: 1336px;
+    margin: 0 auto 52px;
+    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+}
+.nd-interest__title h2,
+.nd-interest__title p {
+    margin: 0 0 24px;
+}
+.nd-interest__title h2 {
+    color: #101014;
+    font-size: 52px;
+    line-height: 57px;
+    font-weight: 800;
+}
+
+/* Вкладки во всю ширину пополам: активная красная, вторая серая. */
+.nd-interest__tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 24px;
+}
+.nd-interest__tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .08);
+    color: #101014;
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+.nd-interest__tab:hover {
+    background: rgba(82, 82, 100, .14);
+}
+.nd-interest__tab.is-active {
+    background: #c60000;
+    color: #fff;
+}
+.nd-interest__ico {
+    flex: 0 0 20px;
+    color: currentColor;
+}
+
+.nd-interest__pane[hidden] {
+    display: none;
+}
+
+/* Сетка из макета — пять карточек в ряд (в списке раздела их четыре). */
+.nd-interest .nd-catlist .catalog_block {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 1279px) {
+    .nd-interest__title h2 {
+        font-size: 36px;
+        line-height: 42px;
+    }
+    .nd-interest .nd-catlist .catalog_block {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}
+@media (max-width: 991px) {
+    .nd-interest .nd-catlist .catalog_block {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+@media (max-width: 767px) {
+    .nd-interest {
+        margin-bottom: 32px;
+    }
+    .nd-interest__title h2 {
+        font-size: 28px;
+        line-height: 32px;
+    }
+    .nd-interest__tab {
+        height: 44px;
+        padding: 0 10px;
+        font-size: 15px;
+    }
+    .nd-interest .nd-catlist .catalog_block {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
