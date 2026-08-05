@@ -31,6 +31,12 @@ div.city_chooser_frame {
     box-shadow: 0 24px 88px rgba(0, 0, 0, .2);
     overflow: hidden auto;
 }
+/* Скругление тема гасит своим правилом на .popup/.jqmWindow — одного
+   класса в селекторе не хватает, поэтому дублируем с полным набором.
+   Без этого углы окна оставались прямыми (Ирина, 2026-08-05). */
+div.city_chooser_frame.popup.jqmWindow {
+    border-radius: 4px;
+}
 
 /* Обёртку окна рисует ajax/city_chooser.php — гасим её поля и рамку,
    белую карточку по макету даёт сама .city_chooser_frame. */
@@ -214,12 +220,15 @@ div.city_chooser_frame {
 
 /* ======================= доставка в города ============================== */
 
+/* Отступы в блоке доставки крупнее, чем в макете (просьба Ирины,
+   2026-08-05): вживую окно уже 1200 из макета, городов больше и строк
+   получается вдвое больше — по макетным 8/12 список читался сплошняком. */
 .nd-cities__delivery {
-    padding: 24px 40px;
+    padding: 32px 40px;
     background: #393946;
 }
 .nd-cities__dtitle {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     font-size: 18px;
     line-height: 25.2px;
     font-weight: 400;
@@ -229,12 +238,14 @@ div.city_chooser_frame {
 .nd-cities__dlist {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 12px;
+    gap: 14px 20px;
 }
+/* Начертание обычное: в макете стоит 500, но Nunito Sans на тёмном фоне
+   выглядит с ним жирным — Ирина попросила убрать. */
 .nd-cities__dlink {
     font-size: 16px;
     line-height: 24px;
-    font-weight: 500;
+    font-weight: 400;
     color: #fff;
     text-decoration: none;
 }
@@ -301,10 +312,10 @@ div.city_chooser_frame {
 }
 
 .nd-cities__delivery {
-    padding: 24px 16px;
+    padding: 28px 16px;
 }
 .nd-cities__dlist {
-    gap: 20px;
+    gap: 16px 20px;
 }
 
 }
