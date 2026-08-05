@@ -1,5 +1,20 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
 <?$this->setFrameMode(true);?>
+<?
+/* Стили и скрипт нового дизайна детальной. Тегами прямо здесь: компонент рисуется,
+   когда <head> уже отдан, SetAdditionalCSS/AddHeadScript туда не доедут. */
+if (!defined('ND_ELEMENT_ASSETS')) {
+	define('ND_ELEMENT_ASSETS', true);
+	$ndElCss = SITE_TEMPLATE_PATH.'/css/newdesign-element.css';
+	$ndElJs  = SITE_TEMPLATE_PATH.'/js/newdesign-element.js';
+	$ndElCssAbs = $_SERVER['DOCUMENT_ROOT'].$ndElCss;
+	$ndElJsAbs  = $_SERVER['DOCUMENT_ROOT'].$ndElJs;
+	?>
+	<link rel="stylesheet" href="<?= $ndElCss ?><?= is_file($ndElCssAbs) ? '?'.filemtime($ndElCssAbs) : '' ?>">
+	<script src="<?= $ndElJs ?><?= is_file($ndElJsAbs) ? '?'.filemtime($ndElJsAbs) : '' ?>" defer></script>
+	<?
+}
+?>
 <style>
 #stores.hidden {
     display: none;
@@ -331,6 +346,98 @@ $APPLICATION->AddHeadString('<meta property="price:currency" content="' . htmlsp
 </div>
 
 <?$countThumb = count($arResult["MORE_PHOTO"]);?>
+
+<?
+/* ============================================================================
+   Галерея нового дизайна (макет Figma 20489:32753): лента превью 115×115 слева,
+   основное фото 634×634, плашки и кнопки поверх него, ниже полоса «Профиль доски».
+
+   Штатную галерею темы (.img_wrapper > .item_slider ниже) не удаляем и не гасим
+   через display:none — на её DOM висит offer-JS (смена цвета, цена, единицы), а
+   flexslider не умеет мерить скрытые узлы. Уводим её за левый край стилями, а
+   свою ленту пересобираем из данных выбранного оффера (см. newdesign-element.js).
+   ========================================================================= */
+$ndSlides = [];
+foreach ((array) $arResult['MORE_PHOTO'] as $arImage) {
+	$small = $arImage['SMALL']['src'] ?: $arImage['SRC'];
+	$ndSlides[] = [
+		'small' => $small,
+		'big'   => $arImage['BIG']['src'] ?: $arImage['SRC'],
+		'thumb' => $arImage['THUMB']['src'] ?: $small,
+		'alt'   => htmlspecialcharsbx($arImage['ALT']),
+		'title' => htmlspecialcharsbx($arImage['TITLE']),
+	];
+}
+$ndFirst = $ndSlides ? $ndSlides[0] : ['small' => '', 'big' => '', 'thumb' => '', 'alt' => '', 'title' => ''];
+
+/* Срок гарантии для бейджа в углу фото — из свойства GARANTY
+   («15 лет гарантия / ~ 25 лет срок службы» → 15), как на easydecking. */
+$ndWarranty = $arResult['DISPLAY_PROPERTIES']['GARANTY']['VALUE'] ?: $arResult['PROPERTIES']['GARANTY']['VALUE'];
+if (is_array($ndWarranty)) $ndWarranty = implode(' ', $ndWarranty);
+$ndWarrantyYears = 0;
+if ($ndWarranty && (preg_match('/(\d+)\s*(?:лет|год[а]?)\s*гаранти/iu', $ndWarranty, $m) || preg_match('/гаранти\D{0,15}(\d+)/iu', $ndWarranty, $m))) {
+	$ndWarrantyYears = (int) $m[1];
+}
+
+/* Профиль доски — файловое свойство PROFIL (множественное, ИБ 19). Берём первый файл. */
+$ndProfileSrc = '';
+$ndProfileVal = $arResult['PROPERTIES']['PROFIL']['VALUE'];
+if ($ndProfileVal) {
+	$ndProfileId = is_array($ndProfileVal) ? reset($ndProfileVal) : $ndProfileVal;
+	if ($ndProfileId) $ndProfileSrc = (string) CFile::GetPath($ndProfileId);
+}
+?>
+<div class="nd-pd__left">
+	<div class="nd-pd__gallery"<?= $ndSlides ? ' data-nd-slides="'.htmlspecialcharsbx(json_encode($ndSlides)).'"' : '' ?>>
+		<? if (count($ndSlides) > 1): ?>
+			<div class="nd-pd__thumbs">
+				<div class="nd-pd__thumbs-track">
+					<? foreach ($ndSlides as $i => $s): ?>
+						<button type="button" class="nd-pd__thumb<?= $i ? '' : ' is-active' ?>" data-index="<?= $i ?>">
+							<img src="<?= $s['thumb'] ?>" alt="<?= $s['alt'] ?>" loading="lazy">
+						</button>
+					<? endforeach; ?>
+				</div>
+				<button type="button" class="nd-pd__thumbs-next" aria-label="Следующие фото">
+					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="#101014" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+				</button>
+			</div>
+		<? endif; ?>
+
+		<div class="nd-pd__photo">
+			<img class="nd-pd__img" src="<?= $ndFirst['small'] ?>" alt="<?= $ndFirst['alt'] ?>" title="<?= $ndFirst['title'] ?>" fetchpriority="high">
+
+			<? if ($ndWarrantyYears): ?>
+				<div class="nd-pd__warranty"><b><?= $ndWarrantyYears ?></b><span>лет<br>гарантии</span></div>
+			<? endif; ?>
+
+			<? /* Ссылки для просмотра во весь экран: их же жмёт кнопка увеличения */ ?>
+			<div class="nd-pd__links" hidden>
+				<? foreach ($ndSlides as $s): ?>
+					<a href="<?= $s['big'] ?>" data-fancybox="nd-pd" title="<?= $s['title'] ?>"></a>
+				<? endforeach; ?>
+			</div>
+
+			<? if ($arResult['HAS_VIDEO']): ?>
+				<a class="nd-pd__video" href="javascript:void(0)" data-fancybox data-type="iframe" hidden>
+					<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x=".75" y=".75" width="18.5" height="18.5" rx="4.25" stroke="#fff" stroke-width="1.5"/><path d="M8 6.5l5 3.5-5 3.5v-7z" fill="#fff"/></svg>
+					<span>Смотреть видео</span>
+				</a>
+			<? endif; ?>
+
+			<button type="button" class="nd-pd__zoom" aria-label="Увеличить">
+				<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="6" stroke="#fff" stroke-width="1.5"/><path d="M13.5 13.5L18 18M9 6.5v5M6.5 9h5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+			</button>
+		</div>
+	</div>
+
+	<? if ($ndProfileSrc): ?>
+		<div class="nd-pd__profile">
+			<span class="nd-pd__profile-label">Профиль доски</span>
+			<img class="nd-pd__profile-img" src="<?= $ndProfileSrc ?>" alt="Профиль доски" loading="lazy">
+		</div>
+	<? endif; ?>
+</div>
 
 <div class="item_slider">
 			<?if(($arParams["DISPLAY_WISH_BUTTONS"] != "N" || $arParams["DISPLAY_COMPARE"] == "Y") || (strlen($arResult["DISPLAY_PROPERTIES"]["CML2_ARTICLE"]["VALUE"]) || ($arResult['SHOW_OFFERS_PROPS'] && $showCustomOffer))):?>

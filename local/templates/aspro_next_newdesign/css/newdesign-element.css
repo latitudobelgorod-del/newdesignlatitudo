@@ -1,0 +1,790 @@
+/* ============================================================================
+   Детальная карточка товара в новом дизайне.
+   Макет — Figma «Чистовик», фрейм 20489:32753 (1440, вариант с красной корзиной).
+   Размеры из макета: контент 1336, левая колонка 757 (превью 115 + зазор 8 +
+   фото 634), правая 543, зазор между колонками 36.
+
+   Разметку по-прежнему даёт штатный шаблон темы (main6): на ней висит offer-JS —
+   смена цвета и длины, пересчёт цены, единицы измерения, счётчик и корзина. Здесь
+   только оформление и порядок блоков, а своя галерея живёт в template.php.
+   ========================================================================= */
+
+.catalog_detail.element_newdesign {
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    color: #101014;
+}
+
+/* --- заголовок: H1 и артикул в одну строку (макет: 36/40 w800 + 14/20) --- */
+.catalog_detail.element_newdesign > h1 {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin: 0 0 40px;
+    padding: 0;
+    font-size: 36px;
+    line-height: 40px;
+    font-weight: 800;
+    color: #101014;
+}
+/* Артикул: копию в заголовок кладёт newdesign-element.js и держит её в актуальном
+   виде наблюдателем — оригинал остаётся в правой колонке скрытым, иначе тема при
+   смене предложения не находит его и вырезает. */
+.catalog_detail.element_newdesign > h1 > .nd-pd__article {
+    flex: 0 0 auto;
+    margin: 0 0 4px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: rgba(82, 82, 100, .5);
+    white-space: nowrap;
+}
+.element_newdesign .info_item > .product-article {
+    display: none !important;
+}
+/* Второй заголовок темы в правой колонке — в макете его нет. !important
+   обязателен: у h2 прибит инлайновый style="display:inline". */
+.element_newdesign .info_item > .product-title-edit {
+    display: none !important;
+}
+
+/* --- две колонки --- */
+.element_newdesign .item_main_info .img_wrapper {
+    float: left;
+    width: 757px;
+    max-width: 57%;
+    margin: 0;
+    padding: 0;
+}
+.element_newdesign .item_main_info .right_info {
+    float: none;
+    overflow: hidden;
+    padding-left: 36px;
+}
+.element_newdesign .item_main_info .right_info .info_item {
+    width: auto;
+    float: none;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+/* Штатная галерея темы: не удаляем и не гасим display:none (flexslider не мерит
+   скрытое, а на её узлах висит offer-JS) — уводим за левый край. Заодно её
+   ленивые картинки перестают попадать во вьюпорт и не грузятся зря. */
+.element_newdesign .img_wrapper > .item_slider {
+    position: absolute !important;
+    left: -9999px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* ===================== галерея нового дизайна ===================== */
+.nd-pd__left {
+    position: relative;
+    z-index: 1;
+}
+.nd-pd__gallery {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+/* лента превью 115×115 с зазором 4 */
+.nd-pd__thumbs {
+    position: relative;
+    flex: 0 0 115px;
+    width: 115px;
+}
+.nd-pd__thumbs-track {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 634px;
+    overflow: hidden;
+    scroll-behavior: smooth;
+}
+.nd-pd__thumb {
+    display: block;
+    width: 115px;
+    height: 115px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: #f5f5f6;
+    overflow: hidden;
+    cursor: pointer;
+}
+.nd-pd__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.nd-pd__thumb.is-active {
+    border-color: rgba(198, 0, 0, .3);
+}
+/* кнопка «ниже по ленте» — белый кружок у нижнего края последнего превью */
+.nd-pd__thumbs-next {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    display: none;
+    width: 24px;
+    height: 24px;
+    margin-left: -12px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(16, 16, 20, .2);
+    cursor: pointer;
+    line-height: 0;
+}
+.nd-pd__thumbs.has-more .nd-pd__thumbs-next {
+    display: block;
+}
+.nd-pd__thumbs-next.is-up svg {
+    transform: rotate(180deg);
+}
+
+/* основное фото — квадрат, как в макете (634×634) */
+.nd-pd__photo {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    aspect-ratio: 1 / 1;
+    border-radius: 6px;
+    background: #f5f5f6;
+    overflow: hidden;
+}
+.nd-pd__img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* плашки товара поверх фото — переносит сюда newdesign-element.js */
+.nd-pd__photo .stickers {
+    position: absolute;
+    top: 9px;
+    left: 8px;
+    right: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+}
+.nd-pd__photo .stickers > div {
+    margin: 0;
+}
+.nd-pd__photo .stickers [class*="sticker"] {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    margin: 0;
+    padding: 0 8px;
+    border-radius: 2px;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.nd-pd__photo .stickers .sticker_sale_text {
+    background: #ffecea;
+    color: #c60000;
+}
+.nd-pd__photo .stickers .sticker_hit,
+.nd-pd__photo .stickers .sticker_new {
+    background: #6e4ad9;
+    color: #fff;
+}
+.nd-pd__photo .stickers .sticker_recommend {
+    background: #fff3e6;
+    color: #d97400;
+}
+
+/* бейдж гарантии в правом верхнем углу (макет 62×62, #000/65%) */
+.nd-pd__warranty {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 62px;
+    height: 62px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, .65);
+    color: #fff;
+    text-align: center;
+}
+.nd-pd__warranty b {
+    font-size: 20px;
+    line-height: 22px;
+    font-weight: 800;
+}
+.nd-pd__warranty span {
+    font-size: 8px;
+    line-height: 10px;
+    text-transform: uppercase;
+}
+
+/* кнопки поверх фото: видео слева внизу, увеличение справа внизу */
+.nd-pd__video,
+.nd-pd__zoom {
+    position: absolute;
+    bottom: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    border: 2px solid rgba(82, 82, 100, .15);
+    border-radius: 3px;
+    background: rgba(0, 0, 0, .64);
+    color: #fff;
+    cursor: pointer;
+}
+.nd-pd__video {
+    left: 8px;
+    padding: 0 16px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.nd-pd__video:hover,
+.nd-pd__video:focus {
+    color: #fff;
+    text-decoration: none;
+}
+.nd-pd__zoom {
+    right: 8px;
+    width: 48px;
+    padding: 0;
+}
+
+/* полоса «Профиль доски» под галереей (макет 757×52) */
+.nd-pd__profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .05);
+}
+.nd-pd__profile-label {
+    flex: 0 0 auto;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    color: #101014;
+}
+.nd-pd__profile-img {
+    max-width: 100%;
+    max-height: 36px;
+    object-fit: contain;
+}
+
+/* ===================== правая колонка ===================== */
+
+/* Примечание о цене — тёмная плашка с иконкой (макет 543×48) */
+.catalog_detail.element_newdesign .right_info .info_item .uf_comment_price_container {
+    margin: 0 0 20px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .uf_comment_price {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 48px;
+    padding: 8px 24px;
+    border: 0;
+    border-radius: 6px;
+    background: #525264;
+    font-size: 12px;
+    line-height: 14px;
+    color: #fff;
+}
+.catalog_detail.element_newdesign .right_info .info_item .uf_comment_price::before {
+    content: "";
+    flex: 0 0 32px;
+    height: 32px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Ccircle cx='16' cy='16' r='13' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M16 9v10M16 22.5v1.5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+/* Наличие по городам */
+/* Отступ держим ровно 20 (макет): у темы блок остатков добирает высоту
+   собственными полями и скрытым #stores — гасим их. */
+.catalog_detail.element_newdesign .right_info .info_item .stores_wrapper {
+    margin: 0 0 20px;
+    padding: 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .stores_wrapper > *:last-child {
+    margin-bottom: 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .title-stock {
+    margin: 0 0 8px;
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 700;
+    color: #2ca973;
+}
+.catalog_detail.element_newdesign .right_info .info_item .stores-simple-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+    width: auto;
+    margin: 0;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .1);
+}
+.catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-name {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #101014;
+}
+.catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-amount {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: #101014;
+}
+.catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-item-green {
+    background: rgba(52, 199, 135, .1);
+}
+.catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-item-green .store-amount {
+    color: #2ca973;
+}
+.catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-item-orange,
+.catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-item-yellow {
+    background: rgba(255, 149, 0, .1);
+}
+.catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-item-orange .store-amount,
+.catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-item-yellow .store-amount {
+    color: #d97400;
+}
+
+/* Одна колонка вместо двух половин темы: обёртки .col-md-6 растворяем
+   (display:contents), порядок задаём каждому блоку. Так узлы остаются на своих
+   местах в DOM — торговый JS темы их находит, — а на экране идут как в макете. */
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 20px 8px;
+    margin: 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 {
+    display: contents;
+}
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > * {
+    width: 100%;
+    float: none;
+    padding: 0;
+    margin: 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__title { order: 1; }
+.catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__list  { order: 2; }
+.catalog_detail.element_newdesign .right_info .info_item .sku_props                 { order: 3; width: auto !important; flex: 1 1 300px; }
+.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block        { order: 4; width: auto !important; flex: 0 0 auto; margin-left: auto !important; }
+.catalog_detail.element_newdesign .right_info .info_item .prices_block              { order: 5; }
+.catalog_detail.element_newdesign .right_info .info_item .buy_block                 { order: 6; }
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc               { order: 7; }
+.catalog_detail.element_newdesign .right_info .info_item .logistic                  { order: 8; }
+.catalog_detail.element_newdesign .right_info .info_item .top_props                 { order: 9; }
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .r1 { order: 10; }
+
+/* «Заказать расчет» — в макете на этом месте текстовая ссылка со стрелкой,
+   а не синяя кнопка темы (класс обёртке ставит newdesign-element.js) */
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none !important;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: #c60000 !important;
+    text-transform: none;
+    box-shadow: none;
+}
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc .btn::after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M6 3l5 5-5 5' stroke='%23c60000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+/* Цвет */
+.catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__title {
+    font-size: 18px;
+    line-height: 25px;
+    font-weight: 400;
+    color: #101014;
+}
+.catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__current-color {
+    font-weight: 500;
+}
+.catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__list .sku-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku-list__item {
+    width: 48px;
+    height: 48px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku-list-item__inner,
+.catalog_detail.element_newdesign .right_info .info_item .sku-list-item__inner a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku-list__item img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku-list__item.active img {
+    box-shadow: 0 0 0 2px rgba(198, 0, 0, .3);
+}
+
+/* Длина — чипы, как в макете (87×36, r4) */
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_item_section_name {
+    display: block;
+    margin: 0 0 4px;
+    font-size: 18px;
+    line-height: 25px;
+    font-weight: 400;
+    color: #101014;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_size ul,
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_size li,
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 87px;
+    height: 36px;
+    margin: 0;
+    padding: 5px 10px;
+    border: 1px solid rgba(82, 82, 100, .25);
+    border-radius: 4px;
+    background: none;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+    cursor: pointer;
+}
+/* Выбранная длина: тема красит её фирменным красным, в макете — серая плашка
+   с тёмной рамкой. Класс у Aspro `active`, у голого Битрикса `bx_active`. */
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_size li.active,
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_size li.bx_active,
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li.active,
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li.bx_active {
+    border-color: #525264 !important;
+    background: rgba(82, 82, 100, .05) !important;
+    color: #101014 !important;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_size li .cnt,
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li .cnt {
+    background: none !important;
+    color: inherit !important;
+}
+
+/* Единицы измерения — группа справа от длины, активная чёрная */
+.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block .textmeasure {
+    display: none;
+}
+.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block .measure-unit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 36px;
+    margin: 0;
+    padding: 5px 10px;
+    border: 1px solid rgba(82, 82, 100, .25);
+    border-radius: 4px;
+    background: none;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+    cursor: pointer;
+}
+.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block .measure-unit-active {
+    border-color: #101014;
+    background: #101014;
+    color: #fff;
+}
+
+/* Цена (макет 42/46 w800, без слова «Цена:»).
+   Слово приходит голым текстовым узлом внутри .values_wrapper — селектором его
+   не достать, поэтому гасим текст обёртки нулевым кеглем и возвращаем размер
+   самим значениям. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .offers_price {
+    display: flex;
+    align-items: baseline;
+    font-size: 0;
+    color: #101014;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .values_wrapper {
+    font-size: 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_value,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_currency,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_measure {
+    font-size: 42px;
+    line-height: 46px;
+    font-weight: 800;
+    color: #101014;
+}
+
+/* Счётчик и корзина (макет: две плитки 266×56) */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_wrapp {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1 1 240px;
+    height: 56px;
+    margin: 0;
+    padding: 0 16px;
+    border: 1px solid rgba(82, 82, 100, .25);
+    border-radius: 4px;
+    background: #fff;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block .minus,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block .plus {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 0;
+    background: none;
+    font-size: 20px;
+    line-height: 1;
+    color: #101014;
+    cursor: pointer;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block input.text {
+    flex: 1 1 auto;
+    height: 100%;
+    border: 0 !important;
+    background: none !important;
+    text-align: center;
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #101014;
+}
+/* Обёртки покупки у темы — inline-block по 254px, из-за чего счётчик и кнопка
+   не занимали ширину колонки. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .offer_buy_block,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .buys_wrapp {
+    display: block;
+    width: 100%;
+}
+/* Видимый счётчик — не .counter_block темы (он скрыт), а поле единиц измерения
+   от maxyss: .measure-wrapper > .measure-block. Его и делаем плиткой из макета. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-wrapper {
+    flex: 1 1 240px;
+    width: auto;
+    margin: 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 56px;
+    padding: 0 8px;
+    border: 1px solid rgba(82, 82, 100, .25);
+    border-radius: 4px;
+    background: #fff;
+}
+/* Фон у кнопок не сбрасываем — минус и плюс тема рисует фоновой картинкой */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    color: #101014;
+    cursor: pointer;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-field {
+    flex: 1 1 auto;
+    width: auto;
+    height: 100%;
+    border: 0 !important;
+    background: none !important;
+    text-align: center;
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #101014;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block {
+    flex: 1 1 240px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 56px;
+    margin: 0;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px;
+    background: #c60000;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: none;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn:hover,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn:focus {
+    background: #a80000;
+    color: #fff;
+}
+
+/* Логистические параметры — четыре плитки 130×52 */
+/* !important: у темы правило на .logistic.col-md-12 с большей специфичностью */
+.catalog_detail.element_newdesign .right_info .info_item .logistic {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+.catalog_detail.element_newdesign .right_info .info_item .logistic .logistic_title {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    line-height: 19px;
+    font-weight: 700;
+    color: #101014;
+}
+.catalog_detail.element_newdesign .right_info .info_item .logistic > div:not(.logistic_title) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+    margin: 0;
+    padding: 6px;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .05);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: #101014;
+}
+.catalog_detail.element_newdesign .right_info .info_item .logistic > div:not(.logistic_title) > span {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    color: #8f8f9a;
+}
+
+/* Ссылки под карточкой */
+.catalog_detail.element_newdesign .right_info .info_item .top_props .props_list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .top_props .choise.colored {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: #c60000;
+    border-bottom: 0;
+}
+
+@media (max-width: 991px) {
+    .element_newdesign .item_main_info .img_wrapper {
+        float: none;
+        width: 100%;
+        max-width: none;
+    }
+    .element_newdesign .item_main_info .right_info {
+        padding-left: 0;
+        margin-top: 24px;
+    }
+    .catalog_detail.element_newdesign > h1 {
+        margin-bottom: 24px;
+        font-size: 28px;
+        line-height: 34px;
+    }
+}
+
+@media (max-width: 767px) {
+    /* на мобильном ленту прячем — листаем само фото, как в макете 360 */
+    .nd-pd__thumbs {
+        display: none;
+    }
+    .nd-pd__video span {
+        display: none;
+    }
+    .nd-pd__video {
+        width: 48px;
+        padding: 0;
+    }
+}
