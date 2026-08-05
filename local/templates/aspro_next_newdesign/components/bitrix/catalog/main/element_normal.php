@@ -9,8 +9,10 @@ use Bitrix\Main\Loader,
 	)
 );?>
 <?$sViewElementTemplate = ($arParams["ELEMENT_TYPE_VIEW"] == "FROM_MODULE" ? $arTheme["CATALOG_PAGE_DETAIL"]["VALUE"] : $arParams["ELEMENT_TYPE_VIEW"]);?>
+<?
+?>
 <?$hide_left_block = ($arTheme["LEFT_BLOCK_CATALOG_DETAIL"]["VALUE"] == "Y" ? "N" : "Y");
-$arWidePage = array("element_1, element_3", "element_4", "element_5", "element_6","element_2", "element_7","element_8");
+$arWidePage = array("element_1, element_3", "element_4", "element_5", "element_6","element_2", "element_7","element_8", "element_newdesign");
 
 //set offer view type
 $typeTmpDetail = 0;
@@ -47,6 +49,13 @@ if($typeTmpDetail)
 		$sViewElementTemplate = $typeDetail;
 }
 
+/* Новый дизайн: свой блок детальной (копия element_6) с шаблоном main6_newdesign.
+   Ставим ПОСЛЕ разбора UF_ELEMENT_DETAIL раздела — иначе вид, выбранный у раздела
+   в админке, перебивает наш. Настройка темы CATALOG_PAGE_DETAIL одна на сайт и к
+   шаблону не привязана (та же беда, что с INDEX_TYPE/HEADER_TYPE), поэтому имя
+   подставляем здесь. Файл лежит только в aspro_next_newdesign — старый дизайн не задет. */
+$sViewElementTemplate = 'element_newdesign';
+
 if(in_array($sViewElementTemplate, $arWidePage))
 	$hide_left_block = "Y";
 ?>
@@ -68,7 +77,7 @@ if(in_array($sViewElementTemplate, $arWidePage))
 <div class="clearfix"></div>
 
 <?$arAllValues=$arSimilar=$arAccessories=array();
-$arShowTabs = array("element_1", "element_2", "element_6", "element_7");
+$arShowTabs = array("element_1", "element_2", "element_6", "element_7", "element_newdesign");
 if(in_array($sViewElementTemplate, $arShowTabs)):
 /*similar goods*/
 $arExpValues=CNextCache::CIBlockElement_GetProperty($arParams["IBLOCK_ID"], $ElementID, array("CACHE" => array("TAG" =>CNextCache::GetIBlockCacheTag($arParams["IBLOCK_ID"]))), array("CODE" => "EXPANDABLES"));
