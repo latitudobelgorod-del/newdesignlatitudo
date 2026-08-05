@@ -50,13 +50,31 @@ $ndBadge = trim((string) ($arParams['BADGE_TEXT'] ?? '')) ?: 'Проект';
 
 			$link = $arItem['DETAIL_PAGE_URL'];
 			$tag = $link ? 'a' : 'div';
+
+			// Плашки на фото — те же, что в списке портфолио (Ирина, 2026-08-05):
+			// видео, число фото галереи и наличие отзыва. Логика взята из
+			// include/parts/project_card.php, чтобы карточки не разъезжались.
+			$hasVideo = !empty($arItem['PROPERTIES']['VIDEO']['VALUE']);
+
+			$gallery = $arItem['PROPERTIES']['GALLEY_BIG']['VALUE'] ?? [];
+			$photoCnt = is_array($gallery) ? count($gallery) : 0;
+
+			// REVIEW — текстовое свойство, у HTML-варианта значение приходит массивом
+			$review = $arItem['PROPERTIES']['REVIEW']['~VALUE'] ?? $arItem['PROPERTIES']['REVIEW']['VALUE'] ?? '';
+			$hasReview = is_array($review) ? (trim((string) $review['TEXT']) !== '') : (trim((string) $review) !== '');
 			?>
 			<<?= $tag ?> class="nd-relprojects__item"<?= $link ? ' href="'.$link.'"' : '' ?> id="<?= $this->GetEditAreaId($arItem['ID']) ?>">
 				<span class="nd-relprojects__pic">
 					<? if ($src): ?>
 						<img src="<?= $src ?>" alt="<?= $arItem['NAME'] ?>" loading="lazy">
 					<? endif; ?>
-					<span class="nd-relprojects__badge"><?= htmlspecialcharsbx($ndBadge) ?></span>
+					<? if ($hasVideo || $photoCnt || $hasReview): ?>
+						<span class="nd-relprojects__tags">
+							<? if ($hasVideo): ?><span class="nd-relprojects__tag nd-relprojects__tag--video">Видео</span><? endif; ?>
+							<? if ($photoCnt): ?><span class="nd-relprojects__tag nd-relprojects__tag--photo"><?= $photoCnt ?> фото</span><? endif; ?>
+							<? if ($hasReview): ?><span class="nd-relprojects__tag nd-relprojects__tag--review">Отзыв</span><? endif; ?>
+						</span>
+					<? endif; ?>
 				</span>
 				<span class="nd-relprojects__name"><?= $arItem['NAME'] ?></span>
 			</<?= $tag ?>>

@@ -1850,10 +1850,15 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 					3 => "PREVIEW_PICTURE",
 					4 => "",
 				),
+				// VIDEO/GALLEY_BIG/REVIEW нужны плашкам на фото — тем же,
+				   // что в списке портфолио (Ирина, 2026-08-05).
 				"PROPERTY_CODE" => array(
 					0 => "PERIOD",
 					1 => "REDIRECT",
-					2 => "",
+					2 => "VIDEO",
+					3 => "GALLEY_BIG",
+					4 => "REVIEW",
+					5 => "",
 				),
 				"CHECK_DATES" => "Y",
 				"DETAIL_URL" => "",

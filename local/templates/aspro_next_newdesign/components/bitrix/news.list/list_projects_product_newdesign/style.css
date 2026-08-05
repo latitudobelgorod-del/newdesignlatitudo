@@ -96,19 +96,6 @@
 .nd-relprojects__item:hover .nd-relprojects__pic img {
     transform: scale(1.03);
 }
-.nd-relprojects__badge {
-    position: absolute;
-    left: 12px;
-    bottom: 12px;
-    padding: 0 6px;
-    border-radius: 2px;
-    background: #ffecea;
-    font-size: 12px;
-    line-height: 20px;
-    font-weight: 600;
-    color: #c60000;
-    text-transform: uppercase;
-}
 .nd-relprojects__name {
     font-size: 16px;
     line-height: 22px;
@@ -139,4 +126,42 @@
     .nd-relprojects__track {
         grid-auto-columns: 80%;
     }
+}
+
+/* Плашки на фото — те же, что в списке портфолио (.nd-projects__tag*
+   в шаблоне list_projects_newdesign): видео, число фото и отзыв.
+   Правила продублированы, потому что стиль того шаблона на детальной
+   товара не подключается. */
+.nd-relprojects__tags {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.nd-relprojects__tag {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 2px;
+    font-size: 11px;
+    line-height: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    white-space: nowrap;
+}
+.nd-relprojects__tag--video {
+    background: #e6edff;
+    color: #0048ff;
+}
+.nd-relprojects__tag--photo {
+    background: #fff3e6;
+    color: #ff8800;
+}
+.nd-relprojects__tag--review {
+    background: #ffecea;
+    color: #ff4130;
 }
