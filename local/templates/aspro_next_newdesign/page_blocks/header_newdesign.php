@@ -375,6 +375,11 @@ $basketCount = (int)$arBasketPrices['BASKET_COUNT'];
 		false, array("HIDE_ICONS" => "Y")
 	);?>
 </div>
+
+<?// Остальные выпадающие панели («Услуги», «Партнерам», «Наши работы»,
+// «Производители»). Привязываются к пунктам шапки по адресу ссылки.?>
+<?include(__DIR__.'/header_drops_newdesign.php');?>
+
 <div class="nd-catalog-overlay" id="nd-catalog-overlay"></div>
 
 <script src="<?=SITE_TEMPLATE_PATH?>/js/newdesign-header.js?<?=@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-header.js')?>"></script>

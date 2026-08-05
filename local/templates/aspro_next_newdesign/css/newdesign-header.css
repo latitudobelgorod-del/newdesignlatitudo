@@ -539,7 +539,8 @@ body {
 
 /* ============================== каталог ================================= */
 
-.nd-catalog-drop {
+.nd-catalog-drop,
+.nd-drop {
     position: fixed;
     top: var(--nd-header-h);
     left: 0;
@@ -555,7 +556,8 @@ body {
     pointer-events: none;
     transition: opacity 0.22s ease, transform 0.22s ease;
 }
-.nd-catalog-drop.is-open {
+.nd-catalog-drop.is-open,
+.nd-drop.is-open {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
@@ -887,6 +889,155 @@ body {
     color: #c60000;
 }
 
+/* ==================== выпадающие панели пунктов шапки =================== */
+
+/* «Услуги», «Партнерам», «Наши работы», «Производители». Общее из макета:
+   контейнер 1440 с полями 40/52, заголовок 36/39.6 (800) и отступ 24 до
+   содержимого, снизу волосяная линия — как у панели каталога. */
+.nd-drop__inner {
+    box-sizing: border-box;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 40px 52px;
+    border-bottom: 1px solid rgba(82, 82, 100, 0.25);
+    font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
+}
+
+.nd-drop__title {
+    display: block;
+    margin-bottom: 24px;
+    color: #101014;
+    font-size: 36px;
+    line-height: 39.6px;
+    font-weight: 800;
+    text-decoration: none;
+}
+.nd-drop__title:hover,
+.nd-drop__title:focus {
+    color: #c60000;
+    text-decoration: none;
+}
+
+/* ---- чипы: «Услуги» (фрейм 20566:27852) и «Партнерам» ---- */
+.nd-drop__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.nd-drop__chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, 0.1);
+    color: #101014;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.nd-drop__chip:hover,
+.nd-drop__chip:focus {
+    background: rgba(82, 82, 100, 0.16);
+    color: #c60000;
+    text-decoration: none;
+}
+
+/* ---- плитки с фото: «Наши работы» (фрейм 20738:46104) ----
+   4 колонки по 316 с зазором 24; внутри фото 152×101 и подпись 18/21.6 (700). */
+.nd-drop__tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+}
+.nd-drop__tile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-drop__tile:hover,
+.nd-drop__tile:focus {
+    text-decoration: none;
+}
+.nd-drop__tile-pic {
+    display: block;
+    flex: 0 0 152px;
+    width: 152px;
+    height: 101px;
+    overflow: hidden;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, 0.07);
+}
+.nd-drop__tile-pic img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.nd-drop__tile-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 18px;
+    line-height: 21.6px;
+    font-weight: 700;
+    color: inherit;
+}
+.nd-drop__tile:hover .nd-drop__tile-name,
+.nd-drop__tile:focus .nd-drop__tile-name {
+    color: #c60000;
+}
+
+/* ---- плитки с логотипами: «Производители» (фрейм 21034:65643) ----
+   8 в ряд, зазор 12, высота 103, рамка 1px и радиус 3. */
+.nd-drop__brands {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 12px;
+}
+.nd-drop__brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 103px;
+    padding: 17px 24px;
+    border: 1px solid rgba(82, 82, 100, 0.15);
+    border-radius: 3px;
+    background: #fff;
+    text-decoration: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.nd-drop__brand:hover,
+.nd-drop__brand:focus {
+    border-color: rgba(82, 82, 100, 0.5);
+    box-shadow: 0 2px 8px rgba(16, 16, 20, 0.06);
+    text-decoration: none;
+}
+.nd-drop__brand img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+.nd-drop__brand-name {
+    color: #101014;
+    font-size: 13px;
+    line-height: 16px;
+    text-align: center;
+}
+
+/* Пункт с раскрытой панелью в макете приглушён — и кнопка основной строки,
+   и ссылка нижнего меню. */
+.nd-btn--muted.is-open span,
+.nd-menu-link.is-open {
+    color: rgba(82, 82, 100, 0.6);
+}
+
 /* ============================== адаптив ================================= */
 
 /* Макет нарисован под 1440. От 1200 до 1440 ужимаем поля и подписи, ниже
@@ -897,6 +1048,12 @@ body {
     }
     .nd-cat {
         padding: 24px;
+    }
+    .nd-drop__inner {
+        padding: 24px;
+    }
+    .nd-drop__brands {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 }
 @media (max-width: 1279px) {
@@ -921,5 +1078,23 @@ body {
     }
     .nd-cat__cols {
         column-count: 2;
+    }
+    .nd-drop__title {
+        font-size: 28px;
+        line-height: 32px;
+    }
+    .nd-drop__tiles {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .nd-drop__brands {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+/* Ниже 992 работает мобильная шапка, десктопных пунктов нет — панель некому
+   открыть, но на всякий случай убираем её из потока совсем. */
+@media (max-width: 991px) {
+    .nd-drop {
+        display: none;
     }
 }

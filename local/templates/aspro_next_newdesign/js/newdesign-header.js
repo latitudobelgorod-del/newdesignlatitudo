@@ -51,6 +51,10 @@
 
 	function openCatalog() {
 		if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+		/* Объявление функции всплывает, поэтому вызов до её кода ниже — рабочий.
+		   Панели и каталог делят один оверлей, открытым может быть только что-то
+		   одно. */
+		closeDropsNow();
 		loadCatalogImages();
 		catalogBtn.classList.add('is-open');
 		catalogDrop.classList.add('is-open');
@@ -118,6 +122,122 @@
 			chip.addEventListener('mouseenter', function () { activateSection(target); });
 			chip.addEventListener('focus', function () { activateSection(target); });
 		});
+	}
+
+	/* ── Выпадающие панели пунктов шапки ──
+	   «Услуги», «Партнерам», «Наши работы», «Производители». Панель находит
+	   свой пункт не по id, а по адресу (data-nd-drop = href ссылки), поэтому
+	   работает и с кнопками основной строки, и с пунктами нижнего меню —
+	   а если пункт переедет из ряда в ряд, править ничего не нужно.
+	   Разметка — page_blocks/header_drops_newdesign.php. */
+	var dropsByKey = {};
+	var dropTriggers = [];
+	var dropTimer = null;
+	var openDrop = null;
+
+	/* Приводим адрес к пути без хвостов: в меню ссылки пишут и абсолютные,
+	   и с параметрами, а сравнивать надо одно с одним. */
+	function dropKey(href) {
+		var a = document.createElement('a');
+		a.href = href;
+		var path = a.pathname || '';
+		if (path.charAt(0) !== '/') path = '/' + path;
+		return path.replace(/\/+$/, '') + '/';
+	}
+
+	Array.prototype.forEach.call(document.querySelectorAll('.nd-drop[data-nd-drop]'), function (drop) {
+		dropsByKey[dropKey(drop.getAttribute('data-nd-drop'))] = drop;
+	});
+
+	function loadDropImages(drop) {
+		if (drop.ndImagesLoaded) return;
+		drop.ndImagesLoaded = true;
+		Array.prototype.forEach.call(drop.querySelectorAll('img[data-nd-src]'), function (img) {
+			img.src = img.getAttribute('data-nd-src');
+			img.removeAttribute('data-nd-src');
+		});
+	}
+
+	function closeDropsNow() {
+		if (dropTimer) { clearTimeout(dropTimer); dropTimer = null; }
+		if (!openDrop) return;
+		openDrop.classList.remove('is-open');
+		Array.prototype.forEach.call(openDrop.ndTriggers || [], function (t) {
+			t.classList.remove('is-open');
+		});
+		openDrop = null;
+		if (catalogOverlay && !(catalogDrop && catalogDrop.classList.contains('is-open'))) {
+			catalogOverlay.classList.remove('is-open');
+		}
+	}
+
+	function closeDropsSoon() {
+		dropTimer = setTimeout(closeDropsNow, 150);
+	}
+
+	function openDropPanel(drop) {
+		if (dropTimer) { clearTimeout(dropTimer); dropTimer = null; }
+		if (openDrop === drop) return;
+		closeDropsNow();
+		closeCatalogNow();
+		loadDropImages(drop);
+		drop.classList.add('is-open');
+		Array.prototype.forEach.call(drop.ndTriggers || [], function (t) {
+			t.classList.add('is-open');
+		});
+		if (catalogOverlay) catalogOverlay.classList.add('is-open');
+		openDrop = drop;
+	}
+
+	var ndHeaderEl = document.getElementById('nd-header');
+	if (ndHeaderEl) {
+		var noHoverDrops = window.matchMedia && window.matchMedia('(hover: none)').matches;
+
+		Array.prototype.forEach.call(ndHeaderEl.querySelectorAll('a[href]'), function (link) {
+			var drop = dropsByKey[dropKey(link.getAttribute('href'))];
+			if (!drop) return;
+
+			if (!drop.ndTriggers) drop.ndTriggers = [];
+			drop.ndTriggers.push(link);
+			dropTriggers.push(link);
+
+			if (noHoverDrops) {
+				/* На тач-устройствах hover эмулируется: первый тап только
+				   раскрывает панель, повторный уводит по ссылке. */
+				link.addEventListener('click', function (e) {
+					if (openDrop !== drop) {
+						e.preventDefault();
+						openDropPanel(drop);
+					}
+				});
+			} else {
+				link.addEventListener('mouseenter', function () { openDropPanel(drop); });
+				link.addEventListener('mouseleave', closeDropsSoon);
+				link.addEventListener('focus', function () { openDropPanel(drop); });
+			}
+		});
+
+		if (dropTriggers.length) {
+			Array.prototype.forEach.call(document.querySelectorAll('.nd-drop'), function (drop) {
+				if (noHoverDrops) return;
+				drop.addEventListener('mouseenter', function () { openDropPanel(drop); });
+				drop.addEventListener('mouseleave', closeDropsSoon);
+			});
+
+			if (catalogOverlay) {
+				if (noHoverDrops) catalogOverlay.addEventListener('click', closeDropsNow);
+				else catalogOverlay.addEventListener('mouseenter', closeDropsSoon);
+			}
+
+			document.addEventListener('click', function (e) {
+				if (!openDrop) return;
+				if (openDrop.contains(e.target)) return;
+				for (var i = 0; i < dropTriggers.length; i++) {
+					if (dropTriggers[i].contains(e.target)) return;
+				}
+				closeDropsNow();
+			});
+		}
 	}
 
 	/* ── Попапы «Шоурум» и «Склад» ── */
@@ -267,6 +387,7 @@
 	document.addEventListener('keydown', function (e) {
 		if (e.key !== 'Escape') return;
 		closeCatalogNow();
+		closeDropsNow();
 		pops.forEach(closePop);
 	});
 
