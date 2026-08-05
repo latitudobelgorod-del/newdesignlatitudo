@@ -1694,8 +1694,13 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 			
 
 			<?if($arResult["DETAIL_TEXT"] || ($arResult["PREVIEW_TEXT"]) || ($arResult["PROPERTIES"]["EDITOR1"]) || ((count($arResult["PROPERTIES"][$instr_prop]["VALUE"]) && is_array($arResult["PROPERTIES"][$instr_prop]["VALUE"])) || count($arResult["SECTION_FULL"]["UF_FILES"]))):?>
-			<div>
+			<div class="nd-pd__info">
 
+						<? /* Заголовок «Описание» из макета: у темы его нет, текст шёл сразу
+						      после карточки. Ставим, только если описание вправду есть. */ ?>
+						<?if(strlen($arResult["PREVIEW_TEXT"]) || strlen($arResult["DETAIL_TEXT"])):?>
+							<h2 class="nd-pd__h2">Описание</h2>
+						<?endif;?>
 
 						<?if(strlen($arResult["PREVIEW_TEXT"])):?>
 							<div class="detail_text"><?=$arResult["PREVIEW_TEXT"]?></div>

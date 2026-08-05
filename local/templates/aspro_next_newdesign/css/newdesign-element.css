@@ -758,7 +758,120 @@
     border-bottom: 0;
 }
 
+/* ===================== описание и цвета/фактуры =====================
+   Содержимое тут редакторское: краткое описание товара и блоки sprint.editor
+   (заголовки, ряды картинок с подписями). Разметку не трогаем — задаём
+   типографику и сетку из макета: заголовок раздела 36/40 w800, подзаголовки
+   28/34 и 22/26 w700, картинки со скруглением 4 и рамкой, подписи 14/20. */
+.element_newdesign .nd-pd__info {
+    margin-top: 52px;
+}
+.element_newdesign .nd-pd__h2 {
+    margin: 0 0 16px;
+    padding: 0;
+    font-size: 36px;
+    line-height: 40px;
+    font-weight: 800;
+    color: #101014;
+}
+.element_newdesign .nd-pd__info > .detail_text {
+    margin: 0 0 40px;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.element_newdesign .editor.default_detail h2 {
+    margin: 40px 0 24px;
+    padding: 0;
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 700;
+    color: #101014;
+}
+.element_newdesign .editor.default_detail h3,
+.element_newdesign .editor.default_detail h4 {
+    margin: 32px 0 24px;
+    padding: 0;
+    font-size: 22px;
+    line-height: 26px;
+    font-weight: 700;
+    color: #101014;
+}
+.element_newdesign .editor.default_detail p {
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+/* Картинки блоков: скругление и волосяная рамка, как в макете */
+.element_newdesign .editor.default_detail .sp-image {
+    margin: 0;
+}
+.element_newdesign .editor.default_detail .sp-image img {
+    width: 100%;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 4px;
+}
+/* Подпись под картинкой (в блоке она идёт отдельным .detail_text) */
+.element_newdesign .editor.default_detail .sp-image + .detail_text {
+    margin: 6px 0 24px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #525264;
+}
+.element_newdesign .editor.default_detail .sp-image + .detail_text p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: #525264;
+}
+/* Зазор между колонками рядов — 24, как в макете (у темы 30 через .row) */
+.element_newdesign .editor.default_detail .sp-container > .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 24px;
+    margin: 0;
+}
+.element_newdesign .editor.default_detail .sp-container > .row > [class*="col-"] {
+    flex: 1 1 0;
+    width: auto;
+    max-width: none;
+    padding: 0;
+}
+/* Галерея sprint.editor: плитки в ряд с подписями под ними */
+.element_newdesign .editor.default_detail .sp-gallery-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.element_newdesign .editor.default_detail .sp-gallery-item {
+    flex: 0 1 248px;
+    margin: 0;
+    padding: 0;
+}
+.element_newdesign .editor.default_detail .sp-gallery-item img {
+    width: 100%;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 4px;
+}
+.element_newdesign .editor.default_detail .sp-gallery-item-text {
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #525264;
+}
+
 @media (max-width: 991px) {
+    .element_newdesign .nd-pd__h2 {
+        font-size: 28px;
+        line-height: 34px;
+    }
+    .element_newdesign .editor.default_detail h2 {
+        font-size: 22px;
+        line-height: 28px;
+    }
     .element_newdesign .item_main_info .img_wrapper {
         float: none;
         width: 100%;
