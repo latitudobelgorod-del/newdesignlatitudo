@@ -290,6 +290,8 @@ body.bx-panel-fixed .nd-mheader {
     mask-image: url("../images/newdesign/mobile/close24.svg");
 }
 
+/* У панелей разделов заголовок — ссылка на сам раздел, но выглядит как
+   обычный текст (в макете отдельной строки «Все …» нет). */
 .nd-msub__title {
     flex: 1 1 auto;
     min-width: 0;
@@ -298,6 +300,12 @@ body.bx-panel-fixed .nd-mheader {
     font-size: 18px;
     line-height: 21.6px;
     font-weight: 700;
+    text-decoration: none;
+}
+.nd-msub__title:hover,
+.nd-msub__title:focus {
+    color: #101014;
+    text-decoration: none;
 }
 /* Второй уровень: вместо заголовка — крошка с именем родителя. */
 .nd-msub__crumb {
@@ -379,16 +387,6 @@ body.bx-panel-fixed .nd-mheader {
     padding: 10px 6px 10px 16px;
 }
 
-/* Первая строка «Все услуги» — ссылка на сам раздел: пункт меню теперь
-   только раскрывает панель, попасть на страницу больше неоткуда. */
-.nd-msub__row--all .nd-msub__name {
-    font-weight: 700;
-}
-/* В списке с миниатюрами строка «Все …» картинки не имеет — отбиваем её
-   на ширину миниатюры, иначе подписи стоят по разным линиям. */
-.nd-msub__list:not(.nd-msub__list--text) .nd-msub__row--all {
-    padding-left: 90px;
-}
 
 /* Шапка-карточка раздела на втором уровне (макет 20512:85390). */
 .nd-msub__cur {

@@ -181,16 +181,13 @@ $arDrops = array(
 		<div class="nd-msub" data-nd-msub="drop-<?=md5($arDrop['KEY'])?>" data-nd-msub-key="<?=htmlspecialcharsbx($arDrop['KEY'])?>" hidden>
 			<div class="nd-msub__head">
 				<button class="nd-msub__back" type="button" data-nd-msub-back aria-label="Назад"></button>
-				<span class="nd-msub__title"><?=htmlspecialcharsbx($arDrop['TITLE'])?></span>
+				<?// Заголовок — ссылка на сам раздел: в макете отдельной строки
+				// «Все …» нет, а пункт меню теперь только раскрывает список,
+				// и попасть на страницу иначе неоткуда. Выглядит как текст.?>
+				<a class="nd-msub__title" href="<?=htmlspecialcharsbx($arDrop['KEY'])?>"><?=htmlspecialcharsbx($arDrop['TITLE'])?></a>
 				<button class="nd-msub__close" type="button" data-nd-close aria-label="Закрыть"></button>
 			</div>
 			<div class="nd-msub__list<?=($arDrop['TYPE'] === 'chips' ? ' nd-msub__list--text' : '')?>">
-				<?// Ссылка на сам раздел — первой строкой: у панели нет другого
-				// способа туда попасть, пункт меню теперь только раскрывает список.?>
-				<a class="nd-msub__row nd-msub__row--all" href="<?=htmlspecialcharsbx($arDrop['KEY'])?>">
-					<span class="nd-msub__name">Все <?=htmlspecialcharsbx(mb_strtolower($arDrop['TITLE']))?></span>
-					<i class="nd-msub__arrow"></i>
-				</a>
 				<?foreach($arDrop['ITEMS'] as $arItem):?>
 					<a class="nd-msub__row<?=($arDrop['TYPE'] === 'brands' ? ' nd-msub__row--logo' : '')?>" href="<?=htmlspecialcharsbx($arItem['LINK'])?>">
 						<?if($arDrop['TYPE'] !== 'chips'):?>
