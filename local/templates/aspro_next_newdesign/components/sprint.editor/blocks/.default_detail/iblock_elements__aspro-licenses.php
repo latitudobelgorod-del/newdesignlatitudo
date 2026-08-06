@@ -10,7 +10,10 @@ $sprintSearchFilter = array(
 
 ?><? $APPLICATION->IncludeComponent(
     "bitrix:news.list",
-    "news-documents",
+    // Тот же шаблон списка документов, что на статьях (/materials/…): иконка,
+    // название и подпись «Скачать PDF (27,9 мб)» по макету. Файл лежит только
+    // в aspro_next_newdesign, старый дизайн остаётся на "news-documents".
+    "news-documents_newdesign",
     array(
         "SORT_BY_FILTER_ID" => 'Y',
         "IBLOCK_TYPE" => "aspro_next_content",

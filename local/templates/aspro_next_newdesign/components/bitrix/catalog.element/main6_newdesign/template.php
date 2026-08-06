@@ -1949,7 +1949,11 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 
 <?$APPLICATION->IncludeComponent(
 			"bitrix:news.list",
-			"news-documents",
+			/* Тот же список документов, что на статьях (/materials/…): иконка,
+			   название и подпись «Скачать PDF (27,9 мб)» — макет Figma
+			   «Карточка товара». Привязанные элементы инфоблока «Лицензии и
+			   сертификаты» те же, меняется только шаблон вывода. */
+			"news-documents_newdesign",
 			array(
 				"IBLOCK_TYPE" => "aspro_next_content",
 				"IBLOCK_ID" => $arResult["PROPERTIES"]["INSTRUCTIONS_FILE"]["LINK_IBLOCK_ID"],

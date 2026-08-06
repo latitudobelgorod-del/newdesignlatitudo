@@ -919,13 +919,12 @@
 /* Документы приезжают двумя способами: файлы товара (.files_block) и блоки
    sprint.editor (.row с колонками по 3). Приводим и то, и другое к двум
    колонкам макета; безымянные обёртки sprint.editor растворяем. */
-/* Документы приходят из двух источников с разной вложенностью (файлы товара и
-   блоки sprint.editor). Раскладываем их в две колонки многоколоночной вёрсткой:
-   она не зависит от того, как глубоко вложена карточка, — в отличие от грида и
-   флекса, которым нужно, чтобы карточки были прямыми детьми контейнера. */
-.element_newdesign .nd-pd__docs-body {
-    column-count: 2;
-    column-gap: 24px;
+/* Список документов рисует тот же шаблон, что на статьях (.nd-docs —
+   news.list/news-documents_newdesign): иконка, название и «Скачать PDF (…)».
+   Там сетка в три колонки, здесь блок вдвое уже — делаем две. */
+.element_newdesign .nd-pd__docs-body .nd-docs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
 }
 .element_newdesign .nd-pd__docs-body [class*="col-"],
 .element_newdesign .nd-pd__docs-body .row,
@@ -937,14 +936,10 @@
     padding: 0;
     float: none;
 }
-.element_newdesign .nd-pd__docs-body .file_type {
-    margin-bottom: 16px;
-    break-inside: avoid;
-}
-/* ссылка на производителя — под карточками, во всю ширину блока */
+/* ссылка на производителя — под карточками */
 .element_newdesign .nd-pd__docs-body > .wraps > a.detail_text {
     display: inline-block;
-    margin-top: 8px;
+    margin-top: 16px;
     font-size: 14px;
     line-height: 20px;
     color: #c60000;
