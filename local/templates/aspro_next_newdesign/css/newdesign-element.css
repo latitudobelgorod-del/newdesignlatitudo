@@ -863,6 +863,185 @@
     color: #525264;
 }
 
+/* ===================== акции, документы, доставка =====================
+   Нижний ряд макета: слева акции, справа документы и доставка, зазор 52. */
+.element_newdesign .nd-pd__bottom {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 52px;
+    margin: 52px 0;
+}
+.element_newdesign .nd-pd__bottom-col:empty {
+    display: none;
+}
+/* колонка-источник документов после переноса пустеет — не оставляем от неё поля */
+.element_newdesign .nd-pd__docs-src:empty {
+    display: none;
+}
+
+/* плитки акций — по две в ряд, как в макете */
+.element_newdesign .nd-pd__sales {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+.element_newdesign .nd-pd__sale {
+    display: block;
+    border-radius: 4px;
+    overflow: hidden;
+    text-decoration: none;
+}
+.element_newdesign .nd-pd__sale img {
+    display: block;
+    width: 100%;
+    border-radius: 4px;
+    transition: transform .3s ease;
+}
+.element_newdesign .nd-pd__sale:hover img,
+.element_newdesign .nd-pd__sale:focus img {
+    transform: scale(1.03);
+}
+.element_newdesign .nd-pd__sale-name {
+    display: block;
+    padding: 16px;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 4px;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #101014;
+}
+
+/* документы — карточки файла с иконкой (макет: 309, зазор 24/16) */
+.element_newdesign .nd-pd__docs {
+    margin-bottom: 36px;
+}
+/* Документы приезжают двумя способами: файлы товара (.files_block) и блоки
+   sprint.editor (.row с колонками по 3). Приводим и то, и другое к двум
+   колонкам макета; безымянные обёртки sprint.editor растворяем. */
+/* Документы приходят из двух источников с разной вложенностью (файлы товара и
+   блоки sprint.editor). Раскладываем их в две колонки многоколоночной вёрсткой:
+   она не зависит от того, как глубоко вложена карточка, — в отличие от грида и
+   флекса, которым нужно, чтобы карточки были прямыми детьми контейнера. */
+.element_newdesign .nd-pd__docs-body {
+    column-count: 2;
+    column-gap: 24px;
+}
+.element_newdesign .nd-pd__docs-body [class*="col-"],
+.element_newdesign .nd-pd__docs-body .row,
+.element_newdesign .nd-pd__docs-body .wraps,
+.element_newdesign .nd-pd__docs-body .files_block {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    float: none;
+}
+.element_newdesign .nd-pd__docs-body .file_type {
+    margin-bottom: 16px;
+    break-inside: avoid;
+}
+/* ссылка на производителя — под карточками, во всю ширину блока */
+.element_newdesign .nd-pd__docs-body > .wraps > a.detail_text {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #c60000;
+}
+.element_newdesign .nd-pd__docs-body .wraps,
+.element_newdesign .nd-pd__docs-body .files_block {
+    margin: 0;
+    padding: 0;
+}
+/* Иконку типа файла тема рисует фоном у пустого <i>, ей нужен свой размер —
+   во флексе она схлопывалась в ноль. */
+.element_newdesign .nd-pd__docs .file_type i.icon {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 40px;
+}
+.element_newdesign .nd-pd__docs .file_type {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 0;
+    padding: 12px 16px;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 4px;
+}
+.element_newdesign .nd-pd__docs .file_type .description a {
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 600;
+    color: #101014;
+    text-decoration: none;
+}
+.element_newdesign .nd-pd__docs .file_type .description a:hover,
+.element_newdesign .nd-pd__docs .file_type .description a:focus {
+    color: #c60000;
+    text-decoration: none;
+}
+.element_newdesign .nd-pd__docs .file_type .file_info,
+.element_newdesign .nd-pd__docs .file_type .size {
+    font-size: 12px;
+    line-height: 16px;
+    color: #8f8f9a;
+}
+
+/* доставка — строки с иконкой (макет: строка 36, зазор 16) */
+.element_newdesign .nd-pd__delivery-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 36px;
+    margin-bottom: 16px;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.element_newdesign .nd-pd__delivery-row:last-child {
+    margin-bottom: 0;
+}
+.element_newdesign .nd-pd__delivery-icon {
+    flex: 0 0 24px;
+    height: 24px;
+    background: no-repeat center / contain;
+}
+.element_newdesign .nd-pd__delivery-icon--pickup {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M3 9.5L12 4l9 5.5V20H3V9.5z' stroke='%23101014' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M9 20v-6h6v6' stroke='%23101014' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.element_newdesign .nd-pd__delivery-icon--truck {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M2 7h11v9H2V7zM13 10h4l3 3v3h-7v-6z' stroke='%23101014' stroke-width='1.5' stroke-linejoin='round'/%3E%3Ccircle cx='7' cy='18' r='2' stroke='%23101014' stroke-width='1.5'/%3E%3Ccircle cx='17' cy='18' r='2' stroke='%23101014' stroke-width='1.5'/%3E%3C/svg%3E");
+}
+.element_newdesign .nd-pd__delivery-note {
+    font-size: 14px;
+    line-height: 20px;
+    color: #8f8f9a;
+}
+.element_newdesign .nd-pd__delivery-value {
+    margin-left: auto;
+    font-size: 14px;
+    line-height: 20px;
+    color: #8f8f9a;
+    white-space: nowrap;
+}
+.element_newdesign .nd-pd__delivery-value a {
+    color: #c60000;
+    text-decoration: none;
+}
+
+@media (max-width: 767px) {
+    .element_newdesign .nd-pd__bottom {
+        grid-template-columns: 1fr;
+        gap: 36px;
+    }
+    .element_newdesign .nd-pd__sales,
+    .element_newdesign .nd-pd__docs .files_block > .row {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 991px) {
     .element_newdesign .nd-pd__h2 {
         font-size: 28px;

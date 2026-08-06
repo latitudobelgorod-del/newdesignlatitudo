@@ -1884,7 +1884,10 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 		
 		
 		
-	<div    class="<?=((isset($arResult["DISPLAY_PROPERTIES"]["CML2_ATTRIBUTES"]["VALUE"]) && (!$arResult['SECTION']['ID'] == 98)) ? 'col-md-12' : 'col-md-6')?>"  >
+	<? /* nd-pd__docs-src: по этому классу newdesign-element.js забирает колонку
+	      документов целиком (файлы товара + блоки sprint.editor) в нижний ряд
+	      нового дизайна — по макету документы стоят рядом с доставкой. */ ?>
+	<div    class="nd-pd__docs-src <?=((isset($arResult["DISPLAY_PROPERTIES"]["CML2_ATTRIBUTES"]["VALUE"]) && (!$arResult['SECTION']['ID'] == 98)) ? 'col-md-12' : 'col-md-6')?>"  >
 <?/*Дополнительные файлы*/?>
 						<?
 						$arFiles = array();
@@ -2031,6 +2034,87 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 
 
 </div>
+</div>
+
+<?
+/* ============================================================================
+   Нижний ряд карточки по макету: слева «Акции», справа «Документы» и «Доставка».
+
+   Документы рисует шаблон темы выше (штатный список файлов) — второй раз их не
+   выводим: разметку переносит сюда newdesign-element.js, как плашки товара в
+   галерею. Тексты доставки — включаемая область, чтобы правились из публички.
+   ========================================================================= */
+$ndSales = [];
+if (CModule::IncludeModule('iblock')) {
+	$arSalesFilter = [
+		'IBLOCK_ID' => 17,
+		'ACTIVE' => 'Y',
+		'ACTIVE_DATE' => 'Y',
+		'PROPERTY_LINK_GOODS' => $arResult['ID'],
+	];
+	/* Регион: акция без привязки — общая. ИЛИ обязательно подгруппой, иначе оно
+	   распространится на весь фильтр вместе с IBLOCK_ID (та же грабля, что на главной). */
+	if (class_exists('CNextRegionality')) {
+		$ndRegion = CNextRegionality::getCurrentRegion();
+		$ndRegionId = is_array($ndRegion) ? (int) $ndRegion['ID'] : 0;
+		if ($ndRegionId) {
+			$arSalesFilter[] = [
+				'LOGIC' => 'OR',
+				['PROPERTY_LINK_REGION' => $ndRegionId],
+				['PROPERTY_LINK_REGION' => false],
+			];
+		}
+	}
+	$rsSales = CIBlockElement::GetList(
+		['SORT' => 'ASC', 'ID' => 'DESC'],
+		$arSalesFilter,
+		false,
+		['nTopCount' => 6],
+		['ID', 'NAME', 'DETAIL_PAGE_URL', 'PREVIEW_PICTURE', 'PROPERTY_IMAGE_FOR_CATALOG']
+	);
+	while ($arSale = $rsSales->Fetch()) {
+		/* Берём обычный баннер акции (как на /sale/), а не IMAGE_FOR_CATALOG:
+		   тот нарисован вертикальным — под вставку в сетку каталога. */
+		$picId = (int) ($arSale['PREVIEW_PICTURE'] ?: $arSale['PROPERTY_IMAGE_FOR_CATALOG_VALUE']);
+		$arSale['ND_PIC'] = $picId ? CFile::ResizeImageGet($picId, ['width' => 618, 'height' => 618], BX_RESIZE_IMAGE_PROPORTIONAL, true) : false;
+		$ndSales[] = $arSale;
+	}
+}
+?>
+<div class="nd-pd__bottom">
+	<div class="nd-pd__bottom-col">
+		<? if ($ndSales): ?>
+			<h2 class="nd-pd__h2">Акции</h2>
+			<div class="nd-pd__sales">
+				<? foreach ($ndSales as $arSale): ?>
+					<a class="nd-pd__sale" href="<?= $arSale['DETAIL_PAGE_URL'] ?>">
+						<? if ($arSale['ND_PIC']): ?>
+							<img src="<?= $arSale['ND_PIC']['src'] ?>" alt="<?= htmlspecialcharsbx($arSale['NAME']) ?>" loading="lazy">
+						<? else: ?>
+							<span class="nd-pd__sale-name"><?= htmlspecialcharsbx($arSale['NAME']) ?></span>
+						<? endif; ?>
+					</a>
+				<? endforeach; ?>
+			</div>
+		<? endif; ?>
+	</div>
+
+	<div class="nd-pd__bottom-col">
+		<? /* Сюда newdesign-element.js переносит штатный список документов */ ?>
+		<div class="nd-pd__docs" hidden>
+			<h2 class="nd-pd__h2">Документы</h2>
+			<div class="nd-pd__docs-body"></div>
+		</div>
+
+		<div class="nd-pd__delivery">
+			<h2 class="nd-pd__h2">Доставка</h2>
+			<?$APPLICATION->IncludeFile(
+				SITE_DIR.'include/newdesign/element/delivery.php',
+				[],
+				['MODE' => 'html', 'NAME' => 'Доставка в карточке товара']
+			);?>
+		</div>
+	</div>
 </div>
 
 <?/*С этим товаром покупают*/?>

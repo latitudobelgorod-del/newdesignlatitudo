@@ -133,6 +133,24 @@
 		span.textContent = article.textContent.trim();
 	}
 
+	/* Документы тема рисует в ряду с характеристиками, а по макету они в нижнем
+	   ряду рядом с доставкой. Переносим сам список, а не копируем: ссылки на
+	   файлы и микроразметку дублировать незачем. */
+	function moveDocs() {
+		var box = $('.nd-pd__docs');
+		var body = $('.nd-pd__docs-body');
+		var src = $('.nd-pd__docs-src');
+		if (!box || !body || !src || body.children.length) return;
+
+		/* Переносим всё содержимое колонки: и файлы товара, и блоки sprint.editor
+		   с сертификатами. Заголовок темы выбрасываем — свой уже стоит. */
+		Array.prototype.slice.call(src.children).forEach(function (el) {
+			if (el.tagName === 'H4') { el.remove(); return; }
+			body.appendChild(el);
+		});
+		if (body.children.length) box.hidden = false;
+	}
+
 	/* Кнопка «Заказать расчет» лежит в безымянном div — помечаем обёртку классом,
 	   чтобы стили могли поставить её на место из макета (ссылка под счётчиком).
 	   Текст кнопки не трогаем: в макете он свой, но на сайте кнопка настоящая. */
@@ -181,6 +199,7 @@
 		try { slides = JSON.parse(gallery.getAttribute('data-nd-slides') || '[]'); } catch (e) { slides = []; }
 
 		moveNodes();
+		moveDocs();
 		tagCalcButton();
 		bind();
 
