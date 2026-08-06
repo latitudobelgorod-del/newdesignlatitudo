@@ -1760,7 +1760,7 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 <?/*характеристики доски*/?>
 				
 				<?if (($arResult['SECTION']['ID'] == 98)|| ($arResult['SECTION']['ID'] == 510)):?>
-	<div class="col-md-6">				
+	<div class="nd-pd__chars-src col-md-6">
 				<h4>Характеристики</h4>
 			<div class="char_block">
 			
@@ -2087,6 +2087,10 @@ if (CModule::IncludeModule('iblock')) {
 ?>
 <div class="nd-pd__bottom">
 	<div class="nd-pd__bottom-col">
+		<? /* Сюда newdesign-element.js переносит характеристики: по макету они
+		      стоят слева в одной строке с документами, а не отдельным рядом. */ ?>
+		<div class="nd-pd__chars" hidden></div>
+
 		<? if ($ndSales): ?>
 			<h2 class="nd-pd__h2">Акции</h2>
 			<div class="nd-pd__sales">

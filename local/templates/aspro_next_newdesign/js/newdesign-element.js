@@ -133,6 +133,39 @@
 		span.textContent = article.textContent.trim();
 	}
 
+	/* Характеристики тема рисует отдельным рядом над документами, из-за чего
+	   справа зияла пустота. По макету они стоят слева в одной строке с
+	   документами и доставкой — переносим их в левую колонку нижнего ряда. */
+	function moveChars() {
+		var box = $('.nd-pd__chars');
+		if (!box || box.children.length) return;
+
+		/* Разметка у темы двух видов: для террасной доски это колонка
+		   .nd-pd__chars-src с заголовком и .char_block внутри, для остальных
+		   разделов — сам .char_block с колонкой и заголовком внутри. Поэтому
+		   ищем таблицу характеристик и переносим тот узел, который лежит прямо
+		   в ряду .desc_tab. */
+		var block = $('.row.desc_tab .char_block');
+		if (!block) return;
+		var node = block;
+		while (node.parentElement && !node.parentElement.classList.contains('desc_tab')) {
+			node = node.parentElement;
+		}
+		box.appendChild(node);
+		box.hidden = false;
+		markCharRows();
+	}
+
+	/* Характеристики приходят несколькими таблицами (профиль, основные,
+	   применение), и nth-child считает строки заново в каждой — заливка через
+	   одну сбивалась на стыке. Размечаем строки сквозной нумерацией. */
+	function markCharRows() {
+		var rows = document.querySelectorAll('.nd-pd__chars .char_block tr');
+		Array.prototype.forEach.call(rows, function (tr, i) {
+			tr.classList.toggle('nd-alt', i % 2 === 0);
+		});
+	}
+
 	/* Документы тема рисует в ряду с характеристиками, а по макету они в нижнем
 	   ряду рядом с доставкой. Переносим сам список, а не копируем: ссылки на
 	   файлы и микроразметку дублировать незачем. */
@@ -148,7 +181,9 @@
 			if (el.tagName === 'H4') { el.remove(); return; }
 			body.appendChild(el);
 		});
-		if (body.children.length) box.hidden = false;
+		/* Заголовок «Документы» показываем только при реальном списке: у части
+		   товаров в колонке лежит одна ссылка «Информация о производителе». */
+		if ($('.nd-docs, .files_block', body)) box.hidden = false;
 	}
 
 	/* Кнопка «Заказать расчет» лежит в безымянном div — помечаем обёртку классом,
@@ -199,6 +234,7 @@
 		try { slides = JSON.parse(gallery.getAttribute('data-nd-slides') || '[]'); } catch (e) { slides = []; }
 
 		moveNodes();
+		moveChars();
 		moveDocs();
 		tagCalcButton();
 		bind();

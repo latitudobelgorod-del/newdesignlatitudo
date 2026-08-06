@@ -837,30 +837,91 @@
     max-width: none;
     padding: 0;
 }
-/* Галерея sprint.editor: плитки в ряд с подписями под ними */
-.element_newdesign .editor.default_detail .sp-gallery-items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
+/* Блок «Галерея» sprint.editor оформлен общим правилом в css/newdesign.css —
+   он одинаков на всех страницах нового дизайна. */
+
+/* ===================== характеристики =====================
+   Макет: заголовок 36/40 w800, строки таблицы через одну с серой заливкой и
+   скруглением 6, без точечных выносок темы. Названия слева, значения справа. */
+.catalog_detail.element_newdesign .nd-pd__chars {
+    margin-bottom: 52px;
 }
-.element_newdesign .editor.default_detail .sp-gallery-item {
-    flex: 0 1 248px;
-    margin: 0;
+/* переносим колонку темы как есть — гасим её бутстраповскую ширину и поля */
+.catalog_detail.element_newdesign .nd-pd__chars [class*="col-"] {
+    width: auto;
+    max-width: none;
     padding: 0;
+    float: none;
 }
-.element_newdesign .editor.default_detail .sp-gallery-item img {
+/* у части разделов заголовок идёт с двоеточием — оно из данных, не трогаем */
+.catalog_detail.element_newdesign .nd-pd__chars .char_block > [class*="col-"] > h4 {
+    margin: 0 0 24px;
+    font-size: 36px;
+    line-height: 40px;
+    font-weight: 800;
+    color: #101014;
+}
+.catalog_detail.element_newdesign .nd-pd__chars h4,
+.catalog_detail.element_newdesign .row.desc_tab h4 {
+    margin: 0 0 24px;
+    padding: 0;
+    font-size: 36px;
+    line-height: 40px;
+    font-weight: 800;
+    color: #101014;
+}
+/* пустой ряд-источник после переноса не должен давать отступов и линии */
+.catalog_detail.element_newdesign .row.desc_tab:not(:has(.char_block)) {
+    display: none;
+}
+.catalog_detail.element_newdesign .char_block table {
     width: 100%;
-    border: 1px solid rgba(82, 82, 100, .15);
-    border-radius: 4px;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
 }
-.element_newdesign .editor.default_detail .sp-gallery-item-text {
-    margin-top: 6px;
-    font-size: 14px;
-    line-height: 20px;
-    color: #525264;
+.catalog_detail.element_newdesign .char_block td {
+    padding: 12px 16px;
+    border: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+    vertical-align: top;
+}
+.catalog_detail.element_newdesign .char_block td.char_name {
+    width: 45%;
+}
+/* Зебра. Класс nd-alt расставляет newdesign-element.js сквозной нумерацией:
+   таблиц несколько, и nth-child в каждой начинал бы счёт заново. */
+.catalog_detail.element_newdesign .char_block tr.nd-alt td {
+    background: rgba(82, 82, 100, .05);
+}
+.catalog_detail.element_newdesign .char_block tr.nd-alt td:first-child {
+    border-radius: 6px 0 0 6px;
+}
+.catalog_detail.element_newdesign .char_block tr.nd-alt td:last-child {
+    border-radius: 0 6px 6px 0;
+}
+/* цвет названий и значений — как в макете, без темовой раскраски */
+.catalog_detail.element_newdesign .char_block td.char_name,
+.catalog_detail.element_newdesign .char_block td.char_value {
+    color: #101014;
+}
+/* Точечная выноска и мелкий кегль темы — в макете их нет.
+   Пунктир тема рисует повторяющейся фоновой картинкой у ячейки названия: гасим
+   только картинку, иначе пропадёт заливка зебры. */
+.catalog_detail.element_newdesign .char_block td.char_name {
+    background-image: none !important;
+}
+/* А под самим названием у темы белая подложка (ею она перекрывала пунктир) —
+   вот её убираем целиком, вместе с фоном. */
+.catalog_detail.element_newdesign .char_block .props_item,
+.catalog_detail.element_newdesign .char_block .props_item span {
+    background: none !important;
+    border: 0 !important;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
 }
 
 /* ===================== акции, документы, доставка =====================

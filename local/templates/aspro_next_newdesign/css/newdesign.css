@@ -3271,3 +3271,65 @@ body .nd-filter .bx_filter_block .values_expander {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }
+
+/* ======================== блок «Галерея» (sprint.editor) ==================
+   Один вид на всех страницах нового дизайна (просьба Ирины, 2026-08-06):
+   квадратные плитки по пять в ряд с зазором 20 и скруглением 4, как в макете.
+   Разметку даёт редактор контент-менеджера
+   (components/sprint.editor/blocks/.default/gallery*), здесь только оформление.
+   ====================================================================== */
+.sp-gallery .sp-gallery-items {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.sp-gallery .sp-gallery-item {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    float: none;
+}
+.sp-gallery .sp-gallery-item-img-wrapper {
+    display: block;
+    position: relative;
+    /* height:auto обязателен: тема задаёт плитке свою высоту (170px),
+       и она перебивала пропорцию квадрата из макета */
+    height: auto !important;
+    aspect-ratio: 1 / 1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.sp-gallery .sp-gallery-item img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none;
+    margin: 0 !important;
+    object-fit: cover;
+    transition: transform .3s ease;
+}
+.sp-gallery .sp-gallery-item-img-wrapper:hover img {
+    transform: scale(1.03);
+}
+/* Подпись тема показывает на наведении, ужимая при этом саму картинку —
+   плитка «схлопывалась» и уезжала. В макете подписей у галереи нет, текст
+   остаётся в увеличенном просмотре (data-caption). */
+.sp-gallery .sp-gallery-item-text {
+    display: none !important;
+}
+
+@media (max-width: 1199px) {
+    .sp-gallery .sp-gallery-items {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (max-width: 767px) {
+    .sp-gallery .sp-gallery-items {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+}
