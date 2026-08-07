@@ -1859,10 +1859,6 @@ body .nd-brandhead #pagetitle {
     margin-bottom: 0;
 }
 
-.nd-brandhead__site {
-    margin-top: 16px;
-}
-
 /* Лестница размеров та же, что у H1 остальных внутренних страниц. */
 @media (max-width: 1199px) {
     body .nd-brandhead #pagetitle {

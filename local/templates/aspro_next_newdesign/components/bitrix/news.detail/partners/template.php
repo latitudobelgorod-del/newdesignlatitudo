@@ -83,14 +83,9 @@ $goy=$arResult['NAME'];
 			"HIDE_ICONS" => "Y"
 		)
 	);?>
-	<?/* Ссылка на сайт марки: в макете её нет, но свойство заполнено у части
-	   брендов, и терять её незачем — переносим под описание. */?>
-	<?if($arResult["DISPLAY_PROPERTIES"]["SITE"]['VALUE']):?>
-		<p class="nd-brandhead__site">
-			Официальный сайт <?=$arResult["NAME"]?>:
-			<a href="<?=(strpos($arResult["DISPLAY_PROPERTIES"]["SITE"]['VALUE'], 'http') === false ? 'http://' : '').$arResult["DISPLAY_PROPERTIES"]["SITE"]['VALUE'];?>" target="_blank" rel="nofollow"><?=$arResult["DISPLAY_PROPERTIES"]["SITE"]['VALUE'];?></a>
-		</p>
-	<?endif;?>
+	<?/* Ссылки на официальный сайт марки здесь нет намеренно: в макете
+	   «Категория производителя» её не предусмотрено. Свойство SITE у части
+	   брендов заполнено — если понадобится, вернуть недолго. */?>
 </div>
 
 <?/*Вывод анкоров на разделы, в зависимости от шаблона детальной*/?>
