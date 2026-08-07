@@ -1723,14 +1723,14 @@
 
 /* Заголовок раздела. Черта над ним — та самая «серая черта между разделами»
    из макета; первая отделяет разделы от якорей, поэтому правило одно на всех. */
-.nd-catlist .nd-brandsect__title {
+body .nd-catlist .nd-brandsect__title {
     margin: 0 0 32px;
     padding-top: 40px;
     border-top: 2px solid rgba(82, 82, 100, .15);
     color: #101014;
     font-family: 'Nunito Sans', Arial, sans-serif;
     font-size: 42px;
-    line-height: 46px;
+    line-height: 46.2px;
     font-weight: 800;
     /* Якорь не должен загонять заголовок под шапку, а она залипающая и разной
        высоты. Реальную высоту кладёт в --nd-header-h newdesign-header.js,
@@ -1785,15 +1785,123 @@
         margin-bottom: 28px;
     }
 
-    .nd-catlist .nd-brandsect__title {
+    body .nd-catlist .nd-brandsect__title {
         padding-top: 28px;
         margin-bottom: 16px;
-        font-size: 24px;
-        line-height: 30px;
     }
 
     .nd-catlist .catalog_block + .nd-brandsect__title,
     .nd-catlist .nd-brandsect__more + .nd-brandsect__title {
         margin-top: 28px;
+    }
+}
+
+/* ===========================================================================
+   Шапка страницы бренда (.nd-brandhead)
+
+   Макет Figma «Категория производителя»: имя марки слева, её логотип справа
+   на той же строке, под ними описание, под описанием якоря на разделы.
+   ======================================================================== */
+.nd-brandhead {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 70px;
+}
+
+/* Размер тот же, что у H1 на остальных внутренних страницах редизайна
+   (52/57.2, 800). Селектор с `body` и идентификатором — иначе правила темы
+   на #pagetitle перебивают класс: они сильнее по специфичности. */
+.nd-brandhead__title {
+    flex: 1 1 auto;
+}
+
+body .nd-brandhead #pagetitle {
+    margin: 0;
+    padding: 0;
+    color: #101014;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 52px;
+    line-height: 57.2px;
+    font-weight: 800;
+}
+
+/* Бокс под логотип фиксированный (188×70 в макете), а сама картинка вписана
+   внутрь: у марок логотипы разных пропорций. */
+.nd-brandhead__logo {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 188px;
+    height: 70px;
+}
+
+.nd-brandhead__logo img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Описание идёт сразу под строкой с именем — в макете зазора между ними нет,
+   а до якорей остаётся 16px. */
+.nd-brandhead__text {
+    margin: 0 0 16px;
+    color: #101014;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.nd-brandhead__text > *:last-child {
+    margin-bottom: 0;
+}
+
+.nd-brandhead__site {
+    margin-top: 16px;
+}
+
+/* Лестница размеров та же, что у H1 остальных внутренних страниц. */
+@media (max-width: 1199px) {
+    body .nd-brandhead #pagetitle {
+        font-size: 40px;
+        line-height: 46px;
+    }
+    body .nd-catlist .nd-brandsect__title {
+        font-size: 32px;
+        line-height: 36px;
+    }
+}
+
+@media (max-width: 991px) {
+    body .nd-brandhead #pagetitle {
+        font-size: 30px;
+        line-height: 33px;
+    }
+    body .nd-catlist .nd-brandsect__title {
+        font-size: 24px;
+        line-height: 28px;
+    }
+}
+
+@media (max-width: 767px) {
+    /* На узком экране логотип уходит под имя — так в мобильном макете. */
+    .nd-brandhead {
+        flex-wrap: wrap;
+        gap: 12px;
+        min-height: 0;
+    }
+
+    .nd-brandhead__title {
+        flex: 1 1 100%;
+    }
+
+    .nd-brandhead__logo {
+        justify-content: flex-start;
+        width: auto;
+        max-width: 188px;
+        height: 40px;
     }
 }
