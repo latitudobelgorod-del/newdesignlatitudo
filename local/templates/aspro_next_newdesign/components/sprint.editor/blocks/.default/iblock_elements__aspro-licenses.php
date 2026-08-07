@@ -8,6 +8,11 @@ $sprintSearchFilter = array(
     "=ID" => $block['element_ids'],
 );
 
+/* Показываем все файлы блока разом, без постранички. Разрастись список не
+   может: он ограничен теми элементами, которые менеджер отметил в редакторе
+   (фильтр по =ID выше), так что «все» — это ровно столько, сколько выбрано. */
+$ldDocsCount = is_array($block['element_ids']) ? count($block['element_ids']) : 0;
+
 ?><? $APPLICATION->IncludeComponent(
     "bitrix:news.list",
     // Список документов в новом дизайне рисуется своей копией шаблона —
@@ -17,10 +22,10 @@ $sprintSearchFilter = array(
       //  "SORT_BY_FILTER_ID" => 'Y',
         "IBLOCK_TYPE" => "aspro_next_content",
         "IBLOCK_ID" => $block['iblock_id'],
-        // Постраничка нового дизайна: по девять файлов (три ряда по три),
-        // навигация — общий шаблон pagination_newdesign, как на отзывах,
-        // портфолио и материалах.
-        "NEWS_COUNT" => "9",
+        // Ровно столько, сколько файлов в блоке — тогда всё умещается на одну
+        // страницу и навигация не появляется. Ноль здесь ставить нельзя:
+        // news.list поймёт его как «без ограничения» и вернёт весь инфоблок.
+        "NEWS_COUNT" => (string)($ldDocsCount > 0 ? $ldDocsCount : 9),
 //		"SORT_BY1" => "SORT",
 //		"SORT_ORDER1" => "ASC",
 //		"SORT_BY2" => "ID",
@@ -56,7 +61,7 @@ $sprintSearchFilter = array(
         "INCLUDE_SUBSECTIONS" => "Y",
         "PAGER_TEMPLATE" => "pagination_newdesign",
         "DISPLAY_TOP_PAGER" => "N",
-        "DISPLAY_BOTTOM_PAGER" => "Y",
+        "DISPLAY_BOTTOM_PAGER" => "N",
         "PAGER_TITLE" => "",
         "PAGER_SHOW_ALWAYS" => "N",
         "PAGER_DESC_NUMBERING" => "N",
