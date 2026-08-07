@@ -1,5 +1,5 @@
 <?
-global $arTheme, $arRegion;
+global $arTheme, $arRegion, $APPLICATION;
 $arRegions = CNextRegionality::getRegions();
 $regionID = ($arRegion ? $arRegion['ID'] : '');
 
@@ -39,11 +39,15 @@ $regionID = ($arRegion ? $arRegion['ID'] : '');
 </div>
 </div>
 <?else:?>
+<?/* Баннер «Комплект Пергола + мебель». На самой странице перголы его не
+   показываем: он туда и ведёт, и звать со страницы на неё же незачем. */?>
+<?if(strpos($APPLICATION->GetCurPage(false), '/projects/pergoly/') !== 0):?>
 <div class="top_inner_block_wrapper">
 <div class="maxwidth-theme">
-<div class="banner_gradient"><a href="/info/rassrochka/"><img  alt="Рассрочка" title="Рассрочка" src="/images/banners/banner_rassrochka.jpg" loading="lazy" ></a></div>
+<div class="banner_gradient"><a href="/projects/pergoly/"><img  alt="Комплект Пергола + мебель" title="Комплект Пергола + мебель" src="/images/banners/banner_pergola.jpg" loading="lazy" ></a></div>
 </div>
 </div>
+<?endif;?>
 <?endif;?>
 
 
