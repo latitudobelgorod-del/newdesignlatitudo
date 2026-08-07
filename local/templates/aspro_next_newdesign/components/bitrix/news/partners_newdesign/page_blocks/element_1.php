@@ -77,10 +77,10 @@ global $APPLICATION;?>
 	   /local/ajax/brand_products.php, когда список догружает следующую порцию,
 	   и параметры каталога у страницы и у догрузки обязаны совпадать.
 
-	   Порция: по разделам — 8 карточек (два ряда сетки), сплошным списком —
-	   20 (пять рядов). Сетка нового дизайна четырёхколоночная, её ширина
-	   задана в css/newdesign-catalog.css. */?>
-	<?$ldPerPortion = ($ldBySections ? 8 : 20);?>
+	   Порция кратна ряду сетки, а в ней пять карточек: по разделам — 10 (два
+	   ряда, как в макете «Категория производителя»), сплошным списком — 25
+	   (пять рядов). Ширина сетки задана в css/newdesign-catalog.css. */?>
+	<?$ldPerPortion = ($ldBySections ? 10 : 25);?>
 	<?$ldBrand = array(
 		'MODE' => ($ldBySections ? 'sections' : 'flat'),
 		'FILTER' => $GLOBALS['arrProductsFilter'],

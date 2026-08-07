@@ -1702,10 +1702,29 @@
     border-bottom: 0;
 }
 
+/* Сетка бренда — пять карточек в ряд (в макете 267px вплотную при контенте
+   1336), в разделе каталога и на главной их четыре. На узких экранах спускаемся
+   по той же лестнице, что и основная сетка: 3 и 2 колонки. */
+.nd-catlist .catalog_block.nd-brandsect__grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1199px) {
+    .nd-catlist .catalog_block.nd-brandsect__grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-catlist .catalog_block.nd-brandsect__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 /* Заголовок раздела. Черта над ним — та самая «серая черта между разделами»
    из макета; первая отделяет разделы от якорей, поэтому правило одно на всех. */
 .nd-catlist .nd-brandsect__title {
-    margin: 0 0 24px;
+    margin: 0 0 32px;
     padding-top: 40px;
     border-top: 2px solid rgba(82, 82, 100, .15);
     color: #101014;
@@ -1725,7 +1744,7 @@
 }
 
 .nd-catlist .nd-brandsect__more {
-    margin-top: 24px;
+    margin-top: 32px;
 }
 
 .nd-brandsect__more-btn {

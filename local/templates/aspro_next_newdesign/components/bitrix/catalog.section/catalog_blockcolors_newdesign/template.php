@@ -18,6 +18,11 @@ $ldLastTail = null;      // раздел, которым список закан
 $ldAjaxQuery = (string)($arParams['LD_AJAX_QUERY'] ?? '');
 $ldMeta = (array)($arResult['LD_SECTIONS_META'] ?? array());
 
+/* Сетка бренда пятиколоночная (макет «Категория производителя»: карточки по
+   267px вплотную), тогда как в разделе каталога и на главной колонок четыре.
+   Поэтому у неё свой класс, а не общий .catalog_block. */
+$ldBrandGrid = (!empty($arResult['LD_GROUPED']) || !empty($arResult['LD_FLATTENED'])) ? ' nd-brandsect__grid' : '';
+
 if(!empty($arResult['LD_GROUPED']) && !$ldItemsOnly){
 	$ldPrevSid = null;
 	$ldPrevSection = null;
@@ -261,7 +266,7 @@ div[id*="prop_169"][style*="display: none"] {
 	<?/* nd-catlist__list + nd-catlist__nav у навигации — на эту пару завязана
 	   кнопка «Показать ещё» из js/newdesign-ui.js (она ищет список по имени
 	   блока из класса обёртки навигации). */?>
-	<div id="portfolio_loader" class="catalog_block nd-catlist__list items block_list margin0 row flexbox">
+	<div id="portfolio_loader" class="catalog_block nd-catlist__list items block_list margin0 row flexbox<?=$ldBrandGrid?>">
 
 
 	<?}?>
@@ -315,7 +320,7 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 			</div>
 			<?=$ldSectionMore(isset($ldTails[$i - 1]) ? $ldTails[$i - 1] : null)?>
 			<?=$ldSectionHead($ldHeads[$i])?>
-			<div class="catalog_block nd-catlist__list items block_list margin0 row flexbox">
+			<div class="catalog_block nd-catlist__list items block_list margin0 row flexbox<?=$ldBrandGrid?>">
 		<?}?>
 
 		
