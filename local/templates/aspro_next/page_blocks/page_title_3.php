@@ -41,10 +41,10 @@ $regionID = ($arRegion ? $arRegion['ID'] : '');
 <?else:?>
 <?/* Баннер «Комплект Пергола + мебель». На самой странице перголы его не
    показываем: он туда и ведёт, и звать со страницы на неё же незачем. */?>
-<?if(strpos($APPLICATION->GetCurPage(false), '/projects/pergoly/') !== 0):?>
+<?if(strpos($APPLICATION->GetCurPage(false), '/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/') !== 0):?>
 <div class="top_inner_block_wrapper">
 <div class="maxwidth-theme">
-<div class="banner_gradient"><a href="/projects/pergoly/"><img  alt="Комплект Пергола + мебель" title="Комплект Пергола + мебель" src="/images/banners/banner_pergola.jpg" loading="lazy" ></a></div>
+<div class="banner_gradient banner_gradient--pergola"><a href="/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/"><img  alt="Комплект Пергола + мебель" title="Комплект Пергола + мебель" src="/images/banners/banner_pergola.jpg" loading="lazy" ></a></div>
 </div>
 </div>
 <?endif;?>

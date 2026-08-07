@@ -103,6 +103,20 @@ html {
         }
 .banner_gradient img {width:100%;}
 
+/* Баннер «Комплект Пергола + мебель».
+
+   Общее правило .banner_gradient img выше задаёт max-height:150px и
+   object-fit:cover. Оно было подогнано под прежний баннер рассрочки: тот
+   5875x583, то есть почти 10:1, и в рамку 1410x150 ложился без потерь.
+   У нового баннера 1920x276 — это 7:1, и та же рамка срезала ему бока
+   вместе с плашкой «Новинка!». Показываем в собственных пропорциях. */
+.banner_gradient--pergola img {
+    height: auto;
+    max-height: none;
+    object-fit: fill;
+}
+
+
 /*variacii_colors*/
 .catalog-detail__sku {
 	margin: 25px 0;
