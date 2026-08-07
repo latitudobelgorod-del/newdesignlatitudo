@@ -50,13 +50,27 @@ $ldSectionHead = function($section){
    а не на страницу, поэтому <button>, а не ссылка: без JS переход по такому
    адресу показал бы голые карточки. section=0 — плоский список бренда, у
    которого разделов нет. */
-$ldMoreButton = function($sid, $total, $shown) use ($ldAjaxQuery){
+/* «10 товаров», «2 товара», «1 товар» — подпись из макета, а число меняется
+   после каждой догрузки, так что склонение считаем, а не пишем руками. */
+$ldGoodsWord = function($n){
+	$n = (int)$n;
+	$last = $n % 10;
+	$two = $n % 100;
+	if($last === 1 && $two !== 11)
+		return 'товар';
+	if($last >= 2 && $last <= 4 && ($two < 12 || $two > 14))
+		return 'товара';
+	return 'товаров';
+};
+
+$ldMoreButton = function($sid, $total, $shown) use ($ldAjaxQuery, $ldGoodsWord){
 	if($ldAjaxQuery === '' || $total <= $shown)
 		return '';
+	$left = $total - $shown;
 	$url = '/local/ajax/brand_products.php?'.$ldAjaxQuery.'&section='.(int)$sid.'&offset='.(int)$shown;
 	return '<div class="nd-brandsect__more">'
 		.'<button type="button" class="nd-brandsect__more-btn" data-nd-brand-more'
-		.' data-url="'.htmlspecialcharsbx($url).'">Показать ещё '.($total - $shown).'</button>'
+		.' data-url="'.htmlspecialcharsbx($url).'">Показать еще '.$left.' '.$ldGoodsWord($left).'</button>'
 		.'</div>';
 };
 

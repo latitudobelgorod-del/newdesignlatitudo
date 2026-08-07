@@ -792,6 +792,14 @@
 
     var loading = false;
 
+    /* Подпись кнопки после догрузки — та же, что печатает шаблон списка. */
+    function goodsWord(n) {
+        var last = n % 10, two = n % 100;
+        if (last === 1 && two !== 11) return 'товар';
+        if (last >= 2 && last <= 4 && (two < 12 || two > 14)) return 'товара';
+        return 'товаров';
+    }
+
     /* Пересоздаём <script> уже после вставки в документ: сработает он только
        на месте, в живом дереве. data-nd-run — метка для runAppendedScripts(),
        чтобы тот не запустил их по второму разу. */
@@ -845,7 +853,7 @@
 
                 if (left > 0) {
                     btn.setAttribute('data-url', url.replace(/([?&]offset=)\d+/, '$1' + offset));
-                    btn.textContent = 'Показать ещё ' + left;
+                    btn.textContent = 'Показать еще ' + left + ' ' + goodsWord(left);
                     btn.classList.remove('is-loading');
                 } else {
                     box.parentNode.removeChild(box);

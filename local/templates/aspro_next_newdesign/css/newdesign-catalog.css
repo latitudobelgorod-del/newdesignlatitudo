@@ -1659,54 +1659,97 @@
 /* ===========================================================================
    Страница бренда: товары, разложенные по разделам (.nd-brandsect)
 
-   Раздел — это отдельная сетка карточек со своим заголовком, а не строка
-   внутри общей: сетка обведена рамкой, и заголовок внутри неё читался бы её
-   строкой. Заголовок служит якорем для ссылок над списком — их печатает
-   catalog.section/ankor_section. Под сеткой раздела стоит «Показать ещё»:
-   сразу показывается несколько карточек, остальное догружает
+   Макет Figma «Категория производителя»: сверху якоря-таблетки, ниже разделы,
+   каждый со своим заголовком, и перед каждым заголовком серая черта. Раздел —
+   отдельная сетка карточек, а не строка внутри общей: сетка обведена рамкой,
+   и заголовок внутри неё читался бы её строкой. Под сеткой раздела — кнопка
+   «Показать еще» во всю ширину, она догружает следующую порцию через
    /local/ajax/brand_products.php.
    ======================================================================== */
-.nd-catlist .nd-brandsect__title {
-    margin: 40px 0 16px;
+
+/* Якоря на разделы. Таблетки 36px с подложкой в 10% основного серого —
+   тот же цвет, которым нарисованы линии сетки товаров. */
+.nd-brandsect__anchors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 40px;
+}
+
+.nd-brandsect__anchor {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .1);
     color: #101014;
-    font-size: 28px;
-    line-height: 34px;
-    font-weight: 600;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    /* тема подчёркивает ссылки в контенте и рамкой, и text-decoration */
+    text-decoration: none;
+    border-bottom: 0;
+    transition: background .15s ease;
+}
+
+.nd-brandsect__anchor:hover,
+.nd-brandsect__anchor:focus {
+    background: rgba(82, 82, 100, .2);
+    color: #101014;
+    /* тема подчёркивает ссылки с большей специфичностью — гасим оба способа */
+    text-decoration: none;
+    border-bottom: 0;
+}
+
+/* Заголовок раздела. Черта над ним — та самая «серая черта между разделами»
+   из макета; первая отделяет разделы от якорей, поэтому правило одно на всех. */
+.nd-catlist .nd-brandsect__title {
+    margin: 0 0 24px;
+    padding-top: 40px;
+    border-top: 2px solid rgba(82, 82, 100, .15);
+    color: #101014;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 42px;
+    line-height: 46px;
+    font-weight: 800;
     /* якорь не должен уводить заголовок под шапку */
     scroll-margin-top: 100px;
 }
 
-.nd-catlist .nd-brandsect__more {
-    display: flex;
-    justify-content: center;
-    margin-top: 16px;
+/* Между сеткой предыдущего раздела и чертой следующего — тот же отступ 40px,
+   что и в макете. Первому заголовку он не нужен: сверху уже стоят якоря. */
+.nd-catlist .catalog_block + .nd-brandsect__title,
+.nd-catlist .nd-brandsect__more + .nd-brandsect__title {
+    margin-top: 40px;
 }
 
-/* Тот же вид, что у «Показать ещё» в постраничной навигации
-   (system.pagenavigation/pagination_newdesign), но её стили приезжают вместе
-   с самой навигацией, а на странице бренда сквозной навигации нет. */
+.nd-catlist .nd-brandsect__more {
+    margin-top: 24px;
+}
+
 .nd-brandsect__more-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 142px;
+    width: 100%;
     height: 48px;
     padding: 0 16px;
     border: 0;
     border-radius: 4px;
-    background: #101014;
+    background: #c60000;
     color: #fff;
     font-family: 'Nunito Sans', Arial, sans-serif;
     font-size: 16px;
     line-height: 24px;
-    font-weight: 500;
+    font-weight: 700;
     cursor: pointer;
     transition: background .15s ease;
 }
 
 .nd-brandsect__more-btn:hover,
 .nd-brandsect__more-btn:focus {
-    background: #2a2a33;
+    background: #a60000;
     color: #fff;
 }
 
@@ -1716,13 +1759,19 @@
 }
 
 @media (max-width: 767px) {
-    .nd-catlist .nd-brandsect__title {
-        margin: 28px 0 12px;
-        font-size: 22px;
-        line-height: 28px;
+    .nd-brandsect__anchors {
+        margin-bottom: 28px;
     }
 
-    .nd-brandsect__more-btn {
-        width: 100%;
+    .nd-catlist .nd-brandsect__title {
+        padding-top: 28px;
+        margin-bottom: 16px;
+        font-size: 24px;
+        line-height: 30px;
+    }
+
+    .nd-catlist .catalog_block + .nd-brandsect__title,
+    .nd-catlist .nd-brandsect__more + .nd-brandsect__title {
+        margin-top: 28px;
     }
 }
