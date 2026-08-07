@@ -85,7 +85,12 @@ global $APPLICATION;?>
 		'MODE' => ($ldBySections ? 'sections' : 'flat'),
 		'FILTER' => $GLOBALS['arrProductsFilter'],
 		'PER_SECTION' => $ldPerPortion,
-		'TITLE' => str_replace('#BRAND_NAME#', $arElement['NAME'], (strlen($arParams['T_GOODS']) ? $arParams['T_GOODS'] : GetMessage('T_GOODS'))),
+		/* «Товары … в нашем магазине» печатаем только у сплошного списка. При
+		   выводе по разделам заголовок не нужен: под ним сразу идёт название
+		   первого раздела, и две надписи подряд читаются как ошибка. */
+		'TITLE' => ($ldBySections
+			? ''
+			: str_replace('#BRAND_NAME#', $arElement['NAME'], (strlen($arParams['T_GOODS']) ? $arParams['T_GOODS'] : GetMessage('T_GOODS')))),
 		'PRICE_CODE' => $arParams['PRICE_CODE'],
 		'STORES' => $arParams['STORES'],
 		'AJAX_QUERY' => http_build_query(array(
