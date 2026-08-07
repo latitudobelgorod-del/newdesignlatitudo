@@ -832,6 +832,101 @@ if (!empty($arResult['ITEMS'])){
 	}
 	$arNewItemsList[$key]['LAST_ELEMENT'] = 'Y';
 	$arResult['ITEMS'] = $arNewItemsList;
+
+/* ===== Страница бренда: раскладка товаров по разделам =====
+   Включается только параметром LD_GROUP_BY_SECTION=Y — его передаёт
+   include/news.detail.brand_sections_newdesign.php. Страница категории, главная
+   и карточка товара зовут этот шаблон без него и работают как раньше.
+
+   Якоря над списком рисует отдельный компонент catalog.section/ankor_section.
+   Он сортирует разделы ТАК ЖЕ (SORT ASC, NAME ASC) и подписывает их H1 раздела.
+   Порядок обязан совпадать, иначе якорь уводит не в тот блок — на easydecking
+   разошлись именно из-за разной сортировки, там осталось ID ASC.
+
+   Сразу показываем LD_PER_SECTION карточек, остальное догружает
+   /local/ajax/brand_products.php: у Millargo 295 товаров, и все они с полным
+   JS карточки в разметку не помещаются. */
+if (($arParams['LD_GROUP_BY_SECTION'] ?? '') === 'Y') {
+	$ldSectionIds = [];
+	foreach ($arResult['ITEMS'] as $ldItem) {
+		if (!empty($ldItem['IBLOCK_SECTION_ID'])) {
+			$ldSectionIds[(int)$ldItem['IBLOCK_SECTION_ID']] = true;
+		}
+	}
+
+	$ldSections = [];
+	if ($ldSectionIds) {
+		$rsLdSections = CIBlockSection::GetList(
+			['SORT' => 'ASC', 'NAME' => 'ASC'],
+			['ID' => array_keys($ldSectionIds), 'ACTIVE' => 'Y'],
+			false,
+			['ID', 'IBLOCK_ID', 'NAME', 'CODE', 'SORT']
+		);
+		while ($ldSection = $rsLdSections->Fetch()) {
+			/* Подпись раздела — H1 из SEO-блока (SECTION_PAGE_TITLE), а не NAME:
+			   у разных серий есть одноимённые разделы («Террасная доска» и в Ко-Экс,
+			   и в Вуд-Икс), по имени их не различить, а в H1 серия указана.
+			   InheritedProperty сам берёт нужный инфоблок и раскрывает шаблоны. */
+			try {
+				$ldSeo = (new \Bitrix\Iblock\InheritedProperty\SectionValues(
+					(int)$ldSection['IBLOCK_ID'],
+					(int)$ldSection['ID']
+				))->getValues();
+				if (!empty($ldSeo['SECTION_PAGE_TITLE'])) {
+					$ldSection['NAME'] = trim($ldSeo['SECTION_PAGE_TITLE']);
+				}
+			} catch (\Throwable $e) {
+				// H1 не заполнен или у инфоблока нет SEO-настроек — остаётся NAME
+			}
+			$ldSections[(int)$ldSection['ID']] = $ldSection;
+		}
+	}
+
+	if ($ldSections) {
+		$ldOrder = array_flip(array_keys($ldSections));   // порядок = SORT ASC, NAME ASC
+		$ldBuckets = [];
+		foreach ($arResult['ITEMS'] as $ldItem) {
+			$ldSid = (int)$ldItem['IBLOCK_SECTION_ID'];
+			$ldItem['LD_SECTION'] = $ldSections[$ldSid] ?? null;
+			// раздел выключен или товар вне разделов — такие уходят в конец, без заголовка
+			$ldBuckets[$ldOrder[$ldSid] ?? PHP_INT_MAX][] = $ldItem;
+		}
+		ksort($ldBuckets);
+
+		$ldPerSection = isset($arParams['LD_PER_SECTION']) ? (int)$arParams['LD_PER_SECTION'] : 10;
+		$ldItemsOnly = (($arParams['LD_ITEMS_ONLY'] ?? '') === 'Y');
+		$ldOffset = isset($arParams['LD_OFFSET']) ? (int)$arParams['LD_OFFSET'] : 0;
+
+		$arResult['LD_SECTIONS_META'] = [];
+		$ldFlat = [];
+		foreach ($ldBuckets as $ldBucket) {
+			$ldSid = (int)$ldBucket[0]['IBLOCK_SECTION_ID'];
+			$ldTotal = count($ldBucket);
+			// AJAX отдаёт хвост раздела с offset, страница — первые LD_PER_SECTION
+			$ldPart = $ldItemsOnly
+				? array_slice($ldBucket, $ldOffset)
+				: ($ldPerSection > 0 ? array_slice($ldBucket, 0, $ldPerSection) : $ldBucket);
+			$arResult['LD_SECTIONS_META'][$ldSid] = [
+				'TOTAL' => $ldTotal,
+				'SHOWN' => count($ldPart) + ($ldItemsOnly ? $ldOffset : 0),
+			];
+			foreach ($ldPart as $ldPartItem) {
+				$ldFlat[] = $ldPartItem;
+			}
+		}
+
+		// LAST_ELEMENT проставлен выше по прежнему порядку — после среза он уехал
+		foreach ($ldFlat as $ldKey => $ldFlatItem) {
+			$ldFlat[$ldKey]['LAST_ELEMENT'] = 'N';
+		}
+		if ($ldFlat) {
+			$ldFlat[count($ldFlat) - 1]['LAST_ELEMENT'] = 'Y';
+		}
+
+		$arResult['ITEMS'] = $ldFlat;
+		$arResult['LD_GROUPED'] = true;
+	}
+}
 	if($arSKUPropList)
 	{
 		foreach($arSKUPropList as $prop => $arProps)
