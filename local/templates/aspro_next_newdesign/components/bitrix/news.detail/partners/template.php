@@ -62,17 +62,11 @@ $goy=$arResult['NAME'];
 <?/*print_r($arProperty);*/?>
 </li>
 	<? if ($arProperty["VALUE_XML_ID"]=="temp_numb_1"): ?>
-	<?$APPLICATION->IncludeComponent("bitrix:main.include", ".default",
-			array(
-				"COMPONENT_TEMPLATE" => ".default",
-				"PATH" => SITE_DIR."include/news.detail.ankor_section.php",
-				"AREA_FILE_SHOW" => "file",
-				"AREA_FILE_SUFFIX" => "",
-				"AREA_FILE_RECURSIVE" => "Y",
-				"EDIT_TEMPLATE" => "standard.php"
-			),
-			false
-		);?>
+	<?/* Якоря считает include/brand_anchors.php шаблона, а не компонент
+	   catalog.section из include/news.detail.ankor_section.php: тот ради десятка
+	   ссылок вычитывал сотню товаров с ценами и съедал почти всё время страницы
+	   (EasyDecking 16.9 → 1.4 секунды). Старый дизайн остался на компоненте. */?>
+	<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_anchors.php';?>
 	<? else: ?>
 	
 	<?endif;?>
