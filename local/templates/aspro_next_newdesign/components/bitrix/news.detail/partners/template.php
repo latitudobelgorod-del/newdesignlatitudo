@@ -103,8 +103,7 @@ $goy=$arResult['NAME'];
 		<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_anchors.php';?>
 	<?endif;?>
 <?endforeach;?>
-		</div>
-	
+
 </div>
 
 
