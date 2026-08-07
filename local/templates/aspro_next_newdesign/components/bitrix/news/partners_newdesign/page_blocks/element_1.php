@@ -62,28 +62,39 @@ global $APPLICATION;?>
 <?if($arParams["SHOW_LINKED_PRODUCTS"] == "Y" && strlen($arParams["LINKED_PRODUCTS_PROPERTY"])):?>
 	<div class="wraps goods-block with-padding">
 	<?$GLOBALS['arrProductsFilter'] = array( "PROPERTY_".$arParams["LINKED_PRODUCTS_PROPERTY"] => $arElement["ID"], "ACTIVE"=>"Y" )?>
-	<?$APPLICATION->IncludeComponent(
-				"bitrix:main.include",
-				"main",
-				array(
-					"COMPONENT_TEMPLATE" => "main",
-					"PATH" => SITE_DIR."include/news.detail.products_slider.php",
-					"AREA_FILE_SHOW" => "file",
-					"AREA_FILE_SUFFIX" => "",
-					"AREA_FILE_RECURSIVE" => "Y",
-					"EDIT_TEMPLATE" => "standard.php",
-					"PRICE_CODE" => $arParams["PRICE_CODE"],
-					"SHOW_DISCOUNT_PERCENT" => $arParams["SHOW_DISCOUNT_PERCENT"],
-					"SHOW_DISCOUNT_PERCENT" => "Y",
-					"STORES" => $arParams["STORES"],
-					"TYPE_SKU" => $arTheme["TYPE_SKU"]["VALUE"],
-					"BIG_DATA_RCM_TYPE" => "bestsell",
-					"STIKERS_PROP" => "HIT",
-					"SALE_STIKER" => "SALE_TEXT",
-					"TITLE" => str_replace("#BRAND_NAME#", $arElement["NAME"], (strlen($arParams['T_GOODS']) ? $arParams['T_GOODS'] : GetMessage('T_GOODS')))
-				),
-			false
-			);?>
+	<?/* Свойство бренда «Шаблон»: temp_numb_1 — «вывод по разделам», temp_numb_2 —
+	   «вывод списком». На то же значение смотрит news.detail/partners, когда решает,
+	   печатать ли якоря на разделы, — иначе якоря были бы без разделов или разделы
+	   без якорей. Второй шаблон выбран в админке осознанно (Legro, Террасвет,
+	   Bruggan, 4SiS) и остаётся сплошным списком, как был. */?>
+	<?
+	$ldBySections = false;
+	$rsBrandTemplate = CIBlockElement::GetProperty($arParams['IBLOCK_ID'], $arElement['ID'], array(), array('CODE' => 'TEMPLATE'));
+	if($arBrandTemplate = $rsBrandTemplate->Fetch())
+		$ldBySections = ($arBrandTemplate['VALUE_XML_ID'] === 'temp_numb_1');
+	?>
+	<?/* Оба вывода делает include/brand_products.php шаблона — тот же файл зовёт
+	   /local/ajax/brand_products.php, когда список догружает следующую порцию,
+	   и параметры каталога у страницы и у догрузки обязаны совпадать.
+
+	   Порция: по разделам — 8 карточек (два ряда сетки), сплошным списком —
+	   20 (пять рядов). Сетка нового дизайна четырёхколоночная, её ширина
+	   задана в css/newdesign-catalog.css. */?>
+	<?$ldPerPortion = ($ldBySections ? 8 : 20);?>
+	<?$ldBrand = array(
+		'MODE' => ($ldBySections ? 'sections' : 'flat'),
+		'FILTER' => $GLOBALS['arrProductsFilter'],
+		'PER_SECTION' => $ldPerPortion,
+		'TITLE' => str_replace('#BRAND_NAME#', $arElement['NAME'], (strlen($arParams['T_GOODS']) ? $arParams['T_GOODS'] : GetMessage('T_GOODS'))),
+		'PRICE_CODE' => $arParams['PRICE_CODE'],
+		'STORES' => $arParams['STORES'],
+		'AJAX_QUERY' => http_build_query(array(
+			'brand' => (int)$arElement['ID'],
+			'prop' => $arParams['LINKED_PRODUCTS_PROPERTY'],
+			'per' => $ldPerPortion,
+		)),
+	);?>
+	<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_products.php';?>
 	</div>
 <?endif;?>
 

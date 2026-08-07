@@ -835,52 +835,20 @@ if (!empty($arResult['ITEMS'])){
 
 /* ===== Страница бренда: раскладка товаров по разделам =====
    Включается только параметром LD_GROUP_BY_SECTION=Y — его передаёт
-   include/news.detail.brand_sections_newdesign.php. Страница категории, главная
+   include/brand_products.php этого шаблона. Страница категории, главная
    и карточка товара зовут этот шаблон без него и работают как раньше.
 
-   Якоря над списком рисует отдельный компонент catalog.section/ankor_section.
-   Он сортирует разделы ТАК ЖЕ (SORT ASC, NAME ASC) и подписывает их H1 раздела.
-   Порядок обязан совпадать, иначе якорь уводит не в тот блок — на easydecking
-   разошлись именно из-за разной сортировки, там осталось ID ASC.
+   Порядок разделов и подписи к ним считает LdBrandSections — тот же класс
+   зовут якоря над списком (catalog.section/ankor_section). Порядок обязан
+   совпадать, иначе якорь уводит не в тот блок; на easydecking так и вышло,
+   пока каждый сортировал по-своему.
 
    Сразу показываем LD_PER_SECTION карточек, остальное догружает
    /local/ajax/brand_products.php: у Millargo 295 товаров, и все они с полным
    JS карточки в разметку не помещаются. */
 if (($arParams['LD_GROUP_BY_SECTION'] ?? '') === 'Y') {
-	$ldSectionIds = [];
-	foreach ($arResult['ITEMS'] as $ldItem) {
-		if (!empty($ldItem['IBLOCK_SECTION_ID'])) {
-			$ldSectionIds[(int)$ldItem['IBLOCK_SECTION_ID']] = true;
-		}
-	}
-
-	$ldSections = [];
-	if ($ldSectionIds) {
-		$rsLdSections = CIBlockSection::GetList(
-			['SORT' => 'ASC', 'NAME' => 'ASC'],
-			['ID' => array_keys($ldSectionIds), 'ACTIVE' => 'Y'],
-			false,
-			['ID', 'IBLOCK_ID', 'NAME', 'CODE', 'SORT']
-		);
-		while ($ldSection = $rsLdSections->Fetch()) {
-			/* Подпись раздела — H1 из SEO-блока (SECTION_PAGE_TITLE), а не NAME:
-			   у разных серий есть одноимённые разделы («Террасная доска» и в Ко-Экс,
-			   и в Вуд-Икс), по имени их не различить, а в H1 серия указана.
-			   InheritedProperty сам берёт нужный инфоблок и раскрывает шаблоны. */
-			try {
-				$ldSeo = (new \Bitrix\Iblock\InheritedProperty\SectionValues(
-					(int)$ldSection['IBLOCK_ID'],
-					(int)$ldSection['ID']
-				))->getValues();
-				if (!empty($ldSeo['SECTION_PAGE_TITLE'])) {
-					$ldSection['NAME'] = trim($ldSeo['SECTION_PAGE_TITLE']);
-				}
-			} catch (\Throwable $e) {
-				// H1 не заполнен или у инфоблока нет SEO-настроек — остаётся NAME
-			}
-			$ldSections[(int)$ldSection['ID']] = $ldSection;
-		}
-	}
+	require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/brand_sections.php';
+	$ldSections = LdBrandSections::fromItems($arResult['ITEMS']);
 
 	if ($ldSections) {
 		$ldOrder = array_flip(array_keys($ldSections));   // порядок = SORT ASC, NAME ASC
@@ -925,6 +893,52 @@ if (($arParams['LD_GROUP_BY_SECTION'] ?? '') === 'Y') {
 
 		$arResult['ITEMS'] = $ldFlat;
 		$arResult['LD_GROUPED'] = true;
+	}
+}
+/* Бренды с шаблоном «вывод списком» (Legro, Террасвет, Bruggan, 4SiS): разделов
+   и якорей у них нет, но резать список всё равно надо — иначе в разметку уходит
+   весь бренд целиком. Показываем LD_PER_SECTION карточек, дальше «Показать ещё»
+   догружает следующую порцию через тот же /local/ajax/brand_products.php. */
+elseif (($arParams['LD_FLAT'] ?? '') === 'Y') {
+	$ldPerPage = isset($arParams['LD_PER_SECTION']) ? (int)$arParams['LD_PER_SECTION'] : 20;
+	$ldOffset = isset($arParams['LD_OFFSET']) ? (int)$arParams['LD_OFFSET'] : 0;
+
+	$ldPart = $ldPerPage > 0
+		? array_slice($arResult['ITEMS'], $ldOffset, $ldPerPage)
+		: array_slice($arResult['ITEMS'], $ldOffset);
+
+	/* Всего товаров в бренде компонент не знает: ему велено прочитать только
+	   показываемую часть. Точное число считает отдельным запросом
+	   include/brand_products.php и передаёт сюда. */
+	$arResult['LD_FLAT_META'] = [
+		'TOTAL' => max((int)($arParams['LD_TOTAL'] ?? 0), $ldOffset + count($ldPart)),
+		'SHOWN' => $ldOffset + count($ldPart),
+	];
+
+	// LAST_ELEMENT проставлен выше по полному списку — после среза он уехал
+	foreach ($ldPart as $ldKey => $ldPartItem) {
+		$ldPart[$ldKey]['LAST_ELEMENT'] = 'N';
+	}
+	if ($ldPart) {
+		$ldPart[count($ldPart) - 1]['LAST_ELEMENT'] = 'Y';
+	}
+
+	$arResult['ITEMS'] = array_values($ldPart);
+	$arResult['LD_FLATTENED'] = true;
+}
+
+/* Догрузке нужно знать, откуда продолжать и осталось ли что-то: по этим числам
+   шаблон печатает метку, а скрипт правит по ней кнопку «Показать ещё».
+   В ответе всегда ровно один блок — либо один раздел, либо плоский список. */
+if (($arParams['LD_ITEMS_ONLY'] ?? '') === 'Y') {
+	$ldOne = !empty($arResult['LD_FLAT_META'])
+		? $arResult['LD_FLAT_META']
+		: (!empty($arResult['LD_SECTIONS_META']) ? reset($arResult['LD_SECTIONS_META']) : null);
+	if ($ldOne) {
+		$arResult['LD_MORE'] = [
+			'OFFSET' => (int)$ldOne['SHOWN'],
+			'LEFT' => max(0, (int)$ldOne['TOTAL'] - (int)$ldOne['SHOWN']),
+		];
 	}
 }
 	if($arSKUPropList)

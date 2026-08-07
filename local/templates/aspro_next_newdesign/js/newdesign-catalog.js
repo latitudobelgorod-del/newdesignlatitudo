@@ -777,3 +777,87 @@
         setTimeout(run, 2000);
     });
 })();
+
+/* Страница бренда: «Показать ещё» в разделе.
+
+   Раздел показывает первые несколько карточек, остальное лежит за кнопкой:
+   у Millargo 295 товаров, и вся сетка с полным JS карточек весит под два
+   мегабайта. Ответ /local/ajax/brand_products.php — голые карточки вместе со
+   своими <script>, которые считают цены, размеры и остатки. Скрипты, попавшие
+   в документ через innerHTML, браузер не выполняет, поэтому пересоздаём их
+   узлами; дальше nd:appended — на него подписан пересчёт цен и раскладка
+   карточки выше в этом же файле. */
+(function () {
+    'use strict';
+
+    var loading = false;
+
+    /* Пересоздаём <script> уже после вставки в документ: сработает он только
+       на месте, в живом дереве. data-nd-run — метка для runAppendedScripts(),
+       чтобы тот не запустил их по второму разу. */
+    function runScripts(nodes) {
+        nodes.forEach(function (node) {
+            if (node.nodeType !== 1) return;
+            var scripts = node.tagName === 'SCRIPT' ? [node] : [].slice.call(node.querySelectorAll('script'));
+            scripts.forEach(function (old) {
+                var fresh = document.createElement('script');
+                if (old.src) fresh.src = old.src;
+                else fresh.textContent = old.textContent;
+                fresh.setAttribute('data-nd-run', '1');
+                old.parentNode.replaceChild(fresh, old);
+            });
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('[data-nd-brand-more]') : null;
+        if (!btn || loading) return;
+
+        var box = btn.closest('.nd-brandsect__more');
+        var grid = box ? box.previousElementSibling : null;
+        var url = btn.getAttribute('data-url');
+        if (!box || !url || !grid || !grid.classList.contains('catalog_block')) return;
+
+        loading = true;
+        btn.classList.add('is-loading');
+
+        fetch(url, { credentials: 'same-origin' })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.text();
+            })
+            .then(function (html) {
+                var holder = document.createElement('div');
+                holder.innerHTML = html;
+                var added = [].slice.call(holder.childNodes);
+                added.forEach(function (node) {
+                    grid.appendChild(node);
+                });
+                runScripts(added);
+
+                /* Метку с остатком печатает шаблон списка. Раздел приходит
+                   хвостом целиком (остатка нет, кнопка уходит), сплошной
+                   список бренда — порциями, и кнопка сдвигается на следующую. */
+                var next = grid.querySelector('[data-nd-brand-next]');
+                var left = next ? parseInt(next.getAttribute('data-left'), 10) || 0 : 0;
+                var offset = next ? parseInt(next.getAttribute('data-offset'), 10) || 0 : 0;
+                if (next) next.parentNode.removeChild(next);
+
+                if (left > 0) {
+                    btn.setAttribute('data-url', url.replace(/([?&]offset=)\d+/, '$1' + offset));
+                    btn.textContent = 'Показать ещё ' + left;
+                    btn.classList.remove('is-loading');
+                } else {
+                    box.parentNode.removeChild(box);
+                }
+                document.dispatchEvent(new CustomEvent('nd:appended'));
+            })
+            .catch(function (err) {
+                btn.classList.remove('is-loading');
+                console.log('brand more: ' + err.message);
+            })
+            .then(function () {
+                loading = false;
+            });
+    });
+})();

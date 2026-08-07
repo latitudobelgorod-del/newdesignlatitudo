@@ -1655,3 +1655,74 @@
         max-width: 50% !important;
     }
 }
+
+/* ===========================================================================
+   Страница бренда: товары, разложенные по разделам (.nd-brandsect)
+
+   Раздел — это отдельная сетка карточек со своим заголовком, а не строка
+   внутри общей: сетка обведена рамкой, и заголовок внутри неё читался бы её
+   строкой. Заголовок служит якорем для ссылок над списком — их печатает
+   catalog.section/ankor_section. Под сеткой раздела стоит «Показать ещё»:
+   сразу показывается несколько карточек, остальное догружает
+   /local/ajax/brand_products.php.
+   ======================================================================== */
+.nd-catlist .nd-brandsect__title {
+    margin: 40px 0 16px;
+    color: #101014;
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 600;
+    /* якорь не должен уводить заголовок под шапку */
+    scroll-margin-top: 100px;
+}
+
+.nd-catlist .nd-brandsect__more {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+/* Тот же вид, что у «Показать ещё» в постраничной навигации
+   (system.pagenavigation/pagination_newdesign), но её стили приезжают вместе
+   с самой навигацией, а на странице бренда сквозной навигации нет. */
+.nd-brandsect__more-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 142px;
+    height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px;
+    background: #101014;
+    color: #fff;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+
+.nd-brandsect__more-btn:hover,
+.nd-brandsect__more-btn:focus {
+    background: #2a2a33;
+    color: #fff;
+}
+
+.nd-brandsect__more-btn.is-loading {
+    opacity: .6;
+    pointer-events: none;
+}
+
+@media (max-width: 767px) {
+    .nd-catlist .nd-brandsect__title {
+        margin: 28px 0 12px;
+        font-size: 22px;
+        line-height: 28px;
+    }
+
+    .nd-brandsect__more-btn {
+        width: 100%;
+    }
+}

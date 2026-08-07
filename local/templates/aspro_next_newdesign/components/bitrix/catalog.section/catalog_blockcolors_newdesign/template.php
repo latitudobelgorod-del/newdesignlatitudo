@@ -1,7 +1,82 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
 <?$this->setFrameMode(true);?>
 
+<?/* Догрузка раздела на странице бренда просит у этого же шаблона голые
+   карточки. Всё, что печатается один раз на список — обёртки, стили, общие
+   скрипты, — тогда пропускаем: на странице это уже есть, а второй экземпляр
+   скриптов навесил бы вторые обработчики на те же клики. */?>
+<?$ldItemsOnly = (($arParams['LD_ITEMS_ONLY'] ?? '') === 'Y');?>
 
+<?/* Страница бренда: где кончается один раздел и начинается следующий.
+   Считаем сразу — заголовок первого раздела печатается ещё до сетки, а
+   result_modifier к этому моменту уже разложил товары по разделам и
+   перенумеровал $arResult['ITEMS'] подряд, с 0. */?>
+<?
+$ldHeads = array();      // индекс первой карточки раздела => сам раздел
+$ldTails = array();      // индекс последней карточки раздела => сам раздел
+$ldLastTail = null;      // раздел, которым список заканчивается
+$ldAjaxQuery = (string)($arParams['LD_AJAX_QUERY'] ?? '');
+$ldMeta = (array)($arResult['LD_SECTIONS_META'] ?? array());
+
+if(!empty($arResult['LD_GROUPED']) && !$ldItemsOnly){
+	$ldPrevSid = null;
+	$ldPrevSection = null;
+	foreach($arResult['ITEMS'] as $ldI => $ldItem){
+		$ldSid = (int)$ldItem['IBLOCK_SECTION_ID'];
+		if($ldSid === $ldPrevSid)
+			continue;
+		if($ldPrevSection !== null)
+			$ldTails[$ldI - 1] = $ldPrevSection;
+		// товары без раздела идут общей кучей в конец, их не подписываем
+		if(!empty($ldItem['LD_SECTION']))
+			$ldHeads[$ldI] = $ldItem['LD_SECTION'];
+		$ldPrevSid = $ldSid;
+		$ldPrevSection = (!empty($ldItem['LD_SECTION']) ? $ldItem['LD_SECTION'] : null);
+	}
+	// кнопка последнего раздела печатается уже за сеткой, после цикла
+	$ldLastTail = $ldPrevSection;
+}
+
+/* Якорь висит на заголовке: ссылки над списком печатает
+   catalog.section/ankor_section и адресует разделы их кодом. */
+$ldSectionHead = function($section){
+	if(empty($section))
+		return '';
+	return '<h2 class="nd-brandsect__title" id="'.htmlspecialcharsbx($section['CODE']).'">'
+		.htmlspecialcharsbx($section['NAME']).'</h2>';
+};
+
+/* Кнопка появляется, только если показано не всё. Ведёт она на кусок разметки,
+   а не на страницу, поэтому <button>, а не ссылка: без JS переход по такому
+   адресу показал бы голые карточки. section=0 — плоский список бренда, у
+   которого разделов нет. */
+$ldMoreButton = function($sid, $total, $shown) use ($ldAjaxQuery){
+	if($ldAjaxQuery === '' || $total <= $shown)
+		return '';
+	$url = '/local/ajax/brand_products.php?'.$ldAjaxQuery.'&section='.(int)$sid.'&offset='.(int)$shown;
+	return '<div class="nd-brandsect__more">'
+		.'<button type="button" class="nd-brandsect__more-btn" data-nd-brand-more'
+		.' data-url="'.htmlspecialcharsbx($url).'">Показать ещё '.($total - $shown).'</button>'
+		.'</div>';
+};
+
+$ldSectionMore = function($section) use ($ldMeta, $ldMoreButton){
+	if(empty($section))
+		return '';
+	$sid = (int)$section['ID'];
+	return $ldMoreButton($sid, (int)($ldMeta[$sid]['TOTAL'] ?? 0), (int)($ldMeta[$sid]['SHOWN'] ?? 0));
+};
+
+/* Плоский список бренда — весь список одной сеткой и одна кнопка под ней. */
+$ldFlatMeta = (array)($arResult['LD_FLAT_META'] ?? array());
+$ldFlatMore = function() use ($ldFlatMeta, $ldMoreButton){
+	if(!$ldFlatMeta)
+		return '';
+	return $ldMoreButton(0, (int)$ldFlatMeta['TOTAL'], (int)$ldFlatMeta['SHOWN']);
+};
+?>
+
+<?if(!$ldItemsOnly){?>
 <style>
 
 
@@ -154,23 +229,27 @@ div[id*="prop_169"][style*="display: none"] {
 	?>
 	<script src="<?=SITE_TEMPLATE_PATH?>/js/newdesign-ui.js?<?=(file_exists($ndUiFile) ? filemtime($ndUiFile) : '')?>"></script>
 <?}?>
+<?}?>
 
 <?global $arRegion;
   $regionID = ($arRegion ? $arRegion['ID'] : '');?>
 
 	<?if( count( $arResult["ITEMS"] ) >= 1 ){?>
-	<?if(($arParams["AJAX_REQUEST"]=="N") || !isset($arParams["AJAX_REQUEST"])){?>
+	<?if(!$ldItemsOnly && (($arParams["AJAX_REQUEST"]=="N") || !isset($arParams["AJAX_REQUEST"]))){?>
 	 <div class="top_wrapper nd-catlist row margin0 <?=($arParams["SHOW_UNABLE_SKU_PROPS"] != "N" ? "show_un_props" : "unshow_un_props");?>">	
 	 
 	<?if(strlen($arParams['TITLE'])):?>
 			<hr /><h5><?=$arParams['TITLE'];?></h5>
 	<?endif;?>
+	<?/* Заголовок первого раздела бренда — до сетки: сетка обведена рамкой,
+	   и заголовок внутри неё смотрелся бы строкой таблицы. */?>
+	<?=$ldSectionHead(isset($ldHeads[0]) ? $ldHeads[0] : null)?>
 	<?/* nd-catlist__list + nd-catlist__nav у навигации — на эту пару завязана
 	   кнопка «Показать ещё» из js/newdesign-ui.js (она ищет список по имени
 	   блока из класса обёртки навигации). */?>
 	<div id="portfolio_loader" class="catalog_block nd-catlist__list items block_list margin0 row flexbox">
 
-	
+
 	<?}?>
 
 		<?
@@ -211,10 +290,20 @@ $APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/mea
 $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measure_unit/templates/aspro_list_tp/script.js'); 
 ?>
 	  <? $arr_count_article = array(); ?>
-	  
-	  
+
 	  <?foreach($arResult["ITEMS"] as $i => $arItem){?>
-		
+
+		<?/* Начался следующий раздел бренда: закрываем сетку предыдущего,
+		   ставим его кнопку и заголовок нового, открываем сетку заново.
+		   Раздел = отдельная сетка, а не строка внутри общей: сетка обведена
+		   рамкой, и заголовок с кнопкой внутри неё читались бы её строками. */?>
+		<?if($i > 0 && isset($ldHeads[$i])){?>
+			</div>
+			<?=$ldSectionMore(isset($ldTails[$i - 1]) ? $ldTails[$i - 1] : null)?>
+			<?=$ldSectionHead($ldHeads[$i])?>
+			<div class="catalog_block nd-catlist__list items block_list margin0 row flexbox">
+		<?}?>
+
 		
 			<div  class="item_block col-<?=$col;?> col-lg-3 col-md-4  col-sm-4 col-xs-6 ">
 		
@@ -797,8 +886,7 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
             );
             unset($arOfferUnit);
         }?>
-		
-		
+
 		<?}?>
 		
 	
@@ -813,26 +901,42 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 
     </script>
 
-			
+	<?/* Метка для скрипта: откуда продолжать и сколько ещё осталось. По ней он
+	   либо сдвигает кнопку «Показать ещё» на следующую порцию, либо убирает её.
+	   Прячем через hidden — в сетке display:none ячейкой не становится. */?>
+	<?if($ldItemsOnly && !empty($arResult['LD_MORE'])){?>
+		<span hidden data-nd-brand-next data-offset="<?=(int)$arResult['LD_MORE']['OFFSET']?>" data-left="<?=(int)$arResult['LD_MORE']['LEFT']?>"></span>
+	<?}?>
+
+	<?/* Догрузке отдаём только карточки: обёртки списка и навигация на странице
+	   уже стоят, их надо закрывать и рисовать один раз. */?>
+	<?if(!$ldItemsOnly){?>
+
 </div>
-		
+
+	<?/* Кнопка последнего раздела бренда: его сетку только что закрыли.
+	   У плоского списка раздел один — сетка целиком, кнопка та же. */?>
+	<?=$ldSectionMore($ldLastTail)?>
+	<?=$ldFlatMore()?>
+
 	<?if(($arParams["AJAX_REQUEST"]=="N") || !isset($arParams["AJAX_REQUEST"])){?>
 			</div>
-		
+
 	<?}?>
-	
+
 	<?if($arParams["AJAX_REQUEST"]=="Y"){?>
 		<div class="wrap_nav">
 	<?}?>
-	
+
 	<div class="bottom_nav nd-catlist__nav <?=$arParams["DISPLAY_TYPE"];?>" <?=($arParams["AJAX_REQUEST"]=="Y" ? "style='display: none; '" : "");?>>
 		<?if( $arParams["DISPLAY_BOTTOM_PAGER"] == "Y" ){?><?=$arResult["NAV_STRING"]?><?}?>
 	</div>
-	
+
 	<?if($arParams["AJAX_REQUEST"]=="Y"){?>
 		</div>
 	<?}?>
-<?}else{?>
+	<?}?>
+<?}elseif(!$ldItemsOnly){?>
 	<script>
 		// $(document).ready(function(){
 			$('.sort_header').animate({'opacity':'1'}, 500);
@@ -853,8 +957,12 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 		<?}?>
 	</div>
 <?}?>
-	
-	
+
+<?/* Ниже — скрипты уровня всего списка: сообщения BX, обработчики кликов на
+   document. Догрузке они не нужны, а второй их экземпляр повесил бы на те же
+   клики вторые обработчики. */?>
+<?if(!$ldItemsOnly){?>
+
 <script>
 	BX.message({
 		QUANTITY_AVAILIABLE: '<? echo COption::GetOptionString("aspro.next", "EXPRESSION_FOR_EXISTS", GetMessage("EXPRESSION_FOR_EXISTS_DEFAULT"), SITE_ID); ?>',
@@ -975,3 +1083,5 @@ BX.ready(function() {
 });
 
 </script>
+<?}?>
+

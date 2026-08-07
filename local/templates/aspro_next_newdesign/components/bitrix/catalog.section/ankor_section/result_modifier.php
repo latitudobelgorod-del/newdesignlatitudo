@@ -1,36 +1,21 @@
 <?php
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
-global $DB;
+/* Якоря на разделы бренда. Порядок и подписи считает LdBrandSections — тот же
+   класс зовёт список товаров (catalog_blockcolors_newdesign). Пока каждый
+   считал сам, якорь уводил не в тот блок: здесь было ORDER BY ID ASC и NAME,
+   а список шёл по SORT и подписывал разделы их H1.
 
-// Собираем ID ТОЛЬКО основных разделов элементов
-$mainSectionIds = [];
-foreach ($arResult["ITEMS"] as $item) {
-    if (!empty($item["IBLOCK_SECTION_ID"])) {
-        $mainSectionIds[(int)$item["IBLOCK_SECTION_ID"]] = true;
-    }
-}
+   Разделы берём не из $arResult['ITEMS'], а отдельным запросом по фильтру
+   компонента: сюда приходит только сотня элементов (ELEMENT_COUNT в
+   include/news.detail.ankor_section.php), а у Millargo товаров 295 — часть
+   разделов в эту сотню не попадает и якорей на них не было. */
 
-$arResult['MAIN_SECTIONS'] = [];
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/brand_sections.php';
 
-if (!empty($mainSectionIds)) {
-    $ids = implode(',', array_keys($mainSectionIds));
-    
-    // Получаем информацию об основных разделах с сортировкой по ID
-    $result = $DB->query("
-        SELECT ID, NAME, CODE, SORT 
-        FROM b_iblock_section 
-        WHERE ID IN ($ids) 
-        AND ACTIVE = 'Y'
-        ORDER BY ID ASC
-    ");
-    
-    while ($row = $result->fetch()) {
-        $arResult['MAIN_SECTIONS'][] = [
-            'ID' => $row['ID'],
-            'NAME' => $row['NAME'],
-            'CODE' => $row['CODE'],
-            'SORT' => $row['SORT']
-        ];
-    }
-}
+$filterName = $arParams['FILTER_NAME'] ?? '';
+$filter = ($filterName && is_array($GLOBALS[$filterName] ?? null)) ? $GLOBALS[$filterName] : [];
+
+$arResult['MAIN_SECTIONS'] = $filter
+	? array_values(LdBrandSections::fromFilter($arParams['IBLOCK_ID'], $filter))
+	: array_values(LdBrandSections::fromItems($arResult['ITEMS']));
