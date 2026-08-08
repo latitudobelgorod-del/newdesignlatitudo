@@ -3340,14 +3340,20 @@ body .nd-filter .bx_filter_block .values_expander {
     color: #101014;
 }
 
-/* Тема подчёркивает все ссылки внутри `.editor` и рисует подчёркивание
-   нижней рамкой — в макете подчёркиваний нет. Правило стоит до кнопок:
-   у кнопки-контура рамка своя, и сброс не должен съедать ей низ. */
-.editor .nd-co a,
-.editor .nd-co a:hover,
-.editor .nd-co a:focus {
+/* Тема подчёркивает все ссылки внутри `.editor` — в макете подчёркиваний нет.
+   Кнопки из сброса исключены: `.editor .nd-co a` весит больше, чем
+   `.editor .nd-co__btn--ghost` (лишний селектор типа `a`), и порядком правил
+   это не лечится — у кнопки-контура пропадала нижняя рамка. */
+.editor .nd-co a:not(.nd-co__btn),
+.editor .nd-co a:not(.nd-co__btn):hover,
+.editor .nd-co a:not(.nd-co__btn):focus {
     text-decoration: none;
     border-bottom: 0;
+}
+.editor .nd-co a.nd-co__btn,
+.editor .nd-co a.nd-co__btn:hover,
+.editor .nd-co a.nd-co__btn:focus {
+    text-decoration: none;
 }
 
 /* ---- кнопки ------------------------------------------------------------ */
