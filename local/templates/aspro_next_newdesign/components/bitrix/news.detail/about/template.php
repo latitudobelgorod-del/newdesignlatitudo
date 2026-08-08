@@ -137,22 +137,43 @@ else {$goy=$arResult['NAME'];}
 	</div>
 <?endif;?>
     <div class="editor">
-        <?$APPLICATION->IncludeComponent(
-            "sprint.editor:blocks",
-            "aspro-news-element",
-            Array(
-                "ELEMENT_ID" => $arResult["ID"],
-                "IBLOCK_ID" => $arResult["IBLOCK_ID"],
-		"NEWS_NAME" => $arResult["NAME"],
-                "PROPERTY_CODE" => "EDITOR1",
-                "USE_JQUERY" => "N",
-               
-            ),
-            $component,
-            Array(
-                "HIDE_ICONS" => "Y"
-            )
-        );?>
+        <?// Контент страницы редизайна берём из «Редактора блоков 2», а если он
+           // пуст — из первого, как было. Так страницу можно пересобрать под новый
+           // дизайн, не трогая то, что видят на боевом шаблоне: старый aspro_next
+           // читает только EDITOR1 (см. его news.detail/about/template.php).
+           //
+           // Компонент возвращает число выведенных блоков, а при пустом свойстве
+           // вообще ничего не печатает — поэтому проверять заполненность отдельным
+           // запросом не нужно.
+           $ndEditorParams = Array(
+               "ELEMENT_ID" => $arResult["ID"],
+               "IBLOCK_ID" => $arResult["IBLOCK_ID"],
+               "NEWS_NAME" => $arResult["NAME"],
+               "PROPERTY_CODE" => "EDITOR2",
+               "USE_JQUERY" => "N",
+           );
+           $ndEditorBlocks = $APPLICATION->IncludeComponent(
+               "sprint.editor:blocks",
+               "aspro-news-element",
+               $ndEditorParams,
+               $component,
+               Array(
+                   "HIDE_ICONS" => "Y"
+               )
+           );
+        ?>
+        <?if(!$ndEditorBlocks):?>
+            <?$ndEditorParams["PROPERTY_CODE"] = "EDITOR1";?>
+            <?$APPLICATION->IncludeComponent(
+                "sprint.editor:blocks",
+                "aspro-news-element",
+                $ndEditorParams,
+                $component,
+                Array(
+                    "HIDE_ICONS" => "Y"
+                )
+            );?>
+        <?endif;?>
     </div>
 <?if(strlen($arResult['FIELDS']['DETAIL_TEXT'])):?>
 	<div class="content">
