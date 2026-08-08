@@ -2,40 +2,40 @@
 
 global $arTheme;
 global $APPLICATION;
- $GLOBALS['sprintSearchFilter'] =  array(
- "ID" => $block['element_ids'],
-); 
-?>
 
-<? $APPLICATION->IncludeComponent(
+/* Показываем ровно те элементы и в том порядке, как их перечислил менеджер
+   в редакторе блоков: фильтр по ID, порядок восстанавливает result_modifier. */
+global $sprintSearchFilter;
+$sprintSearchFilter = array(
+	'ID' => $block['element_ids'],
+);
+
+/* Постранички здесь нет: список ограничен выбранными элементами, так что
+   «все» — это ровно столько, сколько отмечено. Ноль ставить нельзя —
+   news.list поймёт его как «без ограничения» и вернёт весь инфоблок. */
+$ldCertsCount = is_array($block['element_ids']) ? count($block['element_ids']) : 0;
+
+?><? $APPLICATION->IncludeComponent(
     "bitrix:news.list",
-    "news-licenses-editor",
+    // Сетка сертификатов нового дизайна: три колонки, карточка без рамки,
+    // подпись слева под картинкой. Старый вид — в news-licenses-editor.
+    "news-licenses-editor_newdesign",
     array(
         "IBLOCK_TYPE" => "aspro_next_content",
-		"IBLOCK_ID" => $block['iblock_id'],
-        "NEWS_COUNT" => "500",
-		"FILTER_NAME" => "sprintSearchFilter",
+        "IBLOCK_ID" => $block['iblock_id'],
+        "NEWS_COUNT" => (string)($ldCertsCount > 0 ? $ldCertsCount : 500),
+        "FILTER_NAME" => "sprintSearchFilter",
         "FIELD_CODE" => array(
-           0 => "ID",
-			1 => "NAME",
-			2 => "PREVIEW_TEXT",
-			3 => "PREVIEW_PICTURE",
-			4 => "IBLOCK_ID",
-			5 => "",
+            0 => "ID",
+            1 => "NAME",
+            2 => "PREVIEW_TEXT",
+            3 => "PREVIEW_PICTURE",
+            4 => "IBLOCK_ID",
+            5 => "",
         ),
-"PROPERTY_CODE" => array(
-			0 => "LINK_YOUTUBE",
-			1 => "REVIEW",
-			2 => "FORM_CALCULATE",
-			3 => "EDITOR1",
-			4 => "EDITOR2",
-			5 => "UF_EDITOR2",
-			6 => "UF_EDITOR1_BEL",
-			7 => "UF_EDITOR2_BEL",
-			8 => "GALLEY_BIG",
-			9 => "",
-		),
-        
+        "PROPERTY_CODE" => array(
+            0 => "",
+        ),
         "CHECK_DATES" => "Y",
         "DETAIL_URL" => "",
         "AJAX_MODE" => "N",
@@ -62,7 +62,6 @@ global $APPLICATION;
         "PAGER_TITLE" => "",
         "PAGER_SHOW_ALWAYS" => "N",
         "PAGER_DESC_NUMBERING" => "N",
-        
         "PAGER_SHOW_ALL" => "N",
         "AJAX_OPTION_ADDITIONAL" => "",
         "COMPONENT_TEMPLATE" => "next",
