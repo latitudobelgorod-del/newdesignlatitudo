@@ -38,7 +38,6 @@ $arNdCoPro = array(
 		'DESC' => 'Гибкие возможности сотрудничества',
 		'LINK' => '/info/sotrudnichestvo-s-arhitektorami/',
 		'ICON' => 'blueprint',
-		'RED'  => true,
 	),
 	array(
 		'NAME' => 'Дилерам',
@@ -114,7 +113,9 @@ $ndCoProIcon = static function ($key) {
 		<h2 class="nd-co__h2">Для профессионалов отрасли</h2>
 		<div class="nd-co__pro">
 			<?foreach($arNdCoPro as $arCard):?>
-				<a class="nd-co__pro-card<?=(!empty($arCard['RED']) ? ' nd-co__pro-card--red' : '')?>" href="<?=$arCard['LINK']?>">
+				<?// Красной карточка становится только на наведении — как в блоке
+				   // «Для профессионалов» на главной (Ирина, 2026-08-08).?>
+				<a class="nd-co__pro-card" href="<?=$arCard['LINK']?>">
 					<span class="nd-co__pro-text">
 						<span class="nd-co__pro-name"><?=$arCard['NAME']?></span>
 						<span class="nd-co__pro-desc"><?=$arCard['DESC']?></span>

@@ -3340,6 +3340,16 @@ body .nd-filter .bx_filter_block .values_expander {
     color: #101014;
 }
 
+/* Тема подчёркивает все ссылки внутри `.editor` и рисует подчёркивание
+   нижней рамкой — в макете подчёркиваний нет. Правило стоит до кнопок:
+   у кнопки-контура рамка своя, и сброс не должен съедать ей низ. */
+.editor .nd-co a,
+.editor .nd-co a:hover,
+.editor .nd-co a:focus {
+    text-decoration: none;
+    border-bottom: 0;
+}
+
 /* ---- кнопки ------------------------------------------------------------ */
 .nd-co__btn {
     display: inline-flex;
@@ -3385,13 +3395,6 @@ body .nd-filter .bx_filter_block .values_expander {
     background: #fff;
     color: #101014;
 }
-/* Тема подчёркивает все ссылки внутри `.editor` — в макете подчёркиваний нет */
-.editor .nd-co a,
-.editor .nd-co a:hover,
-.editor .nd-co a:focus {
-    text-decoration: none;
-    border-bottom: 0;
-}
 
 /* ---- обложка ----------------------------------------------------------- */
 .nd-co__hero {
@@ -3404,12 +3407,15 @@ body .nd-filter .bx_filter_block .values_expander {
     overflow: hidden;
     color: #fff;
 }
+/* Кадр обложки шире исходного фото, поэтому его подрезает по высоте.
+   Прижимаем к верху — иначе центрирование срезает головы (Ирина, 2026-08-08). */
 .nd-co__hero-img {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center top;
 }
 /* Два слоя затемнения из макета: ровная подложка 24% и градиент к левому
    верхнему углу, чтобы белый текст читался поверх светлого фото. */
@@ -3475,10 +3481,6 @@ body .nd-filter .bx_filter_block .values_expander {
     color: #101014;
     text-decoration: none;
     transition: background-color .2s ease, color .2s ease;
-}
-.nd-co__pro-card--red {
-    background: #c60000;
-    color: #fff;
 }
 .nd-co__pro-card:hover,
 .nd-co__pro-card:focus,
