@@ -1,0 +1,211 @@
+/* Карусель «Шоу-румы компании» на странице «О компании».
+   Макет Figma 21399:66000: карточка 1004x395, слева колонка 516 с полями 24,
+   справа фото 488 с кнопкой видео поверх нижнего левого угла. */
+.nd-shr {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.nd-shr__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+.nd-shr__title {
+    margin: 0;
+    padding: 0;
+    font-weight: 800;
+    font-size: 39px;
+    line-height: 44px;
+    color: #101014;
+}
+.nd-shr__nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 0 0 auto;
+}
+.nd-shr__counter {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+}
+.nd-shr__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(82, 82, 100, .1);
+    color: #101014;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease, opacity .2s ease;
+}
+.nd-shr__arrow:hover {
+    background: #c60000;
+    color: #fff;
+}
+.nd-shr__arrow[disabled] {
+    opacity: .4;
+    cursor: default;
+}
+.nd-shr__arrow[disabled]:hover {
+    background: rgba(82, 82, 100, .1);
+    color: #101014;
+}
+.nd-shr__lead {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+
+/* Лента: слайды идут в ряд, вьюпорт показывает один и обрезает остальные. */
+.nd-shr__viewport {
+    overflow: hidden;
+    border-radius: 6px;
+}
+.nd-shr__track {
+    display: flex;
+    transition: transform .35s ease;
+}
+.nd-shr__slide {
+    display: grid;
+    grid-template-columns: 516fr 488fr;
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .05);
+    overflow: hidden;
+}
+.nd-shr__info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    min-width: 0;
+}
+.nd-shr__city {
+    margin: 0;
+    padding: 0;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 34px;
+    color: #101014;
+}
+.nd-shr__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #101014;
+    text-decoration: none;
+}
+.nd-shr__row--address {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 19px;
+}
+a.nd-shr__row:hover,
+.editor a.nd-shr__row:hover {
+    color: #c60000;
+    text-decoration: none;
+}
+.nd-shr__ico {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+}
+.nd-shr__contacts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+/* Склад отбит чертой — как в макете */
+.nd-shr__store {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(82, 82, 100, .15);
+}
+.nd-shr__media {
+    position: relative;
+    min-height: 395px;
+}
+.nd-shr__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.nd-shr__video {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 16px;
+    border-radius: 3px;
+    background: rgba(16, 16, 20, .64);
+    font-size: 16px;
+    line-height: 24px;
+    color: #fff;
+    text-decoration: none;
+}
+.nd-shr__video:hover,
+.editor .nd-shr__video:hover {
+    background: #c60000;
+    color: #fff;
+    text-decoration: none;
+}
+
+@media (max-width: 1199px) {
+    .nd-shr__title {
+        font-size: 30px;
+        line-height: 36px;
+    }
+    .nd-shr__arrow {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+@media (max-width: 991px) {
+    /* Узкий экран: фото уходит под текст, высоту задаём кадром 16:10 */
+    .nd-shr__slide {
+        grid-template-columns: 1fr;
+    }
+    .nd-shr__media {
+        position: relative;
+        min-height: 0;
+        aspect-ratio: 16 / 10;
+        order: -1;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-shr__title {
+        font-size: 22px;
+        line-height: 28px;
+    }
+    .nd-shr__arrow {
+        width: 40px;
+        height: 40px;
+    }
+    .nd-shr__info {
+        padding: 16px;
+    }
+    .nd-shr__city {
+        font-size: 20px;
+        line-height: 26px;
+    }
+}
