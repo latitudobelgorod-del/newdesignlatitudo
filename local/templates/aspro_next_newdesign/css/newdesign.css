@@ -3819,12 +3819,46 @@ body .nd-filter .bx_filter_block .values_expander {
         height: 240px;
         margin: 32px -32px 0;
     }
+    /* Веер сертификатов на узком экране крупнее и стоит в правом нижнем
+       углу плашки (Figma 21448:55771): рамка 171×232, листы вылезают за
+       правый край и обрезаются скруглением. pointer-events снимаем, чтобы
+       декор не перекрывал кнопку «К сертификатам». */
     .nd-co__certs-pics {
-        display: none;
+        right: -42px;
+        bottom: 0;
+        width: 171px;
+        height: 232px;
+        pointer-events: none;
+    }
+    .nd-co__certs-pics img:nth-child(1) {
+        top: -70px;
+        right: auto;
+        left: 73px;
+        width: 76px;
+        transform: rotate(-18.6deg);
+    }
+    .nd-co__certs-pics img:nth-child(2) {
+        top: 119px;
+        right: auto;
+        left: 15px;
+        width: 91px;
+        transform: rotate(39.6deg);
+    }
+    .nd-co__certs-pics img:nth-child(3) {
+        top: 39px;
+        right: auto;
+        left: 68px;
+        width: 103px;
+        transform: rotate(24deg);
     }
     .nd-co__certs .nd-co__card-desc,
     .nd-co__vac .nd-co__card-desc {
         max-width: none;
+    }
+    /* Текст плашки не должен заезжать под веер: в макете строки разбиты
+       вручную так, чтобы обрываться левее листов. */
+    .nd-co__certs .nd-co__card-text {
+        max-width: calc(100% - 230px);
     }
 }
 
@@ -3883,9 +3917,13 @@ body .nd-filter .bx_filter_block .values_expander {
     .nd-co__way {
         padding: 16px;
     }
+    /* На мобильном фото в промо-плашке нет вовсе — так в макете
+       (Figma 21448:55850), остаётся только текст с кнопкой. */
     .nd-co__promo-img {
-        width: calc(100% + 32px);
-        margin: 24px -16px 0;
+        display: none;
+    }
+    .nd-co__certs .nd-co__card-text {
+        max-width: 200px;
     }
     .nd-co__way {
         min-height: 0;
