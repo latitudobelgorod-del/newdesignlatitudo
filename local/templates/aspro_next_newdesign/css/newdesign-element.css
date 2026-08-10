@@ -936,8 +936,12 @@
    `Input Container` 266×56: заливка #525264 с прозрачностью 10%, радиус 4 и
    БЕЗ обводки, а у нас он был белый с рамкой rgba(82,82,100,.25).
    margin-right:10px у темы тоже снимаем — из-за него ряд не добирал до края. */
-.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-block,
-.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block {
+/* Только .measure-block: это счётчик от модуля единиц измерения, он у нас и
+   виден. Штатный .counter_block намеренно НЕ трогаем — при выбранной единице
+   «шт» на проде работает именно он, и серая заливка с высотой 56 ломали его
+   («-- 1 ++» вместо кнопок). Оформить его по макету — отдельная задача, сперва
+   надо воспроизвести это состояние локально. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-block {
     height: 56px;
     margin: 0;
     border: 0;
@@ -959,8 +963,7 @@
    рамкой, из-за неё серое вокруг читалось как «фон под кнопками» (Ирина).
    Рамку и фон гасим и в обычном состоянии, и на фокусе — тема подсвечивает
    поле при клике. Значение 16/24 обычным весом, как в макете. */
-.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-field,
-.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block input.text {
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-field {
     flex: 1 1 0;
     width: auto;
     min-width: 0;
@@ -978,8 +981,7 @@
     font-weight: 400;
     color: #101014;
 }
-.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-field:focus,
-.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block input.text:focus {
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-field:focus {
     border: 0;
     background: transparent;
     box-shadow: none;
