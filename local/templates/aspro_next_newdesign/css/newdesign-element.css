@@ -332,8 +332,12 @@
 /* ===================== правая колонка ===================== */
 
 /* Примечание о цене — тёмная плашка с иконкой (макет 543×48) */
+/* Поля обнуляем: у темы у контейнера по 10px слева и справа, из-за них плашка
+   выходила 523 вместо 543 и её левый край стоял на 10px правее, чем ряд складов
+   и остальная правая колонка. В макете все левые края в одну линию (x 12945). */
 .catalog_detail.element_newdesign .right_info .info_item .uf_comment_price_container {
     margin: 0 0 20px;
+    padding: 0;
 }
 .catalog_detail.element_newdesign .right_info .info_item .uf_comment_price {
     display: flex;
@@ -345,7 +349,7 @@
     border-radius: 6px;
     background: #525264;
     font-size: 12px;
-    line-height: 14px;
+    line-height: 14.4px;
     color: #fff;
 }
 .catalog_detail.element_newdesign .right_info .info_item .uf_comment_price::before {

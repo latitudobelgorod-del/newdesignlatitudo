@@ -764,7 +764,9 @@ if (CModule::IncludeModule('catalog') && CModule::IncludeModule('iblock')) {
 if ($hasPositiveAmount):
 ?>
 <div class="wraps stores_wrapper" id="stores">
-    <?$APPLICATION->IncludeComponent("bitrix:catalog.store.amount", "main_detail_store", array(
+    <? /* Своя копия шаблона под новый дизайн: main_detail_store остаётся как был,
+          им пользуется прежний main6 внутри этой же папки шаблона. */ ?>
+    <?$APPLICATION->IncludeComponent("bitrix:catalog.store.amount", "main_detail_store_newdesign", array(
         "PER_PAGE" => "10",
         "USE_STORE_PHONE" => $arParams["USE_STORE_PHONE"],
         "SCHEDULE" => $arParams["SCHEDULE"],
