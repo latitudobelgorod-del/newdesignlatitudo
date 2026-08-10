@@ -352,6 +352,92 @@
     line-height: 14.4px;
     color: #fff;
 }
+
+/* ============ цена, счётчик и «В корзину» (макет Frame 2087329375) ============
+   Только стилями, без правки разметки: цены и блок скидки перерисовывает скрипт
+   темы (script.js шаблона переписывает .sale_block и .offers_price* через .html()
+   при смене длины и предложения), поэтому любая серверная перестановка слетела бы
+   после первого клика.
+
+   В макете всё в одну строку: «4 000₽/шт» 42/46.2 w800, правее старая цена
+   18/25.2 зачёркнутая #8F8F9A и «скидка N₽» #FF4130. Отбивка 20 до старой цены
+   и 10 между ней и скидкой — задаём margin'ами, а не общим gap, чтобы значения
+   были видны в коде. Выравнивание по центру, а не по базовой линии: в макете
+   центры совпадают (цена 687..733, старая цена 698..723). */
+/* .price у темы шириной по содержимому (≈304) — в него строка из цены, старой
+   цены и скидки не влезала и скидка срывалась вниз. Растягиваем на колонку. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price {
+    width: 100%;
+    max-width: none;
+    float: none;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price_wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+}
+/* Свои отступы темы обнуляем: к нашим 20 добавлялись её 10, строка выходила
+   550 при колонке 543 и скидка срывалась на второй этаж. Идёт до правил с
+   margin-left ниже — они должны победить при равной специфичности. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price_old,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block {
+    margin: 0;
+    padding: 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price_old {
+    margin-left: 20px;
+    text-decoration: line-through;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block {
+    margin-left: 10px;
+}
+/* Старая цена и скидка приезжают тем же кеглем, что основная цена (42/w800):
+   правило темы бьёт по .price_value/.price_currency в целом. Возвращаем 18/25.2. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price_old,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price_old .price_value,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price_old .price_currency {
+    font-size: 18px;
+    line-height: 25.2px;
+    font-weight: 400;
+    color: #8F8F9A;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .title,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .price_value,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .price_currency {
+    font-size: 18px;
+    line-height: 25.2px;
+    font-weight: 400;
+    color: #FF4130;
+}
+/* Плашки «-10 %» в макете нет — только сумма скидки. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .value {
+    display: none;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .text {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+/* Боксы старой цены и скидки приезжают шире содержимого (199px под «5 000 руб»):
+   у темы .values_wrapper и её спаны размечены под крупную основную цену. Из-за
+   этого сумма трёх блоков не влезала в 543 и скидка переносилась вторым этажом.
+   Сжимаем до содержимого. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price_old,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price_old .values_wrapper,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .values_wrapper,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price_old .price_value,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .offers_price_old .price_currency,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .price_value,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .price_currency {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    float: none;
+}
 .catalog_detail.element_newdesign .right_info .info_item .uf_comment_price::before {
     content: "";
     flex: 0 0 32px;
@@ -624,12 +710,13 @@
     color: #101014;
 }
 
-/* Счётчик и корзина (макет: две плитки 266×56) */
+/* Счётчик и корзина. В макете 264 + 12 + 266 = 543 во всю ширину колонки,
+   кнопка прижата к правому краю (её правый край совпадает с краем колонки). */
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_wrapp {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block {
     display: flex;
@@ -716,8 +803,10 @@
     font-weight: 600;
     color: #101014;
 }
+/* Ширина кнопки из макета — 266, не резиновая: остаток колонки забирает счётчик. */
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block {
-    flex: 1 1 240px;
+    flex: 0 0 266px;
+    max-width: 266px;
 }
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn {
     display: flex;
@@ -731,15 +820,25 @@
     border-radius: 4px;
     background: #c60000;
     font-size: 16px;
-    line-height: 20px;
+    line-height: 24px;
     font-weight: 700;
-    color: #fff;
     text-transform: none;
+}
+/* !important обязателен: у темы на этой кнопке висит
+   `.btn.btn-default.white:not(.grey) { color: #4056E8 !important }` — от него
+   надпись приезжала синей поверх обычного правила. Красим и вложенный span:
+   текст лежит в нём, и своё правило темы он получает отдельно. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn span,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn:hover,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn:hover span,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn:focus,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn:focus span {
+    color: #fff !important;
 }
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn:hover,
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn:focus {
     background: #a80000;
-    color: #fff;
 }
 
 /* Логистические параметры — четыре плитки 130×52 */
