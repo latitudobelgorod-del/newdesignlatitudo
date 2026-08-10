@@ -194,6 +194,36 @@
 		if (btn && btn.parentElement) btn.parentElement.classList.add('nd-pd__calc');
 	}
 
+	/* «Цена:», «руб» и «Экономия» правим текстом, а не стилями. В макете цена
+	   выглядит как «4 000₽/шт» и скидка как «скидка N₽», а тема печатает
+	   «Цена: 4 501 руб/м²» и «Экономия»: из-за длины этих подписей строка цены
+	   не влезала в колонку 543 и скидка срывалась на второй этаж.
+	   Приём перенесён с vrn.easydecking.ru (catalog.element/main6, fixMoney):
+	   обходим текстовые узлы TreeWalker'ом и правим только их, разметку не
+	   трогаем — её всё равно перерисовывает скрипт темы.
+	   Замена обязана переприменяться: ядро пересобирает эти строки при смене
+	   длины, предложения и количества. Зацикливания через observer нет — после
+	   первого прохода замена уже сделана, текст не меняется и мутаций не рождает. */
+	function fixMoney(root) {
+		if (!root) return;
+		var wk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), tn;
+		while ((tn = wk.nextNode())) {
+			var t0 = tn.textContent;
+			var t1 = t0.replace(/Цена\s*:\s*/g, '')
+				.replace(/руб\.?/g, '₽')
+				.replace(/Экономия/g, 'скидка');
+			if (t1 !== t0) tn.textContent = t1;
+		}
+	}
+
+	function fixMoneyAll() {
+		if (!root) return;
+		fixMoney($('.prices_block', root));
+		/* .total_summ — родная строка Aspro (видна при количестве > 1),
+		   .measure-block-desc — её аналог от компонента единиц измерения. */
+		Array.prototype.forEach.call(root.querySelectorAll('.total_summ, .measure-block-desc'), fixMoney);
+	}
+
 	function bind() {
 		if (track) {
 			track.addEventListener('click', function (e) {
@@ -246,6 +276,7 @@
 			new MutationObserver(function () {
 				syncArticle();
 				tagCalcButton();
+				fixMoneyAll();
 			}).observe(info, { childList: true, subtree: true, characterData: true });
 		}
 
@@ -257,7 +288,12 @@
 				if (!$('.nd-pd__article', h1)) syncArticle();
 			}).observe(h1, { childList: true });
 		}
-		window.addEventListener('load', function () { syncArticle(); tagCalcButton(); });
+		window.addEventListener('load', function () { syncArticle(); tagCalcButton(); fixMoneyAll(); });
+		/* Те же таймеры, что на easydecking: часть строк цены ядро дописывает
+		   позже, уже после первого прохода observer'а. */
+		fixMoneyAll();
+		setTimeout(fixMoneyAll, 600);
+		setTimeout(fixMoneyAll, 1500);
 		updateArrow();
 		syncVideo();
 
