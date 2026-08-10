@@ -216,12 +216,32 @@
 		}
 	}
 
+	/* Состояние «В корзине». Тема сама переключает display у .to-cart/.in-cart,
+	   но счётчик при этом остаётся на месте. На easydecking в этом состоянии
+	   счётчик убирают, а кнопка занимает всю ширину — переносим тем же классом.
+	   Привязываемся не к узлу кнопки, а к .counter_wrapp: тема пересоздаёт
+	   .button_block при смене длины, и observer на самой кнопке отваливался бы
+	   (та же грабля описана в комментарии easydecking). */
+	function syncInCart() {
+		if (!root) return;
+		Array.prototype.forEach.call(root.querySelectorAll('.buy_block .counter_wrapp'), function (cw) {
+			var inCart = cw.querySelector('.button_block .in-cart');
+			var shown = !!inCart && getComputedStyle(inCart).display !== 'none';
+			cw.classList.toggle('nd-incart', shown);
+		});
+	}
+
+	/* Заодно обновляет состояние «В корзине»: обе правки нужны в одних и тех же
+	   точках — после перерисовки блока покупки темой. */
 	function fixMoneyAll() {
 		if (!root) return;
 		fixMoney($('.prices_block', root));
 		/* .total_summ — родная строка Aspro (видна при количестве > 1),
-		   .measure-block-desc — её аналог от компонента единиц измерения. */
+		   .measure-block-desc — её аналог от компонента единиц измерения.
+		   На latitudo ни того, ни другого в разметке нет — строки «Общая
+		   стоимость» тут пока просто некому печатать. */
 		Array.prototype.forEach.call(root.querySelectorAll('.total_summ, .measure-block-desc'), fixMoney);
+		syncInCart();
 	}
 
 	function bind() {

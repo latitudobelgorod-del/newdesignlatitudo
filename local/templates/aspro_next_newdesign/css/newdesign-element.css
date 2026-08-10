@@ -841,6 +841,62 @@
     background: #a80000;
 }
 
+/* Иконка корзины справа в кнопке — приём перенесён с easydecking
+   (там `.to-cart.btn i` с фоном /images/icons_easy/card.svg и position:absolute).
+   Тема печатает пустой <i> и рисует свою иконку через :before — его гасим.
+   Картинку держим data-URI: не нужно тащить отдельный файл и помнить про его
+   выкатку на прод. Подпись при этом остаётся по центру кнопки, как в макете. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn.to-cart {
+    position: relative;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn.to-cart i {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    transform: translateY(-50%);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9.5' cy='20' r='1.5'/%3E%3Ccircle cx='18' cy='20' r='1.5'/%3E%3Cpath d='M2.5 3.5h2.7l2.5 11.2h11l2.3-8.2H7.4'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn.to-cart i:before {
+    content: none !important;
+}
+
+/* Состояние «В корзине»: тема сама переключает display у .to-cart/.in-cart,
+   поэтому display здесь НЕ задаём — только оформление. Класс nd-incart на
+   .counter_wrapp ставит js/newdesign-element.js: в этом состоянии счётчик
+   убирается и кнопка занимает всю ширину (как на easydecking). */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn.in-cart {
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 56px;
+    margin: 0;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .1);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
+    text-transform: none;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn.in-cart,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn.in-cart span {
+    color: #101014 !important;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn.in-cart i {
+    display: none !important;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_wrapp.nd-incart .measure-wrapper {
+    display: none !important;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_wrapp.nd-incart .button_block {
+    flex: 1 1 100% !important;
+    max-width: none !important;
+}
+
 /* Логистические параметры — четыре плитки 130×52 */
 /* !important: у темы правило на .logistic.col-md-12 с большей специфичностью */
 .catalog_detail.element_newdesign .right_info .info_item .logistic {
