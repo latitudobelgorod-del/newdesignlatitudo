@@ -62,7 +62,9 @@
 			var s = offerSlider[k];
 			if (!s || typeof s !== 'object') continue;
 			var small = (s.SMALL && s.SMALL.src) || s.SRC || '';
-			if (!small) continue;
+			/* Заглушку «НЕТ ФОТО» пропускаем — тот же отбор, что на сервере
+			   в template.php при сборке $ndSlides. */
+			if (!small || small.toLowerCase().indexOf('no_photo') !== -1) continue;
 			next.push({
 				small: small,
 				big: (s.BIG && s.BIG.src) || s.SRC || '',

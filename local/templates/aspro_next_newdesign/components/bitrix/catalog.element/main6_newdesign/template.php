@@ -360,6 +360,14 @@ $APPLICATION->AddHeadString('<meta property="price:currency" content="' . htmlsp
 $ndSlides = [];
 foreach ((array) $arResult['MORE_PHOTO'] as $arImage) {
 	$small = $arImage['SMALL']['src'] ?: $arImage['SRC'];
+	/* Заглушку «НЕТ ФОТО» в ленту не берём (Ирина, 2026-08-10). У предложений без
+	   картинки тема подставляет images/no_photo*.png — в галерее появлялась пустая
+	   плитка, которая вдобавок открывалась на весь экран пустой.
+	   Тот же отбор повторён в js/newdesign-element.js (rebuild): при смене цвета
+	   лента пересобирается из данных оффера, и без фильтра заглушка вернулась бы. */
+	if ($small === '' || stripos($small, 'no_photo') !== false) {
+		continue;
+	}
 	$ndSlides[] = [
 		'small' => $small,
 		'big'   => $arImage['BIG']['src'] ?: $arImage['SRC'],
