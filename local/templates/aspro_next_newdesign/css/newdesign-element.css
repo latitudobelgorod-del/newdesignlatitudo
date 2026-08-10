@@ -1030,6 +1030,13 @@
 .catalog_detail.element_newdesign .right_info .info_item .sku-list__item.active::after {
     content: none !important;
 }
+/* То же и на наведении: тема рисует `.sku-list-item:hover:after` (custom.css) —
+   прямоугольник с отступом −2px, рамкой 1px #bababa и радиусом 7 вокруг
+   круглого образца. В макете наведение никак не выделено (Ирина, 2026-08-10).
+   Селектор с классом `sku-list-item` (через дефис) — у элемента оба класса. */
+.catalog_detail.element_newdesign .right_info .info_item .sku-list-item:hover::after {
+    content: none !important;
+}
 .catalog_detail.element_newdesign .right_info .info_item .sku-list__item.active {
     border-radius: 50%;
     box-shadow: 0 0 0 2px rgba(198, 0, 0, .3);
