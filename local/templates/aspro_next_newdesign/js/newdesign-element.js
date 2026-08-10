@@ -193,7 +193,17 @@
 	   Текст кнопки не трогаем: в макете он свой, но на сайте кнопка настоящая. */
 	function tagCalcButton() {
 		var btn = $('.info_item .one_click');
-		if (btn && btn.parentElement) btn.parentElement.classList.add('nd-pd__calc');
+		if (!btn) return;
+		if (btn.parentElement) btn.parentElement.classList.add('nd-pd__calc');
+		/* Заголовок всплывающей формы тема берёт из текста триггера, но для наших
+		   кнопок hash.t приезжает как document — и в заголовок (а также в скрытое
+		   поле NAMEFORM, которое уходит в письмо и CRM) попадало название веб-формы
+		   «Общая форма». Починка живёт в js/newdesign-header.js и подключается
+		   атрибутом data-nd-form-title (см. комментарий там же). */
+		if (!btn.getAttribute('data-nd-form-title')) {
+			var label = (btn.textContent || '').replace(/\s+/g, ' ').trim();
+			if (label) btn.setAttribute('data-nd-form-title', label);
+		}
 	}
 
 	/* «Цена:», «руб» и «Экономия» правим текстом, а не стилями. В макете цена
