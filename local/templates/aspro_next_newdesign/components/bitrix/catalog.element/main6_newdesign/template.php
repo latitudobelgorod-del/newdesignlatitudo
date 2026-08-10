@@ -434,7 +434,12 @@ if ($ndProfileVal) {
 	<? if ($ndProfileSrc): ?>
 		<div class="nd-pd__profile">
 			<span class="nd-pd__profile-label">Профиль доски</span>
-			<img class="nd-pd__profile-img" src="<?= $ndProfileSrc ?>" alt="Профиль доски" loading="lazy">
+			<? /* Своя группа fancybox, а не общая «nd-pd»: иначе чертёж попадёт в
+			      карусель фотографий товара и стрелки начнут листать на него.
+			      Ссылка ведёт на исходный файл — он и открывается во весь экран. */ ?>
+			<a class="nd-pd__profile-link" href="<?= htmlspecialcharsbx($ndProfileSrc) ?>" data-fancybox="nd-pd-profile" title="Профиль доски">
+				<img class="nd-pd__profile-img" src="<?= htmlspecialcharsbx($ndProfileSrc) ?>" alt="Профиль доски" loading="lazy">
+			</a>
 		</div>
 	<? endif; ?>
 </div>

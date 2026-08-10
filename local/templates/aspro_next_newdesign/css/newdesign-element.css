@@ -270,26 +270,57 @@
     padding: 0;
 }
 
-/* полоса «Профиль доски» под галереей (макет 757×52) */
+/* полоса «Профиль доски» под галереей (макет 757×52, Figma Frame 2087329557).
+   Подпись и чертёж стоят одной группой по центру плашки, а не по левому краю:
+   в макете центр группы совпадает с центром полосы. */
 .nd-pd__profile {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
+    min-height: 52px;
     margin-top: 16px;
-    padding: 8px 12px;
+    padding: 8px 16px;
     border-radius: 6px;
     background: rgba(82, 82, 100, .05);
 }
+/* Прописные даёт стиль (в макете textCase UPPER), а в свойстве текст обычным
+   регистром — чтобы подпись читалась и там, где выводится как есть. */
 .nd-pd__profile-label {
     flex: 0 0 auto;
     font-size: 14px;
-    line-height: 20px;
+    line-height: 19.6px;
     font-weight: 600;
+    text-transform: uppercase;
     color: #101014;
 }
-.nd-pd__profile-img {
+/* Чертёж в макете 109×14.66 — держим по высоте, ширину считает пропорция.
+   min-width:0 обязателен: картинки профилей очень широкие (3186×551), без него
+   флекс-элемент не даёт себя сжать и плашка вылезает за галерею.
+
+   Селектор — через родителя, и это принципиально: у темы есть
+   `.detail img { max-width:100%; margin:auto; max-height:100% }`, а «класс + тег»
+   специфичнее одного нашего класса, поэтому одиночный .nd-pd__profile-img
+   проигрывал и высота вычислялась как 100% (картинка выходила ~101px вместо 16).
+   margin обнуляем оттуда же: auto-отступы у флекс-элемента забирают всё свободное
+   место и растаскивают подпись с чертежом по краям, перебивая justify-content. */
+/* Ссылка-обёртка: по клику чертёж открывается во весь экран (fancybox темы).
+   Сжимаемым флекс-элементом становится она, поэтому flex и min-width здесь.
+   line-height:0 убирает лишние пиксели от строки под инлайновой картинкой. */
+.nd-pd__profile-link {
+    display: block;
+    flex: 0 1 auto;
+    min-width: 0;
+    line-height: 0;
+    text-decoration: none;
+    cursor: zoom-in;
+}
+.nd-pd__profile .nd-pd__profile-img {
+    display: block;
+    width: auto;
     max-width: 100%;
-    max-height: 36px;
+    margin: 0;
+    max-height: 16px;
     object-fit: contain;
 }
 
