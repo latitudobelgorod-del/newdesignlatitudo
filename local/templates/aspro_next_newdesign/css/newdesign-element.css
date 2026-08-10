@@ -467,9 +467,15 @@
     flex-wrap: wrap;
     gap: 4px;
 }
+/* Чипы делят ряд поровну и добирают до правого края колонки (Ирина, 2026-08-10):
+   по макету они шириной по содержимому, но там пять городов и ряд заполнен, а у
+   нас их четыре — справа оставалась пустота ~214px.
+   Базис 0, а не равные проценты: при процентах зазор 4 добавляется сверху и
+   последний чип переносится на вторую строку. */
 .catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-item {
     display: flex;
     flex-direction: column;
+    flex: 1 1 0;
     gap: 0;
     min-width: 0;
     width: auto;
@@ -710,6 +716,26 @@
     color: #101014;
 }
 
+/* «Длина» и переключатель единиц — в одну строку по НИЖНЕМУ краю. Тема кладёт
+   их двумя bootstrap-колонками, и переключатель вставал на уровень подписи
+   «Длина, мм», а не кнопок длины (Ирина, 2026-08-10). Ряд выбираем через :has,
+   чтобы не задеть остальные .row правой колонки (цвета, цены); где :has не
+   поддерживается, правило просто не сработает и раскладка останется прежней. */
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .row:has(> .col-md-6.measur) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .row:has(> .col-md-6.measur) > .col-md-6 {
+    float: none;
+}
+/* Нижний отступ 15px у блоков выбора (из template_styles.css темы) оставлял
+   единицы на 15px ниже кнопок длины даже при выравнивании по нижнему краю.
+   На easydecking гасится тем же правилом — переносим. */
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .sku_props .wrapper_sku > div {
+    margin-bottom: 0 !important;
+}
+
 /* Счётчик и корзина. В макете 264 + 12 + 266 = 543 во всю ширину колонки,
    кнопка прижата к правому краю (её правый край совпадает с краем колонки). */
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_wrapp {
@@ -803,10 +829,19 @@
     font-weight: 600;
     color: #101014;
 }
-/* Ширина кнопки из макета — 266, не резиновая: остаток колонки забирает счётчик. */
+/* Счётчик и кнопка делят ряд поровну и добирают до правого края колонки.
+   Было flex:0 0 266px — кнопка получалась 266, счётчик 255, и справа
+   оставалось 10px пустоты от отступов темы (Ирина, 2026-08-10).
+   Базис именно 0, а не 50%: при 50% + 50% + зазор 12 сумма превышает 100%,
+   и счётчик с кнопкой переносились друг под друга во всю ширину. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-wrapper,
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block {
-    flex: 0 0 266px;
-    max-width: 266px;
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
 }
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn {
     display: flex;
