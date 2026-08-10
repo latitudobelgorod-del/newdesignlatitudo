@@ -3272,6 +3272,667 @@ body .nd-filter .bx_filter_block .values_expander {
     }
 }
 
+/* ---------------------------------------------------------------------------
+   Якоря внутри редакторских блоков (.sp-anchorlink)
+
+   Их печатает sprint.editor перед заголовком: «Документация и сертификаты» на
+   странице бренда и подобные ссылки внутри текста. Без отступа переход по
+   такой ссылке ставит заголовок ровно под верх окна, а там залипающая шапка —
+   и заголовок оказывается за ней.
+
+   Высоту шапки держит --nd-header-h: её проставляет js/newdesign-header.js,
+   причём берёт большую из видимых — десктопной (#nd-header) и мобильной
+   (#mobileheader), — поэтому одно правило работает на обоих. 156px из макета
+   остаётся запасным значением, пока скрипт не отработал.
+   ------------------------------------------------------------------------ */
+.sp-anchorlink {
+    scroll-margin-top: calc(var(--nd-header-h, 156px) + 16px);
+}
+
+
+/* ============================================================================
+   Страница «О компании» (/info/company/) — макет Figma 20677:31960 (десктоп)
+   и 20669:37377 (мобильный).
+
+   Вёрстка приходит одной включаемой областью, которую контент-менеджер
+   подключает в редакторе блоков: include/newdesign/company/about_page.php →
+   шаблонный include/company/about_page.php. Карусель шоу-румов — отдельный
+   шаблон news.list/showrooms_newdesign, стили у неё свои.
+
+   Размеры считаны с колонки контента 1004: обложка 1004x384, цифры 245x124
+   с зазором 8, карточки профессионалов 324 с зазором 18, преимущества 239
+   с зазором 16, логотипы 182x164 с зазором 24.
+   ------------------------------------------------------------------------ */
+.nd-co {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    color: #101014;
+}
+.nd-co * {
+    box-sizing: border-box;
+}
+/* Внутри `.editor` тема раздаёт свои отступы заголовкам, абзацам и картинкам
+   и делает это селекторами с большей специфичностью, чем одиночный класс.
+   Гасим их разом — расстояния в блоке держат flex-раскладки и gap. */
+.nd-co h2,
+.nd-co h3,
+.nd-co p,
+.nd-co img,
+.editor .nd-co h2,
+.editor .nd-co h3,
+.editor .nd-co p,
+.editor .nd-co img {
+    margin: 0;
+    padding: 0;
+}
+.nd-co__sec {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+.nd-co__h2 {
+    margin: 0;
+    padding: 0;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 34px;
+    color: #101014;
+}
+
+/* Тема подчёркивает все ссылки внутри `.editor` — в макете подчёркиваний нет.
+   Кнопки из сброса исключены: `.editor .nd-co a` весит больше, чем
+   `.editor .nd-co__btn--ghost` (лишний селектор типа `a`), и порядком правил
+   это не лечится — у кнопки-контура пропадала нижняя рамка. */
+.editor .nd-co a:not(.nd-co__btn),
+.editor .nd-co a:not(.nd-co__btn):hover,
+.editor .nd-co a:not(.nd-co__btn):focus {
+    text-decoration: none;
+    border-bottom: 0;
+}
+.editor .nd-co a.nd-co__btn,
+.editor .nd-co a.nd-co__btn:hover,
+.editor .nd-co a.nd-co__btn:focus {
+    text-decoration: none;
+}
+
+/* ---- кнопки ------------------------------------------------------------ */
+.nd-co__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    align-self: flex-start;
+    height: 56px;
+    padding: 0 16px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    text-decoration: none;
+    transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+.nd-co__btn-ico {
+    flex: 0 0 auto;
+}
+.nd-co__btn--white,
+.editor .nd-co__btn--white {
+    background: #fff;
+    color: #101014;
+}
+.nd-co__btn--white:hover,
+.nd-co__btn--white:focus,
+.editor .nd-co__btn--white:hover,
+.editor .nd-co__btn--white:focus {
+    background: #c60000;
+    color: #fff;
+}
+.nd-co__btn--ghost,
+.editor .nd-co__btn--ghost {
+    border: 1px solid rgba(255, 255, 255, .4);
+    background: transparent;
+    color: #fff;
+}
+.nd-co__btn--ghost:hover,
+.nd-co__btn--ghost:focus,
+.editor .nd-co__btn--ghost:hover,
+.editor .nd-co__btn--ghost:focus {
+    border-color: #fff;
+    background: #fff;
+    color: #101014;
+}
+
+/* ---- обложка ----------------------------------------------------------- */
+.nd-co__hero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: 384px;
+    padding: 24px;
+    border-radius: 6px;
+    overflow: hidden;
+    color: #fff;
+}
+/* Кадр обложки шире исходного фото, поэтому его подрезает по высоте.
+   Прижимаем к верху — иначе центрирование срезает головы (Ирина, 2026-08-08). */
+.nd-co__hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+}
+/* Два слоя затемнения из макета: ровная подложка 24% и градиент к левому
+   верхнему углу, чтобы белый текст читался поверх светлого фото. */
+.nd-co__hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to top left, rgba(16, 16, 20, 0) 36%, rgba(16, 16, 20, .88) 88%),
+        rgba(16, 16, 20, .24);
+}
+.nd-co__hero-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+.nd-co__hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 519px;
+}
+.nd-co__hero-title {
+    font-weight: 800;
+    font-size: 36px;
+    line-height: 40px;
+}
+.nd-co__hero-desc {
+    margin: 0;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    color: #fff;
+}
+
+/* ---- цифры ------------------------------------------------------------- */
+/* Плашка та же, что в блоке «О компании» на главной (.nd-about__stat) —
+   переиспользуем её, здесь задаём только раскладку ряда. */
+.nd-co__stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+/* ---- «Для профессионалов отрасли» -------------------------------------- */
+.nd-co__pro {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+.nd-co__pro-card {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 213px;
+    padding: 20px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .1);
+    color: #101014;
+    text-decoration: none;
+    transition: background-color .2s ease, color .2s ease;
+}
+.nd-co__pro-card:hover,
+.nd-co__pro-card:focus,
+.editor .nd-co__pro-card:hover,
+.editor .nd-co__pro-card:focus {
+    background: #c60000;
+    color: #fff;
+}
+.nd-co__pro-text {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+/* 26px, а не 28 из макета: при 28 «Архитекторам» не умещается в колонку
+   карточки и рвётся на две строки — в макете слово стоит одной. */
+.nd-co__pro-name {
+    font-weight: 800;
+    font-size: 26px;
+    line-height: 29px;
+}
+.nd-co__pro-desc {
+    font-size: 14px;
+    line-height: 19px;
+}
+.nd-co__pro-ico {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    color: currentColor;
+}
+
+/* ---- «У вас будет, работая с нами» ------------------------------------- */
+.nd-co__bene {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+.nd-co__bene-item {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 248px;
+    padding: 24px;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 4px;
+}
+.nd-co__bene-ico {
+    width: 96px;
+    height: 96px;
+}
+.nd-co__bene-text {
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 22px;
+}
+
+/* ---- промо каталога ---------------------------------------------------- */
+.nd-co__promo {
+    position: relative;
+    display: flex;
+    min-height: 414px;
+    padding: 32px;
+    border-radius: 6px;
+    background: #525264;
+    color: #fff;
+    overflow: hidden;
+}
+.nd-co__promo-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 32px;
+    max-width: 516px;
+}
+.nd-co__promo-title {
+    max-width: 496px;
+    font-weight: 800;
+    font-size: 36px;
+    line-height: 40px;
+}
+.nd-co__promo-desc {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: #fff;
+}
+.nd-co__promo .nd-co__btn {
+    margin-top: auto;
+}
+.nd-co__promo-img {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 41%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ---- «Нам доверяют» ---------------------------------------------------- */
+.nd-co__trust {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 24px;
+}
+.nd-co__trust-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 164px;
+    padding: 24px;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 6px;
+}
+.nd-co__trust-item img {
+    max-width: 100%;
+    max-height: 96px;
+    object-fit: contain;
+}
+
+/* ---- вакансии и сертификаты -------------------------------------------- */
+.nd-co__pair {
+    display: grid;
+    grid-template-columns: 1.24fr 1fr;
+    gap: 24px;
+}
+.nd-co__card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.nd-co__card-title {
+    font-weight: 800;
+    font-size: 36px;
+    line-height: 40px;
+}
+.nd-co__card-desc {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: #fff;
+}
+
+.nd-co__vac {
+    position: relative;
+    display: flex;
+    min-height: 358px;
+    padding: 24px;
+    border-radius: 6px;
+    overflow: hidden;
+    color: #fff;
+}
+.nd-co__vac-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.nd-co__vac::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to top left, rgba(16, 16, 20, 0) 36%, rgba(16, 16, 20, .88) 88%),
+        rgba(16, 16, 20, .24);
+}
+.nd-co__vac-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 24px;
+    width: 100%;
+}
+.nd-co__vac .nd-co__card-desc {
+    max-width: 350px;
+    font-weight: 500;
+}
+
+.nd-co__certs {
+    position: relative;
+    display: flex;
+    min-height: 358px;
+    padding: 20px;
+    border-radius: 6px;
+    background: #525264;
+    color: #fff;
+    overflow: hidden;
+}
+.nd-co__certs-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 32px;
+    width: 100%;
+}
+.nd-co__certs .nd-co__card-desc {
+    max-width: 288px;
+}
+/* Три листа сертификатов веером в правом нижнем углу — декор из макета,
+   поэтому вне потока и скрыт от скринридеров в разметке. */
+.nd-co__certs-pics {
+    position: absolute;
+    right: -34px;
+    bottom: -56px;
+    width: 220px;
+    height: 300px;
+}
+.nd-co__certs-pics img {
+    position: absolute;
+    border-radius: 2px;
+    box-shadow: 0 6px 24px rgba(16, 16, 20, .25);
+}
+.nd-co__certs-pics img:nth-child(1) {
+    top: 0;
+    right: 8px;
+    width: 107px;
+    transform: rotate(9deg);
+}
+.nd-co__certs-pics img:nth-child(2) {
+    top: 90px;
+    right: 78px;
+    width: 128px;
+    transform: rotate(-8deg);
+}
+.nd-co__certs-pics img:nth-child(3) {
+    top: 70px;
+    right: -30px;
+    width: 130px;
+    transform: rotate(4deg);
+}
+
+/* ---- три способа связаться --------------------------------------------- */
+.nd-co__ways {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.nd-co__way {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 247px;
+    padding: 24px;
+    border-radius: 4px;
+    background: #f6f6f7;
+}
+.nd-co__way-top {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.nd-co__way-title {
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 22px;
+}
+.nd-co__way-desc {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+}
+.nd-co__way-links {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.nd-co__way-links a,
+.editor .nd-co__way-links a {
+    font-size: 16px;
+    line-height: 24px;
+    color: #c60000;
+}
+.nd-co__way-links a:hover,
+.editor .nd-co__way-links a:hover {
+    color: #101014;
+}
+
+/* ---- планшет ----------------------------------------------------------- */
+@media (max-width: 1199px) {
+    .nd-co__pro {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .nd-co__bene {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .nd-co__trust {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .nd-co__hero-title,
+    .nd-co__promo-title,
+    .nd-co__card-title {
+        font-size: 30px;
+        line-height: 34px;
+    }
+    .nd-co__promo-img {
+        width: 34%;
+    }
+}
+
+/* ---- узкий планшет и мобильный ------------------------------------------ */
+@media (max-width: 991px) {
+    .nd-co {
+        gap: 32px;
+    }
+    .nd-co__pair,
+    .nd-co__ways {
+        grid-template-columns: 1fr;
+    }
+    .nd-co__promo {
+        flex-direction: column;
+        min-height: 0;
+        padding-bottom: 0;
+    }
+    .nd-co__promo-body {
+        max-width: none;
+    }
+    /* На узком экране фото уезжает под текст и становится обычным блоком */
+    .nd-co__promo-img {
+        position: relative;
+        width: calc(100% + 64px);
+        height: 240px;
+        margin: 32px -32px 0;
+    }
+    /* Веер сертификатов на узком экране крупнее и стоит в правом нижнем
+       углу плашки (Figma 21448:55771): рамка 171×232, листы вылезают за
+       правый край и обрезаются скруглением. pointer-events снимаем, чтобы
+       декор не перекрывал кнопку «К сертификатам». */
+    .nd-co__certs-pics {
+        right: -42px;
+        bottom: 0;
+        width: 171px;
+        height: 232px;
+        pointer-events: none;
+    }
+    .nd-co__certs-pics img:nth-child(1) {
+        top: -70px;
+        right: auto;
+        left: 73px;
+        width: 76px;
+        transform: rotate(-18.6deg);
+    }
+    .nd-co__certs-pics img:nth-child(2) {
+        top: 119px;
+        right: auto;
+        left: 15px;
+        width: 91px;
+        transform: rotate(39.6deg);
+    }
+    .nd-co__certs-pics img:nth-child(3) {
+        top: 39px;
+        right: auto;
+        left: 68px;
+        width: 103px;
+        transform: rotate(24deg);
+    }
+    .nd-co__certs .nd-co__card-desc,
+    .nd-co__vac .nd-co__card-desc {
+        max-width: none;
+    }
+    /* Текст плашки не должен заезжать под веер: в макете строки разбиты
+       вручную так, чтобы обрываться левее листов. */
+    .nd-co__certs .nd-co__card-text {
+        max-width: calc(100% - 230px);
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-co {
+        gap: 24px;
+    }
+    .nd-co__h2 {
+        font-size: 22px;
+        line-height: 28px;
+    }
+    .nd-co__hero {
+        min-height: 420px;
+        padding: 16px;
+    }
+    .nd-co__hero-title,
+    .nd-co__promo-title,
+    .nd-co__card-title {
+        font-size: 24px;
+        line-height: 28px;
+    }
+    .nd-co__stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .nd-co__pro {
+        grid-template-columns: 1fr;
+    }
+    .nd-co__pro-card {
+        min-height: 0;
+    }
+    .nd-co__trust {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .nd-co__trust-item {
+        min-height: 120px;
+        padding: 16px;
+    }
+    .nd-co__trust-item img {
+        max-height: 64px;
+    }
+    .nd-co__bene-item {
+        min-height: 0;
+        padding: 16px;
+    }
+    .nd-co__bene-ico {
+        width: 64px;
+        height: 64px;
+    }
+    .nd-co__bene-text {
+        font-size: 15px;
+        line-height: 19px;
+    }
+    .nd-co__promo,
+    .nd-co__vac,
+    .nd-co__certs,
+    .nd-co__way {
+        padding: 16px;
+    }
+    /* На мобильном фото в промо-плашке нет вовсе — так в макете
+       (Figma 21448:55850), остаётся только текст с кнопкой. */
+    .nd-co__promo-img {
+        display: none;
+    }
+    .nd-co__certs .nd-co__card-text {
+        max-width: 200px;
+    }
+    .nd-co__way {
+        min-height: 0;
+    }
+    .nd-co__btn {
+        height: 48px;
+    }
+}
+
 /* ======================== блок «Галерея» (sprint.editor) ==================
    Один вид на всех страницах нового дизайна (просьба Ирины, 2026-08-06):
    квадратные плитки по пять в ряд с зазором 20 и скруглением 4, как в макете.

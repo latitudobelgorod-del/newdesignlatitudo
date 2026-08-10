@@ -40,115 +40,69 @@ $goy=$arResult['NAME'];
 	
 	
 
+<?/* Шапка бренда по макету Figma «Категория производителя»: имя слева,
+   логотип справа на той же строке, под ними описание и только потом якоря.
 
-<? if ($value['PROPERTIES']['SET']['VALUE']): ?>
-	<div class="<?=$value['PROPERTIES']['SET']['VALUE_XML_ID']?>">	<img class="img-responsive" src="<?=$value["PREVIEW_PICTURE"]["SRC"]?>" alt="<?=$value["NAME"]?>"></div>
-<? else: ?>
-<img class="img-responsive" src="<?=$value["PREVIEW_PICTURE"]["SRC"]?>" alt="<?=$value["NAME"]?>">
-<?endif;?>
-
-
-<div class="row">
-<div class="col-md-8 col-xs-12">	<h1 id="pagetitle"><?=$goy?></h1>
-	<?/*<h1><?$APPLICATION->ShowTitle(false)?></h1>*/?>
-	
-	
-<?/*Вывод анкоров на разделы, в зависимости от шаблоны детальной*/?>
-<?foreach($arResult["DISPLAY_PROPERTIES"] as $pid=>$arProperty):?>
-<?if($pid =="TEMPLATE"): ?>
-<?/*
-<li><span>Шаблон страницы:</span> <?echo $arProperty["DISPLAY_VALUE"];?>
-*/?>
-<?/*print_r($arProperty);*/?>
-</li>
-	<? if ($arProperty["VALUE_XML_ID"]=="temp_numb_1"): ?>
-	<?$APPLICATION->IncludeComponent("bitrix:main.include", ".default",
-			array(
-				"COMPONENT_TEMPLATE" => ".default",
-				"PATH" => SITE_DIR."include/news.detail.ankor_section.php",
-				"AREA_FILE_SHOW" => "file",
-				"AREA_FILE_SUFFIX" => "",
-				"AREA_FILE_RECURSIVE" => "Y",
-				"EDIT_TEMPLATE" => "standard.php"
-			),
-			false
-		);?>
-	<? else: ?>
-	
-	<?endif;?>
-
-<?endif?>
-<?endforeach;?> 
-<?/*Вывод анкоров на разделы, в зависимости от шаблоны детальной*/?>
-	
-
-	</div>
-<div class="col-md-4 col-xs-12">
-	<?// images?>
-		<?if($arImgs):?>
-			<div class="detailimage">
-				<?if($arImgs):?>
-					<div class="img-partner">
-						<img src="<?=$arImgs[0]["DETAIL"]["SRC"]?>" title="<?=$arImgs[0]["TITLE"]?>" alt="<?=$arImgs[0]["ALT"]?>" class="img-responsive" />
-						<?if($arResult["DISPLAY_PROPERTIES"]["SITE"]['VALUE']):?>
-							<div style="text-align:center;">
-							<h2>Официальный сайт <?=$arResult["NAME"]?></h2>
-							<a href="<?=(strpos($arResult["DISPLAY_PROPERTIES"]["SITE"]['VALUE'], 'http') === false ? 'http://' : '').$arResult["DISPLAY_PROPERTIES"]["SITE"]['VALUE'];?>"  target="_blank">
-								<?=$arResult["DISPLAY_PROPERTIES"]["SITE"]['VALUE'];?>
-							</a>
-							</div>	
-						<?endif;?>					
-					</div>
-				<?endif;?>
-			</div>
-		<?endif;?>
-</div>
-</div>
-
-			
-
-		<div class="post-content">
-			<?if($arParams["DISPLAY_NAME"] != "N" && strlen($arResult["NAME"])):?>
-				<h2><?=$arResult["NAME"]?></h2>
-			<?endif;?>
-			<div class="content">
-				<?// text?>
-				<?if(strlen($arResult["FIELDS"]["PREVIEW_TEXT"].$arResult["FIELDS"]["DETAIL_TEXT"])):?>
-					<div class="text">
-						<?if($arResult["DETAIL_TEXT_TYPE"] == "text"):?>
-							<p><?=$arResult["FIELDS"]["DETAIL_TEXT"];?></p>
-						<?else:?>
-							<?=$arResult["FIELDS"]["DETAIL_TEXT"];?>
-						<?endif;?>
-					</div>
-				<?endif;?>
-				
-				<?// display properties?>
-				
-			</div>
+   Прежде здесь была бутстраповская пара колонок: в левой имя и якоря, в правой
+   логотип, а описание печаталось ниже — из-за этого якоря оказывались выше
+   описания. Заодно убран <img> с пустым src: он печатался из переменной
+   $value, которой в этом шаблоне никто не присваивает значение. */?>
+<div class="nd-brandhead">
+	<h1 class="nd-brandhead__title" id="pagetitle"><?=$goy?></h1>
+	<?if($arImgs):?>
+		<div class="nd-brandhead__logo">
+			<img src="<?=$arImgs[0]["DETAIL"]["SRC"]?>" title="<?=$arImgs[0]["TITLE"]?>" alt="<?=$arImgs[0]["ALT"]?>" />
 		</div>
-	
+	<?endif;?>
 </div>
 
-
-
-<div class="editor torgmarks" >
+<?/* Описание. У большинства марок оно лежит в свойстве EDITOR1 (sprint.editor),
+   у части — по-старому в детальном тексте, поэтому печатаем оба. */?>
+<div class="nd-brandhead__text editor torgmarks">
+	<?if(strlen($arResult["FIELDS"]["PREVIEW_TEXT"].$arResult["FIELDS"]["DETAIL_TEXT"])):?>
+		<div class="text">
+			<?if($arResult["DETAIL_TEXT_TYPE"] == "text"):?>
+				<p><?=$arResult["FIELDS"]["DETAIL_TEXT"];?></p>
+			<?else:?>
+				<?=$arResult["FIELDS"]["DETAIL_TEXT"];?>
+			<?endif;?>
+		</div>
+	<?endif;?>
 	<?$APPLICATION->IncludeComponent(
-        "sprint.editor:blocks",
-        "images_columns",
-        Array(
-            "ELEMENT_ID" => $arResult["ID"],
-            "IBLOCK_ID" => $arResult["IBLOCK_ID"],
-            "PROPERTY_CODE" => "EDITOR1",
-            "USE_JQUERY" => "N",
-            "USE_FANCYBOX" => "N",
-        ),
-        $component,
-        Array(
-            "HIDE_ICONS" => "Y"
-        )
-    );?>
+		"sprint.editor:blocks",
+		"images_columns",
+		Array(
+			"ELEMENT_ID" => $arResult["ID"],
+			"IBLOCK_ID" => $arResult["IBLOCK_ID"],
+			"PROPERTY_CODE" => "EDITOR1",
+			"USE_JQUERY" => "N",
+			"USE_FANCYBOX" => "N",
+		),
+		$component,
+		Array(
+			"HIDE_ICONS" => "Y"
+		)
+	);?>
+	<?/* Ссылки на официальный сайт марки здесь нет намеренно: в макете
+	   «Категория производителя» её не предусмотрено. Свойство SITE у части
+	   брендов заполнено — если понадобится, вернуть недолго. */?>
 </div>
+
+<?/*Вывод анкоров на разделы, в зависимости от шаблона детальной*/?>
+<?foreach($arResult["DISPLAY_PROPERTIES"] as $pid=>$arProperty):?>
+	<?if($pid == "TEMPLATE" && $arProperty["VALUE_XML_ID"] == "temp_numb_1"):?>
+		<?/* Якоря считает include/brand_anchors.php шаблона, а не компонент
+		   catalog.section из include/news.detail.ankor_section.php: тот ради десятка
+		   ссылок вычитывал сотню товаров с ценами и съедал почти всё время страницы
+		   (EasyDecking 16.9 → 1.4 секунды). Старый дизайн остался на компоненте. */?>
+		<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_anchors.php';?>
+	<?endif;?>
+<?endforeach;?>
+
+</div>
+
+
+
 <?if($arResult['GALLERY']):?>
 	<div class="wraps with-padding galerys-block">
 		<hr />

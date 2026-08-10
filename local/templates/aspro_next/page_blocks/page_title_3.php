@@ -1,5 +1,5 @@
 <?
-global $arTheme, $arRegion;
+global $arTheme, $arRegion, $APPLICATION;
 $arRegions = CNextRegionality::getRegions();
 $regionID = ($arRegion ? $arRegion['ID'] : '');
 
@@ -29,19 +29,15 @@ $regionID = ($arRegion ? $arRegion['ID'] : '');
 
 
 
-<?if ($regionID == '9278') : ?>
+<?/* Баннер «Комплект Пергола + мебель» — один на все регионы. Раньше Воронежу
+   (region 9278) показывалась своя пара половинных баннеров: переезд офиса и
+   рассрочка. Теперь регион ничем не отличается от остальных.
+
+   На самой странице перголы баннер не печатаем: он туда и ведёт. */?>
+<?if(strpos($APPLICATION->GetCurPage(false), '/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/') !== 0):?>
 <div class="top_inner_block_wrapper">
 <div class="maxwidth-theme">
-	<div class="row">
-		<div class="col-md-6"><div class="banner_gradient"><a href="/contacts/"><img  alt="Контакты Латитудо в Воронеже" title="Контакты Латитудо в Воронеже" src="/images/banners/banner_small_office_vrn.jpg" loading="lazy" ></a></div></div>
-		<div class="col-md-6"><div class="banner_gradient"><a href="/info/rassrochka/"><img  alt="Рассрочка" title="Рассрочка" src="/images/banners/banner_small_rassrochka.jpg" loading="lazy" ></a></div></div>
-	</div>
-</div>
-</div>
-<?else:?>
-<div class="top_inner_block_wrapper">
-<div class="maxwidth-theme">
-<div class="banner_gradient"><a href="/info/rassrochka/"><img  alt="Рассрочка" title="Рассрочка" src="/images/banners/banner_rassrochka.jpg" loading="lazy" ></a></div>
+<div class="banner_gradient banner_gradient--pergola"><a href="/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/"><img  alt="Комплект Пергола + мебель" title="Комплект Пергола + мебель" src="/images/banners/banner_pergola.jpg" loading="lazy" ></a></div>
 </div>
 </div>
 <?endif;?>
