@@ -1037,6 +1037,8 @@
 .catalog_detail.element_newdesign .right_info .info_item .sku-list-item:hover::after {
     content: none !important;
 }
+
+
 .catalog_detail.element_newdesign .right_info .info_item .sku-list__item.active {
     border-radius: 50%;
     box-shadow: 0 0 0 2px rgba(198, 0, 0, .3);
@@ -1494,5 +1496,60 @@
     .nd-pd__video {
         width: 48px;
         padding: 0;
+    }
+}
+
+/* ===================== мобильный (макет Figma 20512:84167) =====================
+   Наличие и логистика на телефоне — не плитки в ряд, а строки во всю ширину:
+   подпись слева, значение справа. Ряд 328×28, поля 4/8, зазор 4; у складов
+   радиус 6, у логистики 4.
+
+   Почему это здесь, а не в мобильных правилах шаблона складов: медиа-запрос
+   специфичности не добавляет, и десктопные правила выше (с длинным селектором
+   .right_info .info_item …) перебивали мобильные из template.php — на телефоне
+   склады оставались столбиком с подписью над значением (Ирина, 2026-08-10).
+   Поэтому мобильный вариант пишем теми же селекторами и НИЖЕ по файлу. */
+@media (max-width: 767px) {
+    .catalog_detail.element_newdesign .right_info .info_item .title-stock {
+        font-size: 17px;
+        line-height: 20.4px;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item .stores-simple-list {
+        flex-direction: column;
+        gap: 4px;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item .stores-simple-list .store-item {
+        flex: 0 0 auto;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 28px;
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
+    /* Логистика: та же строка, но радиус 4 и подпись #525264 (на десктопе #8F8F9A). */
+    .catalog_detail.element_newdesign .right_info .info_item .logistic {
+        display: flex !important;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item .logistic > div:not(.logistic_title) {
+        flex-direction: row !important;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 28px;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item .logistic > div:not(.logistic_title) > span {
+        color: #525264;
+    }
+    /* Горизонтальная прокрутка на телефоне: у bootstrap-строки блока описания
+       отрицательные поля по 15px, а компенсирующего padding у контейнера нет —
+       страница вылезала на 14px с каждой стороны (scrollWidth 389 при 375).
+       Дефект не из правок карточки, но на мобильном заметен, поэтому гасим. */
+    .catalog_detail.element_newdesign .row.wdesc {
+        margin-left: 0;
+        margin-right: 0;
     }
 }
