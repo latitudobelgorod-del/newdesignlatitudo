@@ -3286,8 +3286,11 @@ body .nd-filter .bx_filter_block .values_expander {
     padding: 0;
     list-style: none;
 }
+/* height:auto — у темы плитке задана высота 170px, из-за чего квадратная
+   картинка вылезала за неё и ряды слипались (вертикальный зазор съедался) */
 .sp-gallery .sp-gallery-item {
     width: auto;
+    height: auto !important;
     margin: 0;
     padding: 0;
     float: none;
@@ -3302,16 +3305,24 @@ body .nd-filter .bx_filter_block .values_expander {
     border-radius: 4px;
     overflow: hidden;
 }
+/* Центрирование темы сбрасываем целиком: она ставит картинке position:relative
+   с top/left 50% и сдвигает обратно через transform: translate(-50%,-50%).
+   Из-за этого на наведении плитка уезжала. Нам центрировать нечего — картинка
+   растянута на всю плитку и кадрируется object-fit. */
 .sp-gallery .sp-gallery-item img {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
     width: 100% !important;
     height: 100% !important;
     max-width: none;
     margin: 0 !important;
+    transform: none !important;
     object-fit: cover;
     transition: transform .3s ease;
 }
 .sp-gallery .sp-gallery-item-img-wrapper:hover img {
-    transform: scale(1.03);
+    transform: scale(1.03) !important;
 }
 /* Подпись тема показывает на наведении, ужимая при этом саму картинку —
    плитка «схлопывалась» и уезжала. В макете подписей у галереи нет, текст
