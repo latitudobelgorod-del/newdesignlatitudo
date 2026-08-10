@@ -932,6 +932,53 @@
     max-width: none !important;
 }
 
+/* Счётчик — целиком серый, без рамки (Ирина, 2026-08-10). В макете это
+   `Input Container` 266×56: заливка #525264 с прозрачностью 10%, радиус 4 и
+   БЕЗ обводки, а у нас он был белый с рамкой rgba(82,82,100,.25).
+   margin-right:10px у темы тоже снимаем — из-за него ряд не добирал до края. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-block,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block {
+    height: 56px;
+    margin: 0;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .1);
+}
+/* Значение в счётчике — 16/24 обычным весом, как в макете (было 18/600). */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-field,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block input.text {
+    background: transparent;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #101014;
+}
+
+/* Выделение выбранного цвета. Тема рисует его через .sku-list__item.active::after —
+   это квадрат 52×52 с чёрной рамкой 1px и радиусом 7, он и выглядел «странной
+   рамкой» вокруг круглого образца. В макете обводка идёт ПО кругу: 2px
+   #C60000 с прозрачностью 30%. Гасим псевдоэлемент и даём кольцо тенью —
+   тень не занимает места и не сдвигает соседние образцы. */
+.catalog_detail.element_newdesign .right_info .info_item .sku-list__item.active::after {
+    content: none !important;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku-list__item.active {
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(198, 0, 0, .3);
+}
+
+/* «Все характеристики» и «Примеры применения материала» — зазор 4, как в макете
+   (там строки на y 994 и 1018 при высоте 20). Отбивку задаёт не сам .top_props,
+   а флекс-контейнер .row свойством row-gap:20px. Менять сам row-gap нельзя —
+   он держит вертикальные отступы всей правой колонки (цвет, длина, цена),
+   поэтому компенсируем разницу на втором пункте.
+   !important обязателен: рядом есть правило с margin:0 и большей
+   специфичностью, из-за него отрицательный отступ не применялся.
+   calc оставлен вместо -16px, чтобы в коде было видно, из чего число вышло. */
+.catalog_detail.element_newdesign .right_info .info_item .top_props + .top_props {
+    margin-top: calc(4px - 20px) !important;
+}
+
 /* Логистические параметры — четыре плитки 130×52 */
 /* !important: у темы правило на .logistic.col-md-12 с большей специфичностью */
 .catalog_detail.element_newdesign .right_info .info_item .logistic {
