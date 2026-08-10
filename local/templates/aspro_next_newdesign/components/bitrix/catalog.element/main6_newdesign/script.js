@@ -2978,7 +2978,7 @@ if ((this.offers[this.offerNum]['HEIGHT']) || (this.offers[this.offerNum]['LENGT
 {
 
 		$('.logistic').css('display', 'block');
-		$('.logistic_title').html('Логистические параметры единицы товара');
+		$('.logistic_title').html('Логистические параметры');
 		$('.logistic_title').css('display', 'block');
 }
 else

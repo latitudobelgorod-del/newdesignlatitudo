@@ -1362,7 +1362,8 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 						(isset($arResult["CATALOG_WEIGHT"])) && ($arResult["CATALOG_WEIGHT"] !=="0") ):?>
 						<div class="logistic col-md-12">
 						
-						<div class="logistic_title">Логистические параметры единицы товара</div>	
+						<?/* В макете заголовок короткий — «Логистические параметры», без «единицы товара» */?>
+						<div class="logistic_title">Логистические параметры</div>
 						
 						<?if(($arResult["CATALOG_LENGTH"] !=="0") && (isset($arResult["CATALOG_LENGTH"]))):?>
 						<div class="product-dlina" ><span>Длина:</span> <?=$arResult["CATALOG_LENGTH"]?> мм</div>

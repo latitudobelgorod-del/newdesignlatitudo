@@ -944,14 +944,74 @@
     border-radius: 4px;
     background: rgba(82, 82, 100, .1);
 }
-/* Значение в счётчике — 16/24 обычным весом, как в макете (было 18/600). */
+/* display форсируем ТОЛЬКО у .measure-block. У .counter_block его задавать
+   нельзя: это штатный счётчик темы, он на странице скрыт, и display:flex
+   !important делал его видимым — счётчиков становилось два.
+   nowrap нужен, потому что поле 210 плюс две кнопки по 40 не влезают в 266,
+   и «+» срывался на вторую строку. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-block {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+}
+/* Поле ввода занимает всю середину счётчика и само по себе невидимо: в макете
+   счётчик — одна серая плашка, а у нас поле было узкой белой коробочкой 50px с
+   рамкой, из-за неё серое вокруг читалось как «фон под кнопками» (Ирина).
+   Рамку и фон гасим и в обычном состоянии, и на фокусе — тема подсвечивает
+   поле при клике. Значение 16/24 обычным весом, как в макете. */
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-field,
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block input.text {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    height: 54px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
     background: transparent;
+    box-shadow: none;
+    text-align: center;
     font-size: 16px;
     line-height: 24px;
     font-weight: 400;
     color: #101014;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-field:focus,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block input.text:focus {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+}
+/* Кнопки −/+ из макета: область 40×56. Фон НЕ трогаем: сами значки «−» и «+»
+   тема рисует фоновой картинкой у этого же элемента, и `background: transparent`
+   их стирал — кнопки становились пустыми. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-button {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 56px;
+    margin: 0;
+    border: 0;
+    background-color: transparent;
+}
+
+/* Пробел между числом и «₽» убираем: в макете «4 000₽/шт» слитно, а у нас
+   выходило «4 249 ₽/м²». Пробел — это текстовый узел между спанами значения и
+   валюты; inline-flex у обёртки такие узлы отбрасывает. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .values_wrapper {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0;
+}
+
+/* Ссылки «Все характеристики» / «Примеры применения» в макете подчёркнуты.
+   Это не <a>, а <span class="choise"> — тема раскрывает по ним блоки, поэтому
+   селектор по классу, а не по тегу. */
+.catalog_detail.element_newdesign .right_info .info_item .top_props .choise {
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 /* Выделение выбранного цвета. Тема рисует его через .sku-list__item.active::after —
@@ -994,31 +1054,39 @@
     margin: 0;
     padding: 0;
     font-size: 16px;
-    line-height: 19px;
+    line-height: 19.2px;
     font-weight: 700;
     color: #101014;
 }
+/* Плитка из макета (`table row`): 130×52, заливка #525264 5%, радиус 6, поля 6
+   по кругу, зазор между подписью и значением 0 — 6 + 19.6 + 19.6 + 6 даёт 52.
+   Значение — 14/19.6 обычным весом, подпись — 14/19.6 весом 500 серым: раньше
+   было наоборот (значение 500, подпись мелкая 12/16). */
+/* !important у display: тема держит на этих ячейках свой display:block с большей
+   специфичностью, из-за него подпись и значение шли одной строкой
+   («Длина: 3010 мм»), а в макете они друг под другом. */
 .catalog_detail.element_newdesign .right_info .info_item .logistic > div:not(.logistic_title) {
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
     justify-content: center;
-    gap: 2px;
+    gap: 0;
     min-width: 0;
+    min-height: 52px;
     margin: 0;
     padding: 6px;
     border: 0;
     border-radius: 6px;
     background: rgba(82, 82, 100, .05);
     font-size: 14px;
-    line-height: 20px;
-    font-weight: 500;
+    line-height: 19.6px;
+    font-weight: 400;
     color: #101014;
 }
 .catalog_detail.element_newdesign .right_info .info_item .logistic > div:not(.logistic_title) > span {
-    font-size: 12px;
-    line-height: 16px;
-    font-weight: 400;
-    color: #8f8f9a;
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 500;
+    color: #8F8F9A;
 }
 
 /* Ссылки под карточкой */
