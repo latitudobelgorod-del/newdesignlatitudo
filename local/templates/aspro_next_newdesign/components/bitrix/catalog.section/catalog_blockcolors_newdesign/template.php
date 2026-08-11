@@ -419,7 +419,24 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 						   свойство-список («Наши предложения») и текстовую «Метку». */
 						$ndTags = array();
 						$ndStikerProp = ($arParams["STIKERS_PROP"] ? $arParams["STIKERS_PROP"] : "HIT");
-						foreach(CNext::GetItemStickers($arItem["PROPERTIES"][$ndStikerProp]) as $arSticker){
+						/* «Хиты месяца» на карточке не показываем (Ирина, 2026-08-11) —
+						   это служебная пометка для вкладки блока «Может заинтересовать»,
+						   покупателю она ничего не говорит. Отсекаем по XML_ID HIT_MONTH:
+						   он одинаков на всех средах, в отличие от ID значения; на текст
+						   тоже завязываться нельзя — его правят из админки. */
+						$ndStikerSrc = $arItem["PROPERTIES"][$ndStikerProp];
+						if(is_array($ndStikerSrc)){
+							if(is_array($ndStikerSrc['VALUE'])){
+								foreach($ndStikerSrc['VALUE'] as $ndI => $ndV){
+									if(isset($ndStikerSrc['VALUE_XML_ID'][$ndI]) && $ndStikerSrc['VALUE_XML_ID'][$ndI] === 'HIT_MONTH')
+										unset($ndStikerSrc['VALUE'][$ndI], $ndStikerSrc['VALUE_XML_ID'][$ndI]);
+								}
+							}
+							elseif(isset($ndStikerSrc['VALUE_XML_ID']) && $ndStikerSrc['VALUE_XML_ID'] === 'HIT_MONTH'){
+								$ndStikerSrc['VALUE'] = '';
+							}
+						}
+						foreach(CNext::GetItemStickers($ndStikerSrc) as $arSticker){
 							if(strlen(trim($arSticker['VALUE'])))
 								$ndTags[] = $arSticker['VALUE'];
 						}
