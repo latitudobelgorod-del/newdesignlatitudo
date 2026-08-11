@@ -240,7 +240,138 @@
 			var inCart = cw.querySelector('.button_block .in-cart');
 			var shown = !!inCart && getComputedStyle(inCart).display !== 'none';
 			cw.classList.toggle('nd-incart', shown);
+			/* Счётчиков в блоке два: свой у компонента единиц (.measure-block
+			   внутри .measure-wrapper) и штатный .counter_block. Когда работает
+			   компонент, штатный он прячет инлайновым display:none — но в
+			   мобильной панели раскладку счётчика приходится задавать заново, и
+			   `display:flex !important` эту заглушку перебивал: в панели стояло
+			   два счётчика, а поле единиц сжималось до одного символа.
+			   Кто из них лишний, решаем здесь, а не в CSS: у :has() поддержка
+			   на старых мобильных браузерах неполная. */
+			cw.classList.toggle('nd-has-measure', !!cw.querySelector('.measure-wrapper'));
 		});
+	}
+
+	/* ================= «Общая стоимость» и пересчёт в единицы =================
+	   Макет Figma 23470:58033 (Frame 2087329372): строка под счётчиком, слева
+	   «10 шт. = 52 м2 / 34 п.м.», справа «Общая стоимость <сумма>».
+
+	   Источника в разметке нет — ни одного из двух возможных:
+	   - штатный `.total_summ` дописывает setPriceItem() из js/main.js, но только
+	     при `!is_sku`; у всех товаров latitudo есть торговые предложения,
+	     поэтому строка не появляется никогда;
+	   - `.measure-block-desc` компонент maxyss:measure_unit создаёт, но в
+	     шаблоне aspro_element_tp никуда не вставляет — узел так и висит в
+	     воздухе (на easydecking ровно то же самое, там строки тоже нет).
+	   Чинить чужой модуль и js темы ради одной строки дороже, чем посчитать
+	   самим, и считаем мы ровно то, что посчитала бы тема: `data-value` кнопки
+	   корзины × количество. Тот же приём уже работает в списке раздела
+	   (js/newdesign-catalog.js, updateTotal).
+
+	   Количество берём из ШТАТНОГО `.counter_block`: компонент единиц держит в
+	   нём базовые единицы, а в своём `.measure-field` — выбранные покупателем. */
+
+	function buyBlock() {
+		return root ? root.querySelector('.buy_block') : null;
+	}
+
+	/* Переключателей единиц на странице несколько (свой у каждой карточки
+	   сопутствующего товара) — целимся в правую колонку самой карточки, а на
+	   мобильном блок уже переехал в панель покупки. Та же оговорка, что в
+	   applyBuyBar(). */
+	function unitsBlock() {
+		var bar = document.getElementById('nd-pd-buybar');
+		return (bar && bar.querySelector('.measure-unit-block'))
+			|| document.querySelector('.item_main_info .right_info .measure-unit-block');
+	}
+
+	/* «52,6», а не «52.60»: разделитель запятая, хвостовые нули не нужны. */
+	function fmtQty(n) {
+		return String(Math.round(n * 100) / 100).replace('.', ',');
+	}
+
+	/* Писать только при реальном изменении: узлы строки лежат внутри
+	   .info_item, за которым следит MutationObserver, а присвоение textContent
+	   — это childList-мутация. Без проверки observer вызывал бы себя вечно. */
+	function setText(el, txt) {
+		if (el && el.textContent !== txt) el.textContent = txt;
+	}
+
+	function ensureTotalRow() {
+		var buy = buyBlock();
+		if (!buy) return null;
+		var row = buy.querySelector('.nd-pd-total');
+		if (!row) {
+			row = document.createElement('div');
+			row.className = 'nd-pd-total';
+			row.innerHTML = '<span class="nd-pd-total__conv"></span>' +
+				'<span class="nd-pd-total__sum">' +
+				'<span class="nd-pd-total__label">Общая стоимость</span>' +
+				'<span class="nd-pd-total__value"></span></span>';
+		}
+		/* Строка должна оставаться последней в блоке покупки: тема дописывает
+		   в него свои узлы, а на мобильном весь .buy_block уезжает в панель.
+		   Сравниваем именно с nextElementSibling: пробельные текстовые узлы
+		   считать соседями нельзя, иначе перестановка повторялась бы на каждом
+		   проходе, а каждая перестановка будит MutationObserver. */
+		if (row.parentNode !== buy || row.nextElementSibling) buy.appendChild(row);
+		return row;
+	}
+
+	function updateTotal() {
+		var row = ensureTotalRow();
+		if (!row) return;
+		var buy = buyBlock();
+		var btn = buy.querySelector('.to-cart');
+		var qtyInput = buy.querySelector('.counter_block input.text');
+		var value = btn ? parseFloat(btn.getAttribute('data-value')) : 0;
+		var qty = qtyInput ? parseFloat(String(qtyInput.value).replace(',', '.')) : 0;
+
+		if (!value || !qty || qty <= 0) {
+			row.hidden = true;
+			return;
+		}
+		row.hidden = false;
+
+		var text;
+		try {
+			text = BX.Currency.currencyFormat(value * qty, btn.getAttribute('data-currency') || 'RUB', true);
+		} catch (e) {
+			text = Math.round(value * qty) + ' руб.';
+		}
+		setText($('.nd-pd-total__value', row), text.replace(/руб\.?/gi, '₽'));
+
+		/* «10 шт. = 52 м2 / 34 п.м.». У каждой кнопки переключателя лежит
+		   data-unit — сколько базовых единиц в одной выбранной; по нему же
+		   компонент считает и цену, и содержимое своего поля количества
+		   (calculateQuantiyAspro: value = базовое количество / data-unit).
+		   Первая кнопка — базовая единица (data-unit = 1). */
+		var conv = '';
+		var ub = unitsBlock();
+		var items = ub ? ub.querySelectorAll('.measure-unit') : [];
+		if (items.length > 1) {
+			var parts = [];
+			Array.prototype.forEach.call(items, function (it, i) {
+				if (!i) return;
+				var koef = parseFloat(it.getAttribute('data-unit'));
+				if (koef) parts.push(fmtQty(qty / koef) + ' ' + (it.getAttribute('data-unit-name') || ''));
+			});
+			if (parts.length) {
+				conv = fmtQty(qty) + ' ' + (items[0].getAttribute('data-unit-name') || '') +
+					' = ' + parts.join(' / ');
+			}
+		}
+		setText($('.nd-pd-total__conv', row), conv);
+	}
+
+	/* Счётчик тема меняет через jQuery .change(), а его нативные слушатели не
+	   видят. Поэтому пересчитываем от действий покупателя (клик по «+/−», по
+	   единице, ввод в поле) и повторяем с задержкой: компонент единиц правит
+	   базовое количество уже после клика. */
+	function scheduleTotal() {
+		updateTotal();
+		setTimeout(updateTotal, 60);
+		setTimeout(updateTotal, 250);
 	}
 
 	/* Заодно обновляет состояние «В корзине»: обе правки нужны в одних и тех же
@@ -250,9 +381,10 @@
 		fixMoney($('.prices_block', root));
 		/* .total_summ — родная строка Aspro (видна при количестве > 1),
 		   .measure-block-desc — её аналог от компонента единиц измерения.
-		   На latitudo ни того, ни другого в разметке нет — строки «Общая
-		   стоимость» тут пока просто некому печатать. */
+		   На latitudo ни того, ни другого в разметке нет (см. комментарий к
+		   updateTotal) — если вдруг появятся, подписи всё равно будут нашими. */
 		Array.prototype.forEach.call(root.querySelectorAll('.total_summ, .measure-block-desc'), fixMoney);
+		updateTotal();
 		syncInCart();
 		/* Тема перерисовывает блок покупки при смене длины и предложения —
 		   после этого узлы надо снова забрать в мобильную панель. */
@@ -287,6 +419,25 @@
 		return !!(root && root.querySelector('.buy_block .button_block'));
 	}
 
+	/* Второе условие сборки — переключатель единиц, если он на товаре есть.
+	   Компонент maxyss:measure_unit ищет своё место так:
+	   findParent(.counter_block, 'col-md-6') — и падает, если такого предка
+	   нет. Панель уносит .buy_block вместе со счётчиком из колонки темы, и
+	   когда она успевала собраться раньше компонента (тот стартует по
+	   setTimeout 500 мс), его инициализация обрывалась исключением: на
+	   мобильном не было ни переключателя «шт / м² / п.м», ни пересчёта в
+	   строке «Общая стоимость». Поэтому пока компонент заявлен, но ещё не
+	   отработал, счётчик не трогаем.
+	   Заявлен ⟺ определён класс MeasureUnitSwitcherEl: и файл скрипта, и
+	   вызов конструктора шаблон aspro_element_tp печатает под одним условием
+	   (непустой MEASURE_USED). Карточки сопутствующих товаров этот признак не
+	   портят — у них свой класс MeasureUnitSwitcher из шаблона aspro_list_tp. */
+	var unitsWaits = 0;
+
+	function unitsPending() {
+		return typeof window.MeasureUnitSwitcherEl === 'function' && !unitsBlock();
+	}
+
 	function applyBuyBar() {
 		if (!root) return;
 		var isMobile = window.matchMedia('(max-width: 767px)').matches;
@@ -305,7 +456,12 @@
 			return;
 		}
 
-		if (!bar && !buyBarReady()) return;
+		if (!bar) {
+			if (!buyBarReady()) return;
+			/* Ждём компонент единиц, но не дольше ~3 с (12 опросов по 250 мс):
+			   если он не поднялся по другой причине, панель всё равно нужна. */
+			if (unitsPending() && unitsWaits++ < 12) return;
+		}
 
 		var prices = root.querySelector('.prices_block');
 		/* Переключателей единиц на странице несколько: свой есть у каждой
@@ -371,6 +527,41 @@
 			});
 		}
 		window.addEventListener('resize', updateArrow);
+
+		/* Пересчёт «Общей стоимости» — от действий покупателя. Слушаем на root:
+		   мобильная панель покупки лежит внутри него, и переехавшие узлы
+		   продолжают отдавать события сюда. */
+		root.addEventListener('click', function (e) {
+			if (e.target.closest('.plus, .minus, .measure-button, .measure-unit, .sku_props li, .to-cart, .in-cart')) {
+				scheduleTotal();
+			}
+		});
+		root.addEventListener('input', scheduleTotal);
+		root.addEventListener('change', scheduleTotal);
+	}
+
+	/* Якорные ссылки карточки («Все характеристики», «Примеры применения
+	   материала») прокручивает scrollToBlock() из js/main.js. Он вычитает
+	   высоту #headerfixed — старой прилипающей шапки, которой в новом дизайне
+	   нет (она отключена, шапка сама position:fixed и её высота лежит в
+	   --nd-header-h). Из-за этого заголовок уезжал под шапку.
+	   scroll-margin-top тут не помогает: прокрутка идёт не якорем, а
+	   jQuery.animate({scrollTop}) — правим саму функцию.
+	   Ветку с data-toggle (вкладки) оставляем теме: там своя логика. */
+	function patchScrollToBlock() {
+		var jq = window.jQuery;
+		if (!jq || typeof window.scrollToBlock !== 'function' || window.scrollToBlock.__ndPatched) return;
+		var orig = window.scrollToBlock;
+		var patched = function (block) {
+			var $b = jq(block);
+			if (!$b.length || typeof $b.data('toggle') !== 'undefined') return orig.apply(this, arguments);
+			var h = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nd-header-h')) || 156;
+			var offset = $b.offset().top - h - 16;
+			if (typeof $b.data('offset') !== 'undefined') offset += $b.data('offset');
+			jq('body, html').animate({ scrollTop: Math.max(0, offset) }, 500);
+		};
+		patched.__ndPatched = true;
+		window.scrollToBlock = patched;
 	}
 
 	function init() {
@@ -390,6 +581,7 @@
 		moveChars();
 		moveDocs();
 		tagCalcButton();
+		patchScrollToBlock();
 		bind();
 
 		/* Карточку предложения тема перерисовывает после загрузки — следим за
@@ -411,7 +603,11 @@
 				if (!$('.nd-pd__article', h1)) syncArticle();
 			}).observe(h1, { childList: true });
 		}
-		window.addEventListener('load', function () { syncArticle(); tagCalcButton(); fixMoneyAll(); });
+		/* patchScrollToBlock ещё раз на load: если js/main.js в сборке окажется
+		   ниже нашего файла, к моменту init() глобальной scrollToBlock ещё нет. */
+		window.addEventListener('load', function () {
+			syncArticle(); tagCalcButton(); patchScrollToBlock(); fixMoneyAll();
+		});
 		/* Те же таймеры, что на easydecking: часть строк цены ядро дописывает
 		   позже, уже после первого прохода observer'а. */
 		fixMoneyAll();

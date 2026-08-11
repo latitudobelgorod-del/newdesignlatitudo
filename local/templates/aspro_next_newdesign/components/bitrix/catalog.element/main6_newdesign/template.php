@@ -1257,8 +1257,26 @@ BX.ready(function() {
 		
 				</div>
 
-			
-				
+				<?/* «Доступно в рассрочку для физических лиц» — строка макета под ценой
+					   (Figma 23470:58028 на десктопе, 21289:63100 на мобильном).
+					   Текст держим во включаемой области, а не в шаблоне: утверждение
+					   коммерческое, и снять или переписать его надо уметь из публички,
+					   без разработчика. Пустая область — строки нет вовсе, поэтому
+					   вывод буферизуем и проверяем на пустоту (ob_start тут безопасен:
+					   IncludeFile, в отличие от ShowTitle, не отложенная функция). */?>
+				<?
+				ob_start();
+				$APPLICATION->IncludeFile(
+					SITE_DIR.'include/newdesign/element/installment.php',
+					[],
+					['MODE' => 'html', 'NAME' => 'Рассрочка в карточке товара']
+				);
+				$ndInstallment = trim(ob_get_clean());
+				?>
+				<?if($ndInstallment !== ''):?>
+					<div class="nd-pd__installment"><?=$ndInstallment?></div>
+				<?endif;?>
+
 				<div class="buy_block">
 					<?if(!$arResult["OFFERS"]):?>
 						<script>

@@ -542,11 +542,25 @@
 .catalog_detail.element_newdesign .right_info .info_item .sku_props                 { order: 3; width: auto !important; flex: 1 1 300px; }
 .catalog_detail.element_newdesign .right_info .info_item .measure-unit-block        { order: 4; width: auto !important; flex: 0 0 auto; margin-left: auto !important; }
 .catalog_detail.element_newdesign .right_info .info_item .prices_block              { order: 5; }
-.catalog_detail.element_newdesign .right_info .info_item .buy_block                 { order: 6; }
-.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc               { order: 7; }
-.catalog_detail.element_newdesign .right_info .info_item .logistic                  { order: 8; }
-.catalog_detail.element_newdesign .right_info .info_item .top_props                 { order: 9; }
-.catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .r1 { order: 10; }
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__installment        { order: 6; }
+.catalog_detail.element_newdesign .right_info .info_item .buy_block                 { order: 7; }
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc               { order: 8; }
+.catalog_detail.element_newdesign .right_info .info_item .logistic                  { order: 9; }
+.catalog_detail.element_newdesign .right_info .info_item .top_props                 { order: 10; }
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .r1 { order: 11; }
+
+/* «Доступно в рассрочку для физических лиц» — строка макета сразу под ценой
+   (Figma 23470:58028: 14/19.6 w500 #525264, отбивка 4 от цены и 12 до
+   счётчика). Текст правится из публички — include/newdesign/element/installment.php
+   Отбивки гасим отрицательными полями: у колонки row-gap 20, а по макету
+   тут 4 сверху и 12 снизу. */
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .nd-pd__installment {
+    margin: -16px 0 -8px;
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 500;
+    color: #525264;
+}
 
 /* «Заказать расчет» — в макете на этом месте текстовая ссылка со стрелкой,
    а не синяя кнопка темы (класс обёртке ставит newdesign-element.js) */
@@ -721,6 +735,15 @@
     font-weight: 800;
     color: #101014;
 }
+/* Просвет перед ₽ (Ирина, 2026-08-11). У обёртки .offers_price стоит
+   font-size:0, поэтому пробел между спанами схлопывается и знак валюты
+   наезжает на последнюю цифру. Отбивка в em, а не в px: те же спаны идут и
+   старой ценой 18px, и ценой в мобильной панели 24px — так просвет
+   пропорционален кеглю и второго правила не нужно.
+   «/м²» после знака оставляем вплотную, как в макете («4 000₽/шт»). */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_currency {
+    margin-left: .14em;
+}
 
 /* «Длина» и переключатель единиц — в одну строку по НИЖНЕМУ краю. Тема кладёт
    их двумя bootstrap-колонками, и переключатель вставал на уровень подписи
@@ -740,6 +763,51 @@
    На easydecking гасится тем же правилом — переносим. */
 .catalog_detail.element_newdesign .right_info .info_item .middle_info .sku_props .wrapper_sku > div {
     margin-bottom: 0 !important;
+}
+
+/* Строка «Общая стоимость» под счётчиком — Figma 23470:58033 (Frame 2087329372,
+   543×22, отбивка 8 от счётчика): слева пересчёт «10 шт. = 52 м2 / 34 п.м.»
+   14/19.6 #8F8F9A, справа подпись 16/22.4 #757583 и сумма 16/22.4 700 #101014
+   с зазором 8. Строку рисует js/newdesign-element.js (updateTotal) — в разметке
+   темы её нет, см. комментарий там же. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .nd-pd-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 8px 0 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .nd-pd-total[hidden] {
+    display: none;
+}
+/* Штатная строка темы. У товаров с торговыми предложениями setPriceItem её не
+   рисует вовсе, но у товара без них она появилась бы рядом с нашей — тогда
+   «Общая стоимость» стояла бы дважды. */
+.catalog_detail.element_newdesign .total_summ {
+    display: none !important;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .nd-pd-total__conv {
+    font-size: 14px;
+    line-height: 19.6px;
+    color: #8f8f9a;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .nd-pd-total__sum {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .nd-pd-total__label {
+    font-size: 16px;
+    line-height: 22.4px;
+    color: #757583;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .nd-pd-total__value {
+    font-size: 16px;
+    line-height: 22.4px;
+    font-weight: 700;
+    color: #101014;
 }
 
 /* Счётчик и корзина. В макете 264 + 12 + 266 = 543 во всю ширину колонки,
@@ -1579,11 +1647,20 @@
         gap: 8px;
         margin-bottom: 8px;
     }
+    /* Порядок из макета — цена слева, единицы справа. order задаём здесь
+       заново: панель лежит внутри .right_info .info_item, и десктопные правила
+       раскладки колонки (.measure-unit-block order 4, .prices_block order 5)
+       продолжают действовать — единицы вставали первыми. Селектор с id, чтобы
+       перебить их и margin-left:auto. */
     #nd-pd-buybar .prices_block,
     #nd-pd-buybar .measure-unit-block {
-        margin: 0;
+        margin: 0 !important;
+    }
+    #nd-pd-buybar .prices_block {
+        order: 1;
     }
     #nd-pd-buybar .measure-unit-block {
+        order: 2;
         flex: 0 0 auto;
     }
     /* В панели цена мельче, чем в карточке (там 42): иначе не остаётся места
@@ -1638,6 +1715,13 @@
         flex-wrap: nowrap !important;
         align-items: center;
         gap: 12px;
+    }
+    /* Когда работает компонент единиц, штатный счётчик лишний: класс
+       .nd-has-measure ставит js/newdesign-element.js (см. syncInCart).
+       Инлайновым display:none компонента тут доверять нельзя — правило ниже
+       идёт с !important и перебивало бы его. */
+    #nd-pd-buybar .counter_wrapp.nd-has-measure .counter_block {
+        display: none !important;
     }
     #nd-pd-buybar .measure-block,
     #nd-pd-buybar .counter_block {
@@ -1711,5 +1795,53 @@
     }
     #nd-pd-buybar .button_block .btn.to-cart i::before {
         content: none !important;
+    }
+    /* Третья строка панели — «Общая стоимость». Она приезжает сюда сама:
+       строку рисует js/newdesign-element.js последним узлом .buy_block, а
+       .buy_block панель переносит целиком. Мельче, чем в карточке (16/22.4):
+       в 360 подпись, сумма и пересчёт в одну строку иначе не помещаются. */
+    #nd-pd-buybar .nd-pd-total {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 8px 0 0;
+    }
+    #nd-pd-buybar .nd-pd-total[hidden] {
+        display: none;
+    }
+    #nd-pd-buybar .nd-pd-total__conv {
+        overflow: hidden;
+        font-size: 12px;
+        line-height: 17px;
+        color: #8f8f9a;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #nd-pd-buybar .nd-pd-total__sum {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-left: auto;
+        white-space: nowrap;
+    }
+    #nd-pd-buybar .nd-pd-total__label {
+        font-size: 12px;
+        line-height: 17px;
+        color: #757583;
+    }
+    #nd-pd-buybar .nd-pd-total__value {
+        font-size: 14px;
+        line-height: 17px;
+        font-weight: 700;
+        color: #101014;
+    }
+
+    /* На мобильном строка рассрочки стоит первой в колонке (цена и счётчик
+       уехали в прилипающую панель) и приглушена сильнее — Figma 21289:63100:
+       14/19.6 w500 #8F8F9A. */
+    .catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .nd-pd__installment {
+        margin: 0;
+        color: #8f8f9a;
     }
 }
