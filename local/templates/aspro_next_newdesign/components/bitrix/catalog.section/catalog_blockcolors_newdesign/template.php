@@ -947,9 +947,16 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 		<div class="wrap_nav">
 	<?}?>
 
+	<?/* ND_NO_PAGER=Y — совсем без обёртки навигации. Нужен блоку редактора
+	      (sprint.editor, iblock_elements__aspro-catalog): состав задаёт
+	      контент-менеджер, листать нечего, а пустая обёртка оставляла под
+	      сеткой 64 px пустоты (40 высоты + 24 отступа). Другие вызовы флага не
+	      передают, для них ничего не меняется. */?>
+	<?if(($arParams['ND_NO_PAGER'] ?? '') !== 'Y'){?>
 	<div class="bottom_nav nd-catlist__nav <?=$arParams["DISPLAY_TYPE"];?>" <?=($arParams["AJAX_REQUEST"]=="Y" ? "style='display: none; '" : "");?>>
 		<?if( $arParams["DISPLAY_BOTTOM_PAGER"] == "Y" ){?><?=$arResult["NAV_STRING"]?><?}?>
 	</div>
+	<?}?>
 
 	<?if($arParams["AJAX_REQUEST"]=="Y"){?>
 		</div>
