@@ -146,29 +146,34 @@
 	var blocks = document.querySelectorAll('.nd-interest');
 	if (!blocks.length) return;
 
+	/* Слушаем блок, а узлы ищем в момент клика.
+	   Раньше вкладки и панели забирались один раз при привязке — и вкладка
+	   «Хиты месяца» не открывалась: панель к моменту клика была уже другим
+	   узлом (её пересобирают скрипты карточек), обработчик снимал hidden с
+	   узла, которого в документе нет. Панель «Акции» при этом пряталась
+	   исправно, поэтому со стороны выглядело как «товаров нет». */
 	Array.prototype.forEach.call(blocks, function (block) {
-		var tabs = block.querySelectorAll('[data-nd-interest-tab]');
-		var panes = block.querySelectorAll('[data-nd-interest-pane]');
-		if (tabs.length < 2) return;
+		if (block.querySelectorAll('[data-nd-interest-tab]').length < 2) return;
 
-		Array.prototype.forEach.call(tabs, function (tab) {
-			tab.addEventListener('click', function () {
-				var key = tab.getAttribute('data-nd-interest-tab');
-				if (tab.classList.contains('is-active')) return;
+		block.addEventListener('click', function (e) {
+			var tab = e.target.closest ? e.target.closest('[data-nd-interest-tab]') : null;
+			if (!tab || !block.contains(tab)) return;
 
-				Array.prototype.forEach.call(tabs, function (t) {
-					var on = t === tab;
-					t.classList.toggle('is-active', on);
-					t.setAttribute('aria-selected', on ? 'true' : 'false');
-				});
-				Array.prototype.forEach.call(panes, function (p) {
-					var on = p.getAttribute('data-nd-interest-pane') === key;
-					p.classList.toggle('is-active', on);
-					p.hidden = !on;
-				});
+			var key = tab.getAttribute('data-nd-interest-tab');
+			if (tab.classList.contains('is-active')) return;
 
-				document.dispatchEvent(new CustomEvent('nd:appended'));
+			Array.prototype.forEach.call(block.querySelectorAll('[data-nd-interest-tab]'), function (t) {
+				var on = t === tab;
+				t.classList.toggle('is-active', on);
+				t.setAttribute('aria-selected', on ? 'true' : 'false');
 			});
+			Array.prototype.forEach.call(block.querySelectorAll('[data-nd-interest-pane]'), function (p) {
+				var on = p.getAttribute('data-nd-interest-pane') === key;
+				p.classList.toggle('is-active', on);
+				p.hidden = !on;
+			});
+
+			document.dispatchEvent(new CustomEvent('nd:appended'));
 		});
 	});
 })();
