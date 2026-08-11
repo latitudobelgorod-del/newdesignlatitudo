@@ -2716,6 +2716,13 @@ body .nd-cat-head #pagetitle {
     text-align: center;
     text-decoration: none;
 }
+/* Блок редактора (sprint.editor) выводит этот же ряд внутри .editor, а там
+   тема подчёркивает все ссылки селектором из двух классов. */
+.editor .nd-subsec__item,
+.editor .nd-subsec__item:hover,
+.editor .nd-subsec__item:focus {
+    text-decoration: none;
+}
 .nd-subsec__item:hover,
 .nd-subsec__item:focus {
     background: rgba(82, 82, 100, .1);
