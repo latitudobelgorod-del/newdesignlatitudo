@@ -946,17 +946,23 @@ textarea {
     display: none;
 }
 
+/* Макет Figma 20517:160798: высота 48, радиус 6, рамка 2px #101014, белая
+   заливка, надпись 16 w700 (Ирина, 2026-08-11 — «в шаблоне кнопка прямо
+   жирная»; было 1px, радиус 8 и обычное начертание). */
 .nd-filter__reset {
     display: flex;
     align-items: center;
+    justify-content: center;
     height: 48px;
     margin-left: auto;
     padding: 0 24px;
-    border: 1px solid #101014;
-    border-radius: 8px;
+    border: 2px solid #101014;
+    border-radius: 6px;
+    background: #fff;
     color: #101014;
     font-size: 16px;
-    line-height: 24px;
+    line-height: 20px;
+    font-weight: 700;
     text-decoration: none;
 }
 .nd-filter__reset:hover,
