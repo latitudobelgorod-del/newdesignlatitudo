@@ -125,38 +125,13 @@ if($arTheme['PROJECTS_PAGE']['VALUE'] == 'list_elements_3' || $arParams["SECTION
 
 
 
-<?if($arSection):?>
-			<?if(CSite::InDir('/projects/zabory/')):?>
-			<style>
-				#footer {margin-bottom:60px !important;}
-				</style>
-				<div class="k_det" style="">
-					<div class="wrapper_inner">
-						<div>
-							<div>
-							<a href="/catalog/zabor-iz-dpk/" alt="Перейти в каталог заборной доски ДПК"  title="Перейти в каталог заборной доски ДПК"><span style="text-indent:0;margin:0px 0;" class="callback-block animate-load twosmallfont colored  white">Перейти в каталог заборной доски ДПК</span>
-							</a>
-							</div>
-						</div>
-					</div>
-				</div>
-			<?endif;?>
-		<?endif;?>
-		
-		<?if($arSection):?>
-		<?if(CSite::InDir('/projects/ulichnye-ograzhdeniya/')):?>
-			<style>
-			#footer {margin-bottom:60px !important;}
-			</style>
-			<div class="k_det" style="">
-				<div class="wrapper_inner">
-					<div>
-						<div>
-						<span style="text-indent:0;margin:0px 0;" class="callback-block animate-load twosmallfont colored  white" data-event="jqm" data-param-form_id="MAINFORM" data-name="detail_razd_portf">Заказать расчет ограждений</span>
-						</div>
-					</div>
-				</div>
-			</div>
-		<?endif;?>
-		<?endif;?>
+<?/* Прибитая снизу синяя полоса `.k_det` с кнопкой (была у /projects/zabory/ и
+	   /projects/ulichnye-ograzhdeniya/) в новом дизайне убрана целиком — Ирина,
+	   2026-08-11. Вместе с ней ушёл и её костыль `#footer{margin-bottom:60px}`.
+	   Оформление самой полосы осталось в css/custom.css: она ещё рисуется
+	   старым дизайном из своих шаблонов, их не трогаем.
+	   На /projects/ulichnye-ograzhdeniya/ полоса дублировала кнопку блока
+	   редактора «Заказать расчет ограждений», а на /projects/zabory/ вела в
+	   каталог заборной доски — этой ссылки на странице теперь нет вовсе
+	   (кнопка редактора там другая, «Рассчитать забор»). */?>
 		

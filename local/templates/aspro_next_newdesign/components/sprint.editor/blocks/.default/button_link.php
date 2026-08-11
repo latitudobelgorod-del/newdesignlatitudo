@@ -11,14 +11,19 @@ $rand_link_sp = substr(str_shuffle($razreshenniye_simvoli), 0, 15);
 
 <? if (!empty($block['title'])): ?>
 
+    <? /* nd-editor-btn — кнопка нового дизайна: красная, как «Оставить заявку» в
+          шапке (Ирина, 2026-08-11). Синие .btn.btn-default темы оставлены в
+          разметке, чтобы не сломать старый дизайн и скрипты форм; вид задаёт
+          css/newdesign.css. data-nd-form-title нужен всплывающей форме, иначе
+          её заголовок и поле NAMEFORM берутся из названия веб-формы. */ ?>
     <? if (!empty($block['settings']['form_id'])): ?>
         <div class="block">
-            <span class="btn btn-default btn-lg  animate-load" data-event="jqm" data-param-form_id="<?=$block['settings']['form_id']?>" data-name="spbutton<?=$block['settings']['form_id']?><?=$rand_link_sp?>">
+            <span class="btn btn-default btn-lg  animate-load nd-editor-btn" data-event="jqm" data-param-form_id="<?=$block['settings']['form_id']?>" data-name="spbutton<?=$block['settings']['form_id']?><?=$rand_link_sp?>" data-nd-form-title="<?=htmlspecialcharsbx($block['title'])?>">
                 <span><?=$block['title']?></span>
             </span>
         </div>
     <? elseif (!empty($block['url'])): ?>
-        <a class=" editor_btn btn-lg w_icons btn btn-default transition_bg" <? if (!empty($block['target'])): ?>target="<?= $block['target'] ?>" <? endif; ?> href="<?= $block['url'] ?>"><?= $block['title'] ?></a>
+        <a class=" editor_btn btn-lg w_icons btn btn-default transition_bg nd-editor-btn" <? if (!empty($block['target'])): ?>target="<?= $block['target'] ?>" <? endif; ?> href="<?= $block['url'] ?>"><?= $block['title'] ?></a>
     <? endif; ?>
 <? endif; ?>
 

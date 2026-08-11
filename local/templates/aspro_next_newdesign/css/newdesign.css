@@ -4005,3 +4005,69 @@ body .nd-filter .bx_filter_block .values_expander {
         gap: 8px;
     }
 }
+
+/* ============ Кнопка блока «Ссылка-кнопка» редактора (sprint.editor) ========
+   Тема рисует эти кнопки синими (.btn.btn-default), а в новом дизайне они
+   должны выглядеть как «Оставить заявку» в шапке — красными (Ирина,
+   2026-08-11). Значения повторяют .nd-btn.nd-btn--red из newdesign-header.css:
+   высота 48, радиус 4, поля 16, 16/24 w700, #c60000 / #a80000 на наведении.
+   Класс ставят шаблоны button_link.php во ВСЕХ папках блоков
+   (components/sprint.editor/blocks/{.default,.default_detail,aspro-catalog-section}).
+   Классы темы из разметки не убраны: на .btn.btn-default завязаны её скрипты
+   форм, а сам шаблон блока общий по смыслу со старым дизайном. Отсюда и
+   !important — у темы селекторы из двух классов, а внутри .editor она ещё и
+   подчёркивает все ссылки. */
+.nd-editor-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    height: 48px;
+    min-height: 48px;
+    min-width: 0;
+    margin: 0;
+    padding: 0 16px !important;
+    border: 0 !important;
+    border-radius: 4px !important;
+    background: #c60000 !important;
+    box-shadow: none !important;
+    font-size: 16px !important;
+    line-height: 24px !important;
+    font-weight: 700 !important;
+    text-align: center;
+    text-transform: none !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+.nd-editor-btn:hover,
+.nd-editor-btn:focus {
+    background: #a80000 !important;
+    text-decoration: none !important;
+}
+.nd-editor-btn,
+.nd-editor-btn span,
+.nd-editor-btn:hover,
+.nd-editor-btn:hover span,
+.nd-editor-btn:focus,
+.nd-editor-btn:focus span {
+    color: #fff !important;
+}
+/* Обёртка кнопки-формы: у темы это блочный .block с собственными полями. */
+.nd-editor-btn:before,
+.nd-editor-btn:after {
+    content: none !important;
+}
+
+/* На узком экране длинная подпись в одну строку вылезала бы за край и давала
+   горизонтальную прокрутку — разрешаем перенос и растим кнопку по высоте. */
+@media (max-width: 767px) {
+    .nd-editor-btn {
+        max-width: 100%;
+        height: auto;
+        padding: 12px 16px !important;
+        white-space: normal;
+    }
+}
