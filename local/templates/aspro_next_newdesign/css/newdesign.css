@@ -807,10 +807,28 @@ textarea {
     .nd-filter > .nd-filter__toggle,
     .nd-filter > .nd-filter__drop,
     .nd-filter > .nd-filter__reset {
-        flex: 1 1 0;
+        /* basis auto, а не 0: доли считаются от содержимого, поэтому длинному
+           названию («Виды ограждений (1)») достаётся больше места. При пяти
+           коротких фильтрах все всё равно упираются в потолок 254 и выходят
+           одинаковыми, как в макете. */
+        flex: 1 1 auto;
         min-width: 0;
         max-width: 254px;
     }
+}
+/* Подпись плашки — всегда в одну строку. Раньше «Виды ограждений (1)» на
+   странице с шестью фильтрами переносилось, и «(1)» вылезала за нижний край
+   (Ирина, 2026-08-11). Если места совсем нет, обрезаем многоточием, а полное
+   название остаётся в title. Стрелка и тумблер не сжимаются. */
+.nd-filter__head > span,
+.nd-filter__toggle-text {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.nd-filter__head > svg {
+    flex: 0 0 auto;
 }
 .nd-filter input[type="checkbox"] {
     position: absolute;
