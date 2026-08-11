@@ -39,7 +39,11 @@ $ndF = is_array($arParams['ND_FILTER']) ? $arParams['ND_FILTER'] : [];
 		</div>
 	<? endif; ?>
 
-	<? if ($arResult['NAV_STRING']): ?>
+	<? /* ND_NO_PAGER=Y — совсем без навигации. Нужен блоку редактора
+	      (sprint.editor, iblock_elements__aspro-projects): выключить пейджер
+	      параметрами компонента не выходит — NAV_STRING он заполняет и при
+	      DISPLAY_BOTTOM_PAGER=N, и на одной странице печатались голые стрелки. */ ?>
+	<? if ($arResult['NAV_STRING'] && $arParams['ND_NO_PAGER'] !== 'Y'): ?>
 		<div class="nd-projects__nav"><?= $arResult['NAV_STRING'] ?></div>
 	<? endif; ?>
 </section>

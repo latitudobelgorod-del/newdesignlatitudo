@@ -147,3 +147,12 @@
         margin-top: 24px;
     }
 }
+
+/* Блок редактора (sprint.editor) выводит эту же сетку внутри .editor, а там
+   тема подчёркивает все ссылки — карточке подчёркивание не нужно. Тот же приём
+   уже понадобился номерам постранички (pagination_newdesign/style.css). */
+.editor .nd-projects__item,
+.editor .nd-projects__item:hover,
+.editor .nd-projects__item:focus {
+    text-decoration: none;
+}
