@@ -890,7 +890,8 @@
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn.to-cart {
     position: relative;
 }
-.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn.to-cart i {
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn.to-cart i,
+#nd-pd-buybar .button_block .btn.to-cart i {
     position: absolute;
     right: 16px;
     top: 50%;
@@ -1551,5 +1552,164 @@
     .catalog_detail.element_newdesign .row.wdesc {
         margin-left: 0;
         margin-right: 0;
+    }
+
+    /* --- прилипающая панель покупки (макет 20512:84167) ---
+       Цена и переключатель единиц первой строкой, счётчик с корзиной второй.
+       Панель стоит над нижней навигацией: её высоту подставляет скрипт в
+       bottom, потому что она зависит от safe-area устройства.
+       Приём перенесён с vrn.easydecking.ru (#ld-mobile-buybar): узлы не
+       копируются, а переносятся, и на десктопе возвращаются на место.
+       z-index 1001 — на единицу меньше .nd-navbar (1002), чтобы панель
+       оказалась под ней, а не поверх. */
+    #nd-pd-buybar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+        border-top: 1px solid rgba(82, 82, 100, .15);
+        background: #fff;
+        box-shadow: 0 -4px 16px rgba(16, 16, 20, .1);
+    }
+    #nd-pd-buybar .nd-pd-buybar__top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    #nd-pd-buybar .prices_block,
+    #nd-pd-buybar .measure-unit-block {
+        margin: 0;
+    }
+    #nd-pd-buybar .measure-unit-block {
+        flex: 0 0 auto;
+    }
+    /* В панели цена мельче, чем в карточке (там 42): иначе не остаётся места
+       под переключатель единиц. 24/28 — на глаз по макету, не из Figma. */
+    #nd-pd-buybar .prices_block .price_value,
+    #nd-pd-buybar .prices_block .price_currency,
+    #nd-pd-buybar .prices_block .price_measure {
+        font-size: 24px !important;
+        line-height: 28px !important;
+    }
+    #nd-pd-buybar .buy_block,
+    #nd-pd-buybar .offer_buy_block,
+    #nd-pd-buybar .counter_wrapp {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    /* Счётчик и корзина делят ширину панели поровну. Базис 0, а не 50%:
+       с зазором 12 проценты дают больше 100% и кнопка срывается вниз. */
+    #nd-pd-buybar .counter_wrapp .measure-wrapper,
+    #nd-pd-buybar .counter_wrapp .button_block {
+        flex: 1 1 0 !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+    /* У товаров без UNIT_KOEF компонента measure_unit нет и счётчик нативный —
+       .counter_block с жёсткими 130px: без этого правила он занимал 290, а
+       кнопка сжималась до 50. display не трогаем: у товаров С единицами этот же
+       .counter_block скрыт компонентом, а у скрытого элемента flex-свойства
+       инертны (пояснение с easydecking, там та же развилка). */
+    #nd-pd-buybar .counter_wrapp .counter_block {
+        flex: 1 1 0 !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+    /* min-width:0 обязателен: у input своя интринсик-ширина по атрибуту size,
+       из-за неё поле отказывается сжиматься и выдавливает «+» на кнопку. */
+    #nd-pd-buybar .counter_wrapp .counter_block input.text {
+        flex: 1 1 0 !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        text-align: center;
+    }
+    /* ВАЖНО: внутри панели селекторы `.right_info .info_item …` больше не
+       работают — блок покупки физически перенесён из правой колонки. Поэтому
+       оформление счётчика и кнопки приходится повторить здесь, иначе счётчик
+       приезжает белым и неразмеченным, а кнопка теряет размеры. */
+    #nd-pd-buybar .counter_wrapp {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        gap: 12px;
+    }
+    #nd-pd-buybar .measure-block,
+    #nd-pd-buybar .counter_block {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        height: 56px;
+        margin: 0;
+        border: 0;
+        border-radius: 4px;
+        background: rgba(82, 82, 100, .1);
+    }
+    #nd-pd-buybar .measure-field,
+    #nd-pd-buybar .counter_block input.text {
+        height: 54px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        text-align: center;
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 400;
+        color: #101014;
+    }
+    /* «--» и «++» получались потому, что знак нативного счётчика рисуется и
+       текстом, и псевдоэлементом ::before. Псевдоэлемент гасим, оставляем знак.
+       У .measure-button (счётчик модуля единиц) наоборот — знак нарисован
+       фоновой картинкой, поэтому там гасим только цвет фона. */
+    #nd-pd-buybar .counter_block .minus::before,
+    #nd-pd-buybar .counter_block .plus::before {
+        content: none !important;
+    }
+    #nd-pd-buybar .counter_block .minus,
+    #nd-pd-buybar .counter_block .plus,
+    #nd-pd-buybar .measure-button {
+        flex: 0 0 40px !important;
+        width: 40px;
+        height: 56px;
+        margin: 0;
+        border: 0;
+        background-color: transparent;
+        font-size: 20px;
+        line-height: 56px;
+        color: #101014;
+        text-align: center;
+        cursor: pointer;
+    }
+    #nd-pd-buybar .button_block .btn {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 56px;
+        margin: 0;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 4px;
+        background: #c60000;
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 700;
+        text-transform: none;
+    }
+    #nd-pd-buybar .button_block .btn,
+    #nd-pd-buybar .button_block .btn span {
+        color: #fff !important;
+    }
+    #nd-pd-buybar .button_block .btn.to-cart i::before {
+        content: none !important;
     }
 }

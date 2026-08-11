@@ -254,6 +254,97 @@
 		   стоимость» тут пока просто некому печатать. */
 		Array.prototype.forEach.call(root.querySelectorAll('.total_summ, .measure-block-desc'), fixMoney);
 		syncInCart();
+		/* Тема перерисовывает блок покупки при смене длины и предложения —
+		   после этого узлы надо снова забрать в мобильную панель. */
+		applyBuyBar();
+	}
+
+	/* ================= мобильная прилипающая панель покупки =================
+	   Макет 20512:84167: цена и единицы первой строкой, счётчик с корзиной
+	   второй, панель над нижней навигацией. Приём перенесён с
+	   vrn.easydecking.ru (#ld-mobile-buybar, applyBuybar).
+
+	   Узлы НЕ копируются, а переносятся: на них висит offer-JS темы (пересчёт
+	   цены, единицы, счётчик), копия перестала бы обновляться. По той же
+	   причине панель создаётся ВНУТРИ карточки, а не в body — селекторы темы
+	   ищут цену внутри своего контейнера. На десктопе всё возвращается на
+	   исходные места, поэтому запоминаем родителя и следующего соседа. */
+	var buyHomes = {};
+
+	function rememberHome(el, key) {
+		if (!el || buyHomes[key]) return;
+		buyHomes[key] = { parent: el.parentNode, next: el.nextSibling };
+	}
+
+	function navHeight() {
+		var nav = $('.nd-navbar');
+		return nav ? Math.round(nav.getBoundingClientRect().height) : 0;
+	}
+
+	/* Панель без кнопки покупки бессмысленна, а её строит ядро уже после
+	   загрузки — до этого момента не собираем. */
+	function buyBarReady() {
+		return !!(root && root.querySelector('.buy_block .button_block'));
+	}
+
+	function applyBuyBar() {
+		if (!root) return;
+		var isMobile = window.matchMedia('(max-width: 767px)').matches;
+		var bar = document.getElementById('nd-pd-buybar');
+
+		if (!isMobile) {
+			if (!bar) return;
+			['prices_block', 'measure-unit-block', 'buy_block'].forEach(function (cls, i) {
+				var key = ['prices', 'units', 'buy'][i];
+				var el = bar.querySelector('.' + cls);
+				var home = buyHomes[key];
+				if (el && home && home.parent) home.parent.insertBefore(el, home.next);
+			});
+			bar.parentNode.removeChild(bar);
+			document.body.style.removeProperty('padding-bottom');
+			return;
+		}
+
+		if (!bar && !buyBarReady()) return;
+
+		var prices = root.querySelector('.prices_block');
+		/* Переключателей единиц на странице несколько: свой есть у каждой
+		   карточки сопутствующего товара. Простой querySelector брал первый
+		   попавшийся и утаскивал в панель чужой блок («шт / п.м» вместо
+		   «шт / м² / п.м»), поэтому целимся в правую колонку самой карточки.
+		   Ищем от документа, а не от root: .item_main_info — внешняя обёртка
+		   карточки, а не её потомок, и поиск внутри root ничего не находил.
+		   Если блок уже в панели, берём его же — тогда перенос идемпотентен. */
+		var units = (bar && bar.querySelector('.measure-unit-block'))
+			|| document.querySelector('.item_main_info .right_info .measure-unit-block');
+		var buy = root.querySelector('.buy_block');
+		rememberHome(prices, 'prices');
+		rememberHome(units, 'units');
+		rememberHome(buy, 'buy');
+
+		if (!bar) {
+			bar = document.createElement('div');
+			bar.id = 'nd-pd-buybar';
+			bar.innerHTML = '<div class="nd-pd-buybar__top"></div>';
+			(root.querySelector('.middle_info.main_item_wrapper') || root).appendChild(bar);
+		}
+		var top = bar.querySelector('.nd-pd-buybar__top');
+		if (prices && prices.parentNode !== top) top.appendChild(prices);
+		if (units && units.parentNode !== top) top.appendChild(units);
+		/* Порядок из макета: цена слева, единицы справа. Единицы ядро строит
+		   позже цены, и при первом заходе они могли уехать первыми — тогда
+		   переставляем (appendChild перемещает уже существующего ребёнка). */
+		if (prices && units && prices.parentNode === top && units.parentNode === top
+			&& (prices.compareDocumentPosition(units) & Node.DOCUMENT_POSITION_PRECEDING)) {
+			top.appendChild(units);
+		}
+		if (buy && buy.parentNode !== bar) bar.appendChild(buy);
+
+		var nh = navHeight();
+		bar.style.bottom = nh + 'px';
+		/* Тело сдвигаем, иначе панель закрывает низ страницы. !important —
+		   у темы свой padding-bottom под нижнюю навигацию. */
+		document.body.style.setProperty('padding-bottom', (bar.offsetHeight + nh + 12) + 'px', 'important');
 	}
 
 	function bind() {
@@ -326,6 +417,27 @@
 		fixMoneyAll();
 		setTimeout(fixMoneyAll, 600);
 		setTimeout(fixMoneyAll, 1500);
+
+		/* Панель собираем, как только ядро построило кнопку покупки: опрос
+		   каждые 250 мс, но не дольше ~8 секунд. Плюс реакция на смену
+		   ориентации и ширины — при переходе на десктоп узлы возвращаются. */
+		applyBuyBar();
+		var barTries = 0;
+		var barPoll = setInterval(function () {
+			barTries++;
+			applyBuyBar();
+			/* Опрос НЕ прекращаем при появлении панели: переключатель единиц
+			   ядро строит позже кнопки покупки, и он не успевал переехать. */
+			if (barTries > 32) clearInterval(barPoll);
+		}, 250);
+		var mqBuy = window.matchMedia('(max-width: 767px)');
+		if (mqBuy.addEventListener) mqBuy.addEventListener('change', applyBuyBar);
+		else if (mqBuy.addListener) mqBuy.addListener(applyBuyBar);
+		var barRz;
+		window.addEventListener('resize', function () {
+			clearTimeout(barRz);
+			barRz = setTimeout(applyBuyBar, 150);
+		});
 		updateArrow();
 		syncVideo();
 
