@@ -1446,6 +1446,13 @@ a.nd-sale__tab:focus {
     color: #101014;
     text-decoration: none;
 }
+/* Блок редактора (sprint.editor) выводит эти же плитки внутри .editor, а там
+   тема подчёркивает все ссылки селектором из двух классов — правил выше ей мало. */
+.editor .nd-sectiles__item,
+.editor .nd-sectiles__item:hover,
+.editor .nd-sectiles__item:focus {
+    text-decoration: none;
+}
 .nd-sectiles__pic {
     position: relative;
     display: block;

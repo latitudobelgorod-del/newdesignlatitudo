@@ -16,6 +16,9 @@ if (!$ndIb) {
 	return;
 }
 
+// разметка плитки — общая с блоком редактора «Разделы инфоблока»
+require_once $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/parts/section_tile.php';
+
 $ndTilesCache = new CPHPCache();
 $ndTilesCacheId = 'nd_projects_section_tiles_'.$ndIb.'_'.SITE_ID;
 $ndTilesCacheDir = '/nd/projects_sections';
@@ -36,16 +39,11 @@ if ($ndTilesCache->InitCache(86400, $ndTilesCacheId, $ndTilesCacheDir)) {
 		['ID', 'NAME', 'SECTION_PAGE_URL', 'PICTURE', 'DETAIL_PICTURE']
 	);
 	while ($section = $rsSections->GetNext()) {
-		$fileId = (int) ($section['PICTURE'] ?: $section['DETAIL_PICTURE']);
-		$image = $fileId > 0
-			? CFile::ResizeImageGet($fileId, ['width' => 660, 'height' => 420], BX_RESIZE_IMAGE_EXACT, true)
-			: [];
-
 		$ndTiles[] = [
 			'ID' => (int) $section['ID'],
 			'NAME' => $section['NAME'],
 			'URL' => $section['SECTION_PAGE_URL'],
-			'SRC' => $image['src'] ?? '',
+			'SRC' => ndSectionTileImage($section['PICTURE'] ?: $section['DETAIL_PICTURE']),
 		];
 	}
 
@@ -65,13 +63,6 @@ if (!$ndTiles) {
       который на этой странице не подключается — сетка бы рассыпалась. */ ?>
 <section class="nd-sectiles">
 	<? foreach ($ndTiles as $ndTile): ?>
-		<a class="nd-sectiles__item" href="<?= htmlspecialcharsbx($ndTile['URL']) ?>">
-			<span class="nd-sectiles__pic">
-				<? if ($ndTile['SRC']): ?>
-					<img src="<?= htmlspecialcharsbx($ndTile['SRC']) ?>" alt="<?= htmlspecialcharsbx($ndTile['NAME']) ?>" loading="lazy">
-				<? endif; ?>
-			</span>
-			<span class="nd-sectiles__name"><?= htmlspecialcharsbx($ndTile['NAME']) ?></span>
-		</a>
+		<? ndSectionTile($ndTile['NAME'], $ndTile['URL'], $ndTile['SRC']); ?>
 	<? endforeach; ?>
 </section>
