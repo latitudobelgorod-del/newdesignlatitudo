@@ -3142,10 +3142,13 @@ body .nd-filter .bx_filter_popup_result {
 body .nd-filter .bx_filter_button_box {
     padding-top: 32px;
 }
-/* Текст по вертикали по центру (Ирина, 2026-08-11). Было display:block с
-   height 46 и line-height 20 — надпись прижималась к верхнему краю. Флексом,
-   а не line-height: подпись может перенестись на две строки. */
-body .nd-filter .nd-filter__reset {
+/* Кнопка «Сбросить фильтры» ФИЛЬТРА КАТАЛОГА — широкая, во всю панель.
+   Селектор уточнён классом самой кнопки (Ирина, 2026-08-11): раньше правило
+   било по любому .nd-filter__reset и растягивало во всю строку пилюлю фильтров
+   портфолио и отзывов (там это <a> в ряду чипов, ему хватает правил выше).
+   Текст по вертикали по центру флексом, а не line-height: подпись может
+   перенестись на две строки. */
+body .nd-filter .nd-filter__reset.bx_filter_search_reset {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3164,8 +3167,8 @@ body .nd-filter .nd-filter__reset {
     cursor: pointer;
     transition: background .15s ease, color .15s ease;
 }
-body .nd-filter .nd-filter__reset:hover,
-body .nd-filter .nd-filter__reset:focus {
+body .nd-filter .nd-filter__reset.bx_filter_search_reset:hover,
+body .nd-filter .nd-filter__reset.bx_filter_search_reset:focus {
     background: #101014;
     color: #fff;
 }
