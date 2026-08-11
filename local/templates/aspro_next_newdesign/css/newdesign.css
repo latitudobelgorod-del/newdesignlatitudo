@@ -785,16 +785,32 @@ textarea {
    Оформление повторяет фильтр страницы проектов: тумблер и выпадающие списки
    в скруглённых блоках высотой 48, справа — «Сбросить фильтры».
    ====================================================================== */
+/* Ряд фильтров портфолио и отзывов по макету Figma 20517:160766 (Ирина,
+   2026-08-11 «приведи к макету»): контейнер 1336, зазор 16, пять одинаковых
+   плашек по 254 на светло-сером фоне без рамки, радиус 6.
+   Ширину не прибиваем к 254, а делим поровну с потолком 254: фильтров на
+   странице бывает и меньше пяти, тогда плашки просто не растягиваются. */
 .nd-filter {
     display: flex;
     align-items: flex-start;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 16px;
     width: 100%;
     max-width: 1336px;
     margin: 0 auto 32px;
     font-family: 'Nunito Sans', Arial, sans-serif;
     color: #101014;
+}
+/* Только на десктопе: на узком экране равные доли схлопывают плашки до
+   нечитаемых 48px, там они идут по содержимому и переносятся. */
+@media (min-width: 768px) {
+    .nd-filter > .nd-filter__toggle,
+    .nd-filter > .nd-filter__drop,
+    .nd-filter > .nd-filter__reset {
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: 254px;
+    }
 }
 .nd-filter input[type="checkbox"] {
     position: absolute;
@@ -808,24 +824,25 @@ textarea {
 .nd-filter__toggle {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     height: 48px;
     margin: 0;
-    padding: 0 20px;
-    border: 1px solid rgba(82, 82, 100, .15);
-    border-radius: 8px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .05);
     font-size: 16px;
     line-height: 24px;
-    font-weight: 400;
+    font-weight: 500;
     cursor: pointer;
 }
 .nd-filter__switch {
     position: relative;
     flex: 0 0 auto;
-    width: 36px;
+    width: 38px;
     height: 20px;
     border-radius: 10px;
-    background: rgba(82, 82, 100, .25);
+    background: rgba(82, 82, 100, .2);
     transition: background .15s ease;
 }
 .nd-filter__switch::after {
@@ -843,7 +860,7 @@ textarea {
     background: #c60000;
 }
 .nd-filter__toggle input:checked ~ .nd-filter__switch::after {
-    transform: translateX(16px);
+    transform: translateX(18px);
 }
 
 /* --- выпадающие списки --- */
@@ -855,11 +872,13 @@ textarea {
     align-items: center;
     gap: 8px;
     height: 48px;
-    padding: 0 20px;
-    border: 1px solid rgba(82, 82, 100, .15);
-    border-radius: 8px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .05);
     font-size: 16px;
     line-height: 24px;
+    font-weight: 700;
     list-style: none;
     cursor: pointer;
     user-select: none;

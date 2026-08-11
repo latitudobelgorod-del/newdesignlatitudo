@@ -139,10 +139,10 @@ if (!defined('ND_UI_JS')) {
 
 	<details class="nd-filter__drop">
 		<summary class="nd-filter__head">
-			<span>Город<?= $ndSelCity ? ' ('.count($ndSelCity).')' : '' ?></span>
 			<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 				<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
 			</svg>
+			<span>Город<?= $ndSelCity ? ' ('.count($ndSelCity).')' : '' ?></span>
 		</summary>
 		<div class="nd-filter__panel">
 			<? foreach ($ndCityList as $cityId => $cnt): ?>
@@ -159,10 +159,10 @@ if (!defined('ND_UI_JS')) {
 
 	<details class="nd-filter__drop">
 		<summary class="nd-filter__head">
-			<span>Оценка<?= $ndSelRate ? ' ('.count($ndSelRate).')' : '' ?></span>
 			<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 				<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
 			</svg>
+			<span>Оценка<?= $ndSelRate ? ' ('.count($ndSelRate).')' : '' ?></span>
 		</summary>
 		<div class="nd-filter__panel">
 			<? foreach ($ndRateTitles as $key => $title): ?>

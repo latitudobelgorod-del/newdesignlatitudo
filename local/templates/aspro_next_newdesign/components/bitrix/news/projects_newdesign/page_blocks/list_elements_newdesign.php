@@ -280,7 +280,7 @@ if (!defined('ND_UI_JS')) {
 	<? if ($ndColorOptions): ?>
 		<details class="nd-filter__drop">
 			<summary class="nd-filter__head">
-				<span>Цвет<?= $ndSelColor ? ' ('.count($ndSelColor).')' : '' ?></span><?= $ndChevron ?>
+				<?= $ndChevron ?><span>Цвет<?= $ndSelColor ? ' ('.count($ndSelColor).')' : '' ?></span>
 			</summary>
 			<div class="nd-filter__panel">
 				<? foreach ($ndColorOptions as $xmlId => $opt): ?>
@@ -302,7 +302,7 @@ if (!defined('ND_UI_JS')) {
 	<? if ($ndFenceOptions): ?>
 		<details class="nd-filter__drop">
 			<summary class="nd-filter__head">
-				<span>Виды ограждений<?= $ndSelFence ? ' ('.count($ndSelFence).')' : '' ?></span><?= $ndChevron ?>
+				<?= $ndChevron ?><span>Виды ограждений<?= $ndSelFence ? ' ('.count($ndSelFence).')' : '' ?></span>
 			</summary>
 			<div class="nd-filter__panel nd-filter__panel--pics">
 				<? foreach ($ndFenceOptions as $xmlId => $opt): ?>
@@ -323,7 +323,7 @@ if (!defined('ND_UI_JS')) {
 	<? if ($ndBrandOptions): ?>
 		<details class="nd-filter__drop">
 			<summary class="nd-filter__head">
-				<span>Бренд<?= $ndSelBrand ? ' ('.count($ndSelBrand).')' : '' ?></span><?= $ndChevron ?>
+				<?= $ndChevron ?><span>Бренд<?= $ndSelBrand ? ' ('.count($ndSelBrand).')' : '' ?></span>
 			</summary>
 			<div class="nd-filter__panel">
 				<? foreach ($ndBrandOptions as $enumId => $name): ?>
