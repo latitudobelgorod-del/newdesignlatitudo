@@ -452,8 +452,21 @@
                     return Math.round(v) + ' ₽';
                 }
             };
-            row.querySelector('.nd-old-row__old').innerHTML = fmt(base);
-            row.querySelector('.nd-old-row__diff').innerHTML = 'скидка ' + fmt(base - now);
+            /* ITEM_PRICES хранит цены в БАЗОВОЙ единице (шт), а цена в карточке
+               показана в выбранной покупателем (м², п.м) — без пересчёта старая
+               цена и скидка расходились с ней в разы (Ирина, 2026-08-12).
+               Коэффициент лежит у активной кнопки переключателя: тем же числом
+               компонент единиц умножает и саму цену. */
+            var ndKoef = 1;
+            var ndActive = card.querySelector('.measure-unit.measure-unit-active');
+            if (ndActive) {
+                var k = parseFloat(ndActive.getAttribute('data-unit'));
+                if (k > 0) ndKoef = k;
+            }
+            /* Округляем до рубля: после умножения на коэффициент выходят копейки
+               (6 233.33), а тема в своей строке показывает целые. */
+            row.querySelector('.nd-old-row__old').innerHTML = fmt(Math.round(base * ndKoef));
+            row.querySelector('.nd-old-row__diff').innerHTML = 'скидка ' + fmt(Math.round((base - now) * ndKoef));
             row.style.display = '';
         } catch (e) { }
     }
