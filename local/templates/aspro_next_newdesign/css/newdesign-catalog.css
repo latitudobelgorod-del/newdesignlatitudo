@@ -1033,7 +1033,14 @@
 /* ---------------------------------------------------------------------------
    Чипы тегов раздела (.section_tag_top .tag_ank) — в строке с сортировкой
    ------------------------------------------------------------------------ */
-.nd-catlist-sort__tags .section_tag_top {
+/* Нижние чипы (.section_tag_bottom, под списком) оформляем так же — Ирина,
+   2026-08-12. Разметку им даёт тот же блок редактора, что и верхним
+   (sprint.editor, button_link в папке aspro-catalog-section-top-tag), классы
+   те же, так что хватает стилей — компонент менять не нужно. Отдельного
+   префикса нижнему блоку не нужно: newdesign-catalog.css подключает только
+   шаблон карточки нового дизайна, в старый дизайн эти правила не попадают. */
+.nd-catlist-sort__tags .section_tag_top,
+.section_tag_bottom {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
@@ -1042,8 +1049,14 @@
     padding: 0 !important;
 }
 
+/* нижние чипы отбиваем от SEO-текста, который идёт сразу под ними */
+.section_tag_bottom {
+    margin: 0 0 24px !important;
+}
+
 /* каждая ссылка обёрнута своим .tag_ank — контейнером служит .section_tag_top */
-.nd-catlist-sort__tags .tag_ank {
+.nd-catlist-sort__tags .tag_ank,
+.section_tag_bottom .tag_ank {
     display: inline-block;
     margin: 0 !important;
     padding: 0 !important;
@@ -1051,7 +1064,8 @@
     border: 0 !important;
 }
 
-.nd-catlist-sort__tags .tag_ank a {
+.nd-catlist-sort__tags .tag_ank a,
+.section_tag_bottom .tag_ank a {
     display: inline-block;
     margin: 0 !important;
     padding: 6px 12px;
@@ -1065,7 +1079,8 @@
     white-space: nowrap;
 }
 
-.nd-catlist-sort__tags .tag_ank a:hover {
+.nd-catlist-sort__tags .tag_ank a:hover,
+.section_tag_bottom .tag_ank a:hover {
     background: rgba(82, 82, 100, .14);
 }
 
