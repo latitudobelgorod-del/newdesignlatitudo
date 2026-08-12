@@ -2009,3 +2009,25 @@ body .nd-brandhead #pagetitle {
 .catalog.search .nd-catlist-sort__filter {
     display: none !important;
 }
+
+/* ===== «−» и «+» по макету (Ирина, 2026-08-12) =============================
+   Значки модуля единиц оказались толстыми и короткими; в макете линия тоньше
+   и длиннее. Рисуем ОДИН знак для обеих кнопок сразу — и для .measure-button
+   компонента, и для штатного счётчика, — чтобы они не разъезжались впредь.
+   Свой SVG прямо в стиле: файлы модуля обновятся — вид не изменится. */
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-button,
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus,
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
+    font-size: 0 !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 20px 20px !important;
+}
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-button-down,
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M3 10h14' stroke='%23101014' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+}
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-button-up,
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M10 3v14M3 10h14' stroke='%23101014' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+}
