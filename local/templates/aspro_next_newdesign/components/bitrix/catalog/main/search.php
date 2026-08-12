@@ -1,5 +1,34 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
-<?$APPLICATION->SetTitle(GetMessage("CMP_TITLE"));?>
+<?
+/* Заголовок страницы поиска по макету (Ирина, 2026-08-12):
+   «Результаты поиска: «запрос»» вместо прежнего «Поиск». Пустой запрос
+   оставляем на старом тексте из языкового файла.
+
+   H1 отдаём в отложенную область `nd_page_head`: по макету он идёт над
+   колонками, а этот файл рисуется уже внутри контента. Заглушку под область
+   печатает page_blocks/page_title_newdesign.php. Класс nd-search-head рядом с
+   nd-cat-head отменяет черту-разделитель под заголовком: на поиске под ним
+   идёт строка поиска, а черта — уже под ней. */
+$ndSearchQuery = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
+$ndSearchTitle = ($ndSearchQuery !== '')
+	? 'Результаты поиска: «'.htmlspecialcharsbx($ndSearchQuery).'»'
+	: GetMessage("CMP_TITLE");
+
+$APPLICATION->SetTitle($ndSearchTitle);
+$APPLICATION->AddViewContent(
+	'nd_page_head',
+	'<div class="nd-cat-head nd-search-head"><h1 id="pagetitle">'.$ndSearchTitle.'</h1></div>'
+);
+
+/* Крошки по макету — «Главная / Поиск». Страница поиска лежит по адресу
+   /catalog/?q=…, поэтому штатная цепочка даёт «Главная — Каталог ДПК»
+   (название из $sSectionName в /catalog/.section.php). Подменяем хвост через
+   ND_CRUMBS_REPLACE — его разбирает шаблон крошек breadcrumb/newdesign,
+   он же chain_template, и выполняется он в самом конце страницы. */
+$GLOBALS['ND_CRUMBS_REPLACE'] = array(
+	array('TITLE' => 'Поиск', 'LINK' => ''),
+);
+?>
 
 
 <?$APPLICATION->IncludeComponent(

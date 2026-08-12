@@ -1,7 +1,10 @@
 <?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();?>
-<div class="search-page-wrap">
-<form action="" method="get">
-	<div class="form-control">
+<?/* Строка поиска нового дизайна (Ирина, 2026-08-12): во всю ширину контента,
+   оформление как у поля в шапке — светлая рамка, скруглённый угол и лупа.
+   Отличие от шапки одно: там иконка слева и заливка серая, здесь — иконка
+   справа и белый фон, так в макете. */?>
+<div class="nd-searchpage">
+<form class="nd-searchpage__form" action="" method="get">
 		<?if($arParams["USE_SUGGEST"] === "Y"):
 			if(strlen($arResult["REQUEST"]["~QUERY"]) && is_object($arResult["NAV_RESULT"]))
 			{
@@ -23,10 +26,11 @@
 				$component, array("HIDE_ICONS" => "Y")
 			);?>
 		<?else:?>
-			<input type="text" name="q" value="<?=$arResult["REQUEST"]["QUERY"]?>" size="40" />
+			<input class="nd-searchpage__input" type="text" name="q" value="<?=$arResult["REQUEST"]["QUERY"]?>" placeholder="Найти товар" maxlength="50" autocomplete="off" />
 		<?endif;?>
-	</div>
-	<input type="submit" class="btn btn-default" value="<?=GetMessage("SEARCH_GO")?>" />
+	<button class="nd-searchpage__submit" type="submit" aria-label="<?=GetMessage("SEARCH_GO")?>">
+		<img src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/header/search.svg" alt="" width="24" height="24">
+	</button>
 	<input type="hidden" name="how" value="<?echo $arResult["REQUEST"]["HOW"]=="d"? "d": "r"?>" />
 <?if($arParams["SHOW_WHEN"]):?>
 	<script>
@@ -77,7 +81,7 @@
 		);?>
 	</div>
 <?endif?>
-</form><br />
+</form>
 
 <?if(isset($arResult["REQUEST"]["ORIGINAL_QUERY"])):
 	?>

@@ -12,6 +12,28 @@
  */
 $strReturn = '';
 
+/**
+ * Своя цепочка для отдельных страниц.
+ *
+ * Цепочку собирает CMain::GetNavChain из $sSectionName в .section.php по пути
+ * страницы, и подменить её обычным способом нельзя: крошки печатает header.php
+ * шаблона, то есть до того, как отработает сам компонент страницы. Но вывод
+ * отложенный (bitrix:breadcrumb вешает GetNavChain через AddBufferContent), и
+ * этот файл — как раз chain_template, он выполняется в самом конце страницы.
+ * Поэтому страница может положить свои пункты в ND_CRUMBS_REPLACE, и они
+ * заменят всё после «Главная».
+ *
+ * Так сделана страница поиска /catalog/?q=… (search.php шаблона комплексного
+ * компонента): по адресу она лежит в каталоге, и без подмены цепочка выходила
+ * «Главная — Каталог ДПК» вместо «Главная — Поиск» из макета.
+ */
+if (isset($GLOBALS['ND_CRUMBS_REPLACE']) && is_array($GLOBALS['ND_CRUMBS_REPLACE'])) {
+	$arResult = array_merge(
+		isset($arResult[0]) ? array($arResult[0]) : array(),
+		$GLOBALS['ND_CRUMBS_REPLACE']
+	);
+}
+
 if (!$arResult) {
 	return $strReturn;
 }

@@ -2031,3 +2031,120 @@ body .nd-brandhead #pagetitle {
 .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
     background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M10 3v14M3 10h14' stroke='%23101014' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") !important;
 }
+
+/* ============ страница поиска /catalog/?q= =============================
+   Макет: 2026-08-12_14-51-25.png. Под H1 — строка поиска во всю ширину,
+   ниже черта-разделитель, под ней слева «Товары», справа «Найдено N». */
+
+/* Заголовок поиска сидит в той же отложенной области, что и H1 раздела
+   (nd-cat-head), но черта под ним не нужна: по макету она идёт ниже, под
+   строкой поиска. Гасим правило .nd-cat-head:last-child. */
+.nd-page-head-wrap .nd-cat-head.nd-search-head:last-child {
+    padding-bottom: 28px;
+    margin-bottom: 0;
+    border-bottom: 0;
+}
+
+.nd-searchpage {
+    margin: 0 0 40px;
+}
+.nd-searchpage__form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 56px;
+    margin: 0;
+    padding: 0 20px;
+    border: 1px solid rgba(82, 82, 100, .2);
+    border-radius: 6px;
+    background: #fff;
+}
+/* Тема рисует полям ввода свою рамку и серую заливку (`input[type=text]` с
+   высокой специфичностью) — гасим, как и в поле шапки: фон и скругление
+   даёт обёртка .nd-searchpage__form. */
+.nd-searchpage__form .nd-searchpage__input,
+.nd-searchpage__form input.nd-searchpage__input {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 32px !important;
+    min-height: 0 !important;
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 32px;
+    font-weight: 600;
+    color: #101014;
+    outline: none;
+}
+.nd-searchpage__input::placeholder {
+    color: rgba(16, 16, 20, .4);
+    opacity: 1;
+}
+.nd-searchpage__form .nd-searchpage__submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+.nd-searchpage__form .nd-searchpage__submit img {
+    width: 24px;
+    height: 24px;
+}
+
+.nd-searchres {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 24px;
+    padding-top: 24px;
+    border-top: 2px solid rgba(82, 82, 100, .15);
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.nd-searchres__title {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 800;
+    color: #101014;
+}
+.nd-searchres__count {
+    flex: 0 0 auto;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: rgba(16, 16, 20, .4);
+    white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+    .nd-searchpage {
+        margin-bottom: 24px;
+    }
+    .nd-searchpage__form {
+        height: 48px;
+        padding: 0 14px;
+    }
+    .nd-searchres {
+        padding-top: 16px;
+        margin-bottom: 16px;
+    }
+    .nd-searchres__title {
+        font-size: 20px;
+        line-height: 26px;
+    }
+}

@@ -77,8 +77,25 @@ if ((is_array($arElements) && !empty($arElements)) || (isset($arOffers) && is_ar
   }
   
 
+	/* «Найдено N» в шапке результатов — число по всем страницам, а не по
+	   текущей. Из catalog.section его не достать: постраничный NAV_RESULT
+	   живёт внутри компонента и считается уже после вывода шапки. Поэтому
+	   считаем отдельным запросом по тому же $searchFilter, что уходит в
+	   компонент: GetList с пустым $arGroupBy возвращает количество. */
+	$ndCountFilter = $searchFilter;
+	$ndCountFilter['IBLOCK_ID'] = $arParams['IBLOCK_ID'];
+	$ndCountFilter['ACTIVE'] = 'Y';
+	$ndCountFilter['ACTIVE_DATE'] = 'Y';
+	$ndFoundCount = (int)CIBlockElement::GetList(array(), $ndCountFilter, array());
 	?>
 	<div class="catalog">
+		<?/* Шапка результатов по макету (Ирина, 2026-08-12): черта, под ней
+		   слева «Товары», справа «Найдено N». */?>
+		<div class="nd-searchres">
+			<div class="nd-searchres__title">Товары</div>
+			<div class="nd-searchres__count">Найдено <?=$ndFoundCount?></div>
+		</div>
+
 		<?/* Панель над списком — та же, что на странице раздела (Ирина,
 		   2026-08-12): выпадающий список сортировки вместо прежних ссылок
 		   «По возрастанию цены / По убыванию цены».
