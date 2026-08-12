@@ -1982,33 +1982,10 @@ body .nd-brandhead #pagetitle {
     text-align: left !important;
 }
 
-/* Страница поиска: пять карточек в ряд (Ирина, 2026-08-12). Обёртку .search
-   печатает шаблон catalog.search/main, поэтому правило не задевает раздел
-   каталога, где по макету четыре. Ниже — те же переломы, что и у раздела. */
-.catalog.search .nd-catlist .catalog_block {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-}
-@media (max-width: 1279px) {
-    .catalog.search .nd-catlist .catalog_block {
-        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    }
-}
-@media (max-width: 991px) {
-    .catalog.search .nd-catlist .catalog_block {
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    }
-}
-@media (max-width: 767px) {
-    .catalog.search .nd-catlist .catalog_block {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-}
-
-/* На поиске фильтра нет — кнопку «Фильтры» из мобильной панели сортировки
-   не показываем, жать ей нечего. */
-.catalog.search .nd-catlist-sort__filter {
-    display: none !important;
-}
+/* Раньше здесь было «пять карточек в ряд» для страницы поиска и скрытая
+   кнопка «Фильтры» в мобильной панели сортировки. Отменено 2026-08-12: на
+   поиске появилась левая колонка с умным фильтром, и список идёт по четыре в
+   ряд — ровно как в разделе каталога, то есть по общим правилам выше. */
 
 /* ===== «−» и «+» по макету (Ирина, 2026-08-12) =============================
    Значки модуля единиц оказались толстыми и короткими; в макете линия тоньше
@@ -2039,6 +2016,7 @@ body .nd-brandhead #pagetitle {
 /* Заголовок поиска сидит в той же отложенной области, что и H1 раздела
    (nd-cat-head), но черта под ним не нужна: по макету она идёт ниже, под
    строкой поиска. Гасим правило .nd-cat-head:last-child. */
+.nd-page-head-wrap .nd-cat-head.nd-search-head,
 .nd-page-head-wrap .nd-cat-head.nd-search-head:last-child {
     padding-bottom: 28px;
     margin-bottom: 0;
@@ -2046,7 +2024,14 @@ body .nd-brandhead #pagetitle {
 }
 
 .nd-searchpage {
-    margin: 0 0 40px;
+    margin: 0 0 24px;
+}
+/* Черта под строкой поиска. Живёт в шапке страницы, то есть тянется на обе
+   колонки: слева под ней начинается фильтр, справа — «Товары / Найдено N». */
+.nd-searchpage__sep {
+    height: 0;
+    margin: 0 0 24px;
+    border-top: 2px solid rgba(82, 82, 100, .15);
 }
 .nd-searchpage__form {
     display: flex;
@@ -2106,14 +2091,14 @@ body .nd-brandhead #pagetitle {
     height: 24px;
 }
 
+/* Строка «Товары» / «Найдено N». Черта над ней рисуется в шапке страницы
+   (.nd-searchpage__sep) — здесь только сама строка. */
 .nd-searchres {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 16px;
-    margin: 0 0 24px;
-    padding-top: 24px;
-    border-top: 2px solid rgba(82, 82, 100, .15);
+    margin: 0 0 16px;
     font-family: 'Nunito Sans', Arial, sans-serif;
 }
 .nd-searchres__title {
@@ -2139,9 +2124,11 @@ body .nd-brandhead #pagetitle {
         height: 48px;
         padding: 0 14px;
     }
-    .nd-searchres {
-        padding-top: 16px;
+    .nd-searchpage__sep {
         margin-bottom: 16px;
+    }
+    .nd-searchres {
+        margin-bottom: 12px;
     }
     .nd-searchres__title {
         font-size: 20px;

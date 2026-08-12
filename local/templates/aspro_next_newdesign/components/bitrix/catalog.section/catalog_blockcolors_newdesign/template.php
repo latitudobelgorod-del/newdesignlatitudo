@@ -1001,6 +1001,19 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 	</div>
 <?}?>
 
+<?/* «Найдено N» для страницы поиска. Шапку результатов печатает шаблон
+   catalog.search/main выше по документу, а общее число товаров известно
+   только здесь — в NAV_RESULT, и уже с учётом умного фильтра. Отдаём цифру в
+   отложенную область: заглушку ShowViewContent('nd_search_count') шапка
+   ставит заранее, содержимое приезжает сюда. Флаг ND_SEARCH_COUNT поднимает
+   тот же шаблон поиска — на разделе и в блоках главной ничего не меняется. */?>
+<?if(!empty($GLOBALS['ND_SEARCH_COUNT']) && !$ldItemsOnly){
+	$ndTotal = (isset($arResult['NAV_RESULT']) && is_object($arResult['NAV_RESULT']))
+		? (int)$arResult['NAV_RESULT']->NavRecordCount
+		: count((array)$arResult['ITEMS']);
+	$APPLICATION->AddViewContent('nd_search_count', 'Найдено '.$ndTotal);
+}?>
+
 <?/* Ниже — скрипты уровня всего списка: сообщения BX, обработчики кликов на
    document. Догрузке они не нужны, а второй их экземпляр повесил бы на те же
    клики вторые обработчики. */?>

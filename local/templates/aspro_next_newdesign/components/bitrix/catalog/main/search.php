@@ -15,9 +15,29 @@ $ndSearchTitle = ($ndSearchQuery !== '')
 	: GetMessage("CMP_TITLE");
 
 $APPLICATION->SetTitle($ndSearchTitle);
-$APPLICATION->AddViewContent(
-	'nd_page_head',
+
+/* Шапка поиска: H1, строка поиска и черта-разделитель. Всё это по макету
+   идёт во всю ширину, над обеими колонками, — поэтому собираем здесь и
+   отдаём в `nd_page_head`, а не печатаем в шаблоне компонента (он рисуется
+   внутри правой колонки, слева умный фильтр).
+
+   Строку поиска раньше печатал шаблон search.page — там она оказалась бы
+   зажата колонкой. Своя разметка, никаких отложенных функций внутри: строку
+   собираем конкатенацией, чтобы не заводить ob_start (ShowTitle и подобные
+   в буфере рвут его — грабля из шаблона услуг). */
+$ndSearchIcon = SITE_TEMPLATE_PATH.'/images/newdesign/header/search.svg';
+$APPLICATION->AddViewContent('nd_page_head',
 	'<div class="nd-cat-head nd-search-head"><h1 id="pagetitle">'.$ndSearchTitle.'</h1></div>'
+	.'<div class="nd-searchpage">'
+		.'<form class="nd-searchpage__form" action="'.htmlspecialcharsbx($APPLICATION->GetCurPage(false)).'" method="get">'
+			.'<input class="nd-searchpage__input" type="text" name="q" value="'.htmlspecialcharsbx($ndSearchQuery).'"'
+				.' placeholder="Найти товар" maxlength="50" autocomplete="off" />'
+			.'<button class="nd-searchpage__submit" type="submit" aria-label="Искать">'
+				.'<img src="'.$ndSearchIcon.'" alt="" width="24" height="24">'
+			.'</button>'
+		.'</form>'
+	.'</div>'
+	.'<div class="nd-searchpage__sep"></div>'
 );
 
 /* Крошки по макету — «Главная / Поиск». Страница поиска лежит по адресу
@@ -28,6 +48,15 @@ $APPLICATION->AddViewContent(
 $GLOBALS['ND_CRUMBS_REPLACE'] = array(
 	array('TITLE' => 'Поиск', 'LINK' => ''),
 );
+
+/* Левая колонка с фильтром (Ирина, 2026-08-12). Её печатает footer.php по
+   свойству страницы HIDE_LEFT_BLOCK, а /catalog/index.php ставит ему «Y» для
+   всех адресов короче двух слэшей — под это правило попадает и /catalog/?q=.
+   Возвращаем «N» здесь: footer.php читает свойство уже после нас, а обёртку
+   .right_block header.php к этому моменту вывел (там значение приходит из
+   /catalog/.section.php, и оно как раз «N»). Сам фильтр собирает шаблон
+   catalog.search/main — только он знает, что нашлось по запросу. */
+$APPLICATION->SetPageProperty('HIDE_LEFT_BLOCK', 'N');
 ?>
 
 
@@ -38,6 +67,9 @@ $GLOBALS['ND_CRUMBS_REPLACE'] = array(
 			
 			"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
 			"IBLOCK_ID" => $arParams["IBLOCK_ID"],
+			// Умный фильтр на поиске рисует шаблон catalog.search/main —
+			// признак «фильтр включён» берём тот же, что и раздел каталога.
+			"USE_FILTER" => $arParams["USE_FILTER"],
 			"SORT_BUTTONS" => $arParams["SORT_BUTTONS"],
 			"SORT_PRICES" => $arParams["SORT_PRICES"],
 			"ELEMENT_SORT_FIELD" => $arParams["ELEMENT_SORT_FIELD"],

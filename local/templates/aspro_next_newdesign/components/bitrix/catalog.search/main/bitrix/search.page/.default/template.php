@@ -1,38 +1,17 @@
 <?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();?>
-<?/* Строка поиска нового дизайна (Ирина, 2026-08-12): во всю ширину контента,
-   оформление как у поля в шапке — светлая рамка, скруглённый угол и лупа.
-   Отличие от шапки одно: там иконка слева и заливка серая, здесь — иконка
-   справа и белый фон, так в макете. */?>
-<div class="nd-searchpage">
-<form class="nd-searchpage__form" action="" method="get">
-		<?if($arParams["USE_SUGGEST"] === "Y"):
-			if(strlen($arResult["REQUEST"]["~QUERY"]) && is_object($arResult["NAV_RESULT"]))
-			{
-				$arResult["FILTER_MD5"] = $arResult["NAV_RESULT"]->GetFilterMD5();
-				$obSearchSuggest = new CSearchSuggest($arResult["FILTER_MD5"], $arResult["REQUEST"]["~QUERY"]);
-				$obSearchSuggest->SetResultCount($arResult["NAV_RESULT"]->NavRecordCount);
-			}
-			?>
-			<?$APPLICATION->IncludeComponent(
-				"bitrix:search.suggest.input",
-				"",
-				array(
-					"NAME" => "q",
-					"VALUE" => $arResult["REQUEST"]["~QUERY"],
-					"INPUT_SIZE" => 40,
-					"DROPDOWN_SIZE" => 10,
-					"FILTER_MD5" => $arResult["FILTER_MD5"],
-				),
-				$component, array("HIDE_ICONS" => "Y")
-			);?>
-		<?else:?>
-			<input class="nd-searchpage__input" type="text" name="q" value="<?=$arResult["REQUEST"]["QUERY"]?>" placeholder="Найти товар" maxlength="50" autocomplete="off" />
-		<?endif;?>
-	<button class="nd-searchpage__submit" type="submit" aria-label="<?=GetMessage("SEARCH_GO")?>">
-		<img src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/header/search.svg" alt="" width="24" height="24">
-	</button>
-	<input type="hidden" name="how" value="<?echo $arResult["REQUEST"]["HOW"]=="d"? "d": "r"?>" />
+<?/* Строку поиска этот шаблон больше не печатает (Ирина, 2026-08-12).
+   Она переехала в шапку страницы — в отложенную область `nd_page_head`,
+   которую наполняет catalog/main/search.php: по макету поле идёт во всю
+   ширину, над обеими колонками, а этот шаблон рисуется уже внутри правой
+   (слева умный фильтр). Разметка и стили — там же, класс .nd-searchpage.
+
+   Блок дополнительных параметров (SHOW_WHEN) оставлен как в штатном шаблоне,
+   со своей формой; на сайте он выключен. */?>
+<div class="search-page-wrap">
 <?if($arParams["SHOW_WHEN"]):?>
+<form action="" method="get">
+	<input type="hidden" name="q" value="<?=$arResult["REQUEST"]["QUERY"]?>" />
+	<input type="hidden" name="how" value="<?echo $arResult["REQUEST"]["HOW"]=="d"? "d": "r"?>" />
 	<script>
 	var switch_search_params = function()
 	{
@@ -80,8 +59,8 @@
 			array('HIDE_ICONS' => 'Y')
 		);?>
 	</div>
-<?endif?>
 </form>
+<?endif?>
 
 <?if(isset($arResult["REQUEST"]["ORIGINAL_QUERY"])):
 	?>

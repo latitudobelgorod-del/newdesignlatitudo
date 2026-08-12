@@ -77,23 +77,81 @@ if ((is_array($arElements) && !empty($arElements)) || (isset($arOffers) && is_ar
   }
   
 
-	/* «Найдено N» в шапке результатов — число по всем страницам, а не по
-	   текущей. Из catalog.section его не достать: постраничный NAV_RESULT
-	   живёт внутри компонента и считается уже после вывода шапки. Поэтому
-	   считаем отдельным запросом по тому же $searchFilter, что уходит в
-	   компонент: GetList с пустым $arGroupBy возвращает количество. */
-	$ndCountFilter = $searchFilter;
-	$ndCountFilter['IBLOCK_ID'] = $arParams['IBLOCK_ID'];
-	$ndCountFilter['ACTIVE'] = 'Y';
-	$ndCountFilter['ACTIVE_DATE'] = 'Y';
-	$ndFoundCount = (int)CIBlockElement::GetList(array(), $ndCountFilter, array());
+	/* Умный фильтр слева — как в разделе каталога (Ирина, 2026-08-12).
+	   Пункты и значения считаются только по найденным товарам.
+
+	   Как это работает:
+	   - `$searchFilter` (список ID из поиска) кладём в отдельную глобалку и
+	     передаём её имя параметром PREFILTER_NAME. Компонент подмешивает
+	     префильтр в запрос, которым собирает значения свойств, — и в фильтр
+	     попадают только те пункты, что есть у найденных товаров.
+	   - FILTER_NAME тот же `searchFilter`: выбранные пункты компонент
+	     дописывает в эту же глобалку, не затирая ID-условие, а ниже её
+	     забирает catalog.section. Поэтому фильтр обязан отработать **до**
+	     списка.
+	   - SECTION_ID пуст, поэтому нужен SHOW_ALL_WO_SECTION=Y: иначе компонент
+	     положил бы в запрос SECTION_ID=0 и остался бы без значений.
+	   - Кеш выключен: содержимое зависит от поискового запроса, а он в ключ
+	     кеша компонента не входит.
+	   - SEF_MODE=N — у поиска нет ЧПУ-адресов /filter/. Форма уходит методом
+	     GET на текущий адрес, а `q` компонент сам добавляет скрытым полем
+	     (в HIDDEN попадают все параметры запроса, которые не его).
+
+	   Разметку отдаём в отложенную область `left_menu` — её печатает левая
+	   колонка (page_blocks/left_block_newdesign.php из footer.php). Тот же
+	   приём у раздела: catalog/main/page_blocks/list_elements_1.php. */
+	if ($arParams["USE_FILTER"] === "Y") {
+		$GLOBALS['ndSearchPreFilter'] = $searchFilter;
+
+		ob_start();
+		$APPLICATION->IncludeComponent(
+			"bitrix:catalog.smart.filter",
+			"main_newdesign",
+			array(
+				"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
+				"IBLOCK_ID" => $arParams["IBLOCK_ID"],
+				"SECTION_ID" => "",
+				"SHOW_ALL_WO_SECTION" => "Y",
+				"FILTER_NAME" => "searchFilter",
+				"PREFILTER_NAME" => "ndSearchPreFilter",
+				"PRICE_CODE" => $arParams["PRICE_CODE"],
+				"CACHE_TYPE" => "N",
+				"CACHE_TIME" => "0",
+				"CACHE_NOTES" => "",
+				"CACHE_GROUPS" => $arParams["CACHE_GROUPS"],
+				"SAVE_IN_SESSION" => "N",
+				"XML_EXPORT" => "N",
+				"SECTION_TITLE" => "NAME",
+				"SECTION_DESCRIPTION" => "DESCRIPTION",
+				"SHOW_HINTS" => $arParams["SHOW_HINTS"],
+				"CONVERT_CURRENCY" => $arParams["CONVERT_CURRENCY"],
+				"CURRENCY_ID" => $arParams["CURRENCY_ID"],
+				"INSTANT_RELOAD" => "Y",
+				"VIEW_MODE" => "vertical",
+				"SEF_MODE" => "N",
+				"SEF_RULE" => "",
+				"HIDE_NOT_AVAILABLE" => $arParams["HIDE_NOT_AVAILABLE"],
+			),
+			$component,
+			array("HIDE_ICONS" => "Y")
+		);
+		$APPLICATION->AddViewContent('left_menu', ob_get_clean());
+	}
+
+	/* «Найдено N» — число по всем страницам и уже с учётом фильтра. Считать
+	   его своим запросом нельзя: после умного фильтра в $searchFilter лежат
+	   и условия по торговым предложениям (ключ OFFERS), которые понимает
+	   только catalog.section. Поэтому цифру печатает сам список — отдаёт её в
+	   отложенную область `nd_search_count`, а заглушку под неё выводим здесь
+	   (ShowViewContent отложенный, порядок в документе роли не играет). */
+	$GLOBALS['ND_SEARCH_COUNT'] = true;
 	?>
 	<div class="catalog">
 		<?/* Шапка результатов по макету (Ирина, 2026-08-12): черта, под ней
 		   слева «Товары», справа «Найдено N». */?>
 		<div class="nd-searchres">
 			<div class="nd-searchres__title">Товары</div>
-			<div class="nd-searchres__count">Найдено <?=$ndFoundCount?></div>
+			<div class="nd-searchres__count"><?$APPLICATION->ShowViewContent('nd_search_count');?></div>
 		</div>
 
 		<?/* Панель над списком — та же, что на странице раздела (Ирина,
