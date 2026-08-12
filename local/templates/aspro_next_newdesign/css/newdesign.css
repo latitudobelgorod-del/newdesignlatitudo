@@ -4158,6 +4158,7 @@ body .nd-filter .bx_filter_block .values_expander {
     -webkit-overflow-scrolling: touch;
     max-width: 100%;
     margin: 0 0 24px;
+    border: 1px solid #d0d4dc;
     border-radius: 6px;
 }
 .sp-block-table table {
@@ -4171,7 +4172,9 @@ body .nd-filter .bx_filter_block .values_expander {
 .sp-block-table table td,
 .sp-block-table table th {
     padding: 12px;
-    border: 1px solid #d0d4dc;
+    border: 0;
+    border-right: 1px solid #d0d4dc;
+    border-bottom: 1px solid #d0d4dc;
     background: #fff;
     font-size: 14px;
     line-height: 19.6px;
@@ -4235,4 +4238,18 @@ body .nd-filter .bx_filter_block .values_expander {
 .sp-block-table table th li {
     font-size: inherit;
     line-height: inherit;
+}
+
+/* Внешнюю рамку и скругление держит обёртка, ячейки рисуют только внутренние
+   линии (Ирина, 2026-08-12: «что-то с углами»). Раньше рамку рисовали сами
+   ячейки, а обёртка лишь обрезала коробку по радиусу — углы выходили
+   срезанными, а не скруглёнными. Крайние линии у ячеек снимаем, иначе по
+   периметру двойная. */
+.sp-block-table table tr:last-child td,
+.sp-block-table table tr:last-child th {
+    border-bottom: 0;
+}
+.sp-block-table table td:last-child,
+.sp-block-table table th:last-child {
+    border-right: 0;
 }
