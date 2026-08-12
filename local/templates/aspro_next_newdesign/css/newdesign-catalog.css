@@ -2003,3 +2003,9 @@ body .nd-brandhead #pagetitle {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }
+
+/* На поиске фильтра нет — кнопку «Фильтры» из мобильной панели сортировки
+   не показываем, жать ей нечего. */
+.catalog.search .nd-catlist-sort__filter {
+    display: none !important;
+}

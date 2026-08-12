@@ -79,76 +79,18 @@ if ((is_array($arElements) && !empty($arElements)) || (isset($arOffers) && is_ar
 
 	?>
 	<div class="catalog">
-		<?$display = "blockcolors";
-/* Страница поиска показывает товары тем же шаблоном карточки, что и страница
-   раздела (Ирина, 2026-08-12). Плиток акций тут нет и не будет: их разметку
-   печатает пул #nd-promo-pool из page_blocks/list_elements_1.php, а он к
-   поиску не подключается — скрипт раскладки просто не находит пул.
-   Файл лежит внутри aspro_next_newdesign, то есть выполняется только в новом
-   дизайне; старый поиск со своим catalog_blockcolors не тронут. */
-$template = "catalog_blockcolors_newdesign";
+		<?/* Панель над списком — та же, что на странице раздела (Ирина,
+		   2026-08-12): выпадающий список сортировки вместо прежних ссылок
+		   «По возрастанию цены / По убыванию цены».
 
-		?>
+		   Подключаем сам sort_newdesign.php, а не копируем разметку: он
+		   самодостаточен — читает sort/order из запроса, умеет подменять адрес
+		   на ЧПУ-двойник sotbit.seometa и сам отдаёт наружу $display, $template,
+		   $sort и $sort_order, которые ниже уходят в catalog.section. Чипы
+		   посадочных страниц он печатает из ND_CATALOG_TAGS_HTML — на поиске
+		   этой переменной нет, блок остаётся пустым. */?>
+		<? include(__DIR__ . "/../../catalog/main/sort_newdesign.php"); ?>
 
-		<br/>
-	<div class="sort_header view_<?=$display?>">
-		<div class="sort_filter">
-		<?	$sort = "sort";
-		$sort_order = 'asc';
-
-		// установка сортировки из параметров запроса
-		if($_REQUEST["sort"]) {
-			$sort = ToUpper($_REQUEST["sort"]);
-		}
-		if($_REQUEST["order"]){
-			$sort_order = $_REQUEST["order"];
-		}
-
-		// массив с ссылками для сортировки
-		$sortArr = [
-			'CHEAPER' => [
-				'title' => 'По возрастанию цены',
-				'key' => 'PRICE',
-				'order' => 'asc'
-			],
-			'EXPENSIVE' => [
-				'title' => 'По убыванию цены',
-				'key' => 'PRICE',
-				'order' => 'desc'
-			]
-		];
-?>
-	<div style="display:inline-block;">Сортировать:</div>
-	
-			
-			<?foreach ($sortArr as $key => $value): ?>
-				<?
-				$currentUrl = $APPLICATION->GetCurPageParam('sort='.$value["key"].'&order='.$value['order'], 	array('sort', 'order'));
-				$url = str_replace('+', '%2B', $currentUrl);
-				$classSort = ($sort == $value['key'] && $sort_order == $value['order']) ? 'current' : '';
-				?>
-				<a href="<?php echo $url; ?>" class="sort_btn <?php echo $classSort; ?>" rel="nofollow">
-					<span><?php echo $value['title']; ?></span>
-				</a>
-			<?endforeach; ?>
-		<a href="<?=$APPLICATION->GetCurPageParam("", array('sort', 'order'));?>" class="<?=(($sort == "PRICE") ? 'visible' : 'hidden')?>" rel="nofollow">Сбросить</a>
-			
-		
-<?
-			if($sort == "PRICE"){
-				$sort = 'PROPERTY_MINIMUM_PRICE';
-			}
-			?>
-		
-</div>
-
-		<div class="clearfix"></div>
-	
-</div>
-		
-		
-		
-		
 		<div class="ajax_load <?=$display;?>">
 		<div class="catalog <?=$display;?> search">
 			<?
