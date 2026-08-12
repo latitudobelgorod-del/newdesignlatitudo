@@ -4136,3 +4136,51 @@ body .nd-filter .bx_filter_block .values_expander {
         white-space: normal;
     }
 }
+
+/* ============ Таблица блока редактора (sprint.editor, table.php) ===========
+   Макет Figma, страница «Стилевая», компонент Block_Web/Table (20545:108007):
+   рамка 1px #D0D4DC и радиус 6 у всей таблицы, строка 44 (поля ячейки 12 +
+   строка текста 20), текст Nunito Sans 14/19.6 #101014, зебра — нечётные
+   строки rgba(82,82,100,.05), чётные белые.
+
+   Скругление даёт обёртка (overflow срезает углы у ячеек), поэтому рамку
+   рисуют сами ячейки — с рамкой ещё и на обёртке по краям выходила бы
+   двойная линия. overflow-x: auto оставлен: широкая таблица прокручивается
+   внутри блока и не растягивает страницу (правило для мобильного уже было
+   в custom.css, здесь оно нужно на всех ширинах — углы срезаются только у
+   непрозрачного overflow).
+
+   Разметку блока не трогаем: она общая со старым дизайном, а класс
+   .sp-block-table у неё уже есть. Инлайновые стили ячеек из редактора
+   (выравнивание, ширина) по-прежнему сильнее и продолжают работать. */
+.sp-block-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    margin: 0 0 24px;
+    border-radius: 6px;
+}
+.sp-block-table table {
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background: none;
+}
+.sp-block-table table td,
+.sp-block-table table th {
+    padding: 12px;
+    border: 1px solid #d0d4dc;
+    background: #fff;
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 400;
+    color: #101014;
+    text-align: left;
+    vertical-align: top;
+}
+.sp-block-table table tr:nth-child(odd) td,
+.sp-block-table table tr:nth-child(odd) th {
+    background: rgba(82, 82, 100, .05);
+}
