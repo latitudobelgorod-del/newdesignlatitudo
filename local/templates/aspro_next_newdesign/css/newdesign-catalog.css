@@ -2123,10 +2123,7 @@ body .nd-brandhead #pagetitle {
         margin-bottom: 16px;
     }
     .nd-searchres {
+        min-height: 0;
         margin-bottom: 12px;
-    }
-    .nd-searchres__title {
-        font-size: 20px;
-        line-height: 26px;
     }
 }
