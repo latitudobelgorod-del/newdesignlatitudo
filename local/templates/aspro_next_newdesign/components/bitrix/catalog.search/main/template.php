@@ -144,11 +144,17 @@ if ((is_array($arElements) && !empty($arElements)) || (isset($arOffers) && is_ar
 					"USE_PRODUCT_QUANTITY" => $arParams["USE_PRODUCT_QUANTITY"],
 					"CONVERT_CURRENCY" => $arParams["CONVERT_CURRENCY"],
 					"CURRENCY_ID" => $arParams["CURRENCY_ID"],
-					"DISPLAY_TOP_PAGER" => $arParams["DISPLAY_TOP_PAGER"],
-					"DISPLAY_BOTTOM_PAGER" => $arParams["DISPLAY_BOTTOM_PAGER"],
-					"PAGER_TITLE" => $arParams["PAGER_TITLE"],
-					"PAGER_SHOW_ALWAYS" => $arParams["PAGER_SHOW_ALWAYS"],
-					"PAGER_TEMPLATE" => $arParams["PAGER_TEMPLATE"],
+					"DISPLAY_TOP_PAGER" => "N",
+					/* Постраничка как в списке раздела (Ирина, 2026-08-12): номера
+					   слева, «Показать ещё» справа. Оба даёт связка
+					   pagination_newdesign + обёртка .nd-catlist__nav шаблона
+					   карточки — кнопку по этой обёртке дорисовывает
+					   js/newdesign-ui.js. Раньше сюда приезжал PAGER_TEMPLATE из
+					   параметров комплексного компонента, и номера шли по центру. */
+					"DISPLAY_BOTTOM_PAGER" => "Y",
+					"PAGER_TITLE" => "",
+					"PAGER_SHOW_ALWAYS" => "N",
+					"PAGER_TEMPLATE" => "pagination_newdesign",
 					"PAGER_DESC_NUMBERING" => $arParams["PAGER_DESC_NUMBERING"],
 					"PAGER_DESC_NUMBERING_CACHE_TIME" => $arParams["PAGER_DESC_NUMBERING_CACHE_TIME"],
 					"PAGER_SHOW_ALL" => $arParams["PAGER_SHOW_ALL"],
