@@ -2091,21 +2091,16 @@ body .nd-brandhead #pagetitle {
     height: 24px;
 }
 
-/* Строка «Товары» / «Найдено N». Черта над ней рисуется в шапке страницы
-   (.nd-searchpage__sep) — здесь только сама строка. */
+/* Строка «Найдено N» под чертой. Саму черту рисует шапка страницы
+   (.nd-searchpage__sep) — здесь только строка. Заголовка «Товары» слева
+   больше нет (Ирина, 2026-08-12), поэтому счётчик прижат влево. */
 .nd-searchres {
     display: flex;
     align-items: baseline;
-    justify-content: space-between;
     gap: 16px;
+    min-height: 32px;
     margin: 0 0 16px;
     font-family: 'Nunito Sans', Arial, sans-serif;
-}
-.nd-searchres__title {
-    font-size: 24px;
-    line-height: 32px;
-    font-weight: 800;
-    color: #101014;
 }
 .nd-searchres__count {
     flex: 0 0 auto;

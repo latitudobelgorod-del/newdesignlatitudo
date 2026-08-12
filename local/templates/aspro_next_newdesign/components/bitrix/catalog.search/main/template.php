@@ -147,10 +147,10 @@ if ((is_array($arElements) && !empty($arElements)) || (isset($arOffers) && is_ar
 	$GLOBALS['ND_SEARCH_COUNT'] = true;
 	?>
 	<div class="catalog">
-		<?/* Шапка результатов по макету (Ирина, 2026-08-12): черта, под ней
-		   слева «Товары», справа «Найдено N». */?>
+		<?/* Шапка результатов (Ирина, 2026-08-12): под чертой слева «Найдено N».
+		   Заголовка «Товары» здесь больше нет — на поиске он ничего не
+		   разделяет, других блоков в выдаче не бывает. */?>
 		<div class="nd-searchres">
-			<div class="nd-searchres__title">Товары</div>
 			<div class="nd-searchres__count"><?$APPLICATION->ShowViewContent('nd_search_count');?></div>
 		</div>
 
