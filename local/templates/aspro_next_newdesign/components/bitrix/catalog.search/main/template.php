@@ -147,13 +147,6 @@ if ((is_array($arElements) && !empty($arElements)) || (isset($arOffers) && is_ar
 	$GLOBALS['ND_SEARCH_COUNT'] = true;
 	?>
 	<div class="catalog">
-		<?/* Шапка результатов (Ирина, 2026-08-12): под чертой слева «Найдено N».
-		   Заголовка «Товары» здесь больше нет — на поиске он ничего не
-		   разделяет, других блоков в выдаче не бывает. */?>
-		<div class="nd-searchres">
-			<div class="nd-searchres__count"><?$APPLICATION->ShowViewContent('nd_search_count');?></div>
-		</div>
-
 		<?/* Панель над списком — та же, что на странице раздела (Ирина,
 		   2026-08-12): выпадающий список сортировки вместо прежних ссылок
 		   «По возрастанию цены / По убыванию цены».

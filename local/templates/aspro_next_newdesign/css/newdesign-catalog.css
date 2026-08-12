@@ -2091,21 +2091,14 @@ body .nd-brandhead #pagetitle {
     height: 24px;
 }
 
-/* Строка «Найдено N» под чертой. Саму черту рисует шапка страницы
-   (.nd-searchpage__sep) — здесь только строка. Заголовка «Товары» слева
-   больше нет (Ирина, 2026-08-12), поэтому счётчик прижат влево. */
-.nd-searchres {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    min-height: 32px;
-    margin: 0 0 16px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
-}
-.nd-searchres__count {
+/* «Найдено N» на поиске: в строке сортировки слева, на одном уровне с
+   выпадающим списком (Ирина, 2026-08-12). Раньше стояло отдельной строкой
+   сразу под чертой — вместе с заголовком «Товары», который убран. */
+.nd-catlist-sort__found {
     flex: 0 0 auto;
+    order: -1;
     font-size: 14px;
-    line-height: 20px;
+    line-height: 24px;
     font-weight: 400;
     color: rgba(16, 16, 20, .4);
     white-space: nowrap;
@@ -2121,9 +2114,5 @@ body .nd-brandhead #pagetitle {
     }
     .nd-searchpage__sep {
         margin-bottom: 16px;
-    }
-    .nd-searchres {
-        min-height: 0;
-        margin-bottom: 12px;
     }
 }
