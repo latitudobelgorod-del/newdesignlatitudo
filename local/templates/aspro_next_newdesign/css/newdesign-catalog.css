@@ -1956,22 +1956,23 @@ body .nd-brandhead #pagetitle {
 }
 
 /* ===== Счётчик: «−» и «+» одинаковые у обоих вариантов (Ирина, 2026-08-12)
-   Кнопки компонента единиц рисуют знак ФОНОВОЙ картинкой, а штатный счётчик —
-   текстом: в списке рядом стояли толстые значки у одних карточек и тонкие
-   мелкие у других. Штатным кнопкам текст гасим и рисуем тот же знак фоном,
-   встроенным в стиль, — так вид не зависит от путей к файлам модуля. */
+   Кнопки компонента единиц рисуют знак ФОНОВОЙ картинкой из своего шаблона, а
+   штатный счётчик — текстом: в списке рядом стояли толстые значки у одних
+   карточек и тонкие мелкие у других. Штатным кнопкам текст гасим и ставим ТУ ЖЕ
+   картинку и тот же размер (15px), что у .measure-button, — рисовать свою
+   похожую бесполезно, толщина линии всё равно не совпадает. */
 .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus,
 .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
     font-size: 0 !important;
     background-repeat: no-repeat !important;
     background-position: center !important;
-    background-size: 16px 16px !important;
+    background-size: 15px !important;
 }
 .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus {
-    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M2 8h12' stroke='%23101014' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+    background-image: url("/bitrix/components/maxyss/measure_unit/templates/aspro_list_tp/images/minus.svg") !important;
 }
 .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
-    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M8 2v12M2 8h12' stroke='%23101014' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+    background-image: url("/bitrix/components/maxyss/measure_unit/templates/aspro_list_tp/images/plus.svg") !important;
 }
 
 /* Список складов в выпадающем блоке — по левому краю (Ирина, 2026-08-12):
@@ -1979,4 +1980,26 @@ body .nd-brandhead #pagetitle {
 .nd-catlist .catalog_item_wrapp .stores-dropdown,
 .nd-catlist .catalog_item_wrapp .stores-dropdown .store-badge {
     text-align: left !important;
+}
+
+/* Страница поиска: пять карточек в ряд (Ирина, 2026-08-12). Обёртку .search
+   печатает шаблон catalog.search/main, поэтому правило не задевает раздел
+   каталога, где по макету четыре. Ниже — те же переломы, что и у раздела. */
+.catalog.search .nd-catlist .catalog_block {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+@media (max-width: 1279px) {
+    .catalog.search .nd-catlist .catalog_block {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}
+@media (max-width: 991px) {
+    .catalog.search .nd-catlist .catalog_block {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+@media (max-width: 767px) {
+    .catalog.search .nd-catlist .catalog_block {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
 }
