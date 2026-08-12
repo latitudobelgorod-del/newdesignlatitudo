@@ -1954,3 +1954,29 @@ body .nd-brandhead #pagetitle {
 .catalog_item_wrapp.nd-ready .cost.prices .price_value_block {
     margin: 0 !important;
 }
+
+/* ===== Счётчик: «−» и «+» одинаковые у обоих вариантов (Ирина, 2026-08-12)
+   Кнопки компонента единиц рисуют знак ФОНОВОЙ картинкой, а штатный счётчик —
+   текстом: в списке рядом стояли толстые значки у одних карточек и тонкие
+   мелкие у других. Штатным кнопкам текст гасим и рисуем тот же знак фоном,
+   встроенным в стиль, — так вид не зависит от путей к файлам модуля. */
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus,
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
+    font-size: 0 !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 16px 16px !important;
+}
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M2 8h12' stroke='%23101014' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+}
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M8 2v12M2 8h12' stroke='%23101014' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+}
+
+/* Список складов в выпадающем блоке — по левому краю (Ирина, 2026-08-12):
+   бейджи наследовали выравнивание по центру от плашки наличия. */
+.nd-catlist .catalog_item_wrapp .stores-dropdown,
+.nd-catlist .catalog_item_wrapp .stores-dropdown .store-badge {
+    text-align: left !important;
+}

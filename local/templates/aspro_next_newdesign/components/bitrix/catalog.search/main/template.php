@@ -80,7 +80,13 @@ if ((is_array($arElements) && !empty($arElements)) || (isset($arOffers) && is_ar
 	?>
 	<div class="catalog">
 		<?$display = "blockcolors";
-$template = "catalog_blockcolors";
+/* Страница поиска показывает товары тем же шаблоном карточки, что и страница
+   раздела (Ирина, 2026-08-12). Плиток акций тут нет и не будет: их разметку
+   печатает пул #nd-promo-pool из page_blocks/list_elements_1.php, а он к
+   поиску не подключается — скрипт раскладки просто не находит пул.
+   Файл лежит внутри aspro_next_newdesign, то есть выполняется только в новом
+   дизайне; старый поиск со своим catalog_blockcolors не тронут. */
+$template = "catalog_blockcolors_newdesign";
 
 		?>
 
