@@ -4180,7 +4180,59 @@ body .nd-filter .bx_filter_block .values_expander {
     text-align: left;
     vertical-align: top;
 }
+/* Зебру тема красит на самой СТРОКЕ (#E7E6E6 и #F7F7F7), и полупрозрачные 5%
+   ячейки ложились поверх — серый выходил заметно темнее макета, а «белые»
+   строки были #F7F7F7 (Ирина, 2026-08-12). Фон строк снимаем, цвет решает
+   только ячейка. */
+.sp-block-table table tr,
+.sp-block-table table thead,
+.sp-block-table table tbody {
+    background: none !important;
+}
 .sp-block-table table tr:nth-child(odd) td,
 .sp-block-table table tr:nth-child(odd) th {
-    background: rgba(82, 82, 100, .05);
+    background: rgba(82, 82, 100, .05) !important;
+}
+.sp-block-table table tr:nth-child(even) td,
+.sp-block-table table tr:nth-child(even) th {
+    background: #fff !important;
+}
+/* Текст внутри ячейки редактор заворачивает в <p>, и тема красит его своим
+   шрифтом (PT Sans) и отбивает снизу на 10px — из-за этого таблица не
+   совпадала с макетом ни шрифтом, ни высотой строки (Ирина, 2026-08-12).
+   Наследуем от ячейки всё, кроме начертания: <strong> в шапке оставляем
+   контент-менеджеру. Между абзацами в одной ячейке (маркированные списки)
+   оставляем 8, но не после последнего — иначе ячейка выше макетной. */
+.sp-block-table table td,
+.sp-block-table table th,
+.sp-block-table table td p,
+.sp-block-table table th p,
+.sp-block-table table td li,
+.sp-block-table table th li,
+.sp-block-table table td span,
+.sp-block-table table th span {
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+.sp-block-table table td p,
+.sp-block-table table th p,
+.sp-block-table table td ul,
+.sp-block-table table th ul,
+.sp-block-table table td ol,
+.sp-block-table table th ol {
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+}
+.sp-block-table table td p + p,
+.sp-block-table table th p + p,
+.sp-block-table table td p + ul,
+.sp-block-table table td ul + p {
+    margin-top: 8px;
+}
+.sp-block-table table td li,
+.sp-block-table table th li {
+    font-size: inherit;
+    line-height: inherit;
 }
