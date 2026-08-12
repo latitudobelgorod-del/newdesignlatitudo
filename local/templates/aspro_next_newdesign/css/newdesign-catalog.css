@@ -1942,3 +1942,15 @@ body .nd-brandhead #pagetitle {
     margin: 0 !important;
     line-height: normal !important;
 }
+
+/* У карточки со скидкой блок цены был на 10px выше, чем у карточки без неё, —
+   из-за этого цена съезжала относительно переключателя единиц (Ирина,
+   2026-08-12). Причина: у строки цены от темы нижний отступ 10px, а .price —
+   флекс-элемент и потому образует свой контекст форматирования: отступ не
+   схлопывается наружу, а прибавляется к высоте блока. Наружу он не виден,
+   потому что старая цена и «Экономия» под ним скрыты. */
+.catalog_item_wrapp.nd-ready .cost.prices .offers_price_wrapper,
+.catalog_item_wrapp.nd-ready .cost.prices .offers_price,
+.catalog_item_wrapp.nd-ready .cost.prices .price_value_block {
+    margin: 0 !important;
+}
