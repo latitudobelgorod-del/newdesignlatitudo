@@ -1011,7 +1011,14 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 	$ndTotal = (isset($arResult['NAV_RESULT']) && is_object($arResult['NAV_RESULT']))
 		? (int)$arResult['NAV_RESULT']->NavRecordCount
 		: count((array)$arResult['ITEMS']);
-	$APPLICATION->AddViewContent('nd_search_count', 'Найдено '.$ndTotal);
+	/* Именно SetViewTarget, а не $APPLICATION->AddViewContent: компонент
+	   кешируется, и на попадании в кеш его шаблон не выполняется. Битрикс
+	   кладёт в кеш только те области, что открыты этой парой (__view →
+	   templateCachedData), а прямой AddViewContent пропадает — на проде цифра
+	   выводилась пустой. */
+	$this->SetViewTarget('nd_search_count');
+	echo 'Найдено '.$ndTotal;
+	$this->EndViewTarget();
 }?>
 
 <?/* Ниже — скрипты уровня всего списка: сообщения BX, обработчики кликов на
