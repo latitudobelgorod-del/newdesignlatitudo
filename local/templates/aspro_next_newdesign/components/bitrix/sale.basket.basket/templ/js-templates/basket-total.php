@@ -5,8 +5,20 @@ use Bitrix\Main\Localization\Loc;
 /**
  * @var array $arParams
  */
+
+/* Панель итогов в новом дизайне (макет Figma «Чистовик», десктоп 20496:79858).
+   Здесь разметку переписываем, а не подгоняем стилями: в макете другой набор
+   строк и другой их порядок, чем печатал штатный шаблон («Товаров на» сверху,
+   вес и объём мелочью в середине). Логика компонента завязана не на разметку,
+   а на data-entity — сохранены все: basket-checkout-aligner (выравнивание
+   блока), basket-total-price (анимация цены при пересчёте),
+   basket-checkout-button (переход к оформлению) и секции купона.
+
+   Поля приходят из mutator.php: WEIGHT_FORMATED, VOLUME_FORMATED, COUNT_ITEMS
+   (сумма количеств), PRICE_FORMATED, PRICE_WITHOUT_DISCOUNT_FORMATED и
+   DISCOUNT_PRICE_FORMATED (последние два — только когда скидка есть). */
 ?><script id="basket-total-template" type="text/html">
-	<div class="basket-checkout-container" data-entity="basket-checkout-aligner">
+	<div class="basket-checkout-container nd-total" data-entity="basket-checkout-aligner">
 		<?
 		if ($arParams['HIDE_COUPON'] !== 'Y')
 		{
@@ -27,130 +39,61 @@ use Bitrix\Main\Localization\Loc;
 			<?
 		}
 		?>
-		
-		
 
-
-		
-		
-		<div class="border-st">
-		<div class="basket-checkout-section top" >				
-				<div class="basket-checkout-block basket-checkout-block-total">
-					<div class="basket-checkout-block-total-inner">
-						<div class="basket-checkout-block-total-title">Товаров на:</div>
+		<div class="nd-total__card">
+			<div class="nd-total__rows">
+				{{#WEIGHT_FORMATED}}
+					<div class="nd-total__row">
+						<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_WEIGHT')?></span>
+						<span class="nd-total__row-value">{{{WEIGHT_FORMATED}}}</span>
 					</div>
+				{{/WEIGHT_FORMATED}}
+
+				{{#VOLUME_FORMATED}}
+					<div class="nd-total__row">
+						<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_VOLUME')?></span>
+						<span class="nd-total__row-value">{{{VOLUME_FORMATED}}}</span>
+					</div>
+				{{/VOLUME_FORMATED}}
+
+				<?// Со скидкой в строке «Товары» стоит сумма до скидки, без неё — итоговая.?>
+				<div class="nd-total__row">
+					<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_ITEMS')?> ({{COUNT_ITEMS}})</span>
+					<span class="nd-total__row-value">
+						{{#DISCOUNT_PRICE_FORMATED}}{{{PRICE_WITHOUT_DISCOUNT_FORMATED}}}{{/DISCOUNT_PRICE_FORMATED}}
+						{{^DISCOUNT_PRICE_FORMATED}}{{{PRICE_FORMATED}}}{{/DISCOUNT_PRICE_FORMATED}}
+					</span>
 				</div>
 
-								
-				<div class="basket-checkout-block basket-checkout-block-total-price">
-					<div class="basket-checkout-block-total-price-inner">
-						{{#DISCOUNT_PRICE_FORMATED}}
-							<div class="basket-coupon-block-total-price-old">
-								{{{PRICE_WITHOUT_DISCOUNT_FORMATED}}}
-							</div>
-						{{/DISCOUNT_PRICE_FORMATED}}
-
-						<div class="basket-coupon-block-total-price-current" data-entity="basket-total-price">
-							{{{PRICE_FORMATED}}}
-						</div>
-
+				{{#DISCOUNT_PRICE_FORMATED}}
+					<div class="nd-total__row nd-total__row--discount">
+						<span class="nd-total__row-name"><?=Loc::getMessage('SBB_BASKET_ITEM_ECONOMY')?></span>
+						<span class="nd-total__row-value">{{{DISCOUNT_PRICE_FORMATED}}}</span>
 					</div>
-				</div>		
-</div>
-		
-				<div class="basket-checkout-section">
-						<div class="basket-checkout-block-total-description">
-							{{#LENGTH_FORMATED}}
-								<?=Loc::getMessage('SBB_LENGTH')?>: {{{LENGTH_FORMATED}}}
-								{{#SHOW_VAT}}<br>{{/SHOW_VAT}}
-							{{/LENGTH_FORMATED}}
-							
-							{{#HEIGHT_FORMATED}}
-								<?=Loc::getMessage('SBB_HEIGHT')?>: {{{HEIGHT_FORMATED}}}
-								{{#SHOW_VAT}}<br>{{/SHOW_VAT}}
-							{{/HEIGHT_FORMATED}}
+				{{/DISCOUNT_PRICE_FORMATED}}
+			</div>
 
-						</div>
-
-		<div class="basket-otst" >
-	
-		<div class="basket-checkout-block-total-price_formatted">
-			{{#DISCOUNT_PRICE_FORMATED}}
-							<div>
-								<span><?=Loc::getMessage('SBB_BASKET_ITEM_ECONOMY')?></span>
-								<span style="float:right;">{{{DISCOUNT_PRICE_FORMATED}}}</span>
-							</div>
-						{{/DISCOUNT_PRICE_FORMATED}}
-						
-						</div>
-		
-
-
-<div style="font-size: 12px;padding: 0px 7px;">
-							{{#WEIGHT_FORMATED}}
-							<span><?=Loc::getMessage('SBB_WEIGHT')?>:</span> 
-							<span style="float:right;">{{{WEIGHT_FORMATED}}}{{#SHOW_VAT}}{{/SHOW_VAT}}</span>
-							{{/WEIGHT_FORMATED}}
-		</div>
-<div style="font-size: 12px;padding: 0px 7px;">
-                            {{#VOLUME_FORMATED}}
-                            <span><?=Loc::getMessage('SBB_VOLUME')?>:</span> <span style="float:right;">{{{VOLUME_FORMATED}}}
-                            {{/VOLUME_FORMATED}} </span>
-							</div>
-							
-				
-							
-		
-
-			
-<div class="block_total_bottom" >					
-
-<div class="block_total_bottom_sum">
-				<div class="basket-checkout-block basket-checkout-block-total" >
-					<div class="basket-checkout-block-total-inner">
-						<div class="basket-checkout-block-total-title"><?=Loc::getMessage('SBB_TOTAL')?>:</div>
-					</div>
-				</div>
-
-						{{#DISCOUNT_PRICE_FORMATED}}
-							<?/*
-							<div class="basket-coupon-block-total-price-old">
-								{{{PRICE_WITHOUT_DISCOUNT_FORMATED}}}
-							</div>*/
-							?>
-						{{/DISCOUNT_PRICE_FORMATED}}
-						<div class="basket-coupon-block-total-price-current" data-entity="basket-total-price">
-							{{{PRICE_FORMATED}}}
-						</div>
-</div>
-
-<div class="basket-checkout-section-inner"></div>
-</div>
-
-
-
-
-
-</div>
-		
+			<div class="nd-total__sum">
+				<span class="nd-total__sum-title"><?=Loc::getMessage('SBB_TOTAL')?></span>
+				<span class="nd-total__sum-value" data-entity="basket-total-price">{{{PRICE_FORMATED}}}</span>
+			</div>
 
 			<div class="basket-checkout-block basket-checkout-block-btn">
-					<button class="btn btn-lg btn-default basket-btn-checkout{{#DISABLE_CHECKOUT}} disabled{{/DISABLE_CHECKOUT}}"
-						data-entity="basket-checkout-button">
-						<?=Loc::getMessage('SBB_ORDER')?>
-					</button>
+				<button class="btn btn-lg btn-default basket-btn-checkout nd-total__btn{{#DISABLE_CHECKOUT}} disabled{{/DISABLE_CHECKOUT}}"
+					data-entity="basket-checkout-button">
+					<?=Loc::getMessage('SBB_ORDER')?>
+				</button>
 			</div>
-				
-				
+
+			<?// Чекбокс из макета: пока только помечает интерес к рассрочке визуально,
+			   // в заказ ничего не передаёт — отдельной логики под него в компоненте нет.?>
+			<label class="nd-total__check">
+				<input type="checkbox" class="nd-total__check-input" name="ND_INSTALLMENT" value="Y">
+				<span class="nd-total__check-box"></span>
+				<span class="nd-total__check-text"><?=Loc::getMessage('SBB_ND_INSTALLMENT')?></span>
+			</label>
 		</div>
-		
-		</div>
-		
-		
-		
-		
-		
-	
+
 		<?
 		if ($arParams['HIDE_COUPON'] !== 'Y')
 		{

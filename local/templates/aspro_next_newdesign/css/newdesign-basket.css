@@ -13,8 +13,12 @@
 
 /* ---- каркас страницы ---------------------------------------------------- */
 /* Две колонки: список 855 и правая 429 при контенте 1336, между ними 52. */
+/* flex-direction задаём явно: обёртка колонок носит тот же класс
+   basket-items-list, что и внутренний список товаров, а ему тема ставит
+   column — без этой строки правая колонка падает под список. */
 #basket-root .basket-items-list.flexbox--row {
     display: flex;
+    flex-direction: row;
     align-items: flex-start;
     gap: 52px;
 }
@@ -109,13 +113,15 @@
     display: block;
     width: 100%;
 }
+/* Три колонки, а не четыре: фото лежит внутри ячейки описания, своей колонки
+   ему не нужно — иначе пустая колонка съедает 203px и текст схлопывается. */
 #basket-root .basket-items-list-item-container {
     display: grid;
-    grid-template-columns: 203px minmax(0, 1fr) auto 136px;
+    grid-template-columns: minmax(0, 1fr) auto 136px;
     grid-template-rows: auto auto;
     grid-template-areas:
-        "img desc sum stepper"
-        "img desc unit stepper";
+        "desc sum stepper"
+        "desc unit stepper";
     align-items: center;
     column-gap: 36px;
     row-gap: 4px;
@@ -233,6 +239,12 @@
     align-items: center;
     gap: 4px;
     align-self: flex-start;
+    /* Тема вешает на этот элемент position:absolute и рисует крестик двумя
+       повёрнутыми палочками в ::before/::after — сбрасываем и то, и другое,
+       иначе «Удалить» уезжает поверх цены под 45°. */
+    position: static;
+    /* В разметке элемент идёт до названия, а в макете стоит последним. */
+    order: 3;
     width: auto;
     height: auto;
     margin: 0;
@@ -249,15 +261,33 @@
 }
 #basket-root .basket-item-block-info .basket-item-actions-remove.visible-xs:before {
     content: '';
+    position: static;
+    top: auto;
+    left: auto;
     flex: 0 0 auto;
     width: 16px;
     height: 16px;
+    transform: none;
     background: #c60000;
     -webkit-mask: url("../images/newdesign/basket/trash.svg") no-repeat center / contain;
     mask: url("../images/newdesign/basket/trash.svg") no-repeat center / contain;
 }
 #basket-root .basket-item-block-info .basket-item-actions-remove.visible-xs:after {
     content: 'Удалить';
+    position: static;
+    top: auto;
+    left: auto;
+    width: auto;
+    height: auto;
+    transform: none;
+    background: none;
+}
+#basket-root .basket-item-block-info .basket-item-actions-remove.visible-xs:hover:before {
+    background: #7e000f;
+}
+#basket-root .basket-item-block-info .basket-item-actions-remove.visible-xs:hover:after {
+    color: #7e000f;
+    background: none;
 }
 
 /* ---- цены --------------------------------------------------------------- */
@@ -383,10 +413,184 @@
     color: #8f8f9a;
 }
 
+/* ---- панель итогов ------------------------------------------------------ */
+/* Разметку панели печатает js-templates/basket-total.php — она переписана под
+   макет, здесь только оформление. Обёртки штатной вёрстки (basket-total-block,
+   basket-checkout-container) приходят с рамками и тенями темы — гасим. */
+#basket-root .basket-total-block,
+#basket-root .basket-checkout-container {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}
+#basket-root .nd-total__card {
+    padding: 24px;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 8px;
+    background: #fff;
+}
+#basket-root .nd-total__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+#basket-root .nd-total__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+}
+#basket-root .nd-total__row-name {
+    color: #8f8f9a;
+}
+#basket-root .nd-total__row-value {
+    color: #101014;
+    text-align: right;
+    white-space: nowrap;
+}
+#basket-root .nd-total__row--discount .nd-total__row-value {
+    color: #ff4130;
+}
+
+/* «Итого» — крупной строкой, под ней черта до кнопки. */
+#basket-root .nd-total__sum {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 16px 0 0;
+    padding: 0 0 20px;
+    border-bottom: 1px solid rgba(82, 82, 100, .15);
+}
+#basket-root .nd-total__sum-title {
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 28px;
+    line-height: 36px;
+    color: #101014;
+}
+#basket-root .nd-total__sum-value {
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    line-height: 36px;
+    color: #101014;
+    text-align: right;
+    white-space: nowrap;
+}
+
+#basket-root .basket-checkout-block-btn {
+    margin: 20px 0 0;
+    padding: 0;
+    text-align: left;
+}
+#basket-root .nd-total__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 56px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 2px;
+    background: #c60000;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 20px;
+    color: #fff;
+    text-transform: none;
+    cursor: pointer;
+    transition: background-color .2s;
+}
+#basket-root .nd-total__btn:hover,
+#basket-root .nd-total__btn:focus {
+    background: #a50000;
+    color: #fff;
+}
+#basket-root .nd-total__btn.disabled {
+    opacity: .5;
+    pointer-events: none;
+}
+
+/* Чекбокс рассрочки: штатный квадрат браузера прячем, рисуем свой. */
+#basket-root .nd-total__check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+    cursor: pointer;
+}
+#basket-root .nd-total__check-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+#basket-root .nd-total__check-box {
+    position: relative;
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    border: 1px solid rgba(82, 82, 100, .3);
+    border-radius: 4px;
+    background: #fff;
+}
+#basket-root .nd-total__check-input:checked + .nd-total__check-box {
+    border-color: #c60000;
+    background: #c60000;
+}
+#basket-root .nd-total__check-input:checked + .nd-total__check-box:after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 8px;
+    width: 6px;
+    height: 11px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+#basket-root .nd-total__check-input:focus-visible + .nd-total__check-box {
+    outline: 2px solid #c60000;
+    outline-offset: 2px;
+}
+
 /* ---- адаптив ------------------------------------------------------------ */
 @media (max-width: 1279px) {
     #basket-root .basket-items-list.flexbox--row {
         gap: 32px;
+    }
+    /* Список сузился — иначе кадр 203px съедает колонку с названием. */
+    #basket-root .basket-items-list-item-container,
+    #basket-root .basket-items-list-item-descriptions-inner {
+        column-gap: 24px;
+    }
+    #basket-root .basket-items-list-item-descriptions-inner {
+        grid-template-columns: 150px minmax(0, 1fr);
+    }
+    #basket-root .basket-item-property-custom-photo,
+    #basket-root .basket-item-custom-block-photo-item {
+        width: 150px;
+    }
+    #basket-root .basket-item-custom-block-photo-item {
+        height: 150px;
     }
     #basket-root .basket-total-outer {
         flex-basis: 340px;
@@ -404,13 +608,17 @@
         flex-direction: column;
         gap: 24px;
     }
+    #basket-root .basket-total-outer,
+    #basket-root .basket-items-list-outer {
+        width: 100%;
+    }
     #basket-root .basket-total-outer {
         flex: 1 1 auto;
         width: 100%;
         max-width: none;
     }
     #basket-root .basket-items-list-item-container {
-        grid-template-columns: 140px minmax(0, 1fr) auto 120px;
+        grid-template-columns: minmax(0, 1fr) auto 120px;
         column-gap: 20px;
     }
     #basket-root .basket-items-list-item-descriptions-inner {

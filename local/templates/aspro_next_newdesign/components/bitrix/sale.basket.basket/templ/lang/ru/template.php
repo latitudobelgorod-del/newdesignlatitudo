@@ -37,4 +37,8 @@ $MESS["SBB_GOOD_CAP"] = "Товар";
 $MESS["SBB_GOOD"] = "товар";
 $MESS["SBB_GOOD_2"] = "товара";
 $MESS["SBB_GOODS"] = "товаров";
+$MESS["SBB_ND_WEIGHT"] = "Вес";
+$MESS["SBB_ND_VOLUME"] = "Объём";
+$MESS["SBB_ND_ITEMS"] = "Товары";
+$MESS["SBB_ND_INSTALLMENT"] = "Получить информацию о рассрочке";
 ?>
