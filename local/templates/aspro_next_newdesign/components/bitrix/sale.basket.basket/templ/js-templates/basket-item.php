@@ -67,6 +67,22 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 		{{^SHOW_RESTORE}}
 			<td class="basket-items-list-item-descriptions" style="display: table-cell;vertical-align: middle;">
 				<div class="basket-items-list-item-descriptions-inner" id="basket-item-height-aligner-{{ID}}">
+					<?// Плашка наличия над фото — как в карточке каталога. Список
+					   // складов раскрывается по клику, обработчик ниже в шаблоне
+					   // корзины (делегирование, переживает ajax-перерисовку).?>
+					{{#SHOW_STORES}}
+						<div class="nd-basket-stores">
+							<div class="nd-basket-stores__trigger">
+								<?=Loc::getMessage('SBB_ND_IN_STOCK')?>
+								<span class="nd-basket-stores__arrow">▼</span>
+							</div>
+							<div class="nd-basket-stores__list">
+								{{#STORES}}
+									<span class="store-badge store-badge-{{CLASS}}">{{NAME}}: {{#HAS_AMOUNT}}{{AMOUNT}} <?=Loc::getMessage('SBB_ND_PIECES')?>{{/HAS_AMOUNT}}{{^HAS_AMOUNT}}<?=Loc::getMessage('SBB_ND_ON_ORDER')?>{{/HAS_AMOUNT}}</span>
+								{{/STORES}}
+							</div>
+						</div>
+					{{/SHOW_STORES}}
 					<?
 					if (in_array('PREVIEW_PICTURE', $arParams['COLUMNS_LIST']))
 					{

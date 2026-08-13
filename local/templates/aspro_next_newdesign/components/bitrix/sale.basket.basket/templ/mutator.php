@@ -30,6 +30,81 @@ $mobileColumns = array_fill_keys($mobileColumns, true);
 
 $result['BASKET_ITEM_RENDER_DATA'] = array();
 
+/* Остатки по складам для плашки «В наличии ▾» над фото (макет «Чистовик»).
+   Логика та же, что в карточке каталога — catalog.section/
+   catalog_blockcolors_newdesign/result_modifier.php. Собираем здесь, а не в
+   template.php, потому что mutator отрабатывает и при ajax-обновлении корзины,
+   а карточки перерисовываются mustache-шаблоном. */
+$ndStoresList = array();
+$ndStoreAmounts = array();
+
+if (CModule::IncludeModule('catalog'))
+{
+	$ndStoreProductIds = array();
+
+	foreach ($this->basketItems as $ndRow)
+	{
+		if ((int)$ndRow['PRODUCT_ID'] > 0)
+		{
+			$ndStoreProductIds[] = (int)$ndRow['PRODUCT_ID'];
+		}
+	}
+
+	if ($ndStoreProductIds)
+	{
+		$ndStoreRes = CCatalogStore::GetList(
+			array(),
+			array('ACTIVE' => 'Y'),
+			false,
+			false,
+			array('ID', 'TITLE', 'NAME')
+		);
+
+		while ($ndStore = $ndStoreRes->Fetch())
+		{
+			$ndStoresList[(int)$ndStore['ID']] = $ndStore;
+		}
+
+		$ndAmountRes = CCatalogStoreProduct::GetList(
+			array(),
+			array('PRODUCT_ID' => array_unique($ndStoreProductIds)),
+			false,
+			false,
+			array('PRODUCT_ID', 'STORE_ID', 'AMOUNT')
+		);
+
+		while ($ndAmount = $ndAmountRes->Fetch())
+		{
+			$ndStoreAmounts[(int)$ndAmount['PRODUCT_ID']][(int)$ndAmount['STORE_ID']] = (float)$ndAmount['AMOUNT'];
+		}
+	}
+}
+
+if (!function_exists('ndBasketFormatStoreName'))
+{
+	/* Из «Склад Белгород (самовывоз), ул. ...» оставляем «Склад Белгород» —
+	   в каталоге имя склада режется так же. */
+	function ndBasketFormatStoreName($name)
+	{
+		$name = trim($name);
+		$pos = strpos($name, '(');
+
+		if ($pos !== false)
+		{
+			$name = trim(substr($name, 0, $pos));
+		}
+
+		$pos = strpos($name, ',');
+
+		if ($pos !== false)
+		{
+			$name = trim(substr($name, 0, $pos));
+		}
+
+		return $name;
+	}
+}
+
 $allVolume = 0;
 //echo "<pre>"; print_r($this); echo "</pre>";
 
@@ -477,6 +552,41 @@ foreach ($this->basketItems as &$row)
 
 		$rowData['SHOW_LABEL'] = true;
 		$rowData['LABEL_VALUES'] = $labels;
+	}
+
+	/* Плашку рисуем, только если хоть где-то есть положительный остаток:
+	   отличить «указан ноль» от «количество не заведено» нельзя, и в каталоге
+	   при нулевой сумме блок тоже прячется. */
+	if ($ndStoresList)
+	{
+		$ndStores = array();
+		$ndHasStock = false;
+		$ndAmounts = isset($ndStoreAmounts[(int)$row['PRODUCT_ID']])
+			? $ndStoreAmounts[(int)$row['PRODUCT_ID']]
+			: array();
+
+		foreach ($ndStoresList as $ndStoreId => $ndStore)
+		{
+			$ndAmount = isset($ndAmounts[$ndStoreId]) ? (int)$ndAmounts[$ndStoreId] : 0;
+
+			if ($ndAmount > 0)
+			{
+				$ndHasStock = true;
+			}
+
+			$ndStores[] = array(
+				'NAME' => ndBasketFormatStoreName($ndStore['TITLE'] ? $ndStore['TITLE'] : $ndStore['NAME']),
+				'CLASS' => $ndAmount >= 30 ? 'green' : ($ndAmount > 0 ? 'orange' : 'gray'),
+				'AMOUNT' => $ndAmount,
+				'HAS_AMOUNT' => $ndAmount > 0,
+			);
+		}
+
+		if ($ndHasStock)
+		{
+			$rowData['SHOW_STORES'] = true;
+			$rowData['STORES'] = $ndStores;
+		}
 	}
 
 	$result['BASKET_ITEM_RENDER_DATA'][] = $rowData;

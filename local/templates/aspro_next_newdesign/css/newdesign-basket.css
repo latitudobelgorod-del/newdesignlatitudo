@@ -382,7 +382,7 @@
 /* Счётчик в макете сплошной серый: белых подложек под «−» и «+» нет. */
 #basket-root .basket-item-amount-btn-minus,
 #basket-root .basket-item-amount-btn-plus {
-    position: static;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -399,11 +399,17 @@
 #basket-root .basket-item-amount-btn-plus:hover {
     background: rgba(82, 82, 100, .12);
 }
+/* Знаки «−» и «+» тема рисует палочками в псевдоэлементах и держит их
+   абсолютом — оставляем позиционирование, меняем только цвет и центровку,
+   иначе у «+» палочки встают в поток и получается «⊢». */
 #basket-root .basket-item-amount-btn-minus:after,
 #basket-root .basket-item-amount-btn-plus:before,
 #basket-root .basket-item-amount-btn-plus:after {
-    position: static;
+    position: absolute;
+    top: 50%;
+    left: 50%;
     margin: 0;
+    transform: translate(-50%, -50%);
     background: #101014;
 }
 #basket-root .basket-item-amount-filed-block {
@@ -595,6 +601,85 @@
     outline-offset: 2px;
 }
 
+/* ---- плашка наличия над фото -------------------------------------------- */
+/* Оформление то же, что у карточки каталога (.stores-trigger/.store-badge в
+   catalog_blockcolors_newdesign), но свои классы: стили каталога приезжают на
+   страницу только вместе с лентой «Может пригодиться», а её может не быть. */
+#basket-root .basket-items-list-item-descriptions-inner {
+    position: relative;
+}
+#basket-root .nd-basket-stores {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 3;
+}
+#basket-root .nd-basket-stores__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #ebfaef;
+    color: #2ca94c;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .2s;
+}
+#basket-root .nd-basket-stores__trigger:hover {
+    background: #d4f0dc;
+}
+#basket-root .nd-basket-stores__arrow {
+    font-size: 8px;
+    transition: transform .2s;
+}
+#basket-root .nd-basket-stores.is-open .nd-basket-stores__arrow {
+    transform: rotate(180deg);
+}
+#basket-root .nd-basket-stores__list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 20;
+    margin-top: 4px;
+    padding: 10px;
+    min-width: 140px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+}
+#basket-root .nd-basket-stores.is-open .nd-basket-stores__list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+#basket-root .nd-basket-stores .store-badge {
+    display: block;
+    padding: 0 4px;
+    border-radius: 4px;
+    font-size: 10px;
+    line-height: 16px;
+    white-space: nowrap;
+}
+#basket-root .nd-basket-stores .store-badge-green {
+    background: #ebfaef;
+    color: #2ca94c;
+}
+#basket-root .nd-basket-stores .store-badge-orange {
+    background: #fff5e6;
+    color: #ff9500;
+}
+#basket-root .nd-basket-stores .store-badge-gray {
+    background: #eeeef0;
+    color: #999;
+}
+
 /* ---- адаптив ------------------------------------------------------------ */
 @media (max-width: 1279px) {
     #basket-root .basket-items-list.flexbox--row {
@@ -695,6 +780,16 @@
     #basket-root .basket-item-custom-block-photo-item {
         height: 96px;
         border-radius: 6px;
+    }
+    /* Кадр 96px — плашка должна поместиться поверх него. */
+    #basket-root .nd-basket-stores {
+        top: 4px;
+        left: 4px;
+    }
+    #basket-root .nd-basket-stores__trigger {
+        padding: 0 4px;
+        font-size: 9px;
+        line-height: 14px;
     }
     #basket-root .basket-item-block-info {
         gap: 8px;

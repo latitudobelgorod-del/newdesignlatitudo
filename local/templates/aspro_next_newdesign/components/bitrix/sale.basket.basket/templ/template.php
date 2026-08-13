@@ -637,3 +637,27 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 	</div>
 </div>
 <?endif;?>
+<?/* Раскрытие плашки наличия. Делегирование на документе, потому что карточки
+	 перерисовывает mustache при каждом пересчёте корзины и обработчики на самих
+	 плашках после этого теряются. */?>
+<script>
+(function () {
+	if (window.__ndBasketStores) return;
+	window.__ndBasketStores = true;
+
+	document.addEventListener('click', function (e) {
+		var trigger = e.target && e.target.closest ? e.target.closest('.nd-basket-stores__trigger') : null;
+		var box = trigger ? trigger.parentNode : null;
+
+		[].forEach.call(document.querySelectorAll('.nd-basket-stores.is-open'), function (el) {
+			if (el !== box) el.classList.remove('is-open');
+		});
+
+		if (!box) return;
+
+		e.preventDefault();
+		e.stopPropagation();
+		box.classList.toggle('is-open');
+	});
+})();
+</script>

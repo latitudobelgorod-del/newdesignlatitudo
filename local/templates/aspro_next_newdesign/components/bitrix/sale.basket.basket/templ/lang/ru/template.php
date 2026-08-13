@@ -43,4 +43,7 @@ $MESS["SBB_ND_ITEMS"] = "Товары";
 $MESS["SBB_ND_INSTALLMENT"] = "Получить информацию о рассрочке";
 $MESS["SBB_ND_PRICE_FOR"] = "за";
 $MESS["SBB_ND_RELATED_TITLE"] = "Может пригодиться";
+$MESS["SBB_ND_IN_STOCK"] = "В наличии";
+$MESS["SBB_ND_PIECES"] = "шт";
+$MESS["SBB_ND_ON_ORDER"] = "под заказ";
 ?>
