@@ -69,12 +69,6 @@
 .editor .nd-vac__h2--white {
     color: #fff;
 }
-.nd-vac__h3 {
-    font-weight: 700;
-    font-size: 18px;
-    line-height: 22px;
-    color: #101014;
-}
 .nd-vac__sec {
     display: flex;
     flex-direction: column;
@@ -509,52 +503,6 @@
     padding: 0 24px 24px;
     overflow: hidden;
 }
-.nd-vac__block {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.nd-vac__text,
-.editor .nd-vac__text {
-    font-size: 16px;
-    line-height: 24px;
-    color: #101014;
-}
-.nd-vac__ul,
-.editor .nd-vac__ul {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    list-style: none;
-}
-.nd-vac__ul li {
-    position: relative;
-    padding-left: 18px;
-    font-size: 16px;
-    line-height: 24px;
-    color: #101014;
-}
-.nd-vac__ul li::after {
-    content: '';
-    position: absolute;
-    left: 5px;
-    top: 10px;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: #101014;
-}
-.nd-vac__money {
-    padding: 12px 15px;
-    border: 1px solid #c60000;
-    border-radius: 6px;
-    background: rgba(198, 0, 0, .05);
-    font-weight: 500;
-    font-size: 18px;
-    line-height: 25px;
-    color: #c60000;
-}
-
 /* Тело пункта — «Редактор блоков 1» вакансии: обычный текст, списки и
    красная кнопка формы. Общий сброс выше снял отступы у p/ul/li на всём
    блоке, поэтому здесь типографику возвращаем: содержимое пишет
@@ -593,7 +541,7 @@
 .editor .nd-vac__editor li {
     position: relative;
     margin: 0;
-    padding-left: 18px;
+    padding-left: 28px;
 }
 .nd-vac__editor ol > li,
 .editor .nd-vac__editor ol > li {
@@ -613,8 +561,8 @@
 .nd-vac__editor li::after {
     content: '';
     position: absolute;
-    left: 5px;
-    top: 10px;
+    left: 10px;
+    top: 9px;
     width: 5px;
     height: 5px;
     border-radius: 50%;
@@ -1052,10 +1000,6 @@
         line-height: 24px;
     }
     .nd-vac__acc-meta {
-        font-size: 16px;
-        line-height: 22px;
-    }
-    .nd-vac__money {
         font-size: 16px;
         line-height: 22px;
     }

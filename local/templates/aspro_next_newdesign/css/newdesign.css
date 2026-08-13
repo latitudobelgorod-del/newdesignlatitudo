@@ -4253,3 +4253,66 @@ body .nd-filter .bx_filter_block .values_expander {
 .sp-block-table table th:last-child {
     border-right: 0;
 }
+
+/* ============ маркеры списков в контенте ==================================
+   Макет Figma, компонент Block_Web/List/bulleted: точка 5×5 #101014, текст
+   с отступом 28, между пунктами 8, набор 16/24.
+
+   Тема рисует маркер символом «●» (styles.css: `ul li:before{content:"\25CF"}`)
+   и раздаёт списку отступы только внутри `.right_block` — на широких страницах
+   их нет вовсе, и маркер уезжает в строку. Поэтому переопределяем не глобальный
+   `li`, а два контейнера, в которых на сайте живут списки контент-менеджера:
+   `.detail_text` (текстовый блок редактора, он же описание товара) и
+   `ul.c-lists` (блок «Список»). Списки меню, галерей и оглавления лежат под
+   своими классами и остаются как были. */
+.detail_text ul,
+ul.c-lists {
+    margin: 0 0 16px;
+    padding-left: 0;
+    list-style: none;
+}
+.detail_text ul > li,
+ul.c-lists > li {
+    position: relative;
+    margin: 0 0 8px;
+    padding-left: 28px;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.detail_text ul > li:before,
+ul.c-lists > li:before {
+    content: '';
+    position: absolute;
+    top: 9px;
+    left: 10px;
+    width: 5px;
+    height: 5px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: #101014;
+}
+/* Нумерованные списки остаются с цифрами. Счётчик темы выключаем: он
+   рассчитан на абсолютное поле в 20px, которого на широких страницах нет,
+   и цифра налезала на текст. Родная нумерация ведёт себя предсказуемо. */
+.detail_text ol {
+    margin: 0 0 16px;
+    padding-left: 28px;
+    list-style: decimal outside;
+}
+.detail_text ol > li {
+    margin: 0 0 8px;
+    padding-left: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.detail_text ol > li:before {
+    content: none !important;
+}
+.detail_text ul > li:last-child,
+.detail_text ol > li:last-child,
+ul.c-lists > li:last-child {
+    margin-bottom: 0;
+}
