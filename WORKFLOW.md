@@ -155,3 +155,32 @@ rm -rf ../bitrix/cache ../bitrix/managed_cache ../bitrix/stack_cache ../bitrix/h
 По умолчанию работает **`aspro_next`**. Редизайн **`aspro_next_newdesign`** включается только
 по `?newdesign=Y` — это ставит куку `NEWDESIGN` на 30 дней (условие в `b_site_template`).
 То есть правки редизайна видно по адресу `http://latitudo-newdesign.loc/?newdesign=Y`.
+
+## 9. Макет в Figma — источник истины по вёрстке
+
+**Любая вёрстка нового дизайна делается по этому макету, а не «на глаз» и не по проду:**
+
+https://www.figma.com/design/FDbZc7Ud6IURh8OZqEo97q/ЛАТИТУДО-FINAL-_-2026?node-id=20461-230932
+
+- Файл: `FDbZc7Ud6IURh8OZqEo97q` — «ЛАТИТУДО FINAL / 2026».
+- Страница `20461:230932` — **«Чистовик»**, ~170 фреймов: десктоп 1440 и мобилка 360
+  для всех страниц плюс модалки. Работаем только с ней.
+- В URL node-id пишется через дефис (`20461-230932`), в API — через двоеточие (`20461:230932`).
+
+Ссылку нельзя открыть обычным запросом страницы — Figma отдаёт пустую SPA-оболочку.
+Содержимое читается через REST API, токен (`figd_…`) лежит в `figma.token` в корне проекта
+(файл вне Git, у каждой машины свой; аккаунт `latitudo.belgorod@gmail.com`):
+
+```powershell
+$t = (Get-Content "figma.token" -Raw).Trim()
+# структура — обязательно ограничивать depth, иначе ответ огромный
+Invoke-RestMethod "https://api.figma.com/v1/files/FDbZc7Ud6IURh8OZqEo97q/nodes?ids=20461:230932&depth=2" -Headers @{ "X-Figma-Token" = $t }
+# рендер фрейма в PNG — вернёт временную ссылку, её нужно скачать отдельно
+Invoke-RestMethod "https://api.figma.com/v1/images/FDbZc7Ud6IURh8OZqEo97q?ids=<node>&format=png&scale=1" -Headers @{ "X-Figma-Token" = $t }
+```
+
+Порядок работы над экраном: найти нужный фрейм в «Чистовике» → взять из API размеры,
+отступы, цвета, шрифты и радиусы → верстать по ним. Расхождение с макетом — баг,
+даже если «выглядит нормально». Если в макете чего-то нет — спросить, а не додумывать.
+
+MCP-коннектора к Figma нет и не требуется.
