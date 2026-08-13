@@ -17,6 +17,64 @@ $isWidePage = ($APPLICATION->GetProperty("WIDE_PAGE") == "Y");
 if (CSite::inDir(SITE_DIR.'company/reviews/')) {
 	$APPLICATION->SetPageProperty("HIDE_LEFT_BLOCK", "Y");
 }
+// Новый дизайн: у страниц раздела /info/ появилась галочка «Скрыть левое меню
+// (страница во всю ширину)» — свойство HIDE_LEFT_BLOCK инфоблока «Информация».
+//
+// Страницы раздела — это элементы инфоблока с ЧПУ, физического файла под них
+// нет, поэтому выставить свойство страницы прямо в файле нельзя. Компонент
+// news.detail тоже не подходит: он отрабатывает уже после header.php, где
+// решается, рисовать левую колонку или нет.
+//
+// Поэтому коды «широких» страниц читаем здесь одним запросом и держим в кэше
+// с привязкой к тегу инфоблока — после снятия или установки галочки в админке
+// кэш сбросится сам.
+if ($isInfo && $APPLICATION->GetProperty("HIDE_LEFT_BLOCK") != "Y") {
+	$ndInfoPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+	$arNdInfoSeg = array_values(array_filter(explode('/', (string)substr($ndInfoPath, strlen(SITE_DIR)))));
+	// Интересует только детальная страница раздела вида /info/<код>/.
+	$ndInfoCode = (count($arNdInfoSeg) == 2 && $arNdInfoSeg[0] == 'info' ? $arNdInfoSeg[1] : '');
+
+	if (strlen($ndInfoCode)) {
+		$arNdWideInfo = array();
+		$obNdCache = \Bitrix\Main\Data\Cache::createInstance();
+
+		if ($obNdCache->initCache(28800, 'nd_wide_info_pages', '/nd/wide_info')) {
+			$arNdWideInfo = $obNdCache->getVars();
+		}
+		elseif ($obNdCache->startDataCache()) {
+			if (CModule::IncludeModule('iblock')) {
+				$arNdInfoIblock = CIBlock::GetList(array(), array('CODE' => 'aspro_next_info', 'TYPE' => 'aspro_next_content'))->Fetch();
+				if ($arNdInfoIblock) {
+					// Тег регистрируем до выборки: иначе, когда галочки не стоит
+					// ни у одной страницы, кэш остался бы без привязки к инфоблоку
+					// и первая же поставленная галочка не сработала бы до сброса.
+					$obNdTagged = \Bitrix\Main\Application::getInstance()->getTaggedCache();
+					$obNdTagged->startTagCache('/nd/wide_info');
+					$obNdTagged->registerTag('iblock_id_'.$arNdInfoIblock['ID']);
+					$obNdTagged->endTagCache();
+
+					// «Свойство не пустое» вместо сравнения со значением: у флажка
+					// один вариант, и заполненность и есть поставленная галочка.
+					$rsNdInfo = CIBlockElement::GetList(
+						array(),
+						array('IBLOCK_ID' => $arNdInfoIblock['ID'], 'ACTIVE' => 'Y', '!PROPERTY_HIDE_LEFT_BLOCK' => false),
+						false,
+						false,
+						array('ID', 'IBLOCK_ID', 'CODE')
+					);
+					while ($arNdItem = $rsNdInfo->Fetch()) {
+						$arNdWideInfo[] = $arNdItem['CODE'];
+					}
+				}
+			}
+			$obNdCache->endDataCache($arNdWideInfo);
+		}
+
+		if (is_array($arNdWideInfo) && in_array($ndInfoCode, $arNdWideInfo)) {
+			$APPLICATION->SetPageProperty("HIDE_LEFT_BLOCK", "Y");
+		}
+	}
+}
 $isHideLeftBlock = ($APPLICATION->GetProperty("HIDE_LEFT_BLOCK") == "Y");
 $indexType = $arTheme["INDEX_TYPE"]["VALUE"];
 $isShowIndexLeftBlock = ($arTheme["INDEX_TYPE"]["SUB_PARAMS"][$indexType]["WITH_LEFT_BLOCK"]["VALUE"] == "Y");
