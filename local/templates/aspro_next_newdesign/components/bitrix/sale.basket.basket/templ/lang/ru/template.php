@@ -42,4 +42,5 @@ $MESS["SBB_ND_VOLUME"] = "Объём";
 $MESS["SBB_ND_ITEMS"] = "Товары";
 $MESS["SBB_ND_INSTALLMENT"] = "Получить информацию о рассрочке";
 $MESS["SBB_ND_PRICE_FOR"] = "за";
+$MESS["SBB_ND_RELATED_TITLE"] = "Может пригодиться";
 ?>

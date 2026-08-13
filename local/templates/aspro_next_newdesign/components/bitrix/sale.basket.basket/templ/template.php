@@ -392,5 +392,248 @@ else
 	<a href="/catalog/">Нажмите здесь</a>, чтобы продолжить покупки	</div>
 </div>
 <?
-			
-}?>
+
+}
+
+/* Лента «Может пригодиться» под корзиной (макет Figma «Чистовик»).
+   Это то же самое, что «С этим товаром покупают» на детальной: свойство
+   EXPANDABLES, фильтр по ID через arrFilterAccess и bitrix:catalog.section
+   с шаблоном карточки catalog_blockcolors_newdesign. Разница только в том,
+   что связанные берутся не у одного товара, а у всех, что лежат в корзине,
+   и сами товары корзины из ленты исключаются.
+
+   Стили .nd-related и лента со стрелками — в css/newdesign-catalog.css и
+   js/newdesign-catalog.js, их тянет сам шаблон карточки. */
+$ndBasketProductIds = array();
+
+if (!empty($arResult['GRID']['ROWS']) && is_array($arResult['GRID']['ROWS']))
+{
+	foreach ($arResult['GRID']['ROWS'] as $ndRow)
+	{
+		if ((int)$ndRow['PRODUCT_ID'] > 0)
+		{
+			$ndBasketProductIds[] = (int)$ndRow['PRODUCT_ID'];
+		}
+	}
+}
+
+$ndRelatedIds = array();
+$ndRelatedIblockId = 0;
+
+if ($ndBasketProductIds && CModule::IncludeModule('iblock'))
+{
+	$ndBasketProductIds = array_unique($ndBasketProductIds);
+
+	/* В корзине лежат торговые предложения, а EXPANDABLES заполняют у товара —
+	   поэтому сначала поднимаемся от предложения к его товару. Для обычных
+	   товаров без SKU GetProductList ничего не вернёт, они идут как есть. */
+	$ndParentIds = $ndBasketProductIds;
+
+	if (CModule::IncludeModule('catalog'))
+	{
+		$ndSkuParents = CCatalogSku::GetProductList($ndBasketProductIds);
+
+		if (is_array($ndSkuParents))
+		{
+			foreach ($ndSkuParents as $ndSkuId => $ndParent)
+			{
+				$ndKey = array_search((int)$ndSkuId, $ndParentIds);
+
+				if ($ndKey !== false && (int)$ndParent['ID'] > 0)
+				{
+					$ndParentIds[$ndKey] = (int)$ndParent['ID'];
+				}
+			}
+		}
+	}
+
+	$ndParentIds = array_unique($ndParentIds);
+
+	/* Товары могут быть из разных каталогов, а свойство выбирается по
+	   инфоблоку — раскладываем по инфоблокам. GetPropertyValues здесь
+	   значения не отдаёт, поэтому берём свойство прямо в select GetList:
+	   на множественном EXPANDABLES выборка вернёт строку на каждое значение. */
+	$ndByIblock = array();
+	$ndElementIterator = CIBlockElement::GetList(
+		array(),
+		array('ID' => $ndParentIds, 'ACTIVE' => 'Y'),
+		false,
+		false,
+		array('ID', 'IBLOCK_ID')
+	);
+
+	while ($ndElement = $ndElementIterator->Fetch())
+	{
+		$ndByIblock[(int)$ndElement['IBLOCK_ID']][] = (int)$ndElement['ID'];
+	}
+
+	$ndRelatedByIblock = array();
+
+	foreach ($ndByIblock as $ndIblockId => $ndIds)
+	{
+		$ndPropIterator = CIBlockElement::GetList(
+			array(),
+			array('IBLOCK_ID' => $ndIblockId, 'ID' => $ndIds, 'ACTIVE' => 'Y'),
+			false,
+			false,
+			array('ID', 'IBLOCK_ID', 'PROPERTY_EXPANDABLES')
+		);
+
+		while ($ndProp = $ndPropIterator->Fetch())
+		{
+			if ((int)$ndProp['PROPERTY_EXPANDABLES_VALUE'] > 0)
+			{
+				$ndRelatedByIblock[$ndIblockId][] = (int)$ndProp['PROPERTY_EXPANDABLES_VALUE'];
+			}
+		}
+	}
+
+	/* Лента одна, поэтому берём инфоблок, где связанных больше всего.
+	   На практике каталог один и ветка с выбором не срабатывает. */
+	foreach ($ndRelatedByIblock as $ndIblockId => $ndIds)
+	{
+		/* То, что уже в корзине, предлагать незачем. */
+		$ndIds = array_diff(array_unique($ndIds), $ndParentIds, $ndBasketProductIds);
+
+		if (count($ndIds) > count($ndRelatedIds))
+		{
+			$ndRelatedIds = $ndIds;
+			$ndRelatedIblockId = (int)$ndIblockId;
+		}
+	}
+}
+
+if ($ndRelatedIds && $ndRelatedIblockId):
+	$GLOBALS['arrFilterBasketRelated'] = array('ID' => array_values($ndRelatedIds));
+?>
+<div class="nd-related nd-related--basket">
+	<div class="nd-related__head">
+		<h2 class="nd-related__title"><?=Loc::getMessage('SBB_ND_RELATED_TITLE')?></h2>
+		<div class="nd-related__nav">
+			<span class="nd-related__counter"></span>
+			<button class="nd-related__arrow nd-related__arrow--prev" type="button" aria-label="Предыдущие товары">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+			<button class="nd-related__arrow nd-related__arrow--next" type="button" aria-label="Следующие товары">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+		</div>
+	</div>
+	<div class="nd-related__body">
+		<?$APPLICATION->IncludeComponent(
+			'bitrix:catalog.section',
+			'catalog_blockcolors_newdesign',
+			array(
+				'IBLOCK_TYPE' => 'aspro_next_catalog',
+				'IBLOCK_ID' => $ndRelatedIblockId,
+				'ELEMENT_SORT_FIELD' => 'SORT',
+				'ELEMENT_SORT_ORDER' => 'asc',
+				'ELEMENT_SORT_FIELD2' => 'id',
+				'ELEMENT_SORT_ORDER2' => 'desc',
+				'FILTER_NAME' => 'arrFilterBasketRelated',
+				'SHOW_ALL_WO_SECTION' => 'Y',
+				'SECTION_ID' => '',
+				'SECTION_CODE' => '',
+				'STORES' => '',
+				'SHOW_UNABLE_SKU_PROPS' => 'Y',
+				'AJAX_REQUEST' => 'N',
+				'INCLUDE_SUBSECTIONS' => 'N',
+				'PAGE_ELEMENT_COUNT' => '20',
+				'LINE_ELEMENT_COUNT' => '4',
+				'SHOW_ARTICLE_SKU' => 'Y',
+				'SHOW_MEASURE_WITH_RATIO' => 'N',
+				'OFFERS_SORT_FIELD' => 'sort',
+				'OFFERS_SORT_ORDER' => 'asc',
+				'OFFERS_SORT_FIELD2' => 'name',
+				'OFFERS_SORT_ORDER2' => 'asc',
+				'OFFERS_LIMIT' => '300',
+				/* Те же свойства предложений, что и на странице раздела
+				   (catalog/index.php, LIST_OFFERS_PROPERTY_CODE и
+				   OFFER_TREE_PROPS) — иначе в карточке не соберётся выбор
+				   длины и цвета. */
+				'OFFERS_FIELD_CODE' => array('ID', 'NAME', 'PREVIEW_PICTURE', 'DETAIL_PICTURE'),
+				'OFFERS_PROPERTY_CODE' => array(
+					'VID', 'DLINA_STR', 'WIDTH', 'THICK', 'VES', 'MATERIAL',
+					'GARANTY', 'ARTICLE', 'VWS_N', 'DLINA', 'UNIT_KOEF',
+					'MODEL_OP', 'MONTAZ_PAZ', 'NORM', 'VALUE_TOV', 'BASE_KOEF',
+					'RAZM', 'COLOR_REF', 'COLOR_REF2', 'SVET', 'WIDTH_D',
+				),
+				'OFFER_TREE_PROPS' => array(
+					'COLOR_REF', 'DLINA', 'COLOR_REF2', 'MONTAZ_PAZ',
+					'MODEL_OP', 'VALUE_TOV', 'RAZM', 'WIDTH_D', 'SVET', 'VWS_N',
+				),
+				'SECTION_URL' => '',
+				'DETAIL_URL' => '',
+				'BASKET_URL' => SITE_DIR.'basket/',
+				'ACTION_VARIABLE' => 'action',
+				'PRODUCT_ID_VARIABLE' => 'id',
+				'PRODUCT_QUANTITY_VARIABLE' => 'quantity',
+				'PRODUCT_PROPS_VARIABLE' => 'prop',
+				'SECTION_ID_VARIABLE' => 'SECTION_ID',
+				'SET_LAST_MODIFIED' => 'N',
+				'AJAX_MODE' => 'N',
+				'CACHE_TYPE' => 'A',
+				'CACHE_TIME' => '36000',
+				'CACHE_GROUPS' => 'N',
+				'CACHE_FILTER' => 'Y',
+				'META_KEYWORDS' => '-',
+				'META_DESCRIPTION' => '-',
+				'BROWSER_TITLE' => '-',
+				'ADD_SECTIONS_CHAIN' => 'N',
+				'HIDE_NOT_AVAILABLE' => 'N',
+				'HIDE_NOT_AVAILABLE_OFFERS' => 'N',
+				'DISPLAY_COMPARE' => 'N',
+				'SET_TITLE' => 'N',
+				'SET_STATUS_404' => 'N',
+				'SHOW_404' => 'N',
+				'MESSAGE_404' => '',
+				'PRICE_CODE' => array('BASE'),
+				'USE_PRICE_COUNT' => 'Y',
+				'SHOW_PRICE_COUNT' => '1',
+				'PRICE_VAT_INCLUDE' => 'Y',
+				'USE_PRODUCT_QUANTITY' => 'Y',
+				'LIST_PROPERTY_CODE' => array(
+					'MINIMUM_PRICE', 'MAXIMUM_PRICE', 'HIT', 'BRAND', 'PROP_2065',
+					'POPUP_VIDEO', 'CML2_ARTICLE', 'ASSOCIATED', 'PROP_2052', 'SET',
+					'UNIT_KOEF', 'BASE_KOEF', 'COLOR_MAIN_EL', 'USAGE_DOSKA_DPK',
+					'ATTRIBUTES', 'TOLSHINA', 'PROP_2083', 'CML2_LINK',
+					'DECKING_PROFILE', 'COLOR_REF2',
+				),
+				'DISPLAY_TOP_PAGER' => 'N',
+				'DISPLAY_BOTTOM_PAGER' => 'N',
+				'PAGER_TITLE' => 'Товары',
+				'PAGER_SHOW_ALWAYS' => 'N',
+				'PAGER_TEMPLATE' => 'main',
+				'PAGER_DESC_NUMBERING' => 'N',
+				'PAGER_SHOW_ALL' => 'N',
+				'ADD_CHAIN_ITEM' => 'N',
+				'SHOW_QUANTITY' => 'Y',
+				'SHOW_QUANTITY_COUNT' => 'Y',
+				'SHOW_DISCOUNT_PERCENT' => 'Y',
+				'SHOW_DISCOUNT_TIME' => 'N',
+				'SHOW_OLD_PRICE' => 'Y',
+				'CONVERT_CURRENCY' => 'Y',
+				'CURRENCY_ID' => 'RUB',
+				'USE_STORE' => 'N',
+				'DISPLAY_WISH_BUTTONS' => 'N',
+				'LIST_DISPLAY_POPUP_IMAGE' => 'Y',
+				'DEFAULT_COUNT' => '1',
+				'SHOW_MEASURE' => 'Y',
+				'SHOW_HINTS' => 'Y',
+				'OFFER_HIDE_NAME_PROPS' => 'N',
+				'ADD_PROPERTIES_TO_BASKET' => 'Y',
+				'PARTIAL_PRODUCT_PROPERTIES' => 'Y',
+				'PRODUCT_PROPERTIES' => array(),
+				'SALE_STIKER' => 'SALE_TEXT',
+				'STIKERS_PROP' => 'HIT',
+				'SHOW_RATING' => 'N',
+				'COMPONENT_TEMPLATE' => 'catalog_blockcolors_newdesign',
+				'SEF_MODE' => 'N',
+				'COMPATIBLE_MODE' => 'Y',
+				'DISABLE_INIT_JS_IN_COMPONENT' => 'N',
+			),
+			false
+		);?>
+	</div>
+</div>
+<?endif;?>
