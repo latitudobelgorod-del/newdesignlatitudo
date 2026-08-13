@@ -4280,8 +4280,13 @@ ul.c-lists > li {
     line-height: 24px;
     color: #101014;
 }
-.detail_text ul > li:before,
-ul.c-lists > li:before {
+/* Селекторы с `body` — чтобы наверняка перебить правило темы
+   `.detail_text ul li::before` (template_styles.css) при любом порядке файлов
+   в агрегате. Символ «●» гасим размером и цветом, а не только пустым content:
+   тема задаёт ему ещё и свой цвет (`ul li::before{color:#a7151f}`), и если её
+   content всё же выигрывает, красная точка вылезает из-под нашего кружка. */
+body .detail_text ul > li:before,
+body ul.c-lists > li:before {
     content: '';
     position: absolute;
     top: 9px;
@@ -4292,6 +4297,9 @@ ul.c-lists > li:before {
     padding: 0;
     border-radius: 50%;
     background: #101014;
+    font-size: 0;
+    line-height: 0;
+    color: transparent;
 }
 /* Нумерованные списки остаются с цифрами. Счётчик темы выключаем: он
    рассчитан на абсолютное поле в 20px, которого на широких страницах нет,
@@ -4308,7 +4316,7 @@ ul.c-lists > li:before {
     line-height: 24px;
     color: #101014;
 }
-.detail_text ol > li:before {
+body .detail_text ol > li:before {
     content: none !important;
 }
 .detail_text ul > li:last-child,
