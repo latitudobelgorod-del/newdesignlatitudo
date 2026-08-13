@@ -1,0 +1,999 @@
+/* Страница «Вакансии» в новом дизайне.
+   Разметка — include/company/vacancies_page.php, скрипт — js/newdesign-vacancies.js.
+   Макет Figma «Чистовик»: десктоп 20493:77227, мобильный 20517:157768.
+
+   Файл подключается только этой страницей (тегом <link> из включаемой
+   области), поэтому префикс .nd-vac нужен не для изоляции, а чтобы
+   перебивать стили темы внутри `.editor`. */
+
+.nd-vac {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    color: #101014;
+}
+.nd-vac * {
+    box-sizing: border-box;
+}
+
+/* Внутри `.editor` тема раздаёт свои отступы заголовкам, абзацам, спискам
+   и картинкам селекторами с большей специфичностью, чем одиночный класс.
+   Гасим их разом — расстояния держат flex- и grid-раскладки. */
+.nd-vac h2,
+.nd-vac h3,
+.nd-vac p,
+.nd-vac ul,
+.nd-vac li,
+.nd-vac img,
+.editor .nd-vac h2,
+.editor .nd-vac h3,
+.editor .nd-vac p,
+.editor .nd-vac ul,
+.editor .nd-vac li,
+.editor .nd-vac img {
+    margin: 0;
+    padding: 0;
+    background: none;
+}
+.editor .nd-vac ul li:before,
+.nd-vac ul li:before {
+    content: none;
+}
+/* Подчёркивания у ссылок тема ставит через border-bottom. В макете их нет
+   нигде, кроме слова «HeadHunter» в заголовке плашки. */
+.editor .nd-vac a,
+.editor .nd-vac a:hover,
+.editor .nd-vac a:focus {
+    text-decoration: none;
+    border-bottom: 0;
+}
+.nd-vac img {
+    max-width: 100%;
+}
+
+/* ---- заголовки --------------------------------------------------------- */
+.nd-vac__h1 {
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 58px;
+    color: #101014;
+}
+.nd-vac__h2 {
+    font-weight: 800;
+    font-size: 42px;
+    line-height: 46px;
+    color: #101014;
+}
+.nd-vac__h2--white,
+.editor .nd-vac__h2--white {
+    color: #fff;
+}
+.nd-vac__h3 {
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 22px;
+    color: #101014;
+}
+.nd-vac__sec {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* ---- кнопки ------------------------------------------------------------ */
+.nd-vac__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    align-self: flex-start;
+    min-height: 56px;
+    padding: 8px 24px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+.nd-vac__btn-ico {
+    flex: 0 0 auto;
+}
+.nd-vac__btn--wide {
+    align-self: stretch;
+    width: 100%;
+}
+.nd-vac__btn--sm {
+    min-height: 44px;
+}
+.nd-vac__btn--red,
+.editor .nd-vac__btn--red {
+    background: #c60000;
+    color: #fff;
+}
+.nd-vac__btn--red:hover,
+.nd-vac__btn--red:focus,
+.editor .nd-vac__btn--red:hover,
+.editor .nd-vac__btn--red:focus {
+    background: #a30000;
+    color: #fff;
+}
+.nd-vac__btn--white,
+.editor .nd-vac__btn--white {
+    background: #fff;
+    color: #101014;
+}
+.nd-vac__btn--white:hover,
+.nd-vac__btn--white:focus,
+.editor .nd-vac__btn--white:hover,
+.editor .nd-vac__btn--white:focus {
+    background: #c60000;
+    color: #fff;
+}
+.nd-vac__btn--ghost,
+.editor .nd-vac__btn--ghost {
+    border-color: #fff;
+    background: transparent;
+    color: #fff;
+}
+.nd-vac__btn--ghost:hover,
+.nd-vac__btn--ghost:focus,
+.editor .nd-vac__btn--ghost:hover,
+.editor .nd-vac__btn--ghost:focus {
+    background: #fff;
+    color: #101014;
+}
+
+/* ---- обложка и нижний баннер ------------------------------------------- */
+/* Оба блока устроены одинаково: фото на всю плашку, затемнение градиентом
+   слева и белый текст поверх. */
+.nd-vac__hero,
+.nd-vac__cta {
+    position: relative;
+    display: flex;
+    border-radius: 6px;
+    overflow: hidden;
+    color: #fff;
+}
+.nd-vac__hero {
+    min-height: 480px;
+    padding: 24px;
+}
+.nd-vac__cta {
+    min-height: 394px;
+    padding: 40px 24px;
+}
+.nd-vac__hero-img,
+.nd-vac__cta-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+.nd-vac__hero::after,
+.nd-vac__cta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to right, rgba(16, 16, 20, .92) 0%, rgba(16, 16, 20, .78) 30%, rgba(16, 16, 20, .1) 68%, rgba(16, 16, 20, 0) 100%),
+        rgba(16, 16, 20, .2);
+}
+.nd-vac__hero-body,
+.nd-vac__cta-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+.nd-vac__hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 519px;
+}
+.nd-vac__hero-title {
+    font-weight: 800;
+    font-size: 42px;
+    line-height: 46px;
+}
+.nd-vac__hero-desc,
+.editor .nd-vac__hero-desc {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    color: #fff;
+}
+/* Контакты прижаты к низу плашки — в макете между текстом и телефоном
+   пустое место, а высота обложки фиксированная. */
+.nd-vac__hero-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: auto;
+}
+.nd-vac__label {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+}
+.nd-vac__phone,
+.editor .nd-vac__phone {
+    align-self: flex-start;
+    font-weight: 500;
+    font-size: 36px;
+    line-height: 40px;
+    color: #fff;
+}
+.nd-vac__phone:hover,
+.editor .nd-vac__phone:hover {
+    color: #fff;
+    opacity: .85;
+}
+.nd-vac__hero-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+.nd-vac__hero-btns > * {
+    flex: 0 1 418px;
+}
+
+/* ---- карточки «почему» и «ценности» ------------------------------------ */
+.nd-vac__why {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+.nd-vac__card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 6px;
+    background: #f6f6f7;
+}
+.nd-vac__card-ico {
+    width: 96px;
+    height: 96px;
+    flex: 0 0 auto;
+}
+.nd-vac__card-name {
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 22px;
+}
+.nd-vac__card-desc {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 21px;
+    color: #181417;
+}
+.nd-vac__values {
+    display: grid;
+    grid-template-columns: minmax(0, 660fr) minmax(0, 652fr);
+    gap: 24px;
+}
+.nd-vac__values-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+.nd-vac__card--value .nd-vac__card-desc {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+}
+.nd-vac__values-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 320px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* ---- «Миссия компании» -------------------------------------------------- */
+/* В макете плашка выходит на всю ширину экрана; страница живёт в правой
+   колонке рядом с меню раздела, поэтому кадр берёт ширину колонки и
+   получает те же скругления, что остальные блоки. */
+.nd-vac__mission {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 520px;
+    padding: 52px;
+    border-radius: 6px;
+    overflow: hidden;
+    color: #fff;
+}
+.nd-vac__mission-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.nd-vac__mission::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to right, rgba(16, 16, 20, .8) 0%, rgba(16, 16, 20, .45) 48%, rgba(16, 16, 20, 0) 100%),
+        rgba(16, 16, 20, .12);
+}
+.nd-vac__mission-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    max-width: 640px;
+}
+.nd-vac__mission .nd-vac__h1,
+.editor .nd-vac__mission .nd-vac__h1 {
+    color: #fff;
+}
+.nd-vac__mission-text,
+.editor .nd-vac__mission-text {
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 26px;
+    color: #fff;
+}
+
+/* ---- ленты с прокруткой (фото и отзывы) -------------------------------- */
+.nd-vac__slider {
+    position: relative;
+}
+.nd-vac__rail {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.nd-vac__rail::-webkit-scrollbar {
+    display: none;
+}
+.nd-vac__life-item {
+    flex: 0 0 calc((100% - 12px) / 3);
+    scroll-snap-align: start;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.nd-vac__life-item img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 441 / 294;
+    object-fit: cover;
+}
+/* Стрелки лежат поверх ленты и гаснут у края — на месте стрелки в макете
+   стоит градиентная подложка шириной 64px. */
+.nd-vac__rail-arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 64px;
+    border: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity .2s ease;
+}
+.nd-vac__rail-arrow--prev {
+    left: 0;
+    border-radius: 4px 0 0 4px;
+    background: linear-gradient(to left, rgba(16, 16, 20, 0) 0%, rgba(16, 16, 20, .65) 100%);
+}
+.nd-vac__rail-arrow--next {
+    right: 0;
+    border-radius: 0 4px 4px 0;
+    background: linear-gradient(to right, rgba(16, 16, 20, 0) 0%, rgba(16, 16, 20, .65) 100%);
+}
+.nd-vac__rail-arrow.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ---- список вакансий ---------------------------------------------------- */
+.nd-vac__cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 429px;
+    gap: 24px;
+    align-items: start;
+}
+.nd-vac__list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+/* Свёрнутый пункт — серая плашка, раскрытый — белый с рамкой. Рамка стоит
+   всегда прозрачной, чтобы при раскрытии не прыгала высота. */
+.nd-vac__acc {
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .05);
+    transition: background-color .2s ease, border-color .2s ease;
+}
+.nd-vac__acc.is-open {
+    border-color: rgba(82, 82, 100, .15);
+    background: transparent;
+}
+.nd-vac__acc-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 24px;
+    border: 0;
+    background: none;
+    text-align: left;
+    color: #101014;
+    cursor: pointer;
+}
+.nd-vac__acc-title {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.nd-vac__acc-name {
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 26px;
+}
+.nd-vac__acc-meta {
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 25px;
+}
+.nd-vac__acc-ico {
+    flex: 0 0 auto;
+    margin-top: 4px;
+}
+.nd-vac__acc-ico-v {
+    transition: opacity .2s ease;
+}
+.nd-vac__acc.is-open .nd-vac__acc-ico-v {
+    opacity: 0;
+}
+/* Раскрытие через grid-template-rows: высота считается по содержимому,
+   в отличие от max-height не нужно угадывать запас. */
+.nd-vac__acc-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .25s ease;
+}
+.nd-vac__acc.is-open .nd-vac__acc-body {
+    grid-template-rows: 1fr;
+}
+.nd-vac__acc-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 0 24px 24px;
+    overflow: hidden;
+}
+.nd-vac__block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.nd-vac__text,
+.editor .nd-vac__text {
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.nd-vac__ul,
+.editor .nd-vac__ul {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+}
+.nd-vac__ul li {
+    position: relative;
+    padding-left: 18px;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.nd-vac__ul li::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 10px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #101014;
+}
+.nd-vac__money {
+    padding: 12px 15px;
+    border: 1px solid #c60000;
+    border-radius: 6px;
+    background: rgba(198, 0, 0, .05);
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 25px;
+    color: #c60000;
+}
+
+/* ---- колонка HR --------------------------------------------------------- */
+.nd-vac__aside {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+.nd-vac__hr {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 32px 24px;
+    border-radius: 6px;
+    background: #525264;
+    color: #fff;
+    text-align: center;
+}
+.nd-vac__hr-top {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.nd-vac__hr-title {
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 34px;
+}
+.nd-vac__hr-cities,
+.nd-vac__hr-note,
+.editor .nd-vac__hr-cities,
+.editor .nd-vac__hr-note {
+    font-size: 16px;
+    line-height: 24px;
+    color: #fff;
+}
+.nd-vac__hr-person {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.nd-vac__hr-photo {
+    width: 156px;
+    height: 156px;
+    margin-bottom: 8px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.nd-vac__hr-name {
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 18px;
+}
+.nd-vac__hr-link,
+.editor .nd-vac__hr-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    color: #fff;
+}
+.nd-vac__hr-link:hover,
+.editor .nd-vac__hr-link:hover {
+    color: #fff;
+    opacity: .85;
+}
+.nd-vac__ask {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .05);
+}
+.nd-vac__ask-title {
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 34px;
+}
+.nd-vac__ask-text,
+.editor .nd-vac__ask-text {
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.nd-vac__ask .nd-vac__btn {
+    margin-top: 16px;
+}
+
+/* ---- плашка HeadHunter --------------------------------------------------- */
+.nd-vac__hh {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+    border-radius: 4px;
+    background: #525264;
+    color: #fff;
+}
+.nd-vac__hh-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding: 24px 0;
+}
+.nd-vac__hh-lead {
+    flex: 1 1 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.nd-vac__hh-title {
+    font-weight: 800;
+    font-size: 36px;
+    line-height: 40px;
+}
+.nd-vac__hh-title a,
+.editor .nd-vac__hh-title a {
+    color: #fff;
+    text-decoration: underline;
+}
+.nd-vac__hh-note,
+.editor .nd-vac__hh-note {
+    max-width: 355px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #fff;
+}
+.nd-vac__hh-stat {
+    flex: 0 1 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.nd-vac__hh-stat-top {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, .35);
+}
+.nd-vac__hh-value {
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 58px;
+}
+.nd-vac__hh-cap {
+    padding: 7px 8px;
+    border: 1px solid #fff;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+    text-transform: uppercase;
+}
+.nd-vac__hh-stat-text {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 21px;
+}
+.nd-vac__hh-reviews {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+.nd-vac__hh-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+.nd-vac__nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.nd-vac__nav-count {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 20px;
+}
+.nd-vac__nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .1);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color .2s ease, opacity .2s ease;
+}
+.nd-vac__nav-btn:hover {
+    background: rgba(255, 255, 255, .2);
+}
+.nd-vac__nav-btn[disabled] {
+    opacity: .4;
+    cursor: default;
+}
+.nd-vac__rail--reviews {
+    gap: 24px;
+}
+.nd-vac__rev {
+    flex: 0 0 calc((100% - 72px) / 4);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    scroll-snap-align: start;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 6px;
+    background: #fff;
+    color: #101014;
+}
+.nd-vac__rev-post {
+    overflow: hidden;
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 26px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: #181417;
+}
+.nd-vac__rev-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.nd-vac__rev-rate {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 18px;
+    line-height: 25px;
+}
+.nd-vac__rev-date {
+    font-size: 16px;
+    line-height: 24px;
+    color: #8f8f9a;
+}
+.nd-vac__rev-text,
+.editor .nd-vac__rev-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 7;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+
+/* ---- адаптив ------------------------------------------------------------ */
+@media (max-width: 1279px) {
+    .nd-vac__h1 {
+        font-size: 44px;
+        line-height: 50px;
+    }
+    .nd-vac__h2 {
+        font-size: 34px;
+        line-height: 40px;
+    }
+    .nd-vac__hero-title {
+        font-size: 34px;
+        line-height: 40px;
+    }
+    .nd-vac__why {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .nd-vac__cols {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .nd-vac__rev {
+        flex: 0 0 calc((100% - 48px) / 3);
+    }
+}
+
+@media (max-width: 991px) {
+    .nd-vac__values {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .nd-vac__values-img {
+        min-height: 0;
+        aspect-ratio: 16 / 9;
+    }
+    .nd-vac__mission {
+        min-height: 440px;
+        padding: 32px;
+    }
+    .nd-vac__life-item {
+        flex: 0 0 calc((100% - 6px) / 2);
+    }
+    .nd-vac__rev {
+        flex: 0 0 calc((100% - 24px) / 2);
+    }
+    .nd-vac__hh-title {
+        font-size: 30px;
+        line-height: 36px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-vac {
+        gap: 32px;
+    }
+    .nd-vac__sec {
+        gap: 24px;
+    }
+    .nd-vac__h1 {
+        font-size: 32px;
+        line-height: 38px;
+    }
+    .nd-vac__h2 {
+        font-size: 28px;
+        line-height: 34px;
+    }
+    .nd-vac__hero,
+    .nd-vac__cta {
+        padding: 24px 16px;
+    }
+    .nd-vac__hero-title {
+        font-size: 28px;
+        line-height: 34px;
+    }
+    .nd-vac__phone,
+    .editor .nd-vac__phone {
+        font-size: 28px;
+        line-height: 32px;
+    }
+    .nd-vac__hero-btns {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .nd-vac__hero-btns > * {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+    .nd-vac__why {
+        gap: 12px;
+    }
+    .nd-vac__card {
+        gap: 12px;
+        padding: 16px;
+    }
+    .nd-vac__card-ico {
+        width: 64px;
+        height: 64px;
+    }
+    .nd-vac__card-desc {
+        font-size: 14px;
+        line-height: 20px;
+    }
+    /* Ценности на мобильном — по одной в ряд, иконка встаёт слева от
+       заголовка (макет 20956:56704). */
+    .nd-vac__values-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+    .nd-vac__card--value {
+        display: grid;
+        grid-template-columns: 60px minmax(0, 1fr);
+        align-items: center;
+        column-gap: 16px;
+        row-gap: 16px;
+    }
+    .nd-vac__card--value .nd-vac__card-ico {
+        width: 60px;
+        height: 60px;
+    }
+    .nd-vac__card--value .nd-vac__card-desc {
+        grid-column: 1 / -1;
+    }
+    .nd-vac__mission {
+        min-height: 360px;
+        padding: 24px 16px;
+    }
+    .nd-vac__mission::after {
+        background:
+            linear-gradient(to top, rgba(16, 16, 20, .9) 10%, rgba(16, 16, 20, .35) 70%, rgba(16, 16, 20, .2) 100%);
+    }
+    .nd-vac__mission-body {
+        gap: 16px;
+    }
+    .nd-vac__mission-text,
+    .editor .nd-vac__mission-text {
+        font-size: 18px;
+        line-height: 24px;
+    }
+    .nd-vac__life-item {
+        flex: 0 0 100%;
+    }
+    .nd-vac__rail-arrow {
+        width: 44px;
+    }
+    .nd-vac__acc-head {
+        padding: 16px;
+    }
+    .nd-vac__acc-inner {
+        padding: 0 16px 16px;
+    }
+    .nd-vac__acc-name {
+        font-size: 18px;
+        line-height: 24px;
+    }
+    .nd-vac__acc-meta {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .nd-vac__money {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .nd-vac__hr,
+    .nd-vac__ask {
+        padding: 24px 16px;
+    }
+    .nd-vac__hr-title,
+    .nd-vac__ask-title {
+        font-size: 22px;
+        line-height: 28px;
+    }
+    .nd-vac__hh {
+        padding: 16px;
+    }
+    .nd-vac__hh-top {
+        gap: 24px;
+        padding: 8px 0;
+    }
+    .nd-vac__hh-lead,
+    .nd-vac__hh-stat {
+        flex: 1 1 100%;
+    }
+    .nd-vac__hh-title {
+        font-size: 26px;
+        line-height: 32px;
+    }
+    .nd-vac__hh-value {
+        font-size: 42px;
+        line-height: 48px;
+    }
+    .nd-vac__hh-head {
+        align-items: flex-start;
+    }
+    .nd-vac__nav-btn {
+        width: 44px;
+        height: 44px;
+    }
+    .nd-vac__rev {
+        flex: 0 0 100%;
+        padding: 16px;
+    }
+    .nd-vac__rev-post {
+        font-size: 18px;
+        line-height: 24px;
+    }
+}
