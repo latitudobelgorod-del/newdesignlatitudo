@@ -30,10 +30,14 @@
 $ndVacImg = SITE_TEMPLATE_PATH.'/images/newdesign/vacancies/';
 $ndVacIco = $ndVacImg.'icons/';
 
-/* Телефон и почта HR, ссылка на презентацию и форма обратного звонка —
-   отдельными переменными, чтобы менять в одном месте. Формы открываются
-   штатным механизмом темы (data-event="jqm"), поэтому подпись у кнопки
-   лежит прямо внутри span: скрипт берёт из него заголовок окна. */
+/* Телефон и почта HR и ссылка на презентацию — отдельными переменными,
+   чтобы менять в одном месте.
+
+   Формы открываются штатным механизмом темы (data-event="jqm"), подпись
+   у кнопки лежит прямо внутри span. Заголовок всплывающего окна тема берёт
+   из названия веб-формы, поэтому «Заказать звонок» и «Оставить заявку»
+   показывали бы «Общая форма» — нужный заголовок задаём атрибутом
+   data-nd-form-title, его читает js/newdesign-header.js. */
 $ndVacPhone     = '+7 (915) 560-21-35';
 $ndVacPhoneHref = '+79155602135';
 $ndVacEmail     = 'hr@latitudo.ru';
@@ -125,7 +129,7 @@ if (!defined('ND_VACANCIES_ASSETS')) {
 				<a class="nd-vac__phone" href="tel:<?=$ndVacPhoneHref?>"><?=$ndVacPhone?></a>
 			</div>
 			<div class="nd-vac__hero-btns">
-				<span class="nd-vac__btn nd-vac__btn--red animate-load" data-event="jqm" data-param-form_id="RESUME" data-name="question">Отправить резюме</span>
+				<span class="nd-vac__btn nd-vac__btn--red animate-load" data-event="jqm" data-param-form_id="RESUME" data-name="ndVacResume" data-nd-form-title="Отправить резюме">Отправить резюме</span>
 				<a class="nd-vac__btn nd-vac__btn--white" href="<?=$ndVacPresent?>" target="_blank">
 					<svg class="nd-vac__btn-ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 						<path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M4.5 17.5V19a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -277,13 +281,13 @@ if (!defined('ND_VACANCIES_ASSETS')) {
 							<span><?=$ndVacEmail?></span>
 						</a>
 					</div>
-					<span class="nd-vac__btn nd-vac__btn--ghost nd-vac__btn--wide nd-vac__btn--sm animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="question">Заказать звонок</span>
+					<span class="nd-vac__btn nd-vac__btn--ghost nd-vac__btn--wide nd-vac__btn--sm animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="ndVacCall" data-nd-form-title="Заказать звонок">Заказать звонок</span>
 				</div>
 
 				<div class="nd-vac__ask">
 					<div class="nd-vac__ask-title">Не нашли подходящую вакансию?</div>
 					<p class="nd-vac__ask-text">Остались вопросы или хотите индивидуальное предложение — оставьте заявку на обратный звонок или обращайтесь по контактам</p>
-					<span class="nd-vac__btn nd-vac__btn--red nd-vac__btn--wide animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="question">Оставить заявку</span>
+					<span class="nd-vac__btn nd-vac__btn--red nd-vac__btn--wide animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="ndVacRequest" data-nd-form-title="Оставить заявку">Оставить заявку</span>
 				</div>
 			</aside>
 
