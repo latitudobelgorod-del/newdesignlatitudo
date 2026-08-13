@@ -224,11 +224,10 @@
     opacity: .85;
 }
 
-/* Плашка гарантии — правый нижний угол картинки. Эмблема лежит красной
-   картинкой (/images/icons/warranty_NN.png), в макете она белая на чёрном:
-   красим фильтром, а не отдельным файлом. */
-.nd-catlist .catalog_item_wrapp .warranty_3,
-.nd-catlist .catalog_item_wrapp .warranty_7,
+/* Плашка гарантии — правый нижний угол картинки. Эмблема из макета Figma
+   (страница «Иконки»), выгружена в svg: images/newdesign/warranty/warranty_NN.svg.
+   Раньше здесь красили фильтром старую красную png из темы. */
+.nd-catlist .catalog_item_wrapp .warranty_5,
 .nd-catlist .catalog_item_wrapp .warranty_10,
 .nd-catlist .catalog_item_wrapp .warranty_15,
 .nd-catlist .catalog_item_wrapp .warranty_25 {
@@ -240,27 +239,26 @@
     z-index: 5;
     width: 32px !important;
     height: 32px !important;
-    border-radius: 4px;
     background-color: transparent !important;
-    background-size: 26px 26px !important;
+    background-size: 32px 32px !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
-    filter: brightness(0) invert(1);
-    mix-blend-mode: normal;
+}
+.nd-catlist .catalog_item_wrapp .warranty_5 {
+    background-image: url(../images/newdesign/warranty/warranty_5.svg) !important;
+}
+.nd-catlist .catalog_item_wrapp .warranty_10 {
+    background-image: url(../images/newdesign/warranty/warranty_10.svg) !important;
+}
+.nd-catlist .catalog_item_wrapp .warranty_15 {
+    background-image: url(../images/newdesign/warranty/warranty_15.svg) !important;
+}
+.nd-catlist .catalog_item_wrapp .warranty_25 {
+    background-image: url(../images/newdesign/warranty/warranty_25.svg) !important;
 }
 
-/* белым эмблему делает filter, но он же убивает чёрную подложку —
-   рисуем её отдельным слоем через псевдоэлемент-обёртку */
-.nd-catlist .catalog_item_wrapp .image_wrapper_block .nd-warranty-box {
-    position: absolute;
-    right: 8px;
-    bottom: 8px;
-    z-index: 4;
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
-    background: #101014;
-}
+/* Подложка нарисована внутри самого svg (полупрозрачный чёрный квадрат),
+   отдельный слой под эмблемой больше не нужен. */
 
 /* ---------------------------------------------------------------------------
    Бейджи над картинкой: «в наличии» (нативный блок складов Аспро) и метки

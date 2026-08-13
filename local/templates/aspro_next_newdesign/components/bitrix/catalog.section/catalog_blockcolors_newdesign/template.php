@@ -500,7 +500,6 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 								<?endif;?>
 							</div>
 							<?if($ndWarrantyClass):?>
-								<span class="nd-warranty-box"></span>
 								<div class="<?=$ndWarrantyClass?>"></div>
 							<?endif;?>
 						<a href="<?=$arItem["DETAIL_PAGE_URL"]?>" class="thumb shine" id="<? echo $arItemIDs["ALL_ITEM_IDS"]['PICT']; ?>">
