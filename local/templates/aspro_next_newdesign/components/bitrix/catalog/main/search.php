@@ -2,7 +2,9 @@
 <?
 /* Заголовок страницы поиска по макету (Ирина, 2026-08-12):
    «Результаты поиска: «запрос»» вместо прежнего «Поиск». Пустой запрос
-   оставляем на старом тексте из языкового файла.
+   приглашает ввести его — так же, как нарисовано в макете; прежнее «Поиск»
+   ничего не подсказывало, а под заголовком стояло ещё и сообщение компонента
+   «Введите поисковый запрос и нажмите кнопку "Искать"» (Ирина, 2026-08-13).
 
    H1 отдаём в отложенную область `nd_page_head`: по макету он идёт над
    колонками, а этот файл рисуется уже внутри контента. Заглушку под область
@@ -12,9 +14,27 @@
 $ndSearchQuery = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
 $ndSearchTitle = ($ndSearchQuery !== '')
 	? 'Результаты поиска: «'.htmlspecialcharsbx($ndSearchQuery).'»'
-	: GetMessage("CMP_TITLE");
+	: 'Введите поисковый запрос';
 
-$APPLICATION->SetTitle($ndSearchTitle);
+/* В <title> оставляем короткое «Поиск» из языкового файла: приглашение
+   уместно на странице, а во вкладке браузера и выдаче — нет. */
+$APPLICATION->SetTitle(($ndSearchQuery !== '') ? $ndSearchTitle : GetMessage("CMP_TITLE"));
+
+/* Стили и скрипт каталога. Их печатает шаблон списка товаров, но при пустом
+   запросе списка нет — и строка поиска оставалась без оформления: поле серой
+   полосой, кнопка отдельным квадратом под ним. Подключаем здесь, под тем же
+   признаком ND_CATALOG_ASSETS, что и в списке, чтобы на странице с
+   результатами теги не задвоились. Скрипт берём заодно: признак общий, и без
+   него на выдаче перестали бы работать фильтр и «Показать ещё». */
+$ndSearchAssets = '';
+if (!defined('ND_CATALOG_ASSETS')) {
+	define('ND_CATALOG_ASSETS', true);
+	$ndSearchCss = $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/css/newdesign-catalog.css';
+	$ndSearchJs  = $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-catalog.js';
+	$ndSearchAssets =
+		'<link href="'.SITE_TEMPLATE_PATH.'/css/newdesign-catalog.css?'.(file_exists($ndSearchCss) ? filemtime($ndSearchCss) : '').'" rel="stylesheet" />'
+		.'<script src="'.SITE_TEMPLATE_PATH.'/js/newdesign-catalog.js?'.(file_exists($ndSearchJs) ? filemtime($ndSearchJs) : '').'"></script>';
+}
 
 /* Шапка поиска: H1, строка поиска и черта-разделитель. Всё это по макету
    идёт во всю ширину, над обеими колонками, — поэтому собираем здесь и
@@ -27,7 +47,8 @@ $APPLICATION->SetTitle($ndSearchTitle);
    в буфере рвут его — грабля из шаблона услуг). */
 $ndSearchIcon = SITE_TEMPLATE_PATH.'/images/newdesign/header/search.svg';
 $APPLICATION->AddViewContent('nd_page_head',
-	'<div class="nd-cat-head nd-search-head"><h1 id="pagetitle">'.$ndSearchTitle.'</h1></div>'
+	$ndSearchAssets
+	.'<div class="nd-cat-head nd-search-head"><h1 id="pagetitle">'.$ndSearchTitle.'</h1></div>'
 	.'<div class="nd-searchpage">'
 		.'<form class="nd-searchpage__form" action="'.htmlspecialcharsbx($APPLICATION->GetCurPage(false)).'" method="get">'
 			.'<input class="nd-searchpage__input" type="text" name="q" value="'.htmlspecialcharsbx($ndSearchQuery).'"'

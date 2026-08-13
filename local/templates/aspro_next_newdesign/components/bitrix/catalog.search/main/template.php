@@ -265,9 +265,11 @@ if ((is_array($arElements) && !empty($arElements)) || (isset($arOffers) && is_ar
 		</div>
 	</div>
 <?}else{
-	if($_GET["q"] == '')
-		echo GetMessage("CT_BCSE_EMPTY_QUERY")."<br /><br />";
-	else
-		echo GetMessage("CT_BCSE_NOT_FOUND")."<br /><br />";
+	/* При пустом запросе ничего не пишем: об этом говорит сам заголовок
+	   страницы — «Введите поисковый запрос» (см. catalog/main/search.php).
+	   Раньше здесь было ещё и сообщение «Введите поисковый запрос и нажмите
+	   кнопку "Искать"» — получалось дважды об одном (Ирина, 2026-08-13). */
+	if($_GET["q"] != '')
+		echo '<div class="nd-search-empty">'.GetMessage("CT_BCSE_NOT_FOUND").'</div>';
 }
 ?>

@@ -2116,3 +2116,13 @@ body .nd-brandhead #pagetitle {
         margin-bottom: 16px;
     }
 }
+
+/* Сообщение «ничего не найдено» под строкой поиска. Раньше это был голый
+   текст с парой <br> в языковом файле, теперь — блок с отступами страницы. */
+.nd-search-empty {
+    padding: 8px 0 40px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
