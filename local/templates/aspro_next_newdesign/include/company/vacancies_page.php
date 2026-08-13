@@ -40,6 +40,17 @@ $ndVacEmail     = 'hr@latitudo.ru';
 $ndVacHrName    = 'Ксения Тодераш';
 $ndVacPresent   = '/files/outdor_horeca_mobile.pdf';
 
+/* Инфоблок «Вакансии» ищем по символьному коду, а не по номеру: на боевом
+   и на локальной копии номер один и тот же, но завязываться на него не стоит.
+   Не нашли — секцию со списком просто не выводим. */
+$ndVacIblockId = 0;
+if (CModule::IncludeModule('iblock')) {
+	$arNdVacIblock = CIBlock::GetList(array(), array('CODE' => 'aspro_next_vacancy', 'TYPE' => 'aspro_next_content'))->Fetch();
+	if ($arNdVacIblock) {
+		$ndVacIblockId = (int)$arNdVacIblock['ID'];
+	}
+}
+
 /* TODO: подставить реальную страницу компании на hh.ru — в макете ссылки нет.
    Пока ведём на поиск по названию, чтобы кнопка не была битой. */
 $ndVacHhUrl = 'https://hh.ru/search/vacancy?text=%D0%9B%D0%B0%D1%82%D0%B8%D1%82%D1%83%D0%B4%D0%BE';
@@ -75,60 +86,6 @@ $arNdVacLife = array(
 	array('FILE' => 'life-6.jpg', 'ALT' => 'Рабочий день в офисе Латитудо'),
 );
 
-/* Вакансии. Тексты — с текущей боевой страницы /info/vakansii/.
-   Первая раскрыта, остальные свёрнуты — как в макете. Каждый блок описания
-   необязательный: пустые ключи просто не выводятся. */
-$arNdVacList = array(
-	array(
-		'NAME'  => 'Менеджер по продажам ДПК (входящий поток)',
-		'META'  => 'Москва · полная занятость, график 5/2',
-		'ABOUT' => 'Ведение полного цикла продаж по входящим заявкам: выявление потребностей клиентов, подбор решений, расчёты материалов, переговоры и заключение договоров.',
-		'TASKS' => array(
-			'Работа с входящим потоком тёплых лидов;',
-			'Подбор решений для объектов разной сложности;',
-			'Ведение переговоров по коммерческим предложениям и сопровождение сделок.',
-		),
-		'REQ'   => array(
-			'Опыт в продажах.',
-		),
-		'COND'  => array(
-			'Оклад 110 000 ₽ + процент от оборота;',
-			'CRM Bitrix24 и входящий поток заявок;',
-			'Корпоративные мероприятия;',
-			'Офис в бизнес-парке «Румянцево», Киевское шоссе, 22-й км.',
-		),
-		'MONEY' => 'Доход от 150 000 ₽<br>(выплаты 2 раза в месяц без задержек)',
-	),
-	array(
-		'NAME'  => 'Менеджер по продажам (строительные материалы и сервис)',
-		'META'  => 'Белгород · полная занятость, график 5/2',
-		'ABOUT' => 'Продажа террас, заборов, фасадов и архитектурных материалов для объектов разного типа — частные дома, кафе, офисы.',
-		'REQ'   => array(
-			'Обязателен опыт в продажах, от 1 года;',
-			'Опыт расчёта материалов и работы в CRM;',
-			'Опыт с ДПК или вентфасадами будет преимуществом.',
-		),
-		'COND'  => array(
-			'Оклад 70 000 ₽ + премия за KPI + бонусы;',
-			'Работа в офисе, обучение и конкурсы с призами;',
-			'Офис на улице Есенина, 9Б.',
-		),
-		'MONEY' => 'Доход от 80 000 ₽<br>(выплаты 2 раза в месяц без задержек)',
-	),
-	array(
-		'NAME'  => 'Менеджер по продажам (строительные материалы и сервис)',
-		'META'  => 'Воронеж · полная занятость, график 5/2',
-		'ABOUT' => 'Ведение полного цикла продаж по входящим заявкам, работа с клиентами сегментов B2C и B2B.',
-		'COND'  => array(
-			'Оклад 70 000 ₽ + процент от оборота;',
-			'Входящий поток лидов и CRM Bitrix24;',
-			'Корпоративные мероприятия;',
-			'Офис на улице Донбасской, 9А.',
-		),
-		'MONEY' => 'Доход от 80 000 ₽<br>(выплаты 2 раза в месяц без задержек)',
-	),
-);
-
 /* TODO: заменить на реальные отзывы с hh.ru — сейчас это текст из макета.
    Пустой массив просто убирает карусель, оставляя цифры и кнопку. */
 $arNdVacReviews = array(
@@ -137,13 +94,6 @@ $arNdVacReviews = array(
 	array('POST' => 'Специалист отдела сервиса',      'RATE' => '4,5', 'DATE' => '14 авг 2025', 'TEXT' => 'Компания растёт, задач много и они интересные. Есть куда развиваться внутри: коллеги переходят в смежные направления и на руководящие позиции.'),
 	array('POST' => 'Менеджер по продажам',           'RATE' => '4,0', 'DATE' => '27 май 2025', 'TEXT' => 'Хороший офис в шаговой доступности, дружный коллектив. Входящий поток лидов действительно есть, холодных обзвонов нет.'),
 );
-
-/* Плюс/минус у аккордеона: минус всегда, вертикальная палочка гаснет
-   у раскрытого пункта — так же, как нарисовано в макете. */
-$ndVacToggleIco = '<svg class="nd-vac__acc-ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
-	.'<path d="M4 12h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
-	.'<path class="nd-vac__acc-ico-v" d="M12 4v16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
-	.'</svg>';
 
 /* Стили и скрипт страницы — отдельными файлами. Включаемая область попадает
    в тело документа, где SetAdditionalCSS уже не сработает, поэтому тег пишем
@@ -175,7 +125,7 @@ if (!defined('ND_VACANCIES_ASSETS')) {
 				<a class="nd-vac__phone" href="tel:<?=$ndVacPhoneHref?>"><?=$ndVacPhone?></a>
 			</div>
 			<div class="nd-vac__hero-btns">
-				<span class="nd-vac__btn nd-vac__btn--red animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="question">Отправить резюме</span>
+				<span class="nd-vac__btn nd-vac__btn--red animate-load" data-event="jqm" data-param-form_id="RESUME" data-name="question">Отправить резюме</span>
 				<a class="nd-vac__btn nd-vac__btn--white" href="<?=$ndVacPresent?>" target="_blank">
 					<svg class="nd-vac__btn-ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 						<path d="M12 4v11m0 0 4.5-4.5M12 15l-4.5-4.5M4.5 17.5V19a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -255,53 +205,58 @@ if (!defined('ND_VACANCIES_ASSETS')) {
 		<h2 class="nd-vac__h1">Вакансии</h2>
 		<div class="nd-vac__cols">
 
-			<div class="nd-vac__list">
-				<?foreach($arNdVacList as $i => $arVac):?>
-					<?$bOpen = ($i === 0);?>
-					<div class="nd-vac__acc<?=($bOpen ? ' is-open' : '')?>" data-nd-vac-acc>
-						<button class="nd-vac__acc-head" type="button" aria-expanded="<?=($bOpen ? 'true' : 'false')?>">
-							<span class="nd-vac__acc-title">
-								<span class="nd-vac__acc-name"><?=$arVac['NAME']?></span>
-								<span class="nd-vac__acc-meta"><?=$arVac['META']?></span>
-							</span>
-							<?=$ndVacToggleIco?>
-						</button>
-						<div class="nd-vac__acc-body">
-							<div class="nd-vac__acc-inner">
-								<?if(strlen($arVac['ABOUT'])):?>
-									<div class="nd-vac__block">
-										<h3 class="nd-vac__h3">О вакансии</h3>
-										<p class="nd-vac__text"><?=$arVac['ABOUT']?></p>
-									</div>
-								<?endif;?>
-								<?
-								$arNdVacParts = array(
-									'TASKS' => 'Твои задачи',
-									'REQ'   => 'Наши требования',
-									'COND'  => 'Условия',
-								);
-								?>
-								<?foreach($arNdVacParts as $sKey => $sTitle):?>
-									<?if(!empty($arVac[$sKey])):?>
-										<div class="nd-vac__block">
-											<h3 class="nd-vac__h3"><?=$sTitle?></h3>
-											<ul class="nd-vac__ul">
-												<?foreach($arVac[$sKey] as $sItem):?>
-													<li><?=$sItem?></li>
-												<?endforeach;?>
-											</ul>
-										</div>
-									<?endif;?>
-								<?endforeach;?>
-								<?if(strlen($arVac['MONEY'])):?>
-									<div class="nd-vac__money"><?=$arVac['MONEY']?></div>
-								<?endif;?>
-								<span class="nd-vac__btn nd-vac__btn--red nd-vac__btn--wide animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="question">Отправить резюме</span>
-							</div>
-						</div>
-					</div>
-				<?endforeach;?>
-			</div>
+			<?// Вакансии подтягиваются из инфоблока «Вакансии» и группируются по
+			   // городам — городом служит раздел инфоблока. Раньше страницу собирали
+			   // руками в редакторе блоков: заголовок «Филиал Москва» плюс блок
+			   // «Инфоблоки. Элементы» с перечисленными вакансиями, и так на каждый
+			   // город. Разметка аккордеона — в шаблоне vacancies_newdesign.?>
+			<?if($ndVacIblockId):?>
+			<?$APPLICATION->IncludeComponent(
+				'bitrix:news.list',
+				'vacancies_newdesign',
+				array(
+					'IBLOCK_TYPE' => 'aspro_next_content',
+					'IBLOCK_ID' => $ndVacIblockId,
+					'NEWS_COUNT' => '100',
+					'SORT_BY1' => 'SORT',
+					'SORT_ORDER1' => 'ASC',
+					'SORT_BY2' => 'ID',
+					'SORT_ORDER2' => 'ASC',
+					'FIELD_CODE' => array('ID', 'NAME', 'IBLOCK_SECTION_ID', ''),
+					'PROPERTY_CODE' => array('PAY', 'EDITOR1', ''),
+					'CHECK_DATES' => 'Y',
+					'DETAIL_URL' => '',
+					'AJAX_MODE' => 'N',
+					// Кэш выключен намеренно: тело пункта рисует sprint.editor:blocks
+					// уже внутри шаблона, и при включённом кэше правка вакансии в
+					// админке не доезжала бы до страницы до сброса кэша.
+					'CACHE_TYPE' => 'N',
+					'CACHE_TIME' => '36000000',
+					'CACHE_FILTER' => 'N',
+					'CACHE_GROUPS' => 'N',
+					'PREVIEW_TRUNCATE_LEN' => '',
+					'ACTIVE_DATE_FORMAT' => 'd.m.Y',
+					'SET_TITLE' => 'N',
+					'SET_STATUS_404' => 'N',
+					'INCLUDE_IBLOCK_INTO_CHAIN' => 'N',
+					'ADD_SECTIONS_CHAIN' => 'N',
+					'HIDE_LINK_WHEN_NO_DETAIL' => 'N',
+					'PARENT_SECTION' => '',
+					'PARENT_SECTION_CODE' => '',
+					'INCLUDE_SUBSECTIONS' => 'Y',
+					'DISPLAY_TOP_PAGER' => 'N',
+					'DISPLAY_BOTTOM_PAGER' => 'N',
+					'PAGER_TITLE' => '',
+					'PAGER_SHOW_ALWAYS' => 'N',
+					'SET_BROWSER_TITLE' => 'N',
+					'SET_META_KEYWORDS' => 'N',
+					'SET_META_DESCRIPTION' => 'N',
+					'SET_LAST_MODIFIED' => 'N',
+					'PAGER_BASE_LINK_ENABLE' => 'N',
+				),
+				false
+			);?>
+			<?endif;?>
 
 			<aside class="nd-vac__aside">
 				<div class="nd-vac__hr">
@@ -322,7 +277,7 @@ if (!defined('ND_VACANCIES_ASSETS')) {
 							<span><?=$ndVacEmail?></span>
 						</a>
 					</div>
-					<span class="nd-vac__btn nd-vac__btn--ghost nd-vac__btn--wide nd-vac__btn--sm animate-load" data-event="jqm" data-param-form_id="CALLBACK" data-name="question">Заказать звонок</span>
+					<span class="nd-vac__btn nd-vac__btn--ghost nd-vac__btn--wide nd-vac__btn--sm animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="question">Заказать звонок</span>
 				</div>
 
 				<div class="nd-vac__ask">
