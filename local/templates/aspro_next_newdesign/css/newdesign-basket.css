@@ -133,8 +133,9 @@
     border: 0 !important;
     vertical-align: middle;
 }
-#basket-root .basket-items-list .basket-items-list-item-container:not(:first-child) {
-    border-top: 1px solid rgba(82, 82, 100, .15);
+/* Разделителей между позициями в макете нет — товары отделяет только воздух. */
+#basket-root .basket-items-list .basket-items-list-item-container {
+    border: 0;
 }
 #basket-root .basket-items-list-item-descriptions {
     grid-area: desc;
@@ -678,6 +679,13 @@
 #basket-root .nd-basket-stores .store-badge-gray {
     background: #eeeef0;
     color: #999;
+}
+
+/* Карточка, которую лента спрятала после удаления товара из корзины.
+   Через !important: инлайновый display шаблон карточки перебивает. */
+.nd-related--basket .item_block.nd-related-hidden,
+.nd-related--basket.nd-related-hidden {
+    display: none !important;
 }
 
 /* ---- адаптив ------------------------------------------------------------ */

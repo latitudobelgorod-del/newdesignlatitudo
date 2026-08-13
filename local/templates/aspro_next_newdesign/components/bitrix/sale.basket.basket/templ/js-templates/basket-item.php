@@ -43,7 +43,10 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 ?>
 <script id="basket-item-template" type="text/html">
 	<tr class="basket-items-list-item-container{{#SHOW_RESTORE}} basket-items-list-item-container-expend{{/SHOW_RESTORE}}"
-		id="basket-item-{{ID}}" data-entity="basket-item" data-id="{{ID}}">
+		id="basket-item-{{ID}}" data-entity="basket-item" data-id="{{ID}}"
+		<?// ID товара нужен ленте «Может пригодиться»: по нему она убирает
+		   // связанные, когда товар удалили из корзины.?>
+		data-nd-product-id="{{PRODUCT_ID}}">
 		{{#SHOW_RESTORE}}
 			<td class="basket-items-list-item-notification" colspan="<?=$restoreColSpan?>">
 				<div class="basket-items-list-item-notification-inner basket-items-list-item-notification-removed" id="basket-item-height-aligner-{{ID}}">

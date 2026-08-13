@@ -756,10 +756,15 @@
         var next = box.querySelector('.nd-related__arrow--next');
 
         function sync() {
-            var step = items[0].getBoundingClientRect().width || 1;
+            /* Считаем только видимые карточки: в корзине лента подрезается,
+               когда товар убирают из заказа. */
+            var shown = [].filter.call(items, function (el) { return el.offsetParent !== null; });
+            if (!shown.length) shown = [items[0]];
+
+            var step = shown[0].getBoundingClientRect().width || 1;
             var first = Math.round(track.scrollLeft / step) + 1;
-            if (first > items.length) first = items.length;
-            if (counter) counter.textContent = pad2(first) + '/' + pad2(items.length);
+            if (first > shown.length) first = shown.length;
+            if (counter) counter.textContent = pad2(first) + '/' + pad2(shown.length);
 
             /* Конец ленты ловим с запасом в 1px: при дробной ширине карточки
                scrollLeft не дотягивает до scrollWidth - clientWidth. */

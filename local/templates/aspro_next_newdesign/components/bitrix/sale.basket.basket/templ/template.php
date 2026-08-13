@@ -419,6 +419,7 @@ if (!empty($arResult['GRID']['ROWS']) && is_array($arResult['GRID']['ROWS']))
 
 $ndRelatedIds = array();
 $ndRelatedIblockId = 0;
+$ndRelatedBySource = array();
 
 if ($ndBasketProductIds && CModule::IncludeModule('iblock'))
 {
@@ -428,6 +429,14 @@ if ($ndBasketProductIds && CModule::IncludeModule('iblock'))
 	   поэтому сначала поднимаемся от предложения к его товару. Для обычных
 	   товаров без SKU GetProductList ничего не вернёт, они идут как есть. */
 	$ndParentIds = $ndBasketProductIds;
+	/* Кто кого притянул: товар корзины → его товар в каталоге. Нужно, чтобы
+	   при удалении позиции убрать из ленты именно её связанные. */
+	$ndParentToBasket = array();
+
+	foreach ($ndBasketProductIds as $ndBasketProductId)
+	{
+		$ndParentToBasket[$ndBasketProductId][] = $ndBasketProductId;
+	}
 
 	if (CModule::IncludeModule('catalog'))
 	{
@@ -442,6 +451,9 @@ if ($ndBasketProductIds && CModule::IncludeModule('iblock'))
 				if ($ndKey !== false && (int)$ndParent['ID'] > 0)
 				{
 					$ndParentIds[$ndKey] = (int)$ndParent['ID'];
+
+					unset($ndParentToBasket[(int)$ndSkuId]);
+					$ndParentToBasket[(int)$ndParent['ID']][] = (int)$ndSkuId;
 				}
 			}
 		}
@@ -468,6 +480,7 @@ if ($ndBasketProductIds && CModule::IncludeModule('iblock'))
 	}
 
 	$ndRelatedByIblock = array();
+	$ndRelatedBySourceByIblock = array();
 
 	foreach ($ndByIblock as $ndIblockId => $ndIds)
 	{
@@ -481,9 +494,22 @@ if ($ndBasketProductIds && CModule::IncludeModule('iblock'))
 
 		while ($ndProp = $ndPropIterator->Fetch())
 		{
-			if ((int)$ndProp['PROPERTY_EXPANDABLES_VALUE'] > 0)
+			$ndRelatedId = (int)$ndProp['PROPERTY_EXPANDABLES_VALUE'];
+
+			if ($ndRelatedId <= 0)
 			{
-				$ndRelatedByIblock[$ndIblockId][] = (int)$ndProp['PROPERTY_EXPANDABLES_VALUE'];
+				continue;
+			}
+
+			$ndRelatedByIblock[$ndIblockId][] = $ndRelatedId;
+
+			$ndSources = isset($ndParentToBasket[(int)$ndProp['ID']])
+				? $ndParentToBasket[(int)$ndProp['ID']]
+				: array((int)$ndProp['ID']);
+
+			foreach ($ndSources as $ndSourceId)
+			{
+				$ndRelatedBySourceByIblock[$ndIblockId][$ndSourceId][] = $ndRelatedId;
 			}
 		}
 	}
@@ -501,11 +527,30 @@ if ($ndBasketProductIds && CModule::IncludeModule('iblock'))
 			$ndRelatedIblockId = (int)$ndIblockId;
 		}
 	}
+
+	/* Карта для JS: товар корзины → что он притянул в ленту. */
+	if ($ndRelatedIblockId && isset($ndRelatedBySourceByIblock[$ndRelatedIblockId]))
+	{
+		foreach ($ndRelatedBySourceByIblock[$ndRelatedIblockId] as $ndSourceId => $ndIds)
+		{
+			$ndIds = array_values(array_intersect(array_unique($ndIds), $ndRelatedIds));
+
+			if ($ndIds)
+			{
+				$ndRelatedBySource[$ndSourceId] = $ndIds;
+			}
+		}
+	}
 }
 
 if ($ndRelatedIds && $ndRelatedIblockId):
 	$GLOBALS['arrFilterBasketRelated'] = array('ID' => array_values($ndRelatedIds));
 ?>
+<script>
+	/* Товар корзины → товары, которые он притянул в ленту. Удаление позиции
+	   идёт ajax'ом, страница не перезагружается — ленту подрезаем на месте. */
+	window.__ndBasketRelated = <?=CUtil::PhpToJSObject($ndRelatedBySource)?>;
+</script>
 <div class="nd-related nd-related--basket">
 	<div class="nd-related__head">
 		<h2 class="nd-related__title"><?=Loc::getMessage('SBB_ND_RELATED_TITLE')?></h2>
@@ -562,6 +607,13 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 					'COLOR_REF', 'DLINA', 'COLOR_REF2', 'MONTAZ_PAZ',
 					'MODEL_OP', 'VALUE_TOV', 'RAZM', 'WIDTH_D', 'SVET', 'VWS_N',
 				),
+				'OFFERS_CART_PROPERTIES' => array('DLINA'),
+				'USE_REGION' => 'Y',
+				/* Без TYPE_SKU=TYPE_1 result_modifier шаблона карточки не строит
+				   дерево предложений: в карточке не появляется выбор цвета и
+				   длины, а цена так и остаётся диапазоном «от …». */
+				'TYPE_SKU' => 'TYPE_1',
+				'DISPLAY_TYPE' => 'block',
 				'SECTION_URL' => '',
 				'DETAIL_URL' => '',
 				'BASKET_URL' => SITE_DIR.'basket/',
@@ -572,7 +624,7 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 				'SECTION_ID_VARIABLE' => 'SECTION_ID',
 				'SET_LAST_MODIFIED' => 'N',
 				'AJAX_MODE' => 'N',
-				'CACHE_TYPE' => 'A',
+				'CACHE_TYPE' => 'N',
 				'CACHE_TIME' => '36000',
 				'CACHE_GROUPS' => 'N',
 				'CACHE_FILTER' => 'Y',
@@ -659,5 +711,69 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 		e.stopPropagation();
 		box.classList.toggle('is-open');
 	});
+})();
+</script>
+
+<?/* Лента «Может пригодиться» следит за составом корзины: удалили позицию —
+	 её связанные уходят из ленты, нажали «Восстановить» — возвращаются. */?>
+<script>
+(function () {
+	if (window.__ndBasketRelatedSync) return;
+	window.__ndBasketRelatedSync = true;
+
+	function cardId(card) {
+		var el = card.querySelector('[id^="bx_"]');
+		var m = el && el.id.match(/_(\d+)$/);
+		return m ? m[1] : '';
+	}
+
+	function sync() {
+		var box = document.querySelector('.nd-related--basket');
+		var map = window.__ndBasketRelated;
+		if (!box || !map) return;
+
+		var allowed = {};
+		[].forEach.call(document.querySelectorAll('#basket-root [data-nd-product-id]'), function (row) {
+			/* Удалённая позиция ещё висит в списке с кнопкой «Восстановить» —
+			   её связанные уже не показываем. */
+			if (row.querySelector('[data-entity="basket-item-restore-button"]')) return;
+			(map[row.getAttribute('data-nd-product-id')] || []).forEach(function (id) {
+				allowed[id] = 1;
+			});
+		});
+
+		var shown = 0;
+		[].forEach.call(box.querySelectorAll('.item_block'), function (card) {
+			var visible = !!allowed[cardId(card)];
+			card.classList.toggle('nd-related-hidden', !visible);
+			/* Класс перебивает шаблон карточки не везде — дублируем инлайном
+			   с important, иначе спрятанная карточка остаётся в ленте. */
+			if (visible) card.style.removeProperty('display');
+			else card.style.setProperty('display', 'none', 'important');
+			if (visible) shown++;
+		});
+
+		box.classList.toggle('nd-related-hidden', !shown);
+		if (shown) box.style.removeProperty('display');
+		else box.style.setProperty('display', 'none', 'important');
+		/* Счётчик и стрелки ленты пересчитываются по resize. */
+		window.dispatchEvent(new Event('resize'));
+	}
+
+	var timer = 0;
+	function schedule() {
+		clearTimeout(timer);
+		timer = setTimeout(sync, 200);
+	}
+
+	function observe() {
+		var list = document.getElementById('basket-item-list');
+		if (!list) return;
+		new MutationObserver(schedule).observe(list, { childList: true, subtree: true });
+		schedule();
+	}
+
+	if (document.readyState !== 'loading') observe();
+	else document.addEventListener('DOMContentLoaded', observe);
 })();
 </script>
