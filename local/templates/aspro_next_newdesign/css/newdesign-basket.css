@@ -1,0 +1,478 @@
+/* Корзина в новом дизайне.
+   Макет Figma «Чистовик»: десктоп 20496:79858, мобильный 20517:145736.
+   Разметку даёт штатный шаблон компонента sale.basket.basket/templ — свою
+   мы не пишем: через корзину идут заказы, а её пересчёт, мобильная панель и
+   ajax завязаны на аспровские классы и data-entity. Поэтому здесь только
+   раскладка поверх готовой разметки, как это сделано на easydecking.
+
+   Первый заход: каркас страницы и карточка товара. Панель итогов и правая
+   колонка — следующими шагами.
+
+   Файл подключает template.php тегом <link>: компонент рисуется, когда
+   <head> уже отдан. */
+
+/* ---- каркас страницы ---------------------------------------------------- */
+/* Две колонки: список 855 и правая 429 при контенте 1336, между ними 52. */
+#basket-root .basket-items-list.flexbox--row {
+    display: flex;
+    align-items: flex-start;
+    gap: 52px;
+}
+#basket-root .basket-items-list-outer {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+#basket-root .basket-total-outer {
+    flex: 0 0 429px;
+    max-width: 429px;
+    width: 429px;
+}
+
+/* Штатный шаблон умеет держать список фиксированной высоты со своей
+   прокруткой (basket-items-list-wrapper-height-fixed). В макете список
+   растёт как есть — отпускаем высоту, иначе карточки уедут под скролл. */
+#basket-root .basket-items-list-wrapper,
+#basket-root .basket-items-list-container,
+#basket-root .basket-items-list {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* Шапка списка. В макете от неё остаётся только кнопка «Очистить корзину»
+   справа от заголовка: поиска по корзине и счётчиков-фильтров там нет. */
+#basket-root .basket-items-search-field,
+#basket-root .basket-items-list-header-filter {
+    display: none;
+}
+#basket-root .basket-items-list-header {
+    display: flex;
+    justify-content: flex-end;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+/* Заголовок страницы и кнопка «Очистить корзину» — одной строкой.
+   Печатает их template.php: свой H1 у страницы остаётся только в старом
+   дизайне (basket/index.php смотрит на SITE_TEMPLATE_ID). */
+.nd-basket-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 24px;
+}
+.nd-basket-head__title {
+    margin: 0;
+    padding: 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 58px;
+    color: #101014;
+}
+.nd-basket-head__clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    height: 48px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+    cursor: pointer;
+    transition: color .2s ease;
+}
+.nd-basket-head__clear:hover {
+    color: #c60000;
+}
+.nd-basket-head__clear svg {
+    flex: 0 0 auto;
+}
+
+/* ---- карточка товара ---------------------------------------------------- */
+/* Строку таблицы раскладываем сеткой: в макете цена за штуку стоит под общей
+   суммой, а это соседние ячейки — только грид даёт им встать в одну колонку
+   в два ряда. Ячейка «удалить» с крестиком не нужна: «Удалить» переехало под
+   описание товара (в разметке оно уже есть, помечено visible-xs). */
+#basket-root .basket-items-list-table,
+#basket-root .basket-items-list-table tbody {
+    display: block;
+    width: 100%;
+}
+#basket-root .basket-items-list-item-container {
+    display: grid;
+    grid-template-columns: 203px minmax(0, 1fr) auto 136px;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "img desc sum stepper"
+        "img desc unit stepper";
+    align-items: center;
+    column-gap: 36px;
+    row-gap: 4px;
+    padding: 24px 0;
+}
+#basket-root .basket-items-list-item-container > td {
+    display: block;
+    padding: 0 !important;
+    border: 0 !important;
+    vertical-align: middle;
+}
+#basket-root .basket-items-list .basket-items-list-item-container:not(:first-child) {
+    border-top: 1px solid rgba(82, 82, 100, .15);
+}
+#basket-root .basket-items-list-item-descriptions {
+    grid-area: desc;
+    width: auto;
+}
+#basket-root .basket-items-list-item-price-for-one {
+    grid-area: unit;
+}
+#basket-root .basket-items-list-item-amount {
+    grid-area: stepper;
+}
+/* Сумма — единственная ячейка с этим классом без модификатора «за штуку». */
+#basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) {
+    grid-area: sum;
+}
+#basket-root .basket-items-list-item-remove {
+    display: none !important;
+}
+
+/* Фото товара. В разметке оно лежит внутри описания, поэтому описание —
+   тоже сетка: кадр 203×203 и текст рядом. */
+#basket-root .basket-items-list-item-descriptions-inner {
+    display: grid;
+    grid-template-columns: 203px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 36px;
+    margin: 0;
+    padding: 0;
+}
+#basket-root .basket-item-property-custom-photo {
+    grid-column: 1;
+    width: 203px;
+    margin: 0;
+}
+#basket-root .basket-item-custom-block-photo-item {
+    display: block;
+    width: 203px;
+    height: 203px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+#basket-root .basket-item-block-info {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0;
+}
+
+/* Название и характеристики */
+#basket-root .basket-item-info-name,
+#basket-root h2.basket-item-info-name {
+    margin: 0;
+    padding: 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 20.8px;
+}
+#basket-root .basket-item-info-name-link,
+#basket-root .basket-item-info-name-link:hover {
+    color: #101014;
+    text-decoration: none;
+    border: 0;
+}
+#basket-root .basket-item-info-name-link:hover {
+    color: #c60000;
+}
+/* Характеристики в макете идут одной серой строкой, а не столбцом пар
+   «название — значение», как их печатает штатный шаблон. */
+#basket-root .basket-item-block-properties {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    margin: 0;
+    padding: 0;
+}
+#basket-root .basket-item-property {
+    display: inline-flex;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 19.6px;
+    color: #8f8f9a;
+}
+#basket-root .basket-item-property-name,
+#basket-root .basket-item-property-value {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+}
+
+/* «Удалить» под описанием. В разметке это тот же элемент, что рисует крестик
+   на мобильных, — показываем его на всех экранах и подписываем. */
+#basket-root .basket-item-block-info .basket-item-actions-remove.visible-xs {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    align-self: flex-start;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 16px;
+    color: #c60000;
+    cursor: pointer;
+    opacity: 1;
+}
+#basket-root .basket-item-block-info .basket-item-actions-remove.visible-xs:before {
+    content: '';
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    background: #c60000;
+    -webkit-mask: url("../images/newdesign/basket/trash.svg") no-repeat center / contain;
+    mask: url("../images/newdesign/basket/trash.svg") no-repeat center / contain;
+}
+#basket-root .basket-item-block-info .basket-item-actions-remove.visible-xs:after {
+    content: 'Удалить';
+}
+
+/* ---- цены --------------------------------------------------------------- */
+#basket-root .basket-item-block-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    min-width: 93px;
+    margin: 0;
+    padding: 0;
+    text-align: right;
+}
+/* Общая сумма — крупная, ею открывается колонка. */
+#basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) .basket-item-price-current-text {
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    line-height: 24px;
+    color: #101014;
+    white-space: nowrap;
+}
+#basket-root .basket-item-price-old-text {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 19.6px;
+    color: #8f8f9a;
+    text-decoration: line-through;
+}
+/* Цена за штуку идёт вторым рядом сетки — под суммой. */
+#basket-root .basket-items-list-item-price-for-one .basket-item-price-current-text {
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    color: #525264;
+    white-space: nowrap;
+}
+#basket-root .basket-items-list-item-price-for-one .basket-item-price-title {
+    font-size: 14px;
+    line-height: 19.6px;
+    color: #8f8f9a;
+}
+/* Скидка — красной строкой под ценами. */
+#basket-root .basket-item-price-difference,
+#basket-root .differ-per {
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 400;
+    font-size: 10px;
+    line-height: 13px;
+    letter-spacing: .04em;
+    color: #ff4130;
+    text-transform: uppercase;
+}
+
+/* ---- счётчик количества -------------------------------------------------- */
+#basket-root .basket-item-block-amount {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 136px;
+    height: 48px;
+    margin: 0;
+    padding: 0 2px;
+    border: 2px solid rgba(82, 82, 100, .1);
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .1);
+}
+#basket-root .basket-item-amount-btn-minus,
+#basket-root .basket-item-amount-btn-plus {
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 44px;
+    margin: 0;
+    border: 0;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+}
+#basket-root .basket-item-amount-btn-minus:hover,
+#basket-root .basket-item-amount-btn-plus:hover {
+    background: #f2f2f4;
+}
+#basket-root .basket-item-amount-btn-minus:after,
+#basket-root .basket-item-amount-btn-plus:before,
+#basket-root .basket-item-amount-btn-plus:after {
+    position: static;
+    margin: 0;
+    background: #101014;
+}
+#basket-root .basket-item-amount-filed-block {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+#basket-root .basket-item-amount-filed {
+    width: 100%;
+    height: 44px !important;
+    min-height: 0 !important;
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 44px;
+    text-align: center;
+    color: #101014;
+}
+/* Подпись «шт» под счётчиком. */
+#basket-root .basket-item-amount-field-description {
+    margin: 4px 0 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 19.6px;
+    text-align: center;
+    color: #8f8f9a;
+}
+
+/* ---- адаптив ------------------------------------------------------------ */
+@media (max-width: 1279px) {
+    #basket-root .basket-items-list.flexbox--row {
+        gap: 32px;
+    }
+    #basket-root .basket-total-outer {
+        flex-basis: 340px;
+        width: 340px;
+    }
+    .nd-basket-head__title {
+        font-size: 42px;
+        line-height: 48px;
+    }
+}
+
+@media (max-width: 991px) {
+    /* Правая колонка уходит под список. */
+    #basket-root .basket-items-list.flexbox--row {
+        flex-direction: column;
+        gap: 24px;
+    }
+    #basket-root .basket-total-outer {
+        flex: 1 1 auto;
+        width: 100%;
+        max-width: none;
+    }
+    #basket-root .basket-items-list-item-container {
+        grid-template-columns: 140px minmax(0, 1fr) auto 120px;
+        column-gap: 20px;
+    }
+    #basket-root .basket-items-list-item-descriptions-inner {
+        grid-template-columns: 140px minmax(0, 1fr);
+        column-gap: 20px;
+    }
+    #basket-root .basket-item-property-custom-photo,
+    #basket-root .basket-item-custom-block-photo-item {
+        width: 140px;
+    }
+    #basket-root .basket-item-custom-block-photo-item {
+        height: 140px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-basket-head {
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .nd-basket-head__title {
+        font-size: 32px;
+        line-height: 38px;
+    }
+    .nd-basket-head__clear {
+        height: auto;
+        padding: 4px 0;
+        font-size: 14px;
+    }
+    /* На мобильном карточка складывается в две строки: фото с описанием
+       сверху, цены и счётчик — под ними. */
+    #basket-root .basket-items-list-item-container {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "desc desc"
+            "sum stepper"
+            "unit stepper";
+        column-gap: 16px;
+        row-gap: 12px;
+        padding: 16px 0;
+    }
+    #basket-root .basket-items-list-item-descriptions-inner {
+        grid-template-columns: 96px minmax(0, 1fr);
+        column-gap: 12px;
+        align-items: start;
+    }
+    #basket-root .basket-item-property-custom-photo,
+    #basket-root .basket-item-custom-block-photo-item {
+        width: 96px;
+    }
+    #basket-root .basket-item-custom-block-photo-item {
+        height: 96px;
+        border-radius: 6px;
+    }
+    #basket-root .basket-item-block-info {
+        gap: 8px;
+    }
+    #basket-root .basket-item-block-price {
+        align-items: flex-start;
+        text-align: left;
+    }
+    #basket-root .basket-item-block-amount {
+        width: 120px;
+    }
+}
