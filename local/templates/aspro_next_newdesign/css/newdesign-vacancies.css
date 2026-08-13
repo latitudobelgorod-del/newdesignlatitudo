@@ -36,9 +36,16 @@
     padding: 0;
     background: none;
 }
+/* Маркеры темы гасим во всей вёрстке блока, но не в содержимом вакансии:
+   там списки пишет контент-менеджер, и точки им рисует общесайтовое правило
+   из newdesign.css. Два механизма сразу давали два маркера на пункт. */
 .editor .nd-vac ul li:before,
 .nd-vac ul li:before {
     content: none;
+}
+.editor .nd-vac .nd-vac__editor ul > li:before,
+.nd-vac .nd-vac__editor ul > li:before {
+    content: '';
 }
 /* Подчёркивания у ссылок тема ставит через border-bottom. В макете их нет
    нигде, кроме слова «HeadHunter» в заголовке плашки. */
@@ -547,7 +554,8 @@
 .editor .nd-vac__editor ol > li {
     padding-left: 0;
 }
-.nd-vac__editor ol > li::after {
+.nd-vac__editor ol > li:before,
+.editor .nd-vac__editor ol > li:before {
     content: none;
 }
 /* В контенте попадаются пустые абзацы и абзацы из одного <br> — в редакторе
@@ -557,16 +565,6 @@
 }
 .nd-vac__editor p:has(> br:only-child) {
     display: none;
-}
-.nd-vac__editor li::after {
-    content: '';
-    position: absolute;
-    left: 10px;
-    top: 9px;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: #101014;
 }
 /* Подзаголовки внутри вакансии («Ваша зона ответственности») набраны
    жирным в обычном абзаце — приподнимаем их до размера заголовка блока. */
