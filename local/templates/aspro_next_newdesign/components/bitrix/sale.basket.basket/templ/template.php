@@ -130,6 +130,53 @@ foreach ($jsTemplates->getChildren() as $jsTemplate)
 
 $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-list-wrapper-compact' : '';
 
+?>
+	<?/* Новый дизайн корзины (макет Figma «Чистовик», десктоп 20496:79858).
+	   Стили — css/newdesign-basket.css, тегом прямо здесь: компонент рисуется,
+	   когда <head> уже отдан. Разметку компонента не трогаем, раскладку делает
+	   css поверх неё — через корзину идут заказы, а её пересчёт и мобильная
+	   панель завязаны на аспровские классы и data-entity. */?>
+	<?
+	$ndBasketCss = $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/css/newdesign-basket.css';
+	?>
+	<link href="<?=SITE_TEMPLATE_PATH?>/css/newdesign-basket.css?<?=(file_exists($ndBasketCss) ? filemtime($ndBasketCss) : '')?>" rel="stylesheet">
+
+	<?/* Заголовок и «Очистить корзину» одной строкой, как в макете. H1 печатаем
+	   здесь, а не на странице: basket/index.php общий со старым дизайном, там
+	   свой заголовок «Ваша корзина» остаётся нетронутым.
+
+	   Готовой очистки корзины в шаблоне нет — Битрикс умеет удалять только по
+	   одному товару. Поэтому кнопка жмёт все кнопки удаления разом: они кладут
+	   задания в тот же пул действий компонента, что и обычное удаление, и
+	   пересчёт проходит штатно. */?>
+	<div class="nd-basket-head">
+		<h1 class="nd-basket-head__title" id="pagetitle">Корзина</h1>
+		<?// У пустой корзины чистить нечего — кнопку не показываем. Пустую
+		   // корзину компонент отдаёт той же веткой, что и ошибку: в ERROR_MESSAGE
+		   // у него лежит «Ваша корзина пуста».?>
+		<?if(empty($arResult['ERROR_MESSAGE'])):?>
+		<button class="nd-basket-head__clear" type="button" data-nd-basket-clear>
+			<svg width="24" height="24" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+				<path d="M9.332.733c.513 0 1.005.204 1.367.567.363.362.567.854.567 1.367v.732h2.733a.6.6 0 0 1 0 1.201h-.733v8.733c0 .513-.204 1.005-.567 1.367a1.93 1.93 0 0 1-1.367.567H4.666a1.93 1.93 0 0 1-1.367-.567 1.93 1.93 0 0 1-.567-1.367V4.6H2a.6.6 0 0 1 0-1.201h2.733v-.732c0-.513.204-1.005.566-1.367A1.93 1.93 0 0 1 6.666.733h2.666ZM3.933 4.6v8.733c0 .195.077.381.215.519.137.137.324.214.518.214h6.666c.195 0 .381-.077.519-.214a.733.733 0 0 0 .214-.519V4.6H3.933Zm2.733-2.667a.733.733 0 0 0-.733.733v.733h4.132v-.733a.733.733 0 0 0-.732-.733H6.666Z" fill="currentColor"/>
+			</svg>
+			<span>Очистить корзину</span>
+		</button>
+		<?endif;?>
+	</div>
+	<script>
+	(function () {
+		document.addEventListener('click', function (e) {
+			var btn = e.target.closest('[data-nd-basket-clear]');
+			if (!btn) return;
+			var items = document.querySelectorAll('#basket-item-table [data-entity="basket-item-delete"]');
+			if (!items.length) return;
+			if (!confirm('Удалить все товары из корзины?')) return;
+			Array.prototype.forEach.call(items, function (node) { node.click(); });
+		});
+	})();
+	</script>
+
+<?
 if (empty($arResult['ERROR_MESSAGE']))
 {
 	if ($arParams['USE_GIFTS'] === 'Y' && $arParams['GIFTS_PLACE'] === 'TOP')
@@ -153,46 +200,6 @@ if (empty($arResult['ERROR_MESSAGE']))
 	?>
 	
 	
-	<?/* Новый дизайн корзины (макет Figma «Чистовик», десктоп 20496:79858).
-	   Стили — css/newdesign-basket.css, тегом прямо здесь: компонент рисуется,
-	   когда <head> уже отдан. Разметку компонента не трогаем, раскладку делает
-	   css поверх неё — через корзину идут заказы, а её пересчёт и мобильная
-	   панель завязаны на аспровские классы и data-entity. */?>
-	<?
-	$ndBasketCss = $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/css/newdesign-basket.css';
-	?>
-	<link href="<?=SITE_TEMPLATE_PATH?>/css/newdesign-basket.css?<?=(file_exists($ndBasketCss) ? filemtime($ndBasketCss) : '')?>" rel="stylesheet">
-
-	<?/* Заголовок и «Очистить корзину» одной строкой, как в макете. H1 печатаем
-	   здесь, а не на странице: basket/index.php общий со старым дизайном, там
-	   свой заголовок «Ваша корзина» остаётся нетронутым.
-
-	   Готовой очистки корзины в шаблоне нет — Битрикс умеет удалять только по
-	   одному товару. Поэтому кнопка жмёт все кнопки удаления разом: они кладут
-	   задания в тот же пул действий компонента, что и обычное удаление, и
-	   пересчёт проходит штатно. */?>
-	<div class="nd-basket-head">
-		<h1 class="nd-basket-head__title" id="pagetitle">Корзина</h1>
-		<button class="nd-basket-head__clear" type="button" data-nd-basket-clear>
-			<svg width="24" height="24" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-				<path d="M9.332.733c.513 0 1.005.204 1.367.567.363.362.567.854.567 1.367v.732h2.733a.6.6 0 0 1 0 1.201h-.733v8.733c0 .513-.204 1.005-.567 1.367a1.93 1.93 0 0 1-1.367.567H4.666a1.93 1.93 0 0 1-1.367-.567 1.93 1.93 0 0 1-.567-1.367V4.6H2a.6.6 0 0 1 0-1.201h2.733v-.732c0-.513.204-1.005.566-1.367A1.93 1.93 0 0 1 6.666.733h2.666ZM3.933 4.6v8.733c0 .195.077.381.215.519.137.137.324.214.518.214h6.666c.195 0 .381-.077.519-.214a.733.733 0 0 0 .214-.519V4.6H3.933Zm2.733-2.667a.733.733 0 0 0-.733.733v.733h4.132v-.733a.733.733 0 0 0-.732-.733H6.666Z" fill="currentColor"/>
-			</svg>
-			<span>Очистить корзину</span>
-		</button>
-	</div>
-	<script>
-	(function () {
-		document.addEventListener('click', function (e) {
-			var btn = e.target.closest('[data-nd-basket-clear]');
-			if (!btn) return;
-			var items = document.querySelectorAll('#basket-item-table [data-entity="basket-item-delete"]');
-			if (!items.length) return;
-			if (!confirm('Удалить все товары из корзины?')) return;
-			Array.prototype.forEach.call(items, function (node) { node.click(); });
-		});
-	})();
-	</script>
-
 	<?//вся корзина?>
 	
 	
