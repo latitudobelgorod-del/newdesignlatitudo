@@ -16,31 +16,41 @@
 
 		function pad(n) { return n < 10 ? '0' + n : String(n); }
 
-		function pages() {
-			return Math.max(1, Math.ceil((track.scrollWidth - 1) / (track.clientWidth || 1)));
+		function state() {
+			var w = track.clientWidth || 1;
+			var total = Math.max(1, Math.ceil((track.scrollWidth - 1) / w));
+			var atEnd = track.scrollLeft + w >= track.scrollWidth - 1;
+			return {
+				w: w,
+				total: total,
+				atStart: track.scrollLeft <= 1,
+				atEnd: atEnd,
+				// последняя страница неполная: лента упирается в край раньше, чем
+				// пройдёт целый экран, и номер по scrollLeft был бы на единицу меньше
+				current: atEnd ? total : Math.min(total, Math.floor(track.scrollLeft / w) + 1)
+			};
 		}
 
 		function render() {
-			var total = pages();
-			var atStart = track.scrollLeft <= 1;
-			var atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
-			// последняя страница неполная: лента упирается в край раньше, чем
-			// пройдёт целый экран, и номер по scrollLeft был бы на единицу меньше
-			var current = atEnd ? total : Math.min(total, Math.floor(track.scrollLeft / (track.clientWidth || 1)) + 1);
-			if (counter) counter.textContent = pad(current) + '/' + pad(total);
-			if (prev) prev.disabled = atStart;
-			if (next) next.disabled = atEnd;
+			var s = state();
+			if (counter) counter.textContent = pad(s.current) + '/' + pad(s.total);
+			if (prev) prev.disabled = s.atStart;
+			if (next) next.disabled = s.atEnd;
 			// один экран — листать нечего, прячем управление целиком
 			var nav = root.querySelector('.nd-relprojects__nav');
-			if (nav) nav.hidden = (total <= 1);
+			if (nav) nav.hidden = (s.total <= 1);
 		}
 
-		function scrollBy(dir) {
-			track.scrollLeft += dir * track.clientWidth;
+		// прыгаем на номер страницы, а не сдвигаем ленту на экран: на последней
+		// странице она стоит впритык к краю, и сдвиг назад промахивался мимо начала
+		function goPage(dir) {
+			var s = state();
+			var target = Math.min(s.total, Math.max(1, s.current + dir));
+			track.scrollLeft = Math.min((target - 1) * s.w, track.scrollWidth - s.w);
 		}
 
-		if (prev) prev.addEventListener('click', function () { scrollBy(-1); });
-		if (next) next.addEventListener('click', function () { scrollBy(1); });
+		if (prev) prev.addEventListener('click', function () { goPage(-1); });
+		if (next) next.addEventListener('click', function () { goPage(1); });
 		track.addEventListener('scroll', render);
 		window.addEventListener('resize', render);
 		render();

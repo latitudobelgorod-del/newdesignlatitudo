@@ -755,32 +755,43 @@
         var prev = box.querySelector('.nd-related__arrow--prev');
         var next = box.querySelector('.nd-related__arrow--next');
 
-        function sync() {
-            /* Страниц столько, сколько экранов в ленте. Скрытые карточки
-               (в корзине лента подрезается, когда товар убирают из заказа)
-               из потока выпадают, поэтому считать их отдельно не нужно —
-               scrollWidth уже про оставшиеся. */
+        /* Страниц столько, сколько экранов в ленте. Скрытые карточки
+           (в корзине лента подрезается, когда товар убирают из заказа)
+           из потока выпадают, поэтому считать их отдельно не нужно —
+           scrollWidth уже про оставшиеся. */
+        function state() {
             var w = track.clientWidth || 1;
             var total = Math.max(1, Math.ceil((track.scrollWidth - 1) / w));
-
             /* Конец ленты ловим с запасом в 1px: при дробной ширине карточки
                scrollLeft не дотягивает до scrollWidth - clientWidth. */
-            var atStart = track.scrollLeft <= 1;
             var atEnd = track.scrollLeft >= track.scrollWidth - w - 1;
+            return {
+                w: w,
+                total: total,
+                atStart: track.scrollLeft <= 1,
+                atEnd: atEnd,
+                /* Последняя страница почти всегда неполная — лента упирается
+                   в край раньше, чем пройдёт целый экран, и по scrollLeft
+                   номер выходил бы на единицу меньше. */
+                current: atEnd ? total : Math.min(total, Math.floor(track.scrollLeft / w) + 1)
+            };
+        }
 
-            /* Последняя страница почти всегда неполная — лента упирается в
-               край раньше, чем пройдёт целый экран, и по scrollLeft номер
-               выходил бы на единицу меньше. */
-            var current = atEnd ? total : Math.min(total, Math.floor(track.scrollLeft / w) + 1);
-            if (counter) counter.textContent = pad2(current) + '/' + pad2(total);
-
-            if (prev) prev.disabled = atStart;
-            if (next) next.disabled = atEnd;
-            box.classList.toggle('is-static', track.scrollWidth <= track.clientWidth + 1);
+        function sync() {
+            var s = state();
+            if (counter) counter.textContent = pad2(s.current) + '/' + pad2(s.total);
+            if (prev) prev.disabled = s.atStart;
+            if (next) next.disabled = s.atEnd;
+            box.classList.toggle('is-static', s.total <= 1);
         }
 
         function page(dir) {
-            track.scrollLeft += dir * track.clientWidth;
+            /* Прыгаем на номер страницы, а не сдвигаем ленту на экран:
+               на последней странице лента стоит впритык к краю, и сдвиг
+               назад промахивался мимо начала предыдущей. */
+            var s = state();
+            var target = Math.min(s.total, Math.max(1, s.current + dir));
+            track.scrollLeft = Math.min((target - 1) * s.w, track.scrollWidth - s.w);
             /* scroll-behavior:smooth — событие scroll придёт позже, но
                счётчик обновляем и сразу, чтобы стрелка не мигала. */
             setTimeout(sync, 350);
