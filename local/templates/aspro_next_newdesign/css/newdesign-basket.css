@@ -789,11 +789,6 @@
     .nd-basket-head {
         max-width: none;
     }
-    /* Цены за штуку на мобильном макете нет — остаются сумма, старая цена
-       и скидка. */
-    #basket-root .nd-price-unit {
-        display: none;
-    }
     /* Правая колонка уходит под список. */
     #basket-root .basket-items-list.flexbox--row {
         flex-direction: column;
@@ -853,13 +848,26 @@
             "desc desc"
             "sum stepper";
         column-gap: 16px;
-        row-gap: 12px;
+        row-gap: 16px;
         padding: 16px 0;
     }
+    /* Позиции в мобильном макете разделены линией — на десктопе её нет,
+       поэтому базовое правило border:0 перебиваем той же специфичностью. */
+    #basket-root .basket-items-list .basket-items-list-item-container {
+        border-bottom: 1px solid rgba(82, 82, 100, .12);
+    }
+    /* Фото уходит вправо, текст — влево (на десктопе наоборот). Плашка
+       наличия остаётся над кадром, поэтому у правой колонки две строки. */
     #basket-root .basket-items-list-item-descriptions-inner {
-        grid-template-columns: 96px minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) 96px;
+        grid-template-areas:
+            "info stores"
+            "info photo";
         column-gap: 12px;
         align-items: start;
+    }
+    #basket-root .basket-item-property-custom-photo {
+        grid-area: photo;
     }
     #basket-root .basket-item-property-custom-photo,
     #basket-root .basket-item-custom-block-photo-item {
@@ -871,6 +879,8 @@
     }
     /* Кадр 96px — плашке над ним хватает отбивки поменьше. */
     #basket-root .nd-basket-stores {
+        grid-area: stores;
+        justify-self: end;
         margin-bottom: 4px;
     }
     #basket-root .nd-basket-stores__trigger {
@@ -878,15 +888,93 @@
         font-size: 9px;
         line-height: 14px;
     }
+    /* display с !important — тема ниже 768px кладёт блок в display:block,
+       и «Удалить» (у него order:3) уезжает наверх, до названия. */
     #basket-root .basket-item-block-info {
+        grid-area: info;
+        display: flex !important;
         gap: 8px;
     }
-    #basket-root .basket-item-block-price {
-        align-items: flex-start;
+
+    /* Цены в макете стоят в два столбца: слева сумма и цена за штуку,
+       справа старая цена и скидка. Обёртку .basket-item-block-price
+       распускаем через display:contents, чтобы её содержимое попало
+       в сетку ячейки. */
+    #basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) {
+        display: grid;
+        grid-template-columns: auto auto;
+        grid-template-areas:
+            "sum  old"
+            "unit disc";
+        justify-content: start;
+        align-items: baseline;
+        column-gap: 12px;
+        row-gap: 2px;
         text-align: left;
     }
+    #basket-root .basket-item-block-price.main {
+        display: contents;
+    }
+    #basket-root .basket-item-block-price.main .basket-item-price-current {
+        grid-area: sum;
+    }
+    #basket-root .basket-item-block-price.main .basket-item-price-old {
+        grid-area: old;
+    }
+    #basket-root .basket-item-block-price.main .nd-price-unit {
+        grid-area: unit;
+        margin: 0;
+    }
+    #basket-root .basket-items-list-item-price .basket-item-price-difference {
+        grid-area: disc;
+        margin: 0;
+        text-align: left;
+    }
+    #basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) .basket-item-price-current-text {
+        font-size: 24px;
+        line-height: 28px;
+    }
+    #basket-root .basket-item-price-old-text {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    #basket-root .basket-item-price-difference {
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    /* Счётчик: в мобильном макете «шт» стоит внутри серой плашки,
+       под числом, а не отдельной строкой под ней. */
     #basket-root .basket-item-block-amount {
+        display: grid;
+        grid-template-columns: 40px minmax(0, 1fr) 40px;
+        grid-template-areas:
+            "minus value plus"
+            "minus unit  plus";
+        align-content: center;
         width: 120px;
+        padding: 0;
+    }
+    #basket-root .basket-item-amount-btn-minus {
+        grid-area: minus;
+        height: 100%;
+    }
+    #basket-root .basket-item-amount-btn-plus {
+        grid-area: plus;
+        height: 100%;
+    }
+    #basket-root .basket-item-amount-filed-block {
+        grid-area: value;
+    }
+    #basket-root .basket-item-amount-filed {
+        height: 22px !important;
+        line-height: 22px;
+    }
+    #basket-root .basket-item-amount-field-description {
+        grid-area: unit;
+        margin: 0;
+        font-size: 11px;
+        line-height: 14px;
     }
 }
 

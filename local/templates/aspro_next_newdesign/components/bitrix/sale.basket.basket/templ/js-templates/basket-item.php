@@ -431,7 +431,9 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 								{{/DISCOUNT_PRICE_PERCENT}}
 								<?
 							}						?>
-								<div id="basket-item-sum-price-difference-{{ID}}" class="hidden-xs">
+								<?// hidden-xs снят: скидка есть и в мобильном макете —
+								   // стоит справа от цены за штуку.?>
+								<div id="basket-item-sum-price-difference-{{ID}}">
 									Скидка {{{SUM_DISCOUNT_PRICE_FORMATED}}}
 								</div>
 							</div>
