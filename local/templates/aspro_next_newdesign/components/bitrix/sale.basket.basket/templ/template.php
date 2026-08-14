@@ -840,13 +840,11 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 		}, 300);
 	}
 
-	if (window.BX) {
-		BX.addCustomEvent('onCompleteAction', function (eventdata) {
-			/* Тема шлёт это событие после своего getActualBasket(), то есть
-			   когда товар уже в корзине (action вида loadActualBasket<тип>). */
-			var action = eventdata && eventdata.action ? String(eventdata.action) : '';
-			if (action.indexOf('loadActualBasket') !== 0) return;
-
+	var pending = 0;
+	function afterAdd() {
+		/* Несколько сигналов об одном добавлении — считаем за одно. */
+		clearTimeout(pending);
+		pending = setTimeout(function () {
 			var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
 			if (!bc || !bc.result) {
 				reload();
@@ -854,6 +852,31 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 			}
 			bc.sendRequest('refreshAjax', {});
 			reloadIfNewItem();
+		}, 100);
+	}
+
+	/* Сигнал первый: сама отправка товара в корзину. Тема шлёт её на
+	   /ajax/item.php с add_item=Y и получает {"STATUS":"OK"}. Это самый
+	   надёжный признак — он есть всегда, когда товар действительно добавлен. */
+	if (window.jQuery) {
+		jQuery(document).ajaxComplete(function (e, xhr, settings) {
+			var url = settings && settings.url ? String(settings.url) : '';
+			var data = settings && typeof settings.data === 'string' ? settings.data : '';
+			if (url.indexOf('/ajax/item.php') === -1 || data.indexOf('add_item=Y') === -1) return;
+			if (xhr && xhr.responseText && xhr.responseText.indexOf('"STATUS":"OK"') === -1) return;
+			afterAdd();
+		});
+	}
+
+	/* Сигнал второй: штатное событие темы после getActualBasket(). На проде
+	   оно не приходит — nginx разворачивает /ajax/actualBasket.php в нижний
+	   регистр (301), а такого файла на диске нет, запрос падает в 404. Держим
+	   как запасной: локально и на regrutest событие работает. */
+	if (window.BX) {
+		BX.addCustomEvent('onCompleteAction', function (eventdata) {
+			var action = eventdata && eventdata.action ? String(eventdata.action) : '';
+			if (action.indexOf('loadActualBasket') !== 0) return;
+			afterAdd();
 		});
 	}
 
