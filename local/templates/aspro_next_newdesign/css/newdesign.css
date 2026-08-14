@@ -3241,9 +3241,14 @@ body .nd-filter .bx_filter_block .values_expander {
    (catalog_blockcolors_newdesign), поэтому здесь только вкладки и число
    колонок; всё остальное живёт в css/newdesign-catalog.css.
    ======================================================================== */
+/* Поля как у соседних блоков главной (52 / 24 / 16 на брейкпоинтах): сам блок
+   во всю ширину до 1440, отступ по краям держит padding. Раньше стояла голая
+   ширина 1336 без полей — на десктопе это то же самое, а на планшете и
+   телефоне заголовок и карточки прилипали к краю экрана. */
 .nd-interest {
-    max-width: 1336px;
+    max-width: 1440px;
     margin: 0 auto 52px;
+    padding: 0 52px;
     font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
 }
 .nd-interest__title h2,
@@ -3306,6 +3311,9 @@ body .nd-filter .bx_filter_block .values_expander {
 }
 
 @media (max-width: 1279px) {
+    .nd-interest {
+        padding: 0 24px;
+    }
     .nd-interest__title h2 {
         font-size: 36px;
         line-height: 42px;
@@ -3322,6 +3330,7 @@ body .nd-filter .bx_filter_block .values_expander {
 @media (max-width: 767px) {
     .nd-interest {
         margin-bottom: 32px;
+        padding: 0 16px;
     }
     .nd-interest__title h2 {
         font-size: 28px;
