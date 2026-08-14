@@ -329,11 +329,8 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 								</span>
 							</div>
 		{{/SHOW_DISCOUNT_PRICE}}
-		
-		
-		
-						<?// В макете цена за единицу стоит одной строкой — «4 560 ₽ за шт.»,
-						   // без «цена за 1».?>
+
+						<?// Цена за единицу стоит одной строкой — «4 560 ₽ за шт.».?>
 						<div class="basket-item-price-title">
 							<?=Loc::getMessage('SBB_ND_PRICE_FOR')?> {{MEASURE_TEXT}}.
 						</div>
@@ -397,6 +394,15 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 								{{{SUM_PRICE_FORMATED}}}
 							</span>
 						</div>
+		<?/* Цена за штуку идёт сразу под суммой (макет), поэтому печатается
+		     здесь же, а не в соседней ячейке таблицы: та стоит отдельной
+		     строкой сетки, и между суммой и ней вклинивались старая цена со
+		     скидкой. Саму ячейку «за шт.» прячем стилями.
+		     На мобильном этой строки в макете нет — скрывается по ширине. */?>
+		<div class="nd-price-unit">
+			<span class="nd-price-unit__value">{{{PRICE_FORMATED}}}</span>
+			<span class="nd-price-unit__title"><?=Loc::getMessage('SBB_ND_PRICE_FOR')?> {{MEASURE_TEXT}}.</span>
+		</div>
 		{{#SHOW_DISCOUNT_PRICE}}
 							<div class="basket-item-price-old ">
 								<span class="basket-item-price-old-text">
@@ -414,7 +420,6 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 						
 						</div>
 								{{#SHOW_DISCOUNT_PRICE}}
-									{{#SHOW_DISCOUNT_PRICE}}
 							<div class="basket-item-price-difference " >
 										<?if ($arParams['SHOW_DISCOUNT_PERCENT'] === 'Y')
 	{
@@ -431,12 +436,6 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 								</div>
 							</div>
 						{{/SHOW_DISCOUNT_PRICE}}
-						
-						{{/SHOW_DISCOUNT_PRICE}}
-						
-						
-						
-						
 						{{#SHOW_LOADING}}
 							<div class="basket-items-list-item-overlay"></div>
 						{{/SHOW_LOADING}}

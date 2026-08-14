@@ -131,11 +131,8 @@
    цена растягивалась, и название сжималось до полутора слов). */
 #basket-root .basket-items-list-item-container {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 150px 136px;
-    grid-template-rows: auto auto;
-    grid-template-areas:
-        "desc sum stepper"
-        "desc unit stepper";
+    grid-template-columns: minmax(0, 1fr) 130px 136px;
+    grid-template-areas: "desc sum stepper";
     align-items: center;
     column-gap: 24px;
     row-gap: 4px;
@@ -155,17 +152,7 @@
     grid-area: desc;
     width: auto;
 }
-/* Сумма и цена за штуку стоят в соседних строках сетки, а высоту строки
-   задаёт описание с фотографией — из-за этого цены разъезжались к верху и
-   низу карточки. Прижимаем сумму к низу своей строки, а цену за штуку — к
-   верху своей: получается плотная пара по центру, как в макете. */
-#basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) {
-    align-self: end;
-}
-#basket-root .basket-items-list-item-price-for-one {
-    grid-area: unit;
-    align-self: start;
-}
+/* Вся колонка цен теперь в одной ячейке — она и стоит в области sum. */
 #basket-root .basket-items-list-item-amount {
     grid-area: stepper;
 }
@@ -380,11 +367,44 @@
     line-height: 19.6px;
     color: #8f8f9a;
 }
-/* В строке «за шт.» штатный шаблон повторяет старую цену и скидку — в макете
-   там только цена за штуку, а повтор растягивал строку на два ряда. */
-#basket-root .basket-items-list-item-price-for-one .basket-item-price-old-text,
-#basket-root .basket-items-list-item-price-for-one .basket-item-price-difference {
-    display: none;
+/* Отдельная ячейка «цена за штуку» больше не нужна: строку печатает ячейка
+   суммы (js-templates/basket-item.php), чтобы она шла сразу под суммой, до
+   старой цены и скидки. Саму ячейку прячем — сеткой она занимала отдельную
+   строку, и порядок из макета в ней не собирался. */
+#basket-root .basket-items-list-item-price-for-one {
+    display: none !important;
+}
+
+/* Порядок в колонке цен из макета: сумма → цена за штуку → старая цена →
+   скидка. Тема раскладывает блоки своим order, поэтому задаём его явно. */
+#basket-root .basket-item-block-price.main .basket-item-price-current {
+    order: 1;
+}
+#basket-root .basket-item-block-price.main .nd-price-unit {
+    order: 2;
+}
+#basket-root .basket-item-block-price.main .basket-item-price-old {
+    order: 3;
+}
+#basket-root .basket-items-list-item-price .basket-item-price-difference {
+    order: 4;
+}
+
+/* Цена за штуку под суммой: «4 560 руб за шт.» одной строкой. */
+#basket-root .nd-price-unit {
+    margin: 2px 0 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    line-height: 24px;
+    white-space: nowrap;
+}
+#basket-root .nd-price-unit__value {
+    font-weight: 500;
+    font-size: 16px;
+    color: #525264;
+}
+#basket-root .nd-price-unit__title {
+    font-size: 14px;
+    color: #8f8f9a;
 }
 /* Скидка — как в списке товаров: под суммой зачёркнутая старая цена, ниже
    «СКИДКА N ₽» красным капсом. Процент (.differ-per) в макете не выводится. */
@@ -769,6 +789,11 @@
     .nd-basket-head {
         max-width: none;
     }
+    /* Цены за штуку на мобильном макете нет — остаются сумма, старая цена
+       и скидка. */
+    #basket-root .nd-price-unit {
+        display: none;
+    }
     /* Правая колонка уходит под список. */
     #basket-root .basket-items-list.flexbox--row {
         flex-direction: column;
@@ -820,8 +845,7 @@
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             "desc desc"
-            "sum stepper"
-            "unit stepper";
+            "sum stepper";
         column-gap: 16px;
         row-gap: 12px;
         padding: 16px 0;
