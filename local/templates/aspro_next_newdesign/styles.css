@@ -1,6 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 /*img.lazy {height:100%;}*/
-body{width:100%;position:relative;margin:0 auto;padding:0;color:#555;font-family: "PT Sans", Arial, sans-serif !important;}
+body{width:100%;position:relative;margin:0 auto;padding:0;color:#555;font-family: 'Nunito Sans', Arial, sans-serif !important;}
 button, input[type='submit'], input[type='button'], .basket_button, .basket_button span {text-transform:none;box-sizing:border-box;-moz-box-sizing:border-box;-o-box-sizing:border-box;-webkit-box-sizing:border-box;outline:none;}
 h1{color: #383838;font-size: 36px;font-weight:bold;line-height: 38px;padding-bottom: 25px;}
 h1.shifted{padding-right:200px;}
@@ -14,7 +13,7 @@ h5{font-size: 14px;}
 a {cursor:pointer;}
 h1{font-size:2.133em;line-height:1.4em;margin:0 0 18px;font-weight:bold;}
 h2, .h2{font-size:1.8em;line-height:1.2em;margin: 40px 0 26px;}
-.h2 {font-weight:bold;color: #383838;font-family: "PT Sans", Arial, sans-serif;}
+.h2 {font-weight:bold;color: #383838;font-family: 'Nunito Sans', Arial, sans-serif;}
 
 h3{font-size:1.4em;  line-height:24px;margin: 40px 0 26px;}
 h4{font-size:1.33em; line-height:20px;margin: 40px 0 26px;}

@@ -1,8 +1,11 @@
-/* 15px/24px PT Sans Caption (Default) */
+/* 15px/24px — базовый шрифт темы. В новом дизайне это Nunito Sans из макета
+   (шрифт подключается локально в css/newdesign.css), в теме здесь стоял
+   PT Sans Caption. Файл выбирается настройкой темы, поэтому менять шрифт
+   правильнее тут, а не перебивать !important-ами. */
 html {font-size: 15px;}
-body, body .bx-soa-section-title{ font: 15px/24px "PT Sans Caption", Arial, sans-serif; }
-h1,h2,h3,h4,h5,h6{font-family: "PT Sans Caption", Arial, sans-serif;}
-.tooltip{font-family: "PT Sans Caption", Arial, sans-serif;}
+body, body .bx-soa-section-title{ font: 15px/24px 'Nunito Sans', Arial, sans-serif; }
+h1,h2,h3,h4,h5,h6{font-family: 'Nunito Sans', Arial, sans-serif;}
+.tooltip{font-family: 'Nunito Sans', Arial, sans-serif;}
 
 .logo_and_menu-row .personal-link .title{font-size:13px;}
 .logo-row .top-description .js_city_chooser{font-size:14px;}
@@ -37,7 +40,7 @@ body .buy_block .counter input, body .footer-button .buy_block .counter input{he
 .catalog_detail .item-stock > span{font-size:14px;}
 
 /*filter*/
-.bx_filter_select_popup ul li label,.bx_filter_select_popup ul li a{font-family: "PT Sans Caption", Arial, sans-serif;}
+.bx_filter_select_popup ul li label,.bx_filter_select_popup ul li a{font-family: 'Nunito Sans', Arial, sans-serif;}
 
 blockquote.danger, blockquote.info, blockquote.code{line-height:28px;}
 header.header-v8 .svg-search.white{top:-2px;}
@@ -61,16 +64,16 @@ header.header-v8 .svg-search.white{top:-2px;}
 #basket-root .basket-coupon-block-field-description, #basket-root .basket-coupon-alert, #basket-root .basket-coupon-alert .close-link,
 #basket-root .basket-checkout-block-total-title, #basket-root .basket-checkout-block-total-description, #basket-root .basket-coupon-block-total-price-current,
 #basket-root .basket-coupon-block-total-price-difference, #basket-root .basket-coupon-block-total-price-old,
-#basket-root .basket-item-price-old-text, #basket-root .basket-item-price-difference, #basket-root .basket-item-property-scu-text .basket-item-scu-item-inner{font-family: "PT Sans Caption", Arial, sans-serif;}
+#basket-root .basket-item-price-old-text, #basket-root .basket-item-price-difference, #basket-root .basket-item-property-scu-text .basket-item-scu-item-inner{font-family: 'Nunito Sans', Arial, sans-serif;}
 
 /*order*/
 body .bx-soa-section-title{font-size:22px;}
-#bx-soa-order .bx-sls .bx-ui-sls-fake, #bx-soa-order .bx-sls .bx-ui-sls-route{font-family: "PT Sans Caption", Arial, Helvetica, sans-serif;}
-.personal_wrapper .orders_wrapper .sale-order-list-button, .personal_wrapper .orders_wrapper .sale-order-detail-about-order-inner-container-repeat > a, .sale-order-detail-payment-options-methods-button-element, .sale-order-detail-payment-options-methods-button-element-new-window{font-family: "PT Sans Caption", Arial, Helvetica, sans-serif;}
+#bx-soa-order .bx-sls .bx-ui-sls-fake, #bx-soa-order .bx-sls .bx-ui-sls-route{font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;}
+.personal_wrapper .orders_wrapper .sale-order-list-button, .personal_wrapper .orders_wrapper .sale-order-detail-about-order-inner-container-repeat > a, .sale-order-detail-payment-options-methods-button-element, .sale-order-detail-payment-options-methods-button-element-new-window{font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;}
 .personal_wrapper .orders_wrapper .row.col-md-12.col-sm-12 > a,
 .sale-order-list-accomplished-date, .sale-order-list-accomplished-date-number,
 .personal_wrapper .orders_wrapper .sale-order-title,
 .personal_wrapper .orders_wrapper .sale-order-list-container .sale-order-list-accomplished-title, .personal_wrapper .orders_wrapper .sale-order-list-container .sale-order-list-title, .personal_wrapper .orders_wrapper .sale-order-detail-general-item,
 .personal_wrapper .orders_wrapper .sale-order-list-inner-row > div > a, .personal_wrapper .sale-personal-account-wallet-container .sale-personal-account-wallet-title,
-.btn.sale-account-pay-button, .bx-sls .bx-ui-sls-fake, .bx-sls .bx-ui-sls-route{font-family: "PT Sans Caption", Arial, Helvetica, sans-serif;}
-.gm-style, .gm-style-iw-d {font: 15px/24px "PT Sans Caption", Arial, sans-serif;}
+.btn.sale-account-pay-button, .bx-sls .bx-ui-sls-fake, .bx-sls .bx-ui-sls-route{font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;}
+.gm-style, .gm-style-iw-d {font: 15px/24px 'Nunito Sans', Arial, sans-serif;}
