@@ -319,6 +319,26 @@ if (empty($arResult['ERROR_MESSAGE']))
 		<?if ($arParams['BASKET_WITH_ORDER_INTEGRATION'] !== 'Y'):?>
 				<div class="basket-total-outer ">
 					<div class="basket-total-block" data-entity="basket-total-block"></div>
+
+					<?/* Блок «Уточните наличие и условия доставки» под панелью итогов
+					     (макет Figma «Чистовик»). Это тот же самый блок, что в левой
+					     колонке каталога, — включаемая область include/infochat_newdesign.php,
+					     разметку и стили (.nd-infochat*) не дублируем. Вне мустач-шаблона
+					     итогов: тот перерисовывается при каждом пересчёте корзины, а PHP
+					     внутри него не отрабатывает. */?>
+					<div class="infochat nd-infochat-wrap nd-basket-infochat">
+						<?$APPLICATION->IncludeComponent("bitrix:main.include", ".default",
+							array(
+								"COMPONENT_TEMPLATE" => ".default",
+								"PATH" => SITE_DIR."include/infochat_newdesign.php",
+								"AREA_FILE_SHOW" => "file",
+								"AREA_FILE_SUFFIX" => "",
+								"AREA_FILE_RECURSIVE" => "Y",
+								"EDIT_TEMPLATE" => "standard.php"
+							),
+							false
+						);?>
+					</div>
 				</div>
 			<?endif;?>
 </div>
