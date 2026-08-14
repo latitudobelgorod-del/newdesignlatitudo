@@ -32,6 +32,12 @@
     width: 429px;
 }
 
+/* Серой рамки вокруг списка в макете нет — товары отделяет только воздух,
+   а тема рисует её на обёртке списка (1px #f2f2f2). */
+#basket-root .basket-items-list-wrapper {
+    border: 0 !important;
+}
+
 /* Штатный шаблон умеет держать список фиксированной высоты со своей
    прокруткой (basket-items-list-wrapper-height-fixed). В макете список
    растёт как есть — отпускаем высоту, иначе карточки уедут под скролл. */
@@ -62,11 +68,16 @@
 /* Заголовок страницы и кнопка «Очистить корзину» — одной строкой.
    Печатает их template.php: свой H1 у страницы остаётся только в старом
    дизайне (basket/index.php смотрит на SITE_TEMPLATE_ID). */
+/* В макете «Очистить корзину» стоит не у правого края страницы, а по правому
+   краю колонки со списком товаров — то есть левее панели итогов. Ширину
+   колонки считаем из тех же чисел, что и раскладка ниже: 429 правая колонка
+   и 52 между колонками. */
 .nd-basket-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    max-width: calc(100% - 429px - 52px);
     margin: 0 0 24px;
 }
 .nd-basket-head__title {
@@ -115,15 +126,18 @@
 }
 /* Три колонки, а не четыре: фото лежит внутри ячейки описания, своей колонки
    ему не нужно — иначе пустая колонка съедает 203px и текст схлопывается. */
+/* Колонку цены держим узкой и фиксированной: в макете под неё уходит ~150px,
+   а всё остальное место отдано названию с характеристиками (у auto-колонки
+   цена растягивалась, и название сжималось до полутора слов). */
 #basket-root .basket-items-list-item-container {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto 136px;
+    grid-template-columns: minmax(0, 1fr) 150px 136px;
     grid-template-rows: auto auto;
     grid-template-areas:
         "desc sum stepper"
         "desc unit stepper";
     align-items: center;
-    column-gap: 36px;
+    column-gap: 24px;
     row-gap: 4px;
     padding: 24px 0;
 }
@@ -141,8 +155,16 @@
     grid-area: desc;
     width: auto;
 }
+/* Сумма и цена за штуку стоят в соседних строках сетки, а высоту строки
+   задаёт описание с фотографией — из-за этого цены разъезжались к верху и
+   низу карточки. Прижимаем сумму к низу своей строки, а цену за штуку — к
+   верху своей: получается плотная пара по центру, как в макете. */
+#basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) {
+    align-self: end;
+}
 #basket-root .basket-items-list-item-price-for-one {
     grid-area: unit;
+    align-self: start;
 }
 #basket-root .basket-items-list-item-amount {
     grid-area: stepper;
@@ -160,13 +182,19 @@
 #basket-root .basket-items-list-item-descriptions-inner {
     display: grid;
     grid-template-columns: 203px minmax(0, 1fr);
+    /* первая строка — под плашку наличия, вторая — под фото; если склады у
+       товара не показываем, строка схлопывается в ноль */
+    grid-template-rows: auto auto;
     align-items: center;
-    column-gap: 36px;
+    /* зазор до текста поменьше макетного — на нашем сайте цены пишутся словом
+       «руб», колонка цены шире фигмовской, и название добирает эти пиксели */
+    column-gap: 24px;
     margin: 0;
     padding: 0;
 }
 #basket-root .basket-item-property-custom-photo {
     grid-column: 1;
+    grid-row: 2;
     width: 203px;
     margin: 0;
 }
@@ -186,12 +214,15 @@
     border: 0;
     background: none;
 }
+/* Поля темы (26 слева и 55 справа) съедали половину колонки названия —
+   гасим, текст должен занимать её целиком. */
 #basket-root .basket-item-block-info {
     grid-column: 2;
+    grid-row: 1 / span 2;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 0;
+    padding: 0 !important;
 }
 
 /* Название и характеристики */
@@ -348,6 +379,12 @@
     font-size: 14px;
     line-height: 19.6px;
     color: #8f8f9a;
+}
+/* В строке «за шт.» штатный шаблон повторяет старую цену и скидку — в макете
+   там только цена за штуку, а повтор растягивал строку на два ряда. */
+#basket-root .basket-items-list-item-price-for-one .basket-item-price-old-text,
+#basket-root .basket-items-list-item-price-for-one .basket-item-price-difference {
+    display: none;
 }
 /* Скидка — как в списке товаров: под суммой зачёркнутая старая цена, ниже
    «СКИДКА N ₽» красным капсом. Процент (.differ-per) в макете не выводится. */
@@ -609,30 +646,38 @@
 #basket-root .basket-items-list-item-descriptions-inner {
     position: relative;
 }
+/* В макете плашка стоит НАД фотографией, отдельной строкой, а не поверх её
+   угла: фото и плашка — две строки первой колонки описания. position:relative
+   оставляем ради выпадающего списка складов, он позиционируется от неё. */
 #basket-root .nd-basket-stores {
-    position: absolute;
-    top: 8px;
-    left: 8px;
+    position: relative;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    margin: 0 0 8px;
     z-index: 3;
 }
+/* Плашка наличия — ровно та же, что на карточке в каталоге: сплошной зелёный
+   с белым текстом (была бледная — зелёные буквы на светлой заливке). */
 #basket-root .nd-basket-stores__trigger {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 1px 6px;
+    padding: 3px 6px;
     border-radius: 4px;
-    background: #ebfaef;
-    color: #2ca94c;
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 16px;
+    background: #34c787;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 13px;
+    letter-spacing: .01em;
     text-transform: uppercase;
     white-space: nowrap;
     cursor: pointer;
     transition: background .2s;
 }
 #basket-root .nd-basket-stores__trigger:hover {
-    background: #d4f0dc;
+    background: #2bb77b;
 }
 #basket-root .nd-basket-stores__arrow {
     font-size: 8px;
@@ -719,6 +764,11 @@
 }
 
 @media (max-width: 991px) {
+    /* Колонки встают друг под друга — ограничивать шапку по ширине списка
+       больше не надо, кнопка «Очистить корзину» снова у правого края. */
+    .nd-basket-head {
+        max-width: none;
+    }
     /* Правая колонка уходит под список. */
     #basket-root .basket-items-list.flexbox--row {
         flex-direction: column;
@@ -789,10 +839,9 @@
         height: 96px;
         border-radius: 6px;
     }
-    /* Кадр 96px — плашка должна поместиться поверх него. */
+    /* Кадр 96px — плашке над ним хватает отбивки поменьше. */
     #basket-root .nd-basket-stores {
-        top: 4px;
-        left: 4px;
+        margin-bottom: 4px;
     }
     #basket-root .nd-basket-stores__trigger {
         padding: 0 4px;
