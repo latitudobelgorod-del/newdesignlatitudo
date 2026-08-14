@@ -1017,10 +1017,13 @@ BX.ready(function() {
     <div class="sku_props">
         <?if (!empty($arResult['OFFERS_PROP'])){?>
             <div class="bx_catalog_item_scu wrapper_sku" id="<? echo $arItemIDs["ALL_ITEM_IDS"]['PROP_DIV']; ?>">
+                <?/* Обёртка с кодом свойства — по ней в css/newdesign-catalog.css
+                     к длине дописывается «мм» (то же, что в карточке списка). */?>
                 <?foreach ($arSkuTemplate as $code => $strTemplate){
                     if (!isset($arResult['OFFERS_PROP'][$code]))
                         continue;
-                    echo str_replace('#ITEM#_prop_', $arItemIDs["ALL_ITEM_IDS"]['PROP'], $strTemplate);
+                    $ndSkuClass = 'nd-sku nd-sku--'.mb_strtolower(preg_replace('/[^A-Za-z0-9_]/', '', $code));
+                    echo '<div class="', $ndSkuClass, '">', str_replace('#ITEM#_prop_', $arItemIDs["ALL_ITEM_IDS"]['PROP'], $strTemplate), '</div>';
                 }?>
             </div>
         <?}?>

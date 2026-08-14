@@ -548,10 +548,16 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 										<div class="bx_catalog_item_scu wrapper_sku" id="<? echo $arItemIDs["ALL_ITEM_IDS"]['PROP_DIV']; ?>">
 											<?$arSkuTemplate = array();?>
 											<?$arSkuTemplate=CNext::GetSKUPropsArray($arItem['OFFERS_PROPS_JS'], $arResult["SKU_IBLOCK_ID"], $arParams["DISPLAY_TYPE"], $arParams["OFFER_HIDE_NAME_PROPS"]); ?>
+											<?/* Обёртка каждого свойства помечена его кодом: по ней в
+											     css/newdesign-catalog.css к длине дописывается «мм»
+											     (само значение приходит голым числом, единица сидит
+											     в названии свойства «Длина, мм», а название в карточке
+											     не показываем). */?>
 											<?foreach ($arSkuTemplate as $code => $strTemplate){
 												if (!isset($arItem['OFFERS_PROP'][$code]))
 													continue;
-												echo '<div>', str_replace('#ITEM#_prop_', $arItemIDs["ALL_ITEM_IDS"]['PROP'], $strTemplate), '</div>';
+												$ndSkuClass = 'nd-sku nd-sku--'.mb_strtolower(preg_replace('/[^A-Za-z0-9_]/', '', $code));
+												echo '<div class="', $ndSkuClass, '">', str_replace('#ITEM#_prop_', $arItemIDs["ALL_ITEM_IDS"]['PROP'], $strTemplate), '</div>';
 											}?>
 										</div>
 										<?$arItemJSParams=CNext::GetSKUJSParams($arResult, $arParams, $arItem);?>
