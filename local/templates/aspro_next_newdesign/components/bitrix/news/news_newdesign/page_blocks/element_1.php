@@ -1,6 +1,9 @@
 <?$APPLICATION->IncludeComponent(
 	"bitrix:news.detail",
-	"news",
+	/* копия шаблона news: у неё товары акции выводятся карточкой нового
+	   дизайна (см. news.detail/news_newdesign/template.php), остальным
+	   страницам, которые зовут "news", менять нечего */
+	"news_newdesign",
 	Array(
 		"S_ASK_QUESTION" => $arParams["S_ASK_QUESTION"],
 		"S_ORDER_SERVISE" => $arParams["S_ORDER_SERVISE"],

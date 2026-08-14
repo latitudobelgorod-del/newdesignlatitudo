@@ -1,9 +1,11 @@
 <?php
-/* Список товаров бренда, разложенный по разделам.
+/* Список товаров карточками нового дизайна: по разделам (страница бренда) или
+   сплошной сеткой с кнопкой «Показать ещё».
 
-   Один и тот же файл зовут два места, и это не случайно:
-     - page_blocks/element_1.php шаблона news/partners_newdesign — сама страница;
-     - /local/ajax/brand_products.php — догрузка хвоста раздела.
+   Один и тот же файл зовут несколько мест, и это не случайно:
+     - page_blocks/element_1.php шаблона news/partners_newdesign — страница бренда;
+     - news.detail/news_newdesign/template.php — товары акции на /sale/<код>/;
+     - /local/ajax/brand_products.php и promo_products.php — догрузка хвоста.
    Параметры каталога (свойства, торговые предложения, цены) обязаны совпадать
    до буквы, иначе догруженные карточки отличаются от напечатанных страницей.
    Поэтому вызов компонента здесь ровно один.
@@ -99,6 +101,8 @@ $APPLICATION->IncludeComponent(
 		'LD_OFFSET' => $ldOffset,
 		// чем шаблон адресует догрузку: бренд и свойство связи (см. AJAX_QUERY)
 		'LD_AJAX_QUERY' => (string)($ldBrand['AJAX_QUERY'] ?? ''),
+		// у акции догрузку отдаёт свой обработчик, у бренда — свой
+		'LD_AJAX_URL' => (string)($ldBrand['AJAX_URL'] ?? ''),
 
 		'IBLOCK_TYPE' => 'aspro_next_catalog',
 		'IBLOCK_ID' => \Bitrix\Main\Config\Option::get('aspro.next', 'CATALOG_IBLOCK_ID', 19),

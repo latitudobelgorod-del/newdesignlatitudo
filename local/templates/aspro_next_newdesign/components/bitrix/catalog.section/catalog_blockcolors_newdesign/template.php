@@ -16,6 +16,11 @@ $ldHeads = array();      // индекс первой карточки разд�
 $ldTails = array();      // индекс последней карточки раздела => сам раздел
 $ldLastTail = null;      // раздел, которым список заканчивается
 $ldAjaxQuery = (string)($arParams['LD_AJAX_QUERY'] ?? '');
+/* Кто отдаёт догруженные карточки: у бренда свой обработчик, у товаров акции
+   свой — оба зовут тот же include/brand_products.php. */
+$ldAjaxUrl = (string)($arParams['LD_AJAX_URL'] ?? '');
+if($ldAjaxUrl === '')
+	$ldAjaxUrl = '/local/ajax/brand_products.php';
 $ldMeta = (array)($arResult['LD_SECTIONS_META'] ?? array());
 
 /* Сетка бренда пятиколоночная (макет «Категория производителя»: карточки по
@@ -68,11 +73,11 @@ $ldGoodsWord = function($n){
 	return 'товаров';
 };
 
-$ldMoreButton = function($sid, $total, $shown) use ($ldAjaxQuery, $ldGoodsWord){
+$ldMoreButton = function($sid, $total, $shown) use ($ldAjaxQuery, $ldAjaxUrl, $ldGoodsWord){
 	if($ldAjaxQuery === '' || $total <= $shown)
 		return '';
 	$left = $total - $shown;
-	$url = '/local/ajax/brand_products.php?'.$ldAjaxQuery.'&section='.(int)$sid.'&offset='.(int)$shown;
+	$url = $ldAjaxUrl.'?'.$ldAjaxQuery.'&section='.(int)$sid.'&offset='.(int)$shown;
 	return '<div class="nd-brandsect__more">'
 		.'<button type="button" class="nd-brandsect__more-btn" data-nd-brand-more'
 		.' data-url="'.htmlspecialcharsbx($url).'">Показать еще '.$left.' '.$ldGoodsWord($left).'</button>'
