@@ -1006,11 +1006,14 @@
 
 /* ---------------------------------------------------------------------------
    Блок «Доставка» — последний в правой колонке, под инфочатом.
-   Разметка — page_blocks/basket_delivery_newdesign.php.
+   Разметка — page_blocks/basket_delivery_newdesign.php; строки приходят из
+   той же включаемой области, что и на детальной товара, поэтому классы
+   у них чужие (.nd-pd__delivery-*), а стили детальной сюда не доезжают:
+   там всё завязано на .element_newdesign. Иконки — те же data-URI.
 
-   Размеры из макета: заголовок 18/24 700, строка высотой 40 (иконка 24,
-   зазор 12), тексты 16/24, подпись «Из магазина» серая. Подложки и рамок
-   у блока нет — он идёт по ширине колонки, вровень с инфочатом.
+   Размеры из макета: заголовок 18/24 700, строка 40 (иконка 24, зазор 12),
+   тексты 16/24, приписка серая. Подложки и рамок нет — блок идёт по ширине
+   колонки, вровень с инфочатом.
    ------------------------------------------------------------------------ */
 #basket-root .nd-basket-delivery {
     margin-top: 24px;
@@ -1023,7 +1026,7 @@
     line-height: 24px;
     color: #101014;
 }
-#basket-root .nd-basket-delivery__row {
+#basket-root .nd-basket-delivery .nd-pd__delivery-row {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -1033,54 +1036,61 @@
     line-height: 24px;
     color: #101014;
 }
-/* Строка-ссылка не должна выглядеть ссылкой — тема красит и подчёркивает. */
-#basket-root a.nd-basket-delivery__row,
-#basket-root a.nd-basket-delivery__row:hover,
-#basket-root a.nd-basket-delivery__row:focus {
-    color: #101014;
-    text-decoration: none;
-    border: 0;
+#basket-root .nd-basket-delivery .nd-pd__delivery-icon {
+    flex: 0 0 24px;
+    height: 24px;
+    background: no-repeat center / contain;
 }
-#basket-root a.nd-basket-delivery__row:hover .nd-basket-delivery__more {
-    color: #c60000;
+#basket-root .nd-basket-delivery .nd-pd__delivery-icon--pickup {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M3 9.5L12 4l9 5.5V20H3V9.5z' stroke='%23101014' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M9 20v-6h6v6' stroke='%23101014' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
-#basket-root .nd-basket-delivery__ico {
-    flex: 0 0 auto;
-    display: inline-flex;
-    color: #101014;
+#basket-root .nd-basket-delivery .nd-pd__delivery-icon--truck {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M2 7h11v9H2V7zM13 10h4l3 3v3h-7v-6z' stroke='%23101014' stroke-width='1.5' stroke-linejoin='round'/%3E%3Ccircle cx='7' cy='18' r='2' stroke='%23101014' stroke-width='1.5'/%3E%3Ccircle cx='17' cy='18' r='2' stroke='%23101014' stroke-width='1.5'/%3E%3C/svg%3E");
 }
-/* Название занимает остаток строки — приписки уходят к правому краю. */
-#basket-root .nd-basket-delivery__name {
+/* Название занимает остаток строки — приписка и значение уходят вправо
+   и стоят рядом, как в макете (на детальной значение прижато `margin-left`,
+   и приписка остаётся у названия). */
+#basket-root .nd-basket-delivery .nd-pd__delivery-name {
     flex: 1 1 auto;
     min-width: 0;
     font-weight: 500;
 }
-#basket-root .nd-basket-delivery__note {
+#basket-root .nd-basket-delivery .nd-pd__delivery-note {
     flex: 0 0 auto;
+    font-size: 14px;
+    line-height: 20px;
     color: #8f8f9a;
 }
-#basket-root .nd-basket-delivery__value {
+#basket-root .nd-basket-delivery .nd-pd__delivery-value {
     flex: 0 0 auto;
-    font-weight: 500;
     white-space: nowrap;
 }
-#basket-root .nd-basket-delivery__more {
-    flex: 0 0 auto;
+/* «Подробнее» в макете тёмное, с шевроном, а не красной ссылкой. */
+#basket-root .nd-basket-delivery .nd-pd__delivery-value a {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    white-space: nowrap;
+    color: #101014;
+    text-decoration: none;
+    border: 0;
+}
+#basket-root .nd-basket-delivery .nd-pd__delivery-value a:after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m6 3.5 5 4.5-5 4.5' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m6 3.5 5 4.5-5 4.5' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+#basket-root .nd-basket-delivery .nd-pd__delivery-value a:hover {
+    color: #c60000;
 }
 
 @media (max-width: 767px) {
-    /* Длинное «Транспортной компанией» рядом с «Подробнее» не помещается —
+    /* «Транспортной компанией» рядом с «Подробнее» в 360 не помещается —
        разрешаем строке переноситься. */
-    #basket-root .nd-basket-delivery__row {
+    #basket-root .nd-basket-delivery .nd-pd__delivery-row {
         flex-wrap: wrap;
-        row-gap: 0;
-    }
-    #basket-root .nd-basket-delivery__name {
-        flex: 1 1 auto;
     }
 }
 
