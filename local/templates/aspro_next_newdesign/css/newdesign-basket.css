@@ -232,13 +232,23 @@
     color: #c60000;
 }
 /* Характеристики в макете идут одной серой строкой, а не столбцом пар
-   «название — значение», как их печатает штатный шаблон. */
+   «название — значение», как их печатает штатный шаблон.
+
+   Типографику вешаем на сам контейнер: у нас включена ветка `columns`
+   (PRODUCT_BLOCKS_ORDER), а она печатает «Вес: 8.127 кг» голым текстом,
+   без обёрток .basket-item-property — правила ниже для них срабатывают
+   только там, где выводятся свойства заказа (ветка `props`). */
 #basket-root .basket-item-block-properties {
     display: flex;
     flex-wrap: wrap;
     gap: 4px 8px;
     margin: 0;
     padding: 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 19.6px;
+    color: #8f8f9a;
 }
 #basket-root .basket-item-property {
     display: inline-flex;
@@ -319,15 +329,18 @@
 }
 
 /* ---- цены --------------------------------------------------------------- */
+/* Колонка цен в макете выровнена по левому краю (сумма, цена за штуку,
+   старая цена и скидка начинаются с одной вертикали), а не по правому,
+   как раскладывает тема. */
 #basket-root .basket-item-block-price {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: 4px;
     min-width: 93px;
     margin: 0;
     padding: 0;
-    text-align: right;
+    text-align: left;
 }
 /* Общая сумма — крупная, ею открывается колонка. */
 #basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) .basket-item-price-current-text {
@@ -351,7 +364,7 @@
     flex-direction: row;
     flex-wrap: wrap;
     align-items: baseline;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 4px;
 }
 #basket-root .basket-items-list-item-price-for-one .basket-item-price-current-text {
@@ -417,7 +430,7 @@
     letter-spacing: .04em;
     color: #ff4130;
     text-transform: uppercase;
-    text-align: right;
+    text-align: left;
 }
 #basket-root .differ-per {
     display: none;
@@ -453,9 +466,11 @@
     background: none;
     cursor: pointer;
 }
+/* Тема подсвечивает кнопку серым фоном (#efefef) — в макете счётчик сплошной,
+   заливки под «−»/«+» при наведении нет. Гасим и её, и свою. */
 #basket-root .basket-item-amount-btn-minus:hover,
 #basket-root .basket-item-amount-btn-plus:hover {
-    background: rgba(82, 82, 100, .12);
+    background: none;
 }
 /* Знаки «−» и «+» тема рисует палочками в псевдоэлементах и держит их
    абсолютом — оставляем позиционирование, меняем только цвет и центровку,
@@ -877,16 +892,10 @@
         height: 96px;
         border-radius: 6px;
     }
-    /* Кадр 96px — плашке над ним хватает отбивки поменьше. */
+    /* Плашки наличия в мобильном макете на карточке нет (на десктопе есть) —
+       на узком экране она отнимала строку у названия. */
     #basket-root .nd-basket-stores {
-        grid-area: stores;
-        justify-self: end;
-        margin-bottom: 4px;
-    }
-    #basket-root .nd-basket-stores__trigger {
-        padding: 0 4px;
-        font-size: 9px;
-        line-height: 14px;
+        display: none;
     }
     /* display с !important — тема ниже 768px кладёт блок в display:block,
        и «Удалить» (у него order:3) уезжает наверх, до названия. */
@@ -894,6 +903,13 @@
         grid-area: info;
         display: flex !important;
         gap: 8px;
+    }
+    /* Вес и размеры в мобильном макете мельче десктопных. */
+    #basket-root .basket-item-block-properties,
+    #basket-root .basket-item-property {
+        gap: 2px 6px;
+        font-size: 12px;
+        line-height: 16px;
     }
 
     /* Цены в макете стоят в два столбца: слева сумма и цена за штуку,
