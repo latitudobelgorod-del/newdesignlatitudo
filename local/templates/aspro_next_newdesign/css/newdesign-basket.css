@@ -1005,6 +1005,86 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Блок «Доставка» — последний в правой колонке, под инфочатом.
+   Разметка — page_blocks/basket_delivery_newdesign.php.
+
+   Размеры из макета: заголовок 18/24 700, строка высотой 40 (иконка 24,
+   зазор 12), тексты 16/24, подпись «Из магазина» серая. Подложки и рамок
+   у блока нет — он идёт по ширине колонки, вровень с инфочатом.
+   ------------------------------------------------------------------------ */
+#basket-root .nd-basket-delivery {
+    margin-top: 24px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+}
+#basket-root .nd-basket-delivery__title {
+    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 24px;
+    color: #101014;
+}
+#basket-root .nd-basket-delivery__row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 40px;
+    padding: 4px 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+/* Строка-ссылка не должна выглядеть ссылкой — тема красит и подчёркивает. */
+#basket-root a.nd-basket-delivery__row,
+#basket-root a.nd-basket-delivery__row:hover,
+#basket-root a.nd-basket-delivery__row:focus {
+    color: #101014;
+    text-decoration: none;
+    border: 0;
+}
+#basket-root a.nd-basket-delivery__row:hover .nd-basket-delivery__more {
+    color: #c60000;
+}
+#basket-root .nd-basket-delivery__ico {
+    flex: 0 0 auto;
+    display: inline-flex;
+    color: #101014;
+}
+/* Название занимает остаток строки — приписки уходят к правому краю. */
+#basket-root .nd-basket-delivery__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 500;
+}
+#basket-root .nd-basket-delivery__note {
+    flex: 0 0 auto;
+    color: #8f8f9a;
+}
+#basket-root .nd-basket-delivery__value {
+    flex: 0 0 auto;
+    font-weight: 500;
+    white-space: nowrap;
+}
+#basket-root .nd-basket-delivery__more {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+    /* Длинное «Транспортной компанией» рядом с «Подробнее» не помещается —
+       разрешаем строке переноситься. */
+    #basket-root .nd-basket-delivery__row {
+        flex-wrap: wrap;
+        row-gap: 0;
+    }
+    #basket-root .nd-basket-delivery__name {
+        flex: 1 1 auto;
+    }
+}
+
+/* ---------------------------------------------------------------------------
    Мобильный макет: прибитая снизу панель «Заказать» + итоговая сумма.
    Figma «Чистовик», фрейм 20517:145774 (мобильная корзина, вариант с панелью).
 

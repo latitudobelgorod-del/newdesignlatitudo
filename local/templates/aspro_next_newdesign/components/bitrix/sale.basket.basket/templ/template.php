@@ -339,6 +339,9 @@ if (empty($arResult['ERROR_MESSAGE']))
 							false
 						);?>
 					</div>
+
+					<?/* Блок «Доставка» — последним в правой колонке, как в макете. */?>
+					<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/page_blocks/basket_delivery_newdesign.php';?>
 				</div>
 			<?endif;?>
 </div>
