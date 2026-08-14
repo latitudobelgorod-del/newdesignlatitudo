@@ -552,7 +552,11 @@
 .nd-catlist .catalog_item_wrapp .nd-old-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    /* На узкой карточке (два столбца на телефоне) «4 000 ₽» и «скидка 1 000 ₽»
+       в одну строку не помещаются: flex поджимал обе, и знак рубля срывался
+       на следующую строку. Переносим строку целиком, а цены не рвём. */
+    flex-wrap: wrap;
+    gap: 2px 10px;
     margin: 0 0 4px;
     font-size: 14px;
     line-height: 20px;
@@ -561,10 +565,12 @@
 .nd-catlist .catalog_item_wrapp .nd-old-row__old {
     color: #8f8f9a;
     text-decoration: line-through;
+    white-space: nowrap;
 }
 
 .nd-catlist .catalog_item_wrapp .nd-old-row__diff {
     color: #ff4130;
+    white-space: nowrap;
 }
 
 /* ---------------------------------------------------------------------------
