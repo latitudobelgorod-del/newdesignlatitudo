@@ -276,6 +276,27 @@
     padding: 0;
 }
 
+/* Точки-индикаторы. На десктопе их в макете нет — там листают лентой превью,
+   поэтому по умолчанию ряд скрыт и включается только в мобильных правилах. */
+.nd-pd__dots {
+    display: none;
+}
+.nd-pd__dot {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, .64);
+    cursor: pointer;
+    transition: width .2s ease;
+}
+/* Текущее фото — не кружок, а «пилюля» 40×8 (Figma Frame 1948755740) */
+.nd-pd__dot.is-active {
+    width: 40px;
+}
+
 /* полоса «Профиль доски» под галереей (макет 757×52, Figma Frame 2087329557).
    Подпись и чертёж стоят одной группой по центру плашки, а не по левому краю:
    в макете центр группы совпадает с центром полосы. */
@@ -1563,12 +1584,80 @@
     .nd-pd__thumbs {
         display: none;
     }
+    /* Фото во всю ширину экрана и без скругления (макет 20512:84167: 360×360
+       встык к краям, тогда как на десктопе это квадрат 634 с радиусом 6).
+       Вылезаем из полей контейнера через 50%/50vw, а не отрицательными
+       полями: величина полей у темы на разных экранах разная, а этот приём
+       от неё не зависит. */
+    .nd-pd__photo {
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        border-radius: 0;
+    }
+    /* Кнопки на телефоне круглые 32×32, а не плашки 48 (Figma Right_Action и
+       кнопка воспроизведения слева): надписи у видео нет, остаётся значок. */
     .nd-pd__video span {
         display: none;
     }
-    .nd-pd__video {
-        width: 48px;
+    .nd-pd__video,
+    .nd-pd__zoom {
+        bottom: 9px;
+        width: 32px;
+        height: 32px;
         padding: 0;
+        border-width: 1.5px;
+        border-radius: 50%;
+    }
+    .nd-pd__video svg,
+    .nd-pd__zoom svg {
+        width: 16px;
+        height: 16px;
+    }
+    /* Бейдж гарантии мельче десктопного: 40×40, радиус 10.67 */
+    .nd-pd__warranty {
+        width: 40px;
+        height: 40px;
+        border-radius: 10.67px;
+    }
+    .nd-pd__warranty b {
+        font-size: 13px;
+        line-height: 14px;
+    }
+    .nd-pd__warranty span {
+        font-size: 6px;
+        line-height: 7px;
+    }
+    /* Ряд точек стоит по центру нижнего края фото, на одной линии с кнопками
+       (в макете их центры совпадают: кнопки 478–510, точки 491–499). */
+    .nd-pd__dots {
+        position: absolute;
+        left: 48px;
+        right: 48px;
+        bottom: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        height: 32px;
+    }
+    /* Полоса «Профиль доски» на телефоне — не серая плашка, а белая строка 44
+       с мелкой подписью (Figma Slider 360×44: 10/13 w500, разрядка 0.4).
+       Верхнее поле не нужно: фото идёт встык. */
+    .nd-pd__profile {
+        min-height: 44px;
+        margin-top: 0;
+        padding: 8px 16px;
+        border-radius: 0;
+        background: #fff;
+        gap: 16px;
+    }
+    .nd-pd__profile-label {
+        font-size: 10px;
+        line-height: 13px;
+        font-weight: 500;
+        letter-spacing: .4px;
     }
 }
 

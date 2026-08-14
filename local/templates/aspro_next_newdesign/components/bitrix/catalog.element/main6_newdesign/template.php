@@ -426,16 +426,23 @@ if ($ndProfileVal) {
 				<? endforeach; ?>
 			</div>
 
+			<? /* Значок ▶ идёт ПОСЛЕ надписи — так в макете (Figma Left_Action). */ ?>
 			<? if ($arResult['HAS_VIDEO']): ?>
 				<a class="nd-pd__video" href="javascript:void(0)" data-fancybox data-type="iframe" hidden>
-					<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x=".75" y=".75" width="18.5" height="18.5" rx="4.25" stroke="#fff" stroke-width="1.5"/><path d="M8 6.5l5 3.5-5 3.5v-7z" fill="#fff"/></svg>
 					<span>Смотреть видео</span>
+					<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x=".75" y=".75" width="18.5" height="18.5" rx="4.25" stroke="#fff" stroke-width="1.5"/><path d="M8 6.5l5 3.5-5 3.5v-7z" fill="#fff"/></svg>
 				</a>
 			<? endif; ?>
 
 			<button type="button" class="nd-pd__zoom" aria-label="Увеличить">
 				<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="6" stroke="#fff" stroke-width="1.5"/><path d="M13.5 13.5L18 18M9 6.5v5M6.5 9h5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
 			</button>
+
+			<? /* Точки-индикаторы. В макете они есть только на телефоне (360):
+			      там лента превью скрыта, и листать фото больше нечем. Разметку
+			      наполняет js/newdesign-element.js — число точек зависит от
+			      торгового предложения и меняется вместе с галереей. */ ?>
+			<div class="nd-pd__dots" role="tablist" aria-label="Фотографии товара"></div>
 		</div>
 	</div>
 

@@ -11,7 +11,7 @@
 (function () {
 	'use strict';
 
-	var root, gallery, photo, img, thumbsWrap, track, nextBtn;
+	var root, gallery, photo, img, thumbsWrap, track, nextBtn, dots;
 	var slides = [];
 	var current = 0;
 
@@ -26,6 +26,31 @@
 				'" data-index="' + i + '"><img src="' + s.thumb + '" alt="' + (s.alt || '') + '" loading="lazy"></button>';
 		}).join('');
 		updateArrow();
+	}
+
+	/* Точки под фото. Нужны на телефоне: там лента превью скрыта, и без них
+	   ни показать, сколько всего фото, ни переключить их нечем. На одном фото
+	   точка ровно одна и смысла не несёт — тогда ряд не рисуем вовсе. */
+	function renderDots() {
+		if (!dots) return;
+		if (slides.length < 2) {
+			dots.innerHTML = '';
+			return;
+		}
+		dots.innerHTML = slides.map(function (s, i) {
+			return '<button type="button" class="nd-pd__dot' + (i === current ? ' is-active' : '') +
+				'" data-index="' + i + '" role="tab" aria-label="Фото ' + (i + 1) + '"' +
+				(i === current ? ' aria-selected="true"' : '') + '></button>';
+		}).join('');
+	}
+
+	function syncDots() {
+		if (!dots) return;
+		Array.prototype.forEach.call(dots.children, function (el, i) {
+			el.classList.toggle('is-active', i === current);
+			if (i === current) el.setAttribute('aria-selected', 'true');
+			else el.removeAttribute('aria-selected');
+		});
 	}
 
 	function updateArrow() {
@@ -52,6 +77,7 @@
 				track.scrollTop = active.offsetTop;
 			}
 		}
+		syncDots();
 	}
 
 	/* Пересборка после смены торгового предложения: тема отдаёт объект слайдера
@@ -77,6 +103,7 @@
 		slides = next;
 		current = 0;
 		renderThumbs();
+		renderDots();
 		show(0);
 		syncLinks();
 		syncVideo();
@@ -527,6 +554,32 @@
 		document.body.style.setProperty('padding-bottom', (bar.offsetHeight + nh + 12) + 'px', 'important');
 	}
 
+	/* Листание фото пальцем. На телефоне лента превью скрыта, и до появления
+	   точек фото вообще нельзя было сменить. Порог 40px, чтобы обычный тап и
+	   вертикальная прокрутка страницы не считались перелистыванием; при явно
+	   вертикальном движении жест отдаём странице. Слушатели пассивные —
+	   preventDefault тут не нужен, а с ним прокрутка начинает дёргаться. */
+	function bindSwipe() {
+		if (!photo) return;
+		var x0 = null, y0 = null;
+
+		photo.addEventListener('touchstart', function (e) {
+			if (e.touches.length !== 1) { x0 = null; return; }
+			x0 = e.touches[0].clientX;
+			y0 = e.touches[0].clientY;
+		}, { passive: true });
+
+		photo.addEventListener('touchend', function (e) {
+			if (x0 === null || slides.length < 2) return;
+			var t = e.changedTouches[0];
+			var dx = t.clientX - x0;
+			var dy = t.clientY - y0;
+			x0 = null;
+			if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+			show(dx < 0 ? current + 1 : current - 1);
+		}, { passive: true });
+	}
+
 	function bind() {
 		if (track) {
 			track.addEventListener('click', function (e) {
@@ -550,6 +603,13 @@
 				else if (links[0]) links[0].click();
 			});
 		}
+		if (dots) {
+			dots.addEventListener('click', function (e) {
+				var d = e.target.closest('.nd-pd__dot');
+				if (d) show(parseInt(d.getAttribute('data-index'), 10) || 0);
+			});
+		}
+		bindSwipe();
 		window.addEventListener('resize', updateArrow);
 
 		/* Пересчёт «Общей стоимости» — от действий покупателя. Слушаем на root:
@@ -598,9 +658,11 @@
 		thumbsWrap = $('.nd-pd__thumbs', gallery);
 		track = $('.nd-pd__thumbs-track', gallery);
 		nextBtn = $('.nd-pd__thumbs-next', gallery);
+		dots = $('.nd-pd__dots', gallery);
 
 		try { slides = JSON.parse(gallery.getAttribute('data-nd-slides') || '[]'); } catch (e) { slides = []; }
 
+		renderDots();
 		moveNodes();
 		moveChars();
 		moveDocs();
