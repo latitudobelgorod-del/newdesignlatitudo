@@ -734,9 +734,9 @@
 
        Разметку блока печатает catalog.element/main6/component_epilog.php,
        карточки — тот же шаблон списка, поэтому здесь только стрелки и
-       счётчик. Листаем на видимую страницу (ширину ленты), счётчик
-       показывает номер первой видимой карточки и общее число, как в макете
-       («01/08»).
+       счётчик. Листаем на видимую страницу (ширину ленты), и счётчик тоже
+       страничный: «какая страница из скольких», как в блоке «Проекты
+       с товаром» (news.list/list_projects_product_newdesign/script.js).
        ------------------------------------------------------------------ */
     function pad2(n) {
         return (n < 10 ? '0' : '') + n;
@@ -756,20 +756,24 @@
         var next = box.querySelector('.nd-related__arrow--next');
 
         function sync() {
-            /* Считаем только видимые карточки: в корзине лента подрезается,
-               когда товар убирают из заказа. */
-            var shown = [].filter.call(items, function (el) { return el.offsetParent !== null; });
-            if (!shown.length) shown = [items[0]];
-
-            var step = shown[0].getBoundingClientRect().width || 1;
-            var first = Math.round(track.scrollLeft / step) + 1;
-            if (first > shown.length) first = shown.length;
-            if (counter) counter.textContent = pad2(first) + '/' + pad2(shown.length);
+            /* Страниц столько, сколько экранов в ленте. Скрытые карточки
+               (в корзине лента подрезается, когда товар убирают из заказа)
+               из потока выпадают, поэтому считать их отдельно не нужно —
+               scrollWidth уже про оставшиеся. */
+            var w = track.clientWidth || 1;
+            var total = Math.max(1, Math.ceil((track.scrollWidth - 1) / w));
 
             /* Конец ленты ловим с запасом в 1px: при дробной ширине карточки
                scrollLeft не дотягивает до scrollWidth - clientWidth. */
             var atStart = track.scrollLeft <= 1;
-            var atEnd = track.scrollLeft >= track.scrollWidth - track.clientWidth - 1;
+            var atEnd = track.scrollLeft >= track.scrollWidth - w - 1;
+
+            /* Последняя страница почти всегда неполная — лента упирается в
+               край раньше, чем пройдёт целый экран, и по scrollLeft номер
+               выходил бы на единицу меньше. */
+            var current = atEnd ? total : Math.min(total, Math.floor(track.scrollLeft / w) + 1);
+            if (counter) counter.textContent = pad2(current) + '/' + pad2(total);
+
             if (prev) prev.disabled = atStart;
             if (next) next.disabled = atEnd;
             box.classList.toggle('is-static', track.scrollWidth <= track.clientWidth + 1);

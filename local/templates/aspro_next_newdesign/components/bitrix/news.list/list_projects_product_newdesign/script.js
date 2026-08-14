@@ -17,18 +17,17 @@
 		function pad(n) { return n < 10 ? '0' + n : String(n); }
 
 		function pages() {
-			return Math.max(1, Math.ceil(track.scrollWidth / track.clientWidth));
-		}
-
-		function current() {
-			return Math.min(pages(), Math.round(track.scrollLeft / track.clientWidth) + 1);
+			return Math.max(1, Math.ceil((track.scrollWidth - 1) / (track.clientWidth || 1)));
 		}
 
 		function render() {
 			var total = pages();
-			if (counter) counter.textContent = pad(current()) + '/' + pad(total);
 			var atStart = track.scrollLeft <= 1;
 			var atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
+			// последняя страница неполная: лента упирается в край раньше, чем
+			// пройдёт целый экран, и номер по scrollLeft был бы на единицу меньше
+			var current = atEnd ? total : Math.min(total, Math.floor(track.scrollLeft / (track.clientWidth || 1)) + 1);
+			if (counter) counter.textContent = pad(current) + '/' + pad(total);
 			if (prev) prev.disabled = atStart;
 			if (next) next.disabled = atEnd;
 			// один экран — листать нечего, прячем управление целиком
