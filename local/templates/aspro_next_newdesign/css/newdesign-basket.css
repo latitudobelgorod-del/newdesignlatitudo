@@ -840,8 +840,14 @@
         font-size: 14px;
     }
     /* На мобильном карточка складывается в две строки: фото с описанием
-       сверху, цены и счётчик — под ними. */
+       сверху, цены и счётчик — под ними.
+
+       display с !important: тема ниже 768px кладёт строку таблицы во флекс
+       через `tr.basket-items-list-item-container { display: flex !important }`
+       (style.css компонента) — без перебивки сетка тут просто не работает,
+       и карточка разваливается по-старому. */
     #basket-root .basket-items-list-item-container {
+        display: grid !important;
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             "desc desc"
