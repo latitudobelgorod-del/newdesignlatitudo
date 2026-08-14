@@ -904,3 +904,64 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 	else document.addEventListener('DOMContentLoaded', restoreScroll);
 })();
 </script>
+
+<?php
+/* Мобильный макет корзины: снизу висит панель с кнопкой «Заказать» и итоговой
+   суммой — над нижней панелью навигации сайта. Своей кнопки оформления у неё
+   нет: она нажимает штатную (data-entity="basket-checkout-button"), иначе
+   пришлось бы дублировать логику проверок компонента.
+
+   Сумму читаем из панели итогов. Её перерисовывает mustache при каждом
+   пересчёте корзины, поэтому следим за изменениями наблюдателем, а не
+   копируем один раз. */
+if (!empty($arResult['GRID']['ROWS'])):
+?>
+<div class="nd-basket-bar" hidden>
+	<button type="button" class="nd-basket-bar__btn"><?=Loc::getMessage('SBB_ORDER')?></button>
+	<div class="nd-basket-bar__row">
+		<span class="nd-basket-bar__label"><?=Loc::getMessage('SBB_TOTAL')?></span>
+		<span class="nd-basket-bar__value" data-nd-bar-total></span>
+	</div>
+</div>
+<script>
+(function () {
+	if (window.__ndBasketBar) return;
+	window.__ndBasketBar = true;
+
+	var bar = document.querySelector('.nd-basket-bar');
+	if (!bar) return;
+
+	var valueNode = bar.querySelector('[data-nd-bar-total]');
+
+	function totalNode() {
+		return document.querySelector('[data-entity="basket-total-price"]');
+	}
+
+	function sync() {
+		var src = totalNode();
+		/* Пустая корзина — панели быть не должно: строка итога пропадает
+		   вместе с блоком итогов. */
+		if (!src || !src.textContent.trim()) {
+			bar.hidden = true;
+			return;
+		}
+		valueNode.textContent = src.textContent.trim();
+		bar.hidden = false;
+	}
+
+	bar.querySelector('.nd-basket-bar__btn').addEventListener('click', function () {
+		var btn = document.querySelector('[data-entity="basket-checkout-button"]');
+		if (btn) btn.click();
+	});
+
+	var box = document.querySelector('[data-entity="basket-total-block"]') || document.getElementById('basket-root');
+	if (box) new MutationObserver(sync).observe(box, { childList: true, subtree: true, characterData: true });
+
+	if (document.readyState !== 'loading') sync();
+	else document.addEventListener('DOMContentLoaded', sync);
+	/* Панель итогов приезжает скриптом компонента — переспрашиваем. */
+	setTimeout(sync, 600);
+	setTimeout(sync, 2000);
+})();
+</script>
+<?php endif; ?>

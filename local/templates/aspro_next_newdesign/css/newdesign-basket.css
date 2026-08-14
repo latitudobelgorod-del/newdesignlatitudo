@@ -893,3 +893,74 @@
 #basket-root .nd-basket-infochat {
     margin-top: 24px;
 }
+
+/* ---------------------------------------------------------------------------
+   Мобильный макет: прибитая снизу панель «Заказать» + итоговая сумма.
+   Figma «Чистовик», фрейм 20517:145774 (мобильная корзина, вариант с панелью).
+
+   Размеры из макета: панель 360×98 над нижней навигацией (её высота —
+   переменная --nd-navbar-h), поля 5/10, кнопка 340×56 радиус 4 #c60000,
+   под ней строка «Итого» 14/20 (подпись #757583 400, сумма #101014 700),
+   отбивка 8. Тени нет, сверху волосяная рамка rgba(82,82,100,.25).
+   ------------------------------------------------------------------------ */
+.nd-basket-bar {
+    display: none;
+}
+
+@media (max-width: 991px) {
+    .nd-basket-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: calc(var(--nd-navbar-h, 56px) + env(safe-area-inset-bottom, 0px));
+        z-index: 900;
+        display: block;
+        padding: 5px 10px;
+        border-top: 1px solid rgba(82, 82, 100, .25);
+        background: #fff;
+    }
+    .nd-basket-bar[hidden] {
+        display: none;
+    }
+    .nd-basket-bar__btn {
+        display: block;
+        width: 100%;
+        height: 56px;
+        border: 0;
+        border-radius: 4px;
+        background: #c60000;
+        color: #fff;
+        font-family: 'Nunito Sans', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 56px;
+        cursor: pointer;
+    }
+    .nd-basket-bar__btn:hover,
+    .nd-basket-bar__btn:focus {
+        background: #a80000;
+        color: #fff;
+    }
+    .nd-basket-bar__row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 8px;
+        font-family: 'Nunito Sans', Arial, sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+    }
+    .nd-basket-bar__label {
+        color: #757583;
+    }
+    .nd-basket-bar__value {
+        font-weight: 700;
+        color: #101014;
+        white-space: nowrap;
+    }
+    /* Панель не должна накрывать конец страницы. */
+    #basket-root {
+        padding-bottom: 116px;
+    }
+}
