@@ -777,3 +777,87 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 	else document.addEventListener('DOMContentLoaded', observe);
 })();
 </script>
+
+<?/* Товар, добавленный из ленты «Может пригодиться», в списке корзины не
+	 появлялся до перезагрузки страницы. Разбор: сервер кладёт его в корзину
+	 сразу, и refreshAjax компонента отдаёт новую позицию в GRID.ROWS — но
+	 нарисовать под неё строку штатный JS не умеет, он обновляет только те,
+	 что уже есть в разметке. Поэтому: сначала просим пересчёт (если товар в
+	 корзине уже был, там поменяется количество — и перезагрузка не нужна), а
+	 если позиций стало больше, чем нарисовано, перезагружаем страницу,
+	 вернув прокрутку на прежнее место. */?>
+<script>
+(function () {
+	if (window.__ndBasketAddSync) return;
+	window.__ndBasketAddSync = true;
+
+	var SCROLL_KEY = 'ndBasketScroll';
+
+	/* Прокрутку возвращаем после перезагрузки: лента живёт внизу страницы,
+	   и без этого пользователь оказывался бы наверху. */
+	function restoreScroll() {
+		var y;
+		try {
+			y = sessionStorage.getItem(SCROLL_KEY);
+			sessionStorage.removeItem(SCROLL_KEY);
+		} catch (e) {}
+		if (!y) return;
+		var scroll = function () { window.scrollTo(0, parseInt(y, 10) || 0); };
+		scroll();
+		/* Карточки ленты дорисовываются скриптами, высота страницы меняется —
+		   поэтому повторяем, пока она не устаканится. */
+		setTimeout(scroll, 400);
+		setTimeout(scroll, 1200);
+	}
+
+	function reload() {
+		try { sessionStorage.setItem(SCROLL_KEY, String(window.pageYOffset || 0)); } catch (e) {}
+		window.location.reload();
+	}
+
+	function rowsShown() {
+		return document.querySelectorAll('#basket-item-list [data-nd-product-id]').length;
+	}
+
+	function rowsKnown() {
+		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+		var rows = bc && bc.result && bc.result.GRID ? bc.result.GRID.ROWS : null;
+		return rows ? Object.keys(rows).length : 0;
+	}
+
+	/* Ждём, пока пересчёт доедет: события об окончании у компонента нет,
+	   поэтому просто следим за его состоянием несколько секунд. */
+	function reloadIfNewItem() {
+		var tries = 0;
+		var timer = setInterval(function () {
+			tries++;
+			if (rowsKnown() > rowsShown()) {
+				clearInterval(timer);
+				reload();
+			} else if (tries > 16) {
+				clearInterval(timer);
+			}
+		}, 300);
+	}
+
+	if (window.BX) {
+		BX.addCustomEvent('onCompleteAction', function (eventdata) {
+			/* Тема шлёт это событие после своего getActualBasket(), то есть
+			   когда товар уже в корзине (action вида loadActualBasket<тип>). */
+			var action = eventdata && eventdata.action ? String(eventdata.action) : '';
+			if (action.indexOf('loadActualBasket') !== 0) return;
+
+			var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+			if (!bc || !bc.result) {
+				reload();
+				return;
+			}
+			bc.sendRequest('refreshAjax', {});
+			reloadIfNewItem();
+		});
+	}
+
+	if (document.readyState !== 'loading') restoreScroll();
+	else document.addEventListener('DOMContentLoaded', restoreScroll);
+})();
+</script>
