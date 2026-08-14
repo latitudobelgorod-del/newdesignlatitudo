@@ -438,10 +438,31 @@
 		return typeof window.MeasureUnitSwitcherEl === 'function' && !unitsBlock();
 	}
 
+	/* «Доступно в рассрочку» в мобильном макете (20512:84167) — первая строка
+	   правой колонки, выше плашки о цене. Одним order это не сделать: плашка и
+	   блок наличия лежат прямо в .info_item, а сама строка — во вложенном
+	   флекс-ряду .middle_info .row, и order действует только среди соседей.
+	   Переносить узел безопасно: он наш, торговый JS темы его не ищет. */
+	function applyInstallment(isMobile) {
+		var inst = root.querySelector('.nd-pd__installment');
+		if (!inst) return;
+		var col = document.querySelector('.item_main_info .right_info .info_item');
+		rememberHome(inst, 'installment');
+		var home = buyHomes.installment;
+
+		if (isMobile) {
+			if (col && inst !== col.firstElementChild) col.insertBefore(inst, col.firstChild);
+		} else if (home && home.parent && inst.parentNode !== home.parent) {
+			home.parent.insertBefore(inst, home.next);
+		}
+	}
+
 	function applyBuyBar() {
 		if (!root) return;
 		var isMobile = window.matchMedia('(max-width: 767px)').matches;
 		var bar = document.getElementById('nd-pd-buybar');
+
+		applyInstallment(isMobile);
 
 		if (!isMobile) {
 			if (!bar) return;
@@ -497,7 +518,10 @@
 		if (buy && buy.parentNode !== bar) bar.appendChild(buy);
 
 		var nh = navHeight();
-		bar.style.bottom = nh + 'px';
+		/* Панель садится вплотную над нижней навигацией — отступ под вырез
+		   экрана держит уже она. Если навигации нет, панель оказывается на
+		   самом низу, и вырез компенсируем здесь. */
+		bar.style.bottom = nh ? nh + 'px' : 'env(safe-area-inset-bottom, 0px)';
 		/* Тело сдвигаем, иначе панель закрывает низ страницы. !important —
 		   у темы свой padding-bottom под нижнюю навигацию. */
 		document.body.style.setProperty('padding-bottom', (bar.offsetHeight + nh + 12) + 'px', 'important');

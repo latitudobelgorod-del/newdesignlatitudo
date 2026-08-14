@@ -629,7 +629,9 @@
     box-shadow: 0 0 0 2px rgba(198, 0, 0, .3);
 }
 
-/* Длина — чипы, как в макете (87×36, r4) */
+/* Длина — чипы, как в макете (87×36, r4, текст 18/25.2 — Figma Alt_RadioButton).
+   Межстрочный берём 20, а не 25.2: у чипа фиксированная высота 36, и с 25.2
+   текст вместе с полями не влезает — в макете он так же обрезан автолэйаутом. */
 .catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_item_section_name {
     display: block;
     margin: 0 0 4px;
@@ -659,7 +661,7 @@
     border: 1px solid rgba(82, 82, 100, .25);
     border-radius: 4px;
     background: none;
-    font-size: 14px;
+    font-size: 18px;
     line-height: 20px;
     color: #101014;
     cursor: pointer;
@@ -680,7 +682,9 @@
     color: inherit !important;
 }
 
-/* Единицы измерения — группа справа от длины, активная чёрная */
+/* Единицы измерения — группа справа от длины, активная чёрная.
+   Кегль тот же, что у чипов длины (макет 18/25.2): это один компонент
+   Alt_RadioButton, и в макете обе группы стоят в одну строку одинаковыми. */
 .catalog_detail.element_newdesign .right_info .info_item .measure-unit-block {
     display: flex;
     align-items: flex-end;
@@ -703,7 +707,7 @@
     border: 1px solid rgba(82, 82, 100, .25);
     border-radius: 4px;
     background: none;
-    font-size: 14px;
+    font-size: 18px;
     line-height: 20px;
     color: #101014;
     cursor: pointer;
@@ -1622,6 +1626,26 @@
         margin-right: 0;
     }
 
+    /* --- кегли мобильного макета (20512:84167) ---
+       На телефоне вся карточка мельче десктопной: заголовок 26/28.6 вместо
+       36/40, подписи и чипы выбора 17/23.8 вместо 18/25.2. */
+    .catalog_detail.element_newdesign > h1 {
+        margin-bottom: 16px;
+        font-size: 26px;
+        line-height: 28.6px;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_item_section_name {
+        font-size: 17px;
+        line-height: 23.8px;
+    }
+    /* Чипы длины в макете 85×35 (десктоп 87×36) */
+    .catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_size li,
+    .catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li {
+        min-width: 85px;
+        height: 35px;
+        font-size: 17px;
+    }
+
     /* --- прилипающая панель покупки (макет 20512:84167) ---
        Цена и переключатель единиц первой строкой, счётчик с корзиной второй.
        Панель стоит над нижней навигацией: её высоту подставляет скрипт в
@@ -1635,8 +1659,13 @@
         left: 0;
         right: 0;
         z-index: 1001;
-        padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
-        border-top: 1px solid rgba(82, 82, 100, .15);
+        /* Поля из макета (Frame 2087329375): ряд цены отбит на 8, ряд счётчика
+           на 4, снизу 4. Общие 4 задаём панели, недостающие 4 у ряда цены.
+           safe-area здесь НЕ нужен: панель стоит над нижней навигацией, и
+           отступ под вырез держит она. Когда навигации нет, панель садится на
+           низ экрана — тогда вырез компенсирует applyBuyBar через bottom. */
+        padding: 8px 4px 4px;
+        border-top: 2px solid rgba(82, 82, 100, .25);
         background: #fff;
         box-shadow: 0 -4px 16px rgba(16, 16, 20, .1);
     }
@@ -1644,8 +1673,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
+        gap: 20px;
         margin-bottom: 8px;
+        padding: 0 4px;
     }
     /* Порядок из макета — цена слева, единицы справа. order задаём здесь
        заново: панель лежит внутри .right_info .info_item, и десктопные правила
@@ -1663,13 +1693,20 @@
         order: 2;
         flex: 0 0 auto;
     }
-    /* В панели цена мельче, чем в карточке (там 42): иначе не остаётся места
-       под переключатель единиц. 24/28 — на глаз по макету, не из Figma. */
+    /* В панели цена мельче, чем в карточке (там 42) — макет даёт 28/30.8 w800
+       (Figma Frame 277131472 внутри 2087329375). */
     #nd-pd-buybar .prices_block .price_value,
     #nd-pd-buybar .prices_block .price_currency,
     #nd-pd-buybar .prices_block .price_measure {
-        font-size: 24px !important;
-        line-height: 28px !important;
+        font-size: 28px !important;
+        line-height: 30.8px !important;
+    }
+    /* Переключатель единиц в панели мельче десктопного: 17/23.8 в боксе 35
+       (Figma Frame 2087329611). */
+    #nd-pd-buybar .measure-unit-block .measure-unit {
+        height: 35px;
+        font-size: 17px;
+        line-height: 20px;
     }
     #nd-pd-buybar .buy_block,
     #nd-pd-buybar .offer_buy_block,
@@ -1677,11 +1714,17 @@
         margin: 0 !important;
         padding: 0 !important;
     }
-    /* Счётчик и корзина делят ширину панели поровну. Базис 0, а не 50%:
-       с зазором 12 проценты дают больше 100% и кнопка срывается вниз. */
-    #nd-pd-buybar .counter_wrapp .measure-wrapper,
+    /* В макете (Frame 2087329373) счётчик и корзина ширину НЕ делят поровну:
+       счётчик 120, кнопка 228, зазор 4. Счётчику даём фиксированный базис,
+       остаток забирает кнопка. */
+    #nd-pd-buybar .counter_wrapp .measure-wrapper {
+        flex: 0 0 120px !important;
+        width: 120px !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
     #nd-pd-buybar .counter_wrapp .button_block {
-        flex: 1 1 0 !important;
+        flex: 1 1 auto !important;
         width: auto !important;
         min-width: 0 !important;
         max-width: none !important;
@@ -1692,8 +1735,8 @@
        .counter_block скрыт компонентом, а у скрытого элемента flex-свойства
        инертны (пояснение с easydecking, там та же развилка). */
     #nd-pd-buybar .counter_wrapp .counter_block {
-        flex: 1 1 0 !important;
-        width: auto !important;
+        flex: 0 0 120px !important;
+        width: 120px !important;
         min-width: 0 !important;
         max-width: none !important;
     }
@@ -1714,7 +1757,7 @@
         display: flex !important;
         flex-wrap: nowrap !important;
         align-items: center;
-        gap: 12px;
+        gap: 4px;
     }
     /* Когда работает компонент единиц, штатный счётчик лишний: класс
        .nd-has-measure ставит js/newdesign-element.js (см. syncInCart).
@@ -1730,8 +1773,9 @@
         align-items: center;
         height: 56px;
         margin: 0;
+        padding: 0 2px;
         border: 0;
-        border-radius: 4px;
+        border-radius: 3px;
         background: rgba(82, 82, 100, .1);
     }
     #nd-pd-buybar .measure-field,
@@ -1744,9 +1788,9 @@
         background: transparent;
         box-shadow: none;
         text-align: center;
-        font-size: 16px;
-        line-height: 24px;
-        font-weight: 400;
+        font-size: 14px;
+        line-height: 19.6px;
+        font-weight: 500;
         color: #101014;
     }
     /* «--» и «++» получались потому, что знак нативного счётчика рисуется и
@@ -1760,8 +1804,8 @@
     #nd-pd-buybar .counter_block .minus,
     #nd-pd-buybar .counter_block .plus,
     #nd-pd-buybar .measure-button {
-        flex: 0 0 40px !important;
-        width: 40px;
+        flex: 0 0 28px !important;
+        width: 28px;
         height: 56px;
         margin: 0;
         border: 0;
@@ -1813,7 +1857,7 @@
     #nd-pd-buybar .nd-pd-total__conv {
         overflow: hidden;
         font-size: 12px;
-        line-height: 17px;
+        line-height: 16.8px;
         color: #8f8f9a;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -1827,21 +1871,31 @@
     }
     #nd-pd-buybar .nd-pd-total__label {
         font-size: 12px;
-        line-height: 17px;
+        line-height: 16.8px;
         color: #757583;
     }
     #nd-pd-buybar .nd-pd-total__value {
-        font-size: 14px;
-        line-height: 17px;
+        font-size: 12px;
+        line-height: 16.8px;
         font-weight: 700;
         color: #101014;
     }
 
-    /* На мобильном строка рассрочки стоит первой в колонке (цена и счётчик
-       уехали в прилипающую панель) и приглушена сильнее — Figma 21289:63100:
-       14/19.6 w500 #8F8F9A. */
-    .catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .nd-pd__installment {
-        margin: 0;
+    /* В макете рассрочка идёт первой в колонке — до плашки о цене. Плашка и
+       блок наличия лежат ВЫШЕ флекс-ряда (прямо в .info_item), поэтому order
+       внутри ряда рассрочку туда не поднимет: её переставляет сам скрипт,
+       который её и создаёт (js/newdesign-element.js, mountInstallment). */
+
+    /* Рассрочка на телефоне приглушена сильнее — Figma 21289:63100:
+       14/19.6 w500 #8F8F9A. Селектор с прямым потомком .info_item: на телефоне
+       скрипт поднимает строку из флекс-ряда наверх колонки, и правило для
+       старого места (.row > .col-md-6 > …) её больше не достаёт. Отбивка 16 —
+       просвет до плашки о цене в макете (y 590 → 626 при высоте строки 20). */
+    .catalog_detail.element_newdesign .right_info .info_item > .nd-pd__installment {
+        margin: 0 0 16px;
+        font-size: 14px;
+        line-height: 19.6px;
+        font-weight: 500;
         color: #8f8f9a;
     }
 }
