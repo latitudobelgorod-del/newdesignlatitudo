@@ -125,6 +125,10 @@
    фото это было незаметно, а на «Latitudo Евро» их 10 — превью сплющивались до
    115×60 (Ирина, 2026-08-10). Запрет сжатия держит квадрат 115 из макета, лента
    становится длиннее контейнера, и скрипт показывает стрелку «вниз». */
+/* Подложка белая, а не серая: в макете у превью и фото своей заливки нет
+   (Figma 20475:75851 и 20475:75860 — только картинка). Серая была заметна на
+   узких фото: снимок вписан по высоте, и по бокам оставались серые поля
+   (Ирина, 2026-08-15). */
 .nd-pd__thumb {
     display: block;
     flex: 0 0 115px;
@@ -133,7 +137,7 @@
     padding: 0;
     border: 1px solid transparent;
     border-radius: 6px;
-    background: #f5f5f6;
+    background: #fff;
     overflow: hidden;
     cursor: pointer;
 }
@@ -176,7 +180,7 @@
     min-width: 0;
     aspect-ratio: 1 / 1;
     border-radius: 6px;
-    background: #f5f5f6;
+    background: #fff;
     overflow: hidden;
 }
 .nd-pd__img {
@@ -881,11 +885,17 @@
     align-items: center;
     gap: 12px;
 }
+/* Базис 0, как у .measure-wrapper и .button_block ниже: при базисе 240 против
+   нуля у кнопки счётчик забирал почти весь ряд, а «В корзину» сжималась до
+   ~150 и значок корзины наезжал на подпись (Ирина, 2026-08-15). Видно это
+   только у товаров без торговых предложений: там работает штатный счётчик, а
+   не плитка модуля единиц. В макете ряд делится пополам — 266 + 12 + 266. */
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex: 1 1 240px;
+    flex: 1 1 0;
+    min-width: 0;
     height: 56px;
     margin: 0;
     padding: 0 16px;
@@ -1891,6 +1901,21 @@
     #nd-pd-buybar .prices_block .price_measure {
         font-size: 28px !important;
         line-height: 30.8px !important;
+    }
+    /* Старая цена и скидка — только в карточке; в панели макета их нет
+       (Frame 277131472 на мобильном: одна строка «4 000₽/шт.» и группа единиц).
+       На узком экране они не влезали к цене в строку и переносились двумя
+       этажами — панель вырастала втрое и съедала пол-экрана
+       (Ирина, 2026-08-15). Сумму скидки покупатель видит выше, в карточке. */
+    #nd-pd-buybar .prices_block .offers_price_old,
+    #nd-pd-buybar .prices_block .sale_block {
+        display: none !important;
+    }
+    /* Цена в панели — одной строкой: перенос внутри .offers_price_wrapper
+       поднимал высоту панели даже без старой цены. */
+    #nd-pd-buybar .prices_block .offers_price_wrapper {
+        flex-wrap: nowrap;
+        align-items: baseline;
     }
     /* Переключатель единиц в панели мельче десктопного: 17/23.8 в боксе 35
        (Figma Frame 2087329611). */

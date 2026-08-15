@@ -17,6 +17,48 @@
 
 	function $(sel, ctx) { return (ctx || document).querySelector(sel); }
 
+	/* ============ подпорка под гонку в модуле единиц измерения ============
+	   Симптом: на части загрузок у товара пропадали и переключатель
+	   «шт / м² / п.м», и плитка счётчика — оставался голый счётчик темы, а на
+	   телефоне панель покупки разъезжалась (Ирина, 2026-08-15). В консоли при
+	   этом «Uncaught TypeError: Cannot read properties of null (reading
+	   'querySelector')» в aspro_element_tp/script.js.
+
+	   Разбор. Компонент maxyss:measure_unit печатает внизу страницы
+	   `new MeasureUnitSwitcherEl(..., obbx_<id>, ...)` и откладывает разбор
+	   разметки на 500 мс. В нём он читает `parentObj.obProduct` — узел карточки.
+	   А заполняет это поле шаблон темы в `JCCatalogElement.Init`, который висит
+	   на `BX.ready`, то есть на DOMContentLoaded. Кто успеет первым — гонка:
+	   на лёгкой странице сначала DOMContentLoaded (всё работает), на тяжёлой —
+	   сначала таймер, и `obProduct` ещё null → исключение рвёт инициализацию
+	   компонента целиком. Детальная у нас тяжёлая: 600 КБ разметки.
+
+	   Чинить чужой модуль не нужно — достаточно заполнить поле раньше него:
+	   значение то же самое, что позже присвоит `Init` (узел по id карточки), и
+	   повторное присваивание ничего не ломает.
+
+	   Опрос, а не DOMContentLoaded: объект `obbx_<id>` создаётся встроенным
+	   скриптом в середине страницы, и к моменту DOMContentLoaded таймер
+	   компонента может уже отработать. Первые 10 секунд после разбора нашего
+	   файла проверяем каждые 50 мс — это заведомо раньше чужого таймера,
+	   который заводится ещё ниже по странице. */
+	function primeOfferObject() {
+		var main = $('.item_main_info');
+		if (!main || !main.id) return false;
+		var ob = window['ob' + main.id];
+		if (!ob) return false;
+		if (!ob.obProduct) ob.obProduct = document.getElementById(main.id);
+		return !!ob.obProduct;
+	}
+
+	(function watchOfferObject() {
+		if (primeOfferObject()) return;
+		var tries = 0;
+		var t = setInterval(function () {
+			if (primeOfferObject() || ++tries > 200) clearInterval(t);
+		}, 50);
+	})();
+
 	/* --- превью --- */
 
 	function renderThumbs() {
@@ -159,7 +201,11 @@
 			span.className = 'nd-pd__article';
 			h1.appendChild(span);
 		}
-		span.textContent = article.textContent.trim();
+		/* У товаров с предложениями тема кладёт в .product-article голый номер,
+		   у товаров без них шаблон печатает «арт. <span class="value">N</span>».
+		   В заголовке по макету стоит одно число — берём .value, если он есть. */
+		var value = $('.value', article) || article;
+		span.textContent = value.textContent.trim();
 	}
 
 	/* Характеристики тема рисует отдельным рядом над документами, из-за чего
@@ -384,7 +430,29 @@
 			   Кто из них лишний, решаем здесь, а не в CSS: у :has() поддержка
 			   на старых мобильных браузерах неполная. */
 			cw.classList.toggle('nd-has-measure', !!cw.querySelector('.measure-wrapper'));
+			showMeasureTile(cw);
 		});
+	}
+
+	/* Плитка счётчика от модуля единиц: снимаем инлайновый display:none.
+	   Модуль ставит его один раз при разборе разметки — «раз штатный счётчик
+	   темы сейчас скрыт, спрячу и себя» — и больше никогда не возвращает
+	   (в aspro_element_tp/script.js есть ровно одно присваивание
+	   wrapper.style.display, и оно в none). Пока модуль стартовал позже темы,
+	   это не мешало; после починки гонки (см. primeOfferObject) он успевает
+	   раньше, и плитка оставалась невидимой — в панели была одна кнопка во всю
+	   ширину вместо «счётчик + В корзину».
+
+	   Только показываем и только когда кнопка «В корзину» на месте: состояние
+	   «уже в корзине» прячет счётчик своим классом .nd-incart, и спорить с ним
+	   не нужно. */
+	function showMeasureTile(cw) {
+		var wrap = cw.querySelector('.measure-wrapper');
+		if (!wrap || wrap.style.display !== 'none') return;
+		var toCart = cw.querySelector('.button_block .to-cart');
+		if (toCart && getComputedStyle(toCart).display !== 'none') {
+			wrap.style.removeProperty('display');
+		}
 	}
 
 	/* ================= «Общая стоимость» и пересчёт в единицы =================
@@ -569,11 +637,27 @@
 	   Заявлен ⟺ определён класс MeasureUnitSwitcherEl: и файл скрипта, и
 	   вызов конструктора шаблон aspro_element_tp печатает под одним условием
 	   (непустой MEASURE_USED). Карточки сопутствующих товаров этот признак не
-	   портят — у них свой класс MeasureUnitSwitcher из шаблона aspro_list_tp. */
-	var unitsWaits = 0;
+	   портят — у них свой класс MeasureUnitSwitcher из шаблона aspro_list_tp.
+
+	   Ждём по ЧАСАМ, а не по числу заходов. Раньше стоял счётчик вызовов
+	   (12 штук «по 250 мс»), но applyBuyBar зовут не только из опроса: его
+	   дёргает fixMoneyAll на каждую мутацию правой колонки, а во время загрузки
+	   их десятки. Лимит расходовался за доли секунды, панель собиралась раньше
+	   компонента и роняла его — на мобильном пропадали и переключатель
+	   «шт / м² / п.м», и плитка счётчика (Ирина, 2026-08-15). */
+	var unitsWaitStart = 0;
+	var UNITS_WAIT_MS = 3000;
 
 	function unitsPending() {
 		return typeof window.MeasureUnitSwitcherEl === 'function' && !unitsBlock();
+	}
+
+	/* Ждать ли ещё компонент. Побочный эффект (запуск отсчёта) держим здесь,
+	   чтобы applyBuyBar читался одной строкой. */
+	function shouldWaitForUnits() {
+		if (!unitsPending()) return false;
+		if (!unitsWaitStart) unitsWaitStart = Date.now();
+		return Date.now() - unitsWaitStart < UNITS_WAIT_MS;
 	}
 
 	/* «Доступно в рассрочку» в мобильном макете (20512:84167) — первая строка
@@ -617,9 +701,9 @@
 
 		if (!bar) {
 			if (!buyBarReady()) return;
-			/* Ждём компонент единиц, но не дольше ~3 с (12 опросов по 250 мс):
-			   если он не поднялся по другой причине, панель всё равно нужна. */
-			if (unitsPending() && unitsWaits++ < 12) return;
+			/* Ждём компонент единиц, но не дольше ~3 с: если он не поднялся по
+			   другой причине, панель всё равно нужна. */
+			if (shouldWaitForUnits()) return;
 		}
 
 		var prices = root.querySelector('.prices_block');
@@ -640,6 +724,15 @@
 		if (!bar) {
 			bar = document.createElement('div');
 			bar.id = 'nd-pd-buybar';
+			/* col-md-6 — страховка, а не раскладка: компонент maxyss ищет своё
+			   место как findParent(.counter_block, 'col-md-6') и без такого
+			   предка падает на `undefined.prepend`. Ожидание выше почти всегда
+			   успевает, но если компонент запоздает (медленный телефон), панель
+			   уже не сломает его: он найдёт себя здесь и положит переключатель
+			   в панель — там ему и место по макету.
+			   Бутстраповские float и width у класса действуют с 992px, а панель
+			   живёт только до 768; поля перебивает правило #nd-pd-buybar. */
+			bar.className = 'col-md-6';
 			bar.innerHTML = '<div class="nd-pd-buybar__top"></div>';
 			(root.querySelector('.middle_info.main_item_wrapper') || root).appendChild(bar);
 		}

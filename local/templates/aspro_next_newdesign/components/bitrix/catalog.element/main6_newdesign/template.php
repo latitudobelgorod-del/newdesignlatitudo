@@ -739,7 +739,12 @@ $( ".info_item .middle_info .prices .price" ).prepend( "от " );
 	
 		
 <?if (empty($arResult['OFFERS_PROP'])) :?>
-	<div><span>арт. </span> <span class="value" itemprop="value"><?=$arResult["DISPLAY_PROPERTIES"]["CML2_ARTICLE"]["VALUE"]?></span></div>
+	<?/* Класс product-article — тот же, что у товаров с торговыми предложениями
+	     (выше). По нему артикул прячется в правой колонке и копией уходит в
+	     строку заголовка, как в макете: без класса он оставался висеть над ценой
+	     (Ирина, 2026-08-15). Значение в отдельном .value — его и берёт
+	     js/newdesign-element.js, чтобы в заголовок попало голое число. */?>
+	<div class="product-article"><span>арт. </span> <span class="value" itemprop="value"><?=$arResult["DISPLAY_PROPERTIES"]["CML2_ARTICLE"]["VALUE"]?></span></div>
 <?endif;?>
 
 <?if($arResult['UF_COMMENT_PRICE']):?>
