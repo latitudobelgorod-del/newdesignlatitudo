@@ -378,13 +378,31 @@ foreach ((array) $arResult['MORE_PHOTO'] as $arImage) {
 }
 $ndFirst = $ndSlides ? $ndSlides[0] : ['small' => '', 'big' => '', 'thumb' => '', 'alt' => '', 'title' => ''];
 
-/* Срок гарантии для бейджа в углу фото — из свойства GARANTY
-   («15 лет гарантия / ~ 25 лет срок службы» → 15), как на easydecking. */
-$ndWarranty = $arResult['DISPLAY_PROPERTIES']['GARANTY']['VALUE'] ?: $arResult['PROPERTIES']['GARANTY']['VALUE'];
-if (is_array($ndWarranty)) $ndWarranty = implode(' ', $ndWarranty);
+/* Эмблема гарантии в углу фото. В макете это картинка (Figma 21408:71117,
+   62×62), и она же уже выведена в карточке списка — тот же svg из папки
+   images/newdesign/warranty. Раньше здесь рисовалась самодельная плашка с
+   текстом «15 лет гарантии», в макете такой нет.
+
+   Срок берём сперва из списочного свойства SET (xml_id вида «warranty_15» —
+   по нему же класс ставит шаблон списка), а если оно не заполнено — разбираем
+   текст GARANTY («15 лет гарантия / ~ 25 лет срок службы» → 15). */
 $ndWarrantyYears = 0;
-if ($ndWarranty && (preg_match('/(\d+)\s*(?:лет|год[а]?)\s*гаранти/iu', $ndWarranty, $m) || preg_match('/гаранти\D{0,15}(\d+)/iu', $ndWarranty, $m))) {
+if (preg_match('/^warranty_(\d+)$/', (string) $arResult['PROPERTIES']['SET']['VALUE_XML_ID'], $m)) {
 	$ndWarrantyYears = (int) $m[1];
+} else {
+	$ndWarranty = $arResult['DISPLAY_PROPERTIES']['GARANTY']['VALUE'] ?: $arResult['PROPERTIES']['GARANTY']['VALUE'];
+	if (is_array($ndWarranty)) $ndWarranty = implode(' ', $ndWarranty);
+	if ($ndWarranty && (preg_match('/(\d+)\s*(?:лет|год[а]?)\s*гаранти/iu', $ndWarranty, $m) || preg_match('/гаранти\D{0,15}(\d+)/iu', $ndWarranty, $m))) {
+		$ndWarrantyYears = (int) $m[1];
+	}
+}
+/* Эмблемы нарисованы под конкретные сроки (5, 10, 15, 25 лет). Если срок
+   другой — значка нет, и вместо него ничего не рисуем: в макете текстовой
+   плашки не предусмотрено. */
+$ndWarrantySrc = '';
+if ($ndWarrantyYears) {
+	$ndWarrantyFile = SITE_TEMPLATE_PATH.'/images/newdesign/warranty/warranty_'.$ndWarrantyYears.'.svg';
+	if (file_exists($_SERVER['DOCUMENT_ROOT'].$ndWarrantyFile)) $ndWarrantySrc = $ndWarrantyFile;
 }
 
 /* Профиль доски — файловое свойство PROFIL (множественное, ИБ 19). Берём первый файл. */
@@ -415,8 +433,8 @@ if ($ndProfileVal) {
 		<div class="nd-pd__photo">
 			<img class="nd-pd__img" src="<?= $ndFirst['small'] ?>" alt="<?= $ndFirst['alt'] ?>" title="<?= $ndFirst['title'] ?>" fetchpriority="high">
 
-			<? if ($ndWarrantyYears): ?>
-				<div class="nd-pd__warranty"><b><?= $ndWarrantyYears ?></b><span>лет<br>гарантии</span></div>
+			<? if ($ndWarrantySrc): ?>
+				<img class="nd-pd__warranty" src="<?= $ndWarrantySrc ?>" alt="Гарантия <?= $ndWarrantyYears ?> лет" width="62" height="62" loading="lazy">
 			<? endif; ?>
 
 			<? /* Ссылки для просмотра во весь экран: их же жмёт кнопка увеличения */ ?>
@@ -1375,7 +1393,10 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 	<div class="">
 					<span class="btn btn-default btn-lg  type_block transition_bg one_click" data-item="<?=$arResult["ID"]?>" data-event="jqm" data-iblockID="<?=$arParams["IBLOCK_ID"]?>" data-param-form_id="MAINFORM" data-name="question">
 					<!--<span><?=GetMessage('S_CALCULATE_PROJECT')?></span>-->
-					<span>Заказать расчет</span>
+					<?/* Подпись ссылки — по указанию Ирины (2026-08-15). В макете на этом
+					     месте «Рассчитать вместе с менджером», но рассрочку надо назвать
+					     прямо: ссылка стоит сразу под строкой «Доступно в рассрочку». */?>
+					<span>Рассчитать в рассрочку вместе с менеджером</span>
 					</span>
 					</div>
 	<?endif;?>
@@ -1400,23 +1421,27 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 						
 						<?/* В макете заголовок короткий — «Логистические параметры», без «единицы товара» */?>
 						<div class="logistic_title">Логистические параметры</div>
-						
+
+						<?/* Плитка макета (Figma 20752:35970): единица стоит в подписи
+						     («Длина, мм»), а ниже идёт голое число. Раньше было наоборот —
+						     «Длина:» и «3010 мм». Тот же формат печатает script.js для
+						     товаров с торговыми предложениями. */?>
 						<?if(($arResult["CATALOG_LENGTH"] !=="0") && (isset($arResult["CATALOG_LENGTH"]))):?>
-						<div class="product-dlina" ><span>Длина:</span> <?=$arResult["CATALOG_LENGTH"]?> мм</div>
+						<div class="product-dlina" ><span>Длина, мм</span> <?=$arResult["CATALOG_LENGTH"]?></div>
 						<?endif;?>
-						
+
 						<?if(($arResult["CATALOG_WIDTH"] !=="0") && (isset($arResult["CATALOG_WIDTH"]))):?>
-						<div class="product-shirina" ><span>Ширина:</span> <?=$arResult["CATALOG_WIDTH"]?> мм</div>
-						<?endif;?>	
-						
+						<div class="product-shirina" ><span>Ширина, мм</span> <?=$arResult["CATALOG_WIDTH"]?></div>
+						<?endif;?>
+
 						<?if(($arResult["CATALOG_HEIGHT"] !=="0") && (isset($arResult["CATALOG_HEIGHT"]))):?>
-						<div class="product-tolwina" ><span>Толщина / Высота:</span> <?=$arResult["CATALOG_HEIGHT"]?> мм</div>
-						<?endif;?>	
-						
+						<div class="product-tolwina" ><span>Толщина, мм</span> <?=$arResult["CATALOG_HEIGHT"]?></div>
+						<?endif;?>
+
 						<?if(($arResult["CATALOG_WEIGHT"] !=="0") && (isset($arResult["CATALOG_WEIGHT"]))):?>
 						<?$weight_prod = $arResult["CATALOG_WEIGHT"]/1000;
-						$weight_prod=str_replace(",",".",$weight_prod);?>
-						<div class="product-weight" ><span>Вес:</span> <?=$weight_prod;?> кг</div>
+						$weight_prod=str_replace(".",",",$weight_prod);?>
+						<div class="product-weight" ><span>Вес, кг</span> <?=$weight_prod;?></div>
 						<?endif;?>
 
 						
@@ -2129,26 +2154,19 @@ if (CModule::IncludeModule('iblock')) {
 	}
 }
 ?>
+<? /* Акции — отдельный элемент сетки, а не часть левой колонки: в макете их
+      место зависит от того, есть ли у товара характеристики.
+      Есть (Figma 20475:75976) — акции идут отдельным рядом во всю ширину под
+      характеристиками и документами. Нет (Figma 23470:58086) — встают в левую
+      колонку рядом с документами.
+      Какой случай, известно только после переноса характеристик скриптом,
+      поэтому раскладку доводит класс nd-pd__bottom--nochars из
+      js/newdesign-element.js, а плитка акции везде одна и та же — 309px. */ ?>
 <div class="nd-pd__bottom">
-	<div class="nd-pd__bottom-col">
+	<div class="nd-pd__bottom-col nd-pd__bottom-col--chars">
 		<? /* Сюда newdesign-element.js переносит характеристики: по макету они
 		      стоят слева в одной строке с документами, а не отдельным рядом. */ ?>
 		<div class="nd-pd__chars" hidden></div>
-
-		<? if ($ndSales): ?>
-			<h2 class="nd-pd__h2">Акции</h2>
-			<div class="nd-pd__sales">
-				<? foreach ($ndSales as $arSale): ?>
-					<a class="nd-pd__sale" href="<?= $arSale['DETAIL_PAGE_URL'] ?>">
-						<? if ($arSale['ND_PIC']): ?>
-							<img src="<?= $arSale['ND_PIC']['src'] ?>" alt="<?= htmlspecialcharsbx($arSale['NAME']) ?>" loading="lazy">
-						<? else: ?>
-							<span class="nd-pd__sale-name"><?= htmlspecialcharsbx($arSale['NAME']) ?></span>
-						<? endif; ?>
-					</a>
-				<? endforeach; ?>
-			</div>
-		<? endif; ?>
 	</div>
 
 	<div class="nd-pd__bottom-col">
@@ -2167,6 +2185,23 @@ if (CModule::IncludeModule('iblock')) {
 			);?>
 		</div>
 	</div>
+
+	<? if ($ndSales): ?>
+		<div class="nd-pd__sales-block">
+			<h2 class="nd-pd__h2">Акции</h2>
+			<div class="nd-pd__sales">
+				<? foreach ($ndSales as $arSale): ?>
+					<a class="nd-pd__sale" href="<?= $arSale['DETAIL_PAGE_URL'] ?>">
+						<? if ($arSale['ND_PIC']): ?>
+							<img src="<?= $arSale['ND_PIC']['src'] ?>" alt="<?= htmlspecialcharsbx($arSale['NAME']) ?>" loading="lazy">
+						<? else: ?>
+							<span class="nd-pd__sale-name"><?= htmlspecialcharsbx($arSale['NAME']) ?></span>
+						<? endif; ?>
+					</a>
+				<? endforeach; ?>
+			</div>
+		</div>
+	<? endif; ?>
 </div>
 
 <?/*С этим товаром покупают*/?>

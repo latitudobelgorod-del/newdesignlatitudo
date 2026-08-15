@@ -2996,7 +2996,10 @@ else
 			if((this.offers[this.offerNum]['WEIGHT'] !=="0")){
 			v=(this.offers[this.offerNum]['WEIGHT'])/1000;
 				value = String(v).replace(".", ","); 
-			$('.product-weight').html('<span>Вес:</span> ' + value + ' кг' );
+			/* Подпись с единицей, значение голым числом — плитка из макета
+			   (Figma 20752:35970). Тот же формат печатает template.php для
+			   товаров без торговых предложений. */
+			$('.product-weight').html('<span>Вес, кг</span> ' + value );
 				$('.product-weight').css('display', 'block');
 				$('.logistic_title').css('display', 'block');
 		$('.logistic').css('display', 'block');
@@ -3005,21 +3008,21 @@ else
 			$('.product-weight').css('display', 'none');	
 				}
 			if(this.offers[this.offerNum]['HEIGHT']){
-			$('.product-tolwina').html('<span>Толщина / Высота:</span> ' + this.offers[this.offerNum]['HEIGHT'] + ' мм');
+			$('.product-tolwina').html('<span>Толщина, мм</span> ' + this.offers[this.offerNum]['HEIGHT']);
 			$('.product-tolwina').css('display', 'block');
 			}
 			else{
 			$('.product-tolwina').css('display', 'none');
 				}
 			if(this.offers[this.offerNum]['WIDTH']){
-			$('.product-shirina').html('<span>Ширина:</span> ' + this.offers[this.offerNum]['WIDTH'] + ' мм');
+			$('.product-shirina').html('<span>Ширина, мм</span> ' + this.offers[this.offerNum]['WIDTH']);
 			$('.product-shirina').css('display', 'block');
 			}
 			else{
 			$('.product-shirina').css('display', 'none');
 	}
 				if(this.offers[this.offerNum]['LENGTH']){
-			$('.product-dlina').html('<span>Длина:</span> ' + this.offers[this.offerNum]['LENGTH'] + ' мм');
+			$('.product-dlina').html('<span>Длина, мм</span> ' + this.offers[this.offerNum]['LENGTH']);
 			$('.product-dlina').css('display', 'block');
 			}
 			else{

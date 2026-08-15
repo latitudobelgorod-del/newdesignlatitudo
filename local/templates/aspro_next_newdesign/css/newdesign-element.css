@@ -87,9 +87,18 @@
     position: relative;
     z-index: 1;
 }
+/* Лента превью кончается там же, где фото: по её высоте скрипт решает,
+   показывать ли стрелку «ниже по ленте». Раньше высота была зашита числом
+   (max-height:634 — размер фото при окне 1440), и на других ширинах лента
+   вылезала за фото, а стрелка появлялась не вовремя.
+
+   Ленту вынимаем из потока (position:absolute), иначе получается кольцо:
+   высоту ряда задавало бы её содержимое, а фото со своим aspect-ratio тянулось
+   бы за ней. Так высоту ряда задаёт только фото, а колонка превью
+   растягивается по нему (align-items:stretch). */
 .nd-pd__gallery {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 8px;
 }
 
@@ -100,10 +109,14 @@
     width: 115px;
 }
 .nd-pd__thumbs-track {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: 634px;
     overflow: hidden;
     scroll-behavior: smooth;
 }
@@ -214,31 +227,17 @@
     color: #d97400;
 }
 
-/* бейдж гарантии в правом верхнем углу (макет 62×62, #000/65%) */
+/* Эмблема гарантии в правом верхнем углу (макет 21408:71117 — 62×62).
+   Картинка та же, что в карточке списка: images/newdesign/warranty/warranty_NN.svg
+   (подложка и надписи нарисованы внутри svg). Раньше здесь была самодельная
+   плашка с текстом «15 лет гарантии» — в макете такой нет. */
 .nd-pd__warranty {
     position: absolute;
     top: 8px;
     right: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    z-index: 3;
     width: 62px;
     height: 62px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, .65);
-    color: #fff;
-    text-align: center;
-}
-.nd-pd__warranty b {
-    font-size: 20px;
-    line-height: 22px;
-    font-weight: 800;
-}
-.nd-pd__warranty span {
-    font-size: 8px;
-    line-height: 10px;
-    text-transform: uppercase;
 }
 
 /* кнопки поверх фото: видео слева внизу, увеличение справа внизу */
@@ -377,6 +376,10 @@
     background: #525264;
     font-size: 12px;
     line-height: 14.4px;
+    /* В макете текст обычного начертания (Figma 21289:63030 — Nunito Sans 400).
+       Жирный приезжает из css/custom.css: там на .uf_comment_price стоит
+       font-weight:bold (двумя правилами) — это оформление старого дизайна. */
+    font-weight: 400;
     color: #fff;
 }
 
@@ -443,10 +446,28 @@
 .catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .value {
     display: none;
 }
+/* Скидка приезжала выше старой цены примерно на строку (Ирина, 2026-08-14).
+   Причина — распорка `.clearfix` в конце блока: у темы правило
+   `body .prices .sale_block div { display:inline-block }` делает её строчным
+   боксом, и он добавлял блоку вторую строку высотой в line-height. Флекс-ряд
+   центрировал блок целиком, поэтому видимый текст уезжал в верхнюю половину.
+   Гасим распорку и выравниваем содержимое блока сами. Заодно снимаем поля и
+   отбивки темы у `.text` (padding:3px 5px 2px; margin:1px 0 1px 3px из
+   template_styles.css) — из-за них центр смещался ещё на пару пикселей. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block {
+    display: flex;
+    align-items: center;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .clearfix {
+    display: none;
+}
 .catalog_detail.element_newdesign .right_info .info_item .prices_block .price .sale_block .text {
     display: flex;
     align-items: center;
     gap: 4px;
+    margin: 0;
+    padding: 0;
+    line-height: 25.2px;
 }
 /* Боксы старой цены и скидки приезжают шире содержимого (199px под «5 000 руб»):
    у темы .values_wrapper и её спаны размечены под крупную основную цену. Из-за
@@ -661,6 +682,13 @@
     font-weight: 400;
     color: #101014;
 }
+/* «Длина: 3000мм» — выбранное значение в подписи, весом 500, как у цвета выше
+   (макет 20752:35990). Пару «название + значение» собирает js/newdesign-element.js:
+   тема печатает только название свойства. */
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_item_section_name .nd-sku__value {
+    margin-left: .3em;
+    font-weight: 500;
+}
 .catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_size ul,
 .catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu ul {
     display: flex;
@@ -733,10 +761,20 @@
     color: #101014;
     cursor: pointer;
 }
-.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block .measure-unit-active {
-    border-color: #101014;
+/* !important обязателен: у модуля единиц измерения на активной кнопке висит
+   `.measure-unit-active { border-color: #9e1414 !important }` (и такое же
+   правило на :hover) из bitrix/components/maxyss/measure_unit/templates/
+   aspro_element_tp/style.css — от него вокруг чёрной плашки шла бордовая
+   обводка (Ирина, 2026-08-14). Красный ховер оттуда же гасим ниже. */
+.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block .measure-unit-active,
+.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block .measure-unit-active:hover {
+    border-color: #101014 !important;
     background: #101014;
-    color: #fff;
+    color: #fff !important;
+}
+.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block .measure-unit:hover {
+    border-color: #101014;
+    color: #101014;
 }
 
 /* Цена (макет 42/46 w800, без слова «Цена:»).
@@ -927,6 +965,52 @@
     line-height: 24px;
     font-weight: 600;
     color: #101014;
+}
+/* Выбранная единица в счётчике — «1 шт» (макет 20489:32372). Span дописывает
+   js/newdesign-element.js: внутрь <input> текст не положить.
+   Поле и подпись делят свободное место поровну и жмутся к общей середине —
+   так пара выглядит по центру плитки при любой длине числа. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-block .measure-field,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block input.text {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: right;
+    padding-right: 0;
+    /* Поля свой шрифт не наследуют — без этого число и единица рядом
+       оказывались набраны разными гарнитурами. */
+    font-family: inherit;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .nd-pd-qty-unit {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 4px;
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #101014;
+    text-align: left;
+    white-space: nowrap;
+}
+/* Штатный счётчик рисует значки «−» и «+» спрайтом ЛЮБОМУ своему прямому
+   span'у (`.counter_block > span:before` в template_styles.css) и режет его до
+   28×34. Нашей подписи это доставалось тоже — между числом и единицей
+   появлялся обрезок спрайта. Отключаем и сам псевдоэлемент, и обрезку. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block > span.nd-pd-qty-unit,
+#nd-pd-buybar .counter_block > span.nd-pd-qty-unit {
+    width: auto;
+    height: auto;
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block > span.nd-pd-qty-unit::before,
+#nd-pd-buybar .counter_block > span.nd-pd-qty-unit::before {
+    content: none !important;
+}
+/* Кнопки штатного счётчика печатают знак и текстом, и спрайтом — выходило
+   «-- 1 ++». В мобильной панели это уже вылечено, повторяем на десктопе:
+   виден штатный счётчик, когда у товара одна единица измерения и модуль
+   maxyss своей плитки не строит. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block > span.minus::before,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block > span.plus::before {
+    content: none !important;
 }
 /* Счётчик и кнопка делят ряд поровну и добирают до правого края колонки.
    Было flex:0 0 266px — кнопка получалась 266, счётчик 255, и справа
@@ -1381,7 +1465,16 @@
 }
 
 /* ===================== акции, документы, доставка =====================
-   Нижний ряд макета: слева акции, справа документы и доставка, зазор 52. */
+   Нижний ряд макета: слева характеристики, справа документы и доставка,
+   зазор 52. Акции — третий элемент сетки, и место у него плавающее:
+
+   - характеристики есть (Figma 20475:75976) — акции идут отдельным рядом во
+     всю ширину под обеими колонками;
+   - характеристик нет (Figma 23470:58086) — акции встают в левую колонку, в
+     один ряд с документами.
+
+   Класс nd-pd__bottom--nochars ставит js/newdesign-element.js: характеристики
+   он переносит сам и раньше него об их наличии судить нельзя. */
 .element_newdesign .nd-pd__bottom {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1391,15 +1484,33 @@
 .element_newdesign .nd-pd__bottom-col:empty {
     display: none;
 }
+.element_newdesign .nd-pd__sales-block {
+    grid-column: 1 / -1;
+}
+/* Колонку характеристик убираем целиком: внутри лежит пустой .nd-pd__chars,
+   поэтому :empty на неё не срабатывает, и она держала бы пустую клетку сетки.
+   Акции при этом занимают левую клетку явно, а документы — единственную
+   свободную, то есть правую. */
+.element_newdesign .nd-pd__bottom--nochars .nd-pd__bottom-col--chars {
+    display: none;
+}
+.element_newdesign .nd-pd__bottom--nochars .nd-pd__sales-block {
+    grid-column: 1;
+    grid-row: 1;
+}
 /* колонка-источник документов после переноса пустеет — не оставляем от неё поля */
 .element_newdesign .nd-pd__docs-src:empty {
     display: none;
 }
 
-/* плитки акций — по две в ряд, как в макете */
+/* Плитка акции в макете всегда 309 (Figma 21408:71416 и её варианты на одну и
+   две акции) — и в ряду во всю ширину, и в колонке 642. Поэтому не делим место
+   поровну, а укладываем плитки фиксированной ширины: в 1336 их встаёт четыре,
+   в 642 — две. */
 .element_newdesign .nd-pd__sales {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, 309px);
+    justify-content: start;
     gap: 24px;
 }
 .element_newdesign .nd-pd__sale {
@@ -1615,19 +1726,10 @@
         width: 16px;
         height: 16px;
     }
-    /* Бейдж гарантии мельче десктопного: 40×40, радиус 10.67 */
+    /* Эмблема гарантии мельче десктопной: 40×40 */
     .nd-pd__warranty {
         width: 40px;
         height: 40px;
-        border-radius: 10.67px;
-    }
-    .nd-pd__warranty b {
-        font-size: 13px;
-        line-height: 14px;
-    }
-    .nd-pd__warranty span {
-        font-size: 6px;
-        line-height: 7px;
     }
     /* Ряд точек стоит по центру нижнего края фото, на одной линии с кнопками
        (в макете их центры совпадают: кнопки 478–510, точки 491–499). */
@@ -1876,11 +1978,29 @@
         border-radius: 0;
         background: transparent;
         box-shadow: none;
-        text-align: center;
+        text-align: right;
         font-size: 14px;
         line-height: 19.6px;
         font-weight: 500;
         color: #101014;
+    }
+    /* Единица рядом с числом — как на десктопе (span дописывает
+       js/newdesign-element.js). Поле и подпись делят место поровну и жмутся к
+       общей середине плитки. */
+    #nd-pd-buybar .measure-field,
+    #nd-pd-buybar .counter_block input.text,
+    #nd-pd-buybar .nd-pd-qty-unit {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    #nd-pd-buybar .nd-pd-qty-unit {
+        padding-left: 3px;
+        font-size: 14px;
+        line-height: 19.6px;
+        font-weight: 500;
+        color: #101014;
+        text-align: left;
+        white-space: nowrap;
     }
     /* «--» и «++» получались потому, что знак нативного счётчика рисуется и
        текстом, и псевдоэлементом ::before. Псевдоэлемент гасим, оставляем знак.

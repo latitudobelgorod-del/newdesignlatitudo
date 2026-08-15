@@ -183,6 +183,19 @@
 		box.appendChild(node);
 		box.hidden = false;
 		markCharRows();
+		syncBottomLayout();
+	}
+
+	/* Место блока акций зависит от характеристик (макеты 20475:75976 и
+	   23470:58086): без них акции встают в левую колонку рядом с документами,
+	   с ними — отдельным рядом во всю ширину. Разметка одна, раскладку в CSS
+	   переключает класс. Характеристики переносит moveChars(), и до его
+	   работы левая колонка пуста, поэтому решение принимаем после него. */
+	function syncBottomLayout() {
+		var bottom = $('.nd-pd__bottom');
+		var chars = $('.nd-pd__chars');
+		if (!bottom) return;
+		bottom.classList.toggle('nd-pd__bottom--nochars', !chars || !chars.children.length);
 	}
 
 	/* Характеристики приходят несколькими таблицами (профиль, основные,
@@ -213,6 +226,101 @@
 		/* Заголовок «Документы» показываем только при реальном списке: у части
 		   товаров в колонке лежит одна ссылка «Информация о производителе». */
 		if ($('.nd-docs, .files_block', body)) box.hidden = false;
+	}
+
+	/* ================= подпись выбора предложения =================
+	   В макете (Figma 20752:35990) над плашками стоит «Длина: 3000мм» — с
+	   выбранным значением, как у цвета выше. Тема печатает только название
+	   свойства («Длина, мм»), а выбор показывает подсветкой плашки.
+
+	   Единицу берём из самого названия: у свойства она сидит после запятой
+	   («Длина, мм» → «Длина» + «мм»). Тем же приёмом её дописывает к плашкам
+	   правило .nd-sku--dlina li .cnt::after в css/newdesign.css.
+	   Исходное название запоминаем в data-атрибуте: после первой же перерисовки
+	   в подписи уже лежит наш текст, и разбирать его заново нельзя. */
+	function syncSkuTitles() {
+		var blocks = document.querySelectorAll('.item_main_info .wrapper_sku .nd-sku');
+		Array.prototype.forEach.call(blocks, function (blk) {
+			var title = $('.bx_item_section_name', blk);
+			if (!title) return;
+
+			if (!title.hasAttribute('data-nd-name')) {
+				var parts = (title.textContent || '').replace(/\s+/g, ' ').trim().split(',');
+				title.setAttribute('data-nd-name', parts.shift().trim());
+				title.setAttribute('data-nd-unit', parts.join(',').trim());
+			}
+
+			/* Значение есть только у текстовых плашек (длина, размер). У цвета
+			   в плашке лежит картинка — там подпись остаётся прежней, а
+			   выбранный цвет карточка показывает своим блоком выше. */
+			var active = blk.querySelector('li.active .cnt');
+			var value = active ? (active.textContent || '').replace(/\s+/g, ' ').trim() : '';
+
+			var name = $('.nd-sku__name', title);
+			if (!name) {
+				title.textContent = '';
+				name = document.createElement('span');
+				name.className = 'nd-sku__name';
+				title.appendChild(name);
+			}
+			setText(name, title.getAttribute('data-nd-name') + (value ? ':' : ''));
+
+			var val = $('.nd-sku__value', title);
+			if (value && !val) {
+				val = document.createElement('span');
+				val.className = 'nd-sku__value';
+				title.appendChild(val);
+			}
+			if (val) setText(val, value ? value + title.getAttribute('data-nd-unit') : '');
+		});
+	}
+
+	/* ================= единица в счётчике =================
+	   В макете внутри поля количества стоит «1 шт» (Figma 20489:32372), то есть
+	   число с выбранной единицей. Внутрь <input> текст не положить, поэтому
+	   рядом с ним держим span, а половинки поля разводит CSS.
+
+	   Название единицы даёт переключатель: у активной кнопки лежит
+	   data-unit-name. Если переключателя нет (у товара одна единица), берём его
+	   из приписки к цене — «/шт» в .price_measure.
+
+	   Цену ищем там же, где и переключатель, — в правой колонке карточки или в
+	   мобильной панели. Просто по документу нельзя: свой .price_measure есть у
+	   каждой карточки сопутствующего товара, и первым попадался чужой. */
+	function currentUnitName() {
+		var ub = unitsBlock();
+		var active = ub && ub.querySelector('.measure-unit-active');
+		var name = active && active.getAttribute('data-unit-name');
+		if (name) return name.trim();
+
+		var bar = document.getElementById('nd-pd-buybar');
+		var prices = (bar && bar.querySelector('.prices_block'))
+			|| document.querySelector('.item_main_info .right_info .prices_block');
+		var measure = prices && prices.querySelector('.price_measure');
+		return measure ? (measure.textContent || '').replace(/[\s\/]/g, '') : '';
+	}
+
+	function syncQtyUnit() {
+		if (!root) return;
+		var name = currentUnitName();
+		/* Счётчиков в карточке два — штатный .counter_block темы и .measure-block
+		   компонента единиц. Видим всегда один, но какой именно — решает
+		   компонент, поэтому подписываем оба. */
+		Array.prototype.forEach.call(root.querySelectorAll('.buy_block .measure-block, .buy_block .counter_block'), function (box) {
+			var input = box.querySelector('input');
+			if (!input) return;
+			var unit = box.querySelector('.nd-pd-qty-unit');
+			if (!name) {
+				if (unit) unit.parentNode.removeChild(unit);
+				return;
+			}
+			if (!unit) {
+				unit = document.createElement('span');
+				unit.className = 'nd-pd-qty-unit';
+				input.parentNode.insertBefore(unit, input.nextSibling);
+			}
+			setText(unit, name);
+		});
 	}
 
 	/* Кнопка «Заказать расчет» лежит в безымянном div — помечаем обёртку классом,
@@ -397,8 +505,9 @@
 	   базовое количество уже после клика. */
 	function scheduleTotal() {
 		updateTotal();
-		setTimeout(updateTotal, 60);
-		setTimeout(updateTotal, 250);
+		syncQtyUnit();
+		setTimeout(function () { updateTotal(); syncQtyUnit(); }, 60);
+		setTimeout(function () { updateTotal(); syncQtyUnit(); }, 250);
 	}
 
 	/* Заодно обновляет состояние «В корзине»: обе правки нужны в одних и тех же
@@ -413,6 +522,8 @@
 		Array.prototype.forEach.call(root.querySelectorAll('.total_summ, .measure-block-desc'), fixMoney);
 		updateTotal();
 		syncInCart();
+		syncSkuTitles();
+		syncQtyUnit();
 		/* Тема перерисовывает блок покупки при смене длины и предложения —
 		   после этого узлы надо снова забрать в мобильную панель. */
 		applyBuyBar();
@@ -665,8 +776,12 @@
 		renderDots();
 		moveNodes();
 		moveChars();
+		/* moveChars() выходит раньше, если характеристик нет — раскладку
+		   нижнего ряда в этом случае надо доопределить самим. */
+		syncBottomLayout();
 		moveDocs();
 		tagCalcButton();
+		syncSkuTitles();
 		patchScrollToBlock();
 		bind();
 
