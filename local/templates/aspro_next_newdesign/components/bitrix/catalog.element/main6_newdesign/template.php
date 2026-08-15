@@ -1712,7 +1712,18 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 <?endif;?>
 <div class=" type_more">
 
-	<?$frame = $this->createFrame()->begin();?><div class="stock_wrapper" style="display:none;"></div><?$frame->end();?>	
+	<?/* Здесь у темы стоял пустой .stock_wrapper — приёмник акций. Скрипт темы
+	     (script.js, «// stock (sale)») копировал в него разметку из
+	     component_epilog.php и показывал: акции выводились сразу под карточкой,
+	     вторым блоком к нашему в нижнем ряду (Ирина, 2026-08-15). В макете
+	     акции одни — оставляем свои (.nd-pd__sales-block, см. template.php ниже).
+
+	     Убран именно приёмник, а не источник: копирование включается условием
+	     `$('.catalog_detail .stock_wrapper').length > 1`, и без второго узла
+	     оно просто не срабатывает, а сам блок в эпилоге так и остаётся
+	     скрытым. Чтобы вернуть старое поведение, достаточно вернуть сюда
+	     пустой div.stock_wrapper во фрейме композита. */?>
+
 
 
 
