@@ -72,13 +72,16 @@
    краю колонки со списком товаров — то есть левее панели итогов. Ширину
    колонки считаем из тех же чисел, что и раскладка ниже: 429 правая колонка
    и 52 между колонками. */
+/* Отступ сверху — из макета: блок корзины начинается на 16px ниже крошек
+   (фрейм 20496:82614, padding-top 16). Без него заголовок вплотную упирался
+   в хлебные крошки: своё поле снизу у крошек всего 8px. */
 .nd-basket-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     max-width: calc(100% - 429px - 52px);
-    margin: 0 0 24px;
+    margin: 16px 0 24px;
 }
 .nd-basket-head__title {
     margin: 0;
@@ -505,7 +508,8 @@
     text-align: center;
     color: #101014;
 }
-/* Подпись «шт» под счётчиком. */
+/* Подпись «шт» под счётчиком. На десктопе её сменяет единица внутри плашки
+   (см. ниже), на планшете и телефоне она остаётся. */
 #basket-root .basket-item-amount-field-description {
     margin: 4px 0 0;
     font-family: 'Nunito Sans', Arial, sans-serif;
@@ -513,6 +517,51 @@
     line-height: 19.6px;
     text-align: center;
     color: #8f8f9a;
+}
+/* Единица измерения рядом с числом — как в счётчике на детальной товара.
+   По ширине плашки макета (136) пара «5000 шт» не влезала, поэтому колонка
+   счётчика и он сам подросли до 160.
+
+   Поле и единица делят свободное место поровну и жмутся к общей середине —
+   так пара стоит по центру плашки при любой длине числа (тот же приём, что
+   в css/newdesign-element.css у .nd-pd-qty-unit). */
+#basket-root .basket-item-amount-unit {
+    display: none;
+}
+@media (min-width: 992px) {
+    #basket-root .basket-items-list-item-container {
+        grid-template-columns: minmax(0, 1fr) 130px 160px;
+    }
+    #basket-root .basket-item-block-amount {
+        width: 160px;
+        gap: 4px;
+    }
+    #basket-root .basket-item-amount-filed-block {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #basket-root .basket-item-amount-filed {
+        flex: 1 1 0;
+        width: auto;
+        text-align: right;
+    }
+    #basket-root .basket-item-amount-unit {
+        display: block;
+        flex: 1 1 0;
+        min-width: 0;
+        padding-left: 4px;
+        font-family: 'Nunito Sans', Arial, sans-serif;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 44px;
+        text-align: left;
+        white-space: nowrap;
+        color: #101014;
+    }
+    #basket-root .basket-item-amount-field-description {
+        display: none;
+    }
 }
 
 /* ---- панель итогов ------------------------------------------------------ */
@@ -528,7 +577,13 @@
     background: none;
     box-shadow: none;
 }
+/* Карточка итогов идёт во всю ширину колонки — вровень с блоком «Уточните
+   наличие» под ней. Обёртка .basket-checkout-container у темы — флексбокс с
+   переносом, и карточка как флекс-элемент сжималась по содержимому: панель
+   выходила уже соседнего блока (было 360 против 429). */
 #basket-root .nd-total__card {
+    flex: 1 1 100%;
+    width: 100%;
     padding: 24px;
     border: 1px solid rgba(82, 82, 100, .15);
     border-radius: 8px;
@@ -761,6 +816,13 @@
     color: #999;
 }
 
+/* Отбивка ленты от корзины. В макете это два поля подряд: 52 снизу у блока
+   корзины (фрейм 20496:82614) и 52 сверху у блока ленты (20496:84051). Своего
+   верхнего поля у .nd-related нет — лента начиналась сразу под колонками. */
+.nd-related--basket {
+    margin-top: 104px;
+}
+
 /* Карточка, которую лента спрятала после удаления товара из корзины.
    Через !important: инлайновый display шаблон карточки перебивает. */
 .nd-related--basket .item_block.nd-related-hidden,
@@ -795,6 +857,11 @@
     .nd-basket-head__title {
         font-size: 42px;
         line-height: 48px;
+    }
+    /* Правая колонка и зазор между колонками здесь другие — «Очистить корзину»
+       считаем по ним, иначе кнопка стоит левее правого края списка. */
+    .nd-basket-head {
+        max-width: calc(100% - 340px - 32px);
     }
 }
 
@@ -839,6 +906,11 @@
     .nd-basket-head {
         align-items: flex-start;
         gap: 8px;
+    }
+    /* В мобильном макете (20517:145736) лента отбита от блока «Доставка» на 36,
+       а не на 104, как на десктопе. */
+    .nd-related--basket {
+        margin-top: 36px;
     }
     .nd-basket-head__title {
         font-size: 32px;

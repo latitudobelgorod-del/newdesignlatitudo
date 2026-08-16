@@ -351,6 +351,12 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 							{{#NOT_AVAILABLE}} disabled="disabled"{{/NOT_AVAILABLE}}
 							data-value="{{QUANTITY}}" data-entity="basket-item-quantity-field"
 							id="basket-item-quantity-{{ID}}">
+						<?// Единица измерения рядом с числом — как в счётчике на детальной
+						   // («1 шт», Figma 20489:32372). Внутрь <input> текст не положить,
+						   // поэтому держим соседний span, половинки поля разводит CSS.
+						   // Подпись под счётчиком при этом прячется — на телефоне,
+						   // наоборот, остаётся она (там «шт» стоит внутри плашки).?>
+						<span class="basket-item-amount-unit">{{MEASURE_TEXT}}</span>
 					</div>
 					<span class="basket-item-amount-btn-plus" data-entity="basket-item-quantity-plus"></span>
 					<div class="basket-item-amount-field-description">
