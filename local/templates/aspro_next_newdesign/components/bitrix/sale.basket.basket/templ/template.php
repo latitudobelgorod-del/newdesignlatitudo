@@ -145,10 +145,16 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 	   здесь, а не на странице: basket/index.php общий со старым дизайном, там
 	   свой заголовок «Ваша корзина» остаётся нетронутым.
 
+	   Разметку собираем в строку, а печатаем ниже: в макете шапка — первый блок
+	   ЛЕВОЙ колонки, и панель итогов стоит вровень с заголовком, а не с первой
+	   карточкой. Значит шапка должна лежать внутри колонки со списком. У пустой
+	   корзины колонок нет, и там она печатается сама по себе.
+
 	   Готовой очистки корзины в шаблоне нет — Битрикс умеет удалять только по
 	   одному товару. Поэтому кнопка жмёт все кнопки удаления разом: они кладут
 	   задания в тот же пул действий компонента, что и обычное удаление, и
 	   пересчёт проходит штатно. */?>
+	<?ob_start();?>
 	<div class="nd-basket-head">
 		<h1 class="nd-basket-head__title" id="pagetitle">Корзина</h1>
 		<?// У пустой корзины чистить нечего — кнопку не показываем. Пустую
@@ -163,6 +169,14 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 		</button>
 		<?endif;?>
 	</div>
+	<?
+	$ndBasketHead = ob_get_clean();
+
+	if (!empty($arResult['ERROR_MESSAGE']))
+	{
+		echo $ndBasketHead;
+	}
+	?>
 	<script>
 	(function () {
 		document.addEventListener('click', function (e) {
@@ -225,6 +239,9 @@ if (empty($arResult['ERROR_MESSAGE']))
 
 <div class="flexbox flexbox--row basket-items-list">
 <div class="basket-items-list-outer">
+		<?// Шапка — первый блок левой колонки (макет): так панель итогов стоит
+		   // вровень с заголовком, а не с первой карточкой.
+		   echo $ndBasketHead;?>
 		<?//блок с заказанными товарами?>
 		<?if( isMobilelat() ):?>
 		
