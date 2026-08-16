@@ -139,7 +139,18 @@
     align-items: center;
     column-gap: 24px;
     row-gap: 4px;
-    padding: 24px 0;
+    /* Между карточками в макете 24 (кадры идут с шагом 227 при высоте 203),
+       поэтому у строки по 12 сверху и снизу, а не по 24: соседние поля
+       складываются. */
+    padding: 12px 0;
+}
+/* Первая карточка идёт вплотную к шапке, последняя — к низу списка: сверху
+   уже есть поле у шапки (24 по макету), а снизу отбивку даёт сам блок. */
+#basket-root .basket-items-list-item-container:first-child {
+    padding-top: 0;
+}
+#basket-root .basket-items-list-item-container:last-child {
+    padding-bottom: 0;
 }
 #basket-root .basket-items-list-item-container > td {
     display: block;
@@ -172,9 +183,9 @@
 #basket-root .basket-items-list-item-descriptions-inner {
     display: grid;
     grid-template-columns: 203px minmax(0, 1fr);
-    /* первая строка — под плашку наличия, вторая — под фото; если склады у
-       товара не показываем, строка схлопывается в ноль */
-    grid-template-rows: auto auto;
+    /* Одна строка: плашка наличия лежит в той же ячейке, что и кадр, поверх
+       его угла (см. ниже) — своей строки ей не нужно. */
+    grid-template-rows: auto;
     align-items: center;
     /* зазор до текста поменьше макетного — на нашем сайте цены пишутся словом
        «руб», колонка цены шире фигмовской, и название добирает эти пиксели */
@@ -184,9 +195,21 @@
 }
 #basket-root .basket-item-property-custom-photo {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 1;
+    /* Кадр держим у верха ячейки: строка бывает выше 203, когда у товара
+       длинное название, — плашка наличия ориентируется на верх кадра. */
+    align-self: start;
     width: 203px;
     margin: 0;
+}
+/* Кадр начинается ровно с верха ячейки: тема даёт обёртке значения поле
+   сверху в 6px, а <img> кладёт внутрь строчного <span> — из-за этого плашка
+   наличия вставала выше угла фотографии. */
+#basket-root .basket-item-property-custom-photo .basket-item-property-custom-value,
+#basket-root .basket-item-property-custom-photo .basket-item-property-custom-value > span {
+    display: block;
+    padding: 0;
+    line-height: 0;
 }
 /* Рамки вокруг фото в макете нет — тема рисует её на самом кадре. */
 #basket-root .basket-item-custom-block-photo-item {
@@ -736,15 +759,20 @@
 #basket-root .basket-items-list-item-descriptions-inner {
     position: relative;
 }
-/* В макете плашка стоит НАД фотографией, отдельной строкой, а не поверх её
-   угла: фото и плашка — две строки первой колонки описания. position:relative
-   оставляем ради выпадающего списка складов, он позиционируется от неё. */
+/* Плашка лежит на кадре, в его левом верхнем углу с отступом 8 — так она
+   стоит в макете (Badge 21274:53102 при кадре 309:32301). Отдельной строки под
+   неё нет: своей строкой она отодвигала первую карточку от шапки и растила
+   шаг между карточками. Сеточная ячейка у плашки та же, что у кадра, обе
+   прижаты к верху — поэтому угол совпадает при любой высоте описания.
+   position:relative оставляем ради выпадающего списка складов, он
+   позиционируется от неё. */
 #basket-root .nd-basket-stores {
     position: relative;
     grid-column: 1;
     grid-row: 1;
+    align-self: start;
     justify-self: start;
-    margin: 0 0 8px;
+    margin: 8px;
     z-index: 3;
 }
 /* Плашка наличия — ровно та же, что на карточке в каталоге: сплошной зелёный
