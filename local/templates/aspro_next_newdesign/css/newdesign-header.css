@@ -429,15 +429,140 @@ body {
     color: #101014;
     opacity: 1;
 }
-/* Подсказки search.title. Скрипт компонента (script.js) кладёт их прямо в
-   body отдельным блоком .title-search-result и сам проставляет инлайном
-   position/top/left/width — здесь только внешний вид. */
-.title-search-result.nd-title-search-input {
-    max-height: 60vh;
+/* ============ Подсказки поиска (search.title) ==============================
+   Макет Figma «Чистовик», фреймы «Поиск» 20744:47165 (десктоп 1440) и
+   20744:46533 (мобильный 360), внутри — «Результаты поиска» 20744:47530.
+
+   Контейнер: ширина строки поиска, отбивка 6 от поля, радиус 6, белый фон,
+   тень 0 0 4 rgba(29,29,29,.16), поля 8 сверху и снизу.
+   Строка 96 высотой: поля 6/16, картинка 54×54, отбивка 16, дальше колонка
+   с полями 6 сверху-снизу и отбивкой 6 — название 16/20.8 в две строки
+   (совпавшая с запросом часть 700, остальное 400, #101014) и цена 16/24 w700.
+   Наведение: название целиком #c60000, фон строки не меняется.
+   Подвал 40 высотой, поля 10/16: «Все товары» 14/19.6 w500 #c60000 и стрелка 16.
+
+   Разметку даёт ajax.php шаблонов newdesign и newdesign_mobile, позицию —
+   их script.js: блок лежит прямо в body и получает position/top/left/width
+   инлайном, поэтому здесь только внешний вид. Классы темы из разметки убраны,
+   так что перебивать её правила !important'ом почти не приходится — кроме
+   подчёркивания ссылок, его тема вешает глобально. */
+/* Селектор с тегом обязателен: у темы есть `div.title-search-result` со своими
+   padding, overflow и сдвигом margin -2/+1 (template_styles.css:1500), а он
+   специфичнее одного класса. Отступы гасим — положение целиком задаёт script.js. */
+div.title-search-result {
+    box-sizing: border-box;
+    max-height: 70vh;
+    margin: 0;
+    padding: 8px 0;
+    overflow-x: hidden;
     overflow-y: auto;
-    border-radius: 4px;
+    border-radius: 6px;
     background: #fff;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
+    box-shadow: 0 0 4px rgba(29, 29, 29, 0.16);
+}
+/* Полоса прокрутки видна, только если подсказок больше, чем влезает в окно;
+   тема рисует её широкой и серой, в макете такого блока нет. */
+div.title-search-result::-webkit-scrollbar {
+    width: 4px;
+}
+div.title-search-result::-webkit-scrollbar-thumb {
+    border-radius: 2px;
+    background: rgba(82, 82, 100, 0.25);
+}
+
+.nd-sug__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    box-sizing: border-box;
+    padding: 6px 16px;
+    color: #101014;
+    text-decoration: none !important;
+}
+.nd-sug__pic {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+}
+.nd-sug__pic img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+/* min-height держит строку 96 даже у товара с коротким названием — в макете
+   все строки одной высоты (колонка текста зафиксирована на 84). */
+.nd-sug__body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 84px;
+    padding: 6px 0;
+}
+.nd-sug__name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 400;
+    color: #101014;
+}
+/* Совпавшую с запросом часть названия компонент оборачивает в <b>. */
+.nd-sug__name b,
+.nd-sug__name strong {
+    font-weight: 700;
+}
+.nd-sug__item:hover .nd-sug__name,
+.nd-sug__item:focus .nd-sug__name {
+    color: #c60000;
+}
+.nd-sug__price {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
+    color: #101014;
+    white-space: nowrap;
+}
+
+/* Обёртке достаётся класс темы .bx_searche (зачем — в ajax.php), а с ним её
+   белый фон и лишняя тень поверх нашей. Гасим. */
+.nd-sug {
+    background: none;
+    box-shadow: none;
+}
+
+/* display:flex, а не блок: у строчного inline-flex внутри блока line-box
+   добирает высоту по шрифту родителя, и подвал выходил 44 вместо 40.
+   Поля перенесены с подвала на саму ссылку, чтобы нажималась вся строка
+   в 40px, а не только 96×20 под текстом: попасть в неё мышью не выходило. */
+.nd-sug__foot {
+    display: flex;
+}
+.nd-sug__all {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 16px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: #c60000 !important;
+    text-decoration: none !important;
+}
+.nd-sug__all .nd-sug__arrow {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
 }
 
 .nd-header__actions {

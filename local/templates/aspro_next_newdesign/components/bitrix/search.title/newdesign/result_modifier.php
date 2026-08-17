@@ -5,6 +5,102 @@ use Aspro\Next\SearchQuery;
 
 global $arRegion;
 
+/* ---------------------------------------------------------------------------
+   Свой подбор товаров вместо штатного поиска Битрикса (Ирина, 2026-08-17).
+
+   Компонент ищет по индексу словоформ и умеет только целые слова: «террас» не
+   находил «Террасную», а артикул торгового предложения не находился вовсе.
+   Нужен поиск по неполным словам — по названию, артикулу и производителю, с
+   несколькими словами в любом порядке. Всё это делает LatitudoQuickSearch;
+   здесь мы просто заменяем результат компонента своим, а весь код ниже
+   (цены, картинки, регионы, скрытие отсутствующих) работает как работал.
+
+   Берём с запасом (TOP_COUNT × 4): ниже отсеются товары чужого региона и без
+   доступа, а до нужных пяти строк список режет уже ajax.php.
+   ------------------------------------------------------------------------ */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_quick_search.php';
+
+$ndQuery = isset($arResult['query']) ? (string)$arResult['query'] : '';
+$ndWords = LatitudoQuickSearch::splitQuery($ndQuery);
+$ndTopCount = (int)$arParams['TOP_COUNT'] > 0 ? (int)$arParams['TOP_COUNT'] : 5;
+
+$arResult['CATEGORIES'] = array();
+
+if ($ndWords) {
+	$ndFound = LatitudoQuickSearch::findProducts($ndQuery, $ndTopCount * 4);
+
+	$ndRows = array();
+	if ($ndFound) {
+		$rsFound = CIBlockElement::GetList(
+			array(),
+			array(
+				'IBLOCK_ID'         => LatitudoQuickSearch::IBLOCK_PRODUCTS,
+				'ID'                => $ndFound,
+				'ACTIVE'            => 'Y',
+				'ACTIVE_DATE'       => 'Y',
+				'CHECK_PERMISSIONS' => 'Y',
+				'MIN_PERMISSION'    => 'R',
+			),
+			false,
+			false,
+			array('ID', 'IBLOCK_ID', 'NAME', 'DETAIL_PAGE_URL')
+		);
+		while ($arFound = $rsFound->GetNext(false, false)) {
+			$ndRows[(int)$arFound['ID']] = $arFound;
+		}
+	}
+
+	// Если запрос — это ровно артикул торгового предложения, строка этого
+	// товара должна открывать карточку сразу на нём (тем же ?pid=, что и Enter).
+	$ndExact = LatitudoQuickSearch::findByArticle($ndQuery);
+
+	$ndItems = array();
+	foreach ($ndFound as $ndId) {
+		if (!isset($ndRows[$ndId])) {
+			continue;
+		}
+		// Названия из 1С местами приходят с html-мнемониками — раскрываем их,
+		// экранирование дальше делает подсветка.
+		$ndName = LatitudoQuickSearch::plainText($ndRows[$ndId]['NAME']);
+		$ndUrl  = $ndRows[$ndId]['DETAIL_PAGE_URL'];
+		if ($ndExact && $ndExact['OFFER_ID'] && $ndExact['PRODUCT_ID'] == $ndId) {
+			$ndUrl .= (strpos($ndUrl, '?') === false ? '?' : '&').'pid='.$ndExact['OFFER_ID'];
+		}
+		$ndItems[] = array(
+			'ITEM_ID'   => (string)$ndId,
+			'MODULE_ID' => 'iblock',
+			'PARAM1'    => 'aspro_next_catalog',
+			'PARAM2'    => LatitudoQuickSearch::IBLOCK_PRODUCTS,
+			'TITLE'     => $ndName,
+			'NAME'      => LatitudoQuickSearch::highlight($ndName, $ndWords),
+			'URL'       => $ndUrl,
+			'ICON'      => true,
+		);
+	}
+
+	if ($ndItems) {
+		$arResult['CATEGORIES']['0'] = array(
+			'TITLE' => $arParams['CATEGORY_0_TITLE'],
+			'ITEMS' => $ndItems,
+		);
+		// Ссылка «Все товары» ведёт на ту же страницу выдачи, что и раньше;
+		// она теперь ищет тем же LatitudoQuickSearch, так что выдача совпадает.
+		$arResult['CATEGORIES']['all'] = array(
+			'TITLE' => '',
+			'ITEMS' => array(
+				array(
+					'NAME' => GetMessage('CC_BST_ALL_RESULTS'),
+					'URL'  => htmlspecialcharsex(CHTTP::urlAddParams(
+						str_replace('#SITE_DIR#', SITE_DIR, $arParams['PAGE']),
+						array('q' => $ndQuery),
+						array('encode' => true)
+					)),
+				),
+			),
+		);
+	}
+}
+
 $arResult["ELEMENTS"] = array();
 $arResult["SEARCH"] = array();
 
@@ -199,29 +295,25 @@ if (!empty($arResult["ELEMENTS"]) && CModule::IncludeModule("iblock"))
 
 	if($bHideNotAvailable)
 	{
-		$arFilter[] = array('LOGIC' => 'OR',array('=CATALOG_AVAILABLE' => false),array('=CATALOG_AVAILABLE' => 'Y'), $arTmpFilter);
+		/* Отсутствующие прячем по флагу наличия каталога — это и есть смысл
+		   настройки темы SEARCH_HIDE_NOT_AVAILABLE.
 
-		if($arRegion)
-		{
-			$arStores = array_diff($arRegion["LIST_STORES"], array('component'));
-			if($arStores)
-			{
-				$arTmpFilter = array();
-
-				if($arResult['CATALOG_ELEMENTS']){
-					$arTmpFilter["LOGIC"] = "OR";
-					$arTmpFilter[] = array('TYPE' => array('2','3')); //complects and offers
-					$arTmpFilter[] = array('!ID' => $arResult['CATALOG_ELEMENTS']); //not catalog items
-					$arTmpFilter[] = array(
-						'STORE_NUMBER' => $arStores,
-						'>STORE_AMOUNT' => 0,
-					);		
-				}
-				if($arTmpFilter){
-					$arFilter[] = $arTmpFilter;
-				}
-			}
-		}
+		   Прежняя добавка про склады региона убрана (Ирина, 2026-08-17). Она
+		   требовала от простого товара (без торговых предложений) остатка
+		   больше нуля на складе текущего региона, а товары с предложениями
+		   (TYPE 2 и 3) пропускала без условий. На этом сайте остатки по
+		   складам заведены у меньшинства товаров: b_catalog_store_product —
+		   1142 строки на 2378 товаров и 4 склада. В итоге вся садовая мебель
+		   и всё, у чего нет предложений, из подсказок исчезало, хотя в
+		   разделе каталога эти же товары показываются с ценой и корзиной —
+		   раздел такого условия не ставит. Оставлять расхождение между
+		   разделом и поиском нельзя, а прятать по остаткам, которых почти ни
+		   у кого нет, — тем более. */
+		$arFilter[] = array(
+			'LOGIC' => 'OR',
+			array('=CATALOG_AVAILABLE' => false),
+			array('=CATALOG_AVAILABLE' => 'Y'),
+		);
 	}
 
 	$arOffersWithoutPictureProductsIDs = $arFilterIBlocks = array();
@@ -242,9 +334,23 @@ if (!empty($arResult["ELEMENTS"]) && CModule::IncludeModule("iblock"))
 		$rsPropRegion = CIBlockElement::GetProperty($arElement["IBLOCK_ID"], $arElement["ID"], array("sort" => "asc"), Array("CODE"=>"LINK_REGION"));
 		while($arPropRegion = $rsPropRegion->Fetch())
 		{
-			$bHasRegionElementProp = true;
+			/* Флаг «инфоблок пользуется привязкой к регионам» ставим только по
+			   заполненному значению. У Аспро он ставился на любую строку, а
+			   CIBlockElement::GetProperty отдаёт строку и для пустого свойства
+			   — то есть флаг поднимался у каждого товара каталога. Дальше
+			   пустой список регионов не совпадал с текущим, и товар выбывал.
+			   На этом сайте LINK_REGION не заполнен ни у одного товара (проверял
+			   запросом 17 августа 2026), поэтому из подсказок вылетало вообще
+			   всё, что нашлось. Раньше это не бросалось в глаза: штатный поиск
+			   отдавал вперемешку и торговые предложения, у которых свойства
+			   LINK_REGION нет, — попадись такое первым, флаг оставался снятым и
+			   фильтр молчал для всей выдачи. Смысл проверки сохранён: товар с
+			   заполненными регионами по-прежнему виден только в своих. */
 			if($arPropRegion['VALUE'])
+			{
+				$bHasRegionElementProp = true;
 				$arRegionProps[] = $arPropRegion['VALUE'];
+			}
 		}
 		if($bHasRegionElementProp && $arRegion && $GLOBALS['arTheme']['USE_REGIONALITY']['DEPENDENT_PARAMS']['REGIONALITY_FILTER_ITEM']['VALUE'] === 'Y')
 		{

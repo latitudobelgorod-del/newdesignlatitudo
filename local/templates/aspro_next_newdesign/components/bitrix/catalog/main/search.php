@@ -12,6 +12,44 @@
    nd-cat-head отменяет черту-разделитель под заголовком: на поиске под ним
    идёт строка поиска, а черта — уже под ней. */
 $ndSearchQuery = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
+
+/* Ввели артикул и нажали Enter — открываем сразу карточку, а не список из
+   одной строки (Ирина, 2026-08-17). Для артикула торгового предложения ведём
+   на карточку с ?pid=<ID предложения>: по этому параметру js/newdesign-element.js
+   выбирает нужное предложение и тут же убирает его из адресной строки, чтобы
+   ссылка у покупателя осталась обычной. Неоднозначные артикулы findByArticle
+   не возвращает — по ним честнее показать список.
+
+   Проверку делаем до всякого вывода: ниже страница начинает собирать шапку и
+   подключать компоненты. Ajax-запросы подсказок (POST с ajax_call) сюда тоже
+   заходят — их не трогаем, им нужен список, а не переход. */
+if ($ndSearchQuery !== '' && empty($_REQUEST['ajax_call'])) {
+	require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_quick_search.php';
+
+	if ($ndExactHit = LatitudoQuickSearch::findByArticle($ndSearchQuery)) {
+		$rsExact = CIBlockElement::GetList(
+			array(),
+			array(
+				'IBLOCK_ID'         => LatitudoQuickSearch::IBLOCK_PRODUCTS,
+				'ID'                => $ndExactHit['PRODUCT_ID'],
+				'ACTIVE'            => 'Y',
+				'ACTIVE_DATE'       => 'Y',
+				'CHECK_PERMISSIONS' => 'Y',
+				'MIN_PERMISSION'    => 'R',
+			),
+			false,
+			array('nTopCount' => 1),
+			array('ID', 'IBLOCK_ID', 'DETAIL_PAGE_URL')
+		);
+		if ($arExact = $rsExact->GetNext(false, false)) {
+			$ndExactUrl = $arExact['DETAIL_PAGE_URL'];
+			if ($ndExactHit['OFFER_ID']) {
+				$ndExactUrl .= (strpos($ndExactUrl, '?') === false ? '?' : '&').'pid='.$ndExactHit['OFFER_ID'];
+			}
+			LocalRedirect($ndExactUrl);
+		}
+	}
+}
 $ndSearchTitle = ($ndSearchQuery !== '')
 	? 'Результаты поиска: «'.htmlspecialcharsbx($ndSearchQuery).'»'
 	: 'Введите поисковый запрос';
@@ -46,18 +84,62 @@ if (!defined('ND_CATALOG_ASSETS')) {
    собираем конкатенацией, чтобы не заводить ob_start (ShowTitle и подобные
    в буфере рвут его — грабля из шаблона услуг). */
 $ndSearchIcon = SITE_TEMPLATE_PATH.'/images/newdesign/header/search.svg';
+
+/* Подсказки к этой строке — те же, что в шапке (Ирина, 2026-08-17): товары
+   должны показываться сразу при наборе, а не только после отправки формы.
+   Разметку поля печатаем здесь, а запуск JCTitleSearch2 даёт отдельный
+   шаблон search.title/newdesign_page — своей разметки у него нет.
+
+   Компонент подключаем ДО bitrix:catalog.search: на ajax-запрос подсказок он
+   отвечает и обрывает страницу (RestartBuffer + die), и тяжёлый список
+   товаров в этот момент считать незачем. Параметры — как у поиска в шапке.
+
+   Вывод компонента ловим в буфер и кладём в ту же отложенную область: сам он
+   печатается здесь, внутри правой колонки, а тег <script> должен стоять
+   рядом с полем — иначе он ищет узлы, которых ещё нет. */
+ob_start();
+$APPLICATION->IncludeComponent(
+	"bitrix:search.title",
+	"newdesign_page",
+	array(
+		"NUM_CATEGORIES" => "1",
+		"TOP_COUNT" => "5",
+		"ORDER" => "rank",
+		"USE_LANGUAGE_GUESS" => "N",
+		"CHECK_DATES" => "Y",
+		"SHOW_OTHERS" => "N",
+		"PAGE" => CNext::GetFrontParametrValue("CATALOG_PAGE_URL"),
+		"CATEGORY_0_TITLE" => "ALL",
+		"CATEGORY_OTHERS_TITLE" => "OTHER",
+		"CATEGORY_0_iblock_aspro_next_catalog" => array(19, 20),
+		"SHOW_INPUT" => "Y",
+		"INPUT_ID" => "nd-searchpage-input",
+		"CONTAINER_ID" => "nd-searchpage",
+		"PREVIEW_TRUNCATE_LEN" => "",
+		"SHOW_PREVIEW" => "Y",
+		"PRICE_CODE" => array("BASE", "OPT"),
+		"CONVERT_CURRENCY" => "Y",
+		"CURRENCY_ID" => "RUB",
+		"PREVIEW_WIDTH" => "25",
+		"PREVIEW_HEIGHT" => "25",
+	),
+	false, array("HIDE_ICONS" => "Y")
+);
+$ndSearchSuggest = ob_get_clean();
+
 $APPLICATION->AddViewContent('nd_page_head',
 	$ndSearchAssets
 	.'<div class="nd-cat-head nd-search-head"><h1 id="pagetitle">'.$ndSearchTitle.'</h1></div>'
-	.'<div class="nd-searchpage">'
+	.'<div class="nd-searchpage" id="nd-searchpage">'
 		.'<form class="nd-searchpage__form" action="'.htmlspecialcharsbx($APPLICATION->GetCurPage(false)).'" method="get">'
-			.'<input class="nd-searchpage__input" type="text" name="q" value="'.htmlspecialcharsbx($ndSearchQuery).'"'
+			.'<input class="nd-searchpage__input" id="nd-searchpage-input" type="text" name="q" value="'.htmlspecialcharsbx($ndSearchQuery).'"'
 				.' placeholder="Найти товар" maxlength="50" autocomplete="off" />'
 			.'<button class="nd-searchpage__submit" type="submit" aria-label="Искать">'
 				.'<img src="'.$ndSearchIcon.'" alt="" width="24" height="24">'
 			.'</button>'
 		.'</form>'
 	.'</div>'
+	.$ndSearchSuggest
 	.'<div class="nd-searchpage__sep"></div>'
 );
 

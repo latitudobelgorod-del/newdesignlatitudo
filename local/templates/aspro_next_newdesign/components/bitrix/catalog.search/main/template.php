@@ -2,80 +2,38 @@
 
 <?
 global $USER;
-$arIBlocks = array($arParams["IBLOCK_ID"]);
-$arSKU = array();
-if($arParams['IBLOCK_ID'])
-{
-	$arSKU = CCatalogSKU::GetInfoByProductIBlock($arParams['IBLOCK_ID']);
-	if($arSKU['IBLOCK_ID'])
-		$arIBlocks[] = $arSKU['IBLOCK_ID'];
-}
 ?>
 <?php
-if (isset($arResult["ORLND"]["SKU_IBLOCK_ID"]) && isset($arResult["ORLND"]["SKU_IBLOCK_TYPE"]) && ($arResult["ORLND"]["SKU_IBLOCK_TYPE"] == $arParams["IBLOCK_TYPE"]))
-  $arIBlockList = array($arParams["IBLOCK_ID"], $arResult["ORLND"]["SKU_IBLOCK_ID"]);
-else
-  $arIBlockList = array($arParams["IBLOCK_ID"]);
+/* Списки инфоблоков ($arIBlocks, $arIBlockList) и пустой $arOffers, что стояли
+   здесь раньше, нужны были только штатному bitrix:search.page — какие
+   инфоблоки ему обходить. Своему подбору они не нужны: инфоблоки каталога и
+   предложений он знает сам. */
+/* Свой подбор товаров вместо штатного bitrix:search.page (Ирина, 2026-08-17).
 
-$arElements = array();
-$arOffers = array();
-?>
-<?$arElements = $APPLICATION->IncludeComponent(
-	"bitrix:search.page",
-	"",
-	Array(
-		"RESTART" => $arParams["RESTART"],
-		"NO_WORD_LOGIC" => $arParams["NO_WORD_LOGIC"],
-		"USE_LANGUAGE_GUESS" => $arParams["USE_LANGUAGE_GUESS"],
-		"CHECK_DATES" => $arParams["CHECK_DATES"],
-		"arrFILTER" => array("iblock_".$arParams["IBLOCK_TYPE"]),
-		"arrFILTER_iblock_".$arParams["IBLOCK_TYPE"] => $arIBlockList,
-		"USE_TITLE_RANK" => "Y",
-		"DEFAULT_SORT" => "rank",
-		"FILTER_NAME" => "searchFilter",
-		"SHOW_WHERE" => "N",
-		"arrWHERE" => array(),
-		"SHOW_WHEN" => "N",
-		"PAGE_RESULT_COUNT" => 5000,
-		"DISPLAY_TOP_PAGER" => "N",
-		"DISPLAY_BOTTOM_PAGER" => "N",
-		"PAGER_TITLE" => "",
-		"PAGER_SHOW_ALWAYS" => "N",
-		"PAGER_TEMPLATE" => "N",
-	),
-	$component
-);
+   Штатный компонент искал по индексу словоформ модуля «Поиск» и умел только
+   целые слова: «террас» не находил «Террасную», а артикул торгового
+   предложения не находился вовсе. LatitudoQuickSearch ищет по неполным словам
+   — по названию, артикулу и производителю товара и по названиям и артикулам
+   его предложений, несколько слов в любом порядке.
 
+   Тот же класс зовут подсказки в шапке (search.title/newdesign), поэтому
+   выдача по ссылке «Все товары» совпадает с тем, что показала подсказка.
 
+   Возвращаются ID товаров: предложения подбор сводит к родительскому товару
+   сам. Поэтому здесь больше нет прежней надстройки с SubQuery по свойству
+   привязки предложений — она добавляла к выборке товары, чьи предложения
+   попали в результаты поиска, а это теперь сделано на шаг раньше. */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_quick_search.php';
 
-if ((is_array($arElements) && !empty($arElements)) || (isset($arOffers) && is_array($arOffers) && !empty($arOffers))) {
+$arElements = LatitudoQuickSearch::findProducts(isset($_REQUEST['q']) ? $_REQUEST['q'] : '');
+
+if (is_array($arElements) && !empty($arElements)) {
 	global $searchFilter, $arTheme, $arRegion;
-
 
 	$searchFilter = array(
 		"=ID" => $arElements,
 	);
-	
-	  if (isset($arResult["ORLND"]["SKU_IBLOCK_ID"]) && isset($arResult["ORLND"]["SKU_PROPERTY_SID"])) {
-    if (isset($arResult["ORLND"]["SKU_IBLOCK_TYPE"]) && ($arResult["ORLND"]["SKU_IBLOCK_TYPE"] == $arParams["IBLOCK_TYPE"])) {
-      $searchFilter = array(
-        array(
-          "LOGIC" => "OR",
-          array("=ID" => $arElements),
-          array("=ID" => CIBlockElement::SubQuery("PROPERTY_" . $arResult["ORLND"]["SKU_PROPERTY_SID"], array("IBLOCK_ID" => $arResult["ORLND"]["SKU_IBLOCK_ID"], "=ID" => $arElements)))
-        )
-      );
-    } elseif (isset($arResult["ORLND"]["SKU_IBLOCK_TYPE"]) && ($arResult["ORLND"]["SKU_IBLOCK_TYPE"] != $arParams["IBLOCK_TYPE"]) && isset($arOffers)) {
-      $searchFilter = array(
-        array(
-          "LOGIC" => "OR",
-          array("=ID" => $arElements),
-          array("=ID" => CIBlockElement::SubQuery("PROPERTY_" . $arResult["ORLND"]["SKU_PROPERTY_SID"], array("IBLOCK_ID" => $arResult["ORLND"]["SKU_IBLOCK_ID"], "=ID" => $arOffers)))
-        )
-      );
-    }
-  }
-  
+
 
 	/* Умный фильтр слева — как в разделе каталога (Ирина, 2026-08-12).
 	   Пункты и значения считаются только по найденным товарам.

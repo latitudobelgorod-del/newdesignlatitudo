@@ -354,15 +354,27 @@ function JCTitleSearch2(arParams)
 		}
 
 		pos.width = pos.right - pos.left;
-		_this.RESULT.style.top = (pos.bottom + 2) + 'px';
-		_this.RESULT.style.left = pos_input.left + 'px';
+		// По макету (Figma «Чистовик», фрейм «Поиск» 20744:47165) выпадашка стоит
+		// ровно под строкой поиска: её край в край и отбивка 6. Было `pos_input.left`
+		// — из-за него список съезжал вправо на ширину кнопки с лупой и вылезал
+		// за правый край поля, потому что ширина берётся уже от контейнера.
+		_this.RESULT.style.top = (pos.bottom + 6) + 'px';
 
 		if($(_this.INPUT).closest('.inline-search-block.with-close').length)
+		{
+			_this.RESULT.style.left = pos_input.left + 'px';
 			_this.RESULT.style.width = pos_input.width + 'px';
+		}
 		else if (isBoundHeader)
+		{
+			_this.RESULT.style.left = pos.left + 'px';
 			_this.RESULT.style.width = 'calc(100% - 1px)';
+		}
 		else
+		{
+			_this.RESULT.style.left = pos.left + 'px';
 			_this.RESULT.style.width = pos.width + 'px';
+		}
 		return pos;
 	};
 
@@ -387,7 +399,11 @@ function JCTitleSearch2(arParams)
 			_this.onFocusGain()
 		});
 		BX.bind(this.INPUT, 'blur', function(e) {
-			if(!$(e.relatedTarget).hasClass('bx_item_block'))
+			// Клик по подсказке не должен закрывать список раньше перехода.
+			// Раньше проверялся класс темы .bx_item_block, но ajax.php нового
+			// дизайна отдаёт свою разметку (.nd-sug__item), поэтому смотрим,
+			// лежит ли цель внутри блока результатов.
+			if(!$(e.relatedTarget).closest('.title-search-result').length)
 				_this.onFocusLost();
 		});
 

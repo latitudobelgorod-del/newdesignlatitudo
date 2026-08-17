@@ -953,3 +953,99 @@
 		init();
 	}
 })();
+
+/* ============================================================================
+   ?pid=<ID предложения> — открыть карточку сразу на нужном торговом
+   предложении (Ирина, 2026-08-17).
+
+   Так с поиска приходят ссылки, найденные по артикулу предложения: страница
+   выдачи (components/bitrix/catalog/main/search.php) и подсказки в шапке ведут
+   на карточку товара с этим параметром.
+
+   Своего адреса у предложения нет: инфоблок 20 отдаёт DETAIL_PAGE_URL
+   родителя (#PRODUCT_URL#), а выбор варианта живёт в браузере. Поэтому
+   выбираем его так же, как это сделал бы человек, — нажимаем нужные пункты
+   списка свойств. Соответствие «предложение → значения свойств» знает объект
+   JCCatalogElement шаблона main6: он лежит в переменной со сгенерированным
+   именем, поэтому ищем его перебором по window. Объект создаётся инлайновым
+   скриптом внизу карточки, так что несколько раз проверяем по таймеру.
+   ========================================================================= */
+(function () {
+	'use strict';
+
+	var match = location.search.match(/[?&]pid=(\d+)/);
+	if (!match) return;
+	var pid = match[1];
+
+	/* Параметр — служебный, покупателю его видеть незачем: как только выбор
+	   применён, убираем его из адресной строки. replaceState не перезагружает
+	   страницу и не оставляет лишнего шага в истории «назад». */
+	function cleanUrl() {
+		if (!window.history || !history.replaceState) return;
+		var search = location.search
+			.replace(/([?&])pid=\d+&?/, '$1')
+			.replace(/[?&]$/, '');
+		history.replaceState(null, '', location.pathname + search + location.hash);
+	}
+
+	/* Объектов может быть несколько: у карточки свой, и ещё по одному у блоков
+	   «с этим товаром покупают» и быстрого просмотра. Обходим все — нужное
+	   предложение найдётся только у своего, а пункты жмём внутри его же
+	   контейнера (obTree), чтобы не задеть соседние товары. */
+	function findElementObjects() {
+		var found = [];
+		for (var key in window) {
+			var obj;
+			try { obj = window[key]; } catch (e) { continue; }
+			if (obj && typeof obj === 'object'
+				&& obj.offers && obj.offers.length
+				&& obj.treeProps && obj.treeProps.length
+				&& typeof obj.SelectOfferProp === 'function') {
+				found.push(obj);
+			}
+		}
+		return found;
+	}
+
+	function selectIn(obj) {
+		var offer = null, i;
+		for (i = 0; i < obj.offers.length; i++) {
+			if (String(obj.offers[i].ID) === pid) { offer = obj.offers[i]; break; }
+		}
+		// Предложение не с этой карточки — молча оставляем выбор по умолчанию.
+		if (!offer || !offer.TREE) return;
+
+		var scope = obj.obTree || document;
+		for (i = 0; i < obj.treeProps.length; i++) {
+			var propId = obj.treeProps[i].ID;
+			var value = offer.TREE['PROP_' + propId];
+			if (value === undefined || value === null) continue;
+
+			var nodes = scope.querySelectorAll('[data-treevalue="' + propId + '_' + value + '"]');
+			for (var j = 0; j < nodes.length; j++) {
+				if (/ active(\s|$)/.test(' ' + nodes[j].className)) continue;
+				// Обработчик темы навешен через jQuery .on('click'), поэтому
+				// обычного клика достаточно — jQuery слушает нативные события.
+				nodes[j].click();
+			}
+		}
+	}
+
+	function apply() {
+		var objects = findElementObjects();
+		if (!objects.length) return false;
+		for (var i = 0; i < objects.length; i++) selectIn(objects[i]);
+		cleanUrl();
+		return true;
+	}
+
+	var tries = 0;
+	var timer = setInterval(function () {
+		if (apply() || ++tries > 40) {
+			clearInterval(timer);
+			// Объект так и не появился (у товара нет предложений) — адрес всё
+			// равно приводим в порядок, показывать служебный хвост незачем.
+			cleanUrl();
+		}
+	}, 100);
+})();

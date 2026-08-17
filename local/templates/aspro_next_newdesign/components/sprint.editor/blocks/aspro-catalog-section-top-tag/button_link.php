@@ -9,9 +9,14 @@ $rand_link_sp = substr(str_shuffle($razreshenniye_simvoli), 0, 15);
 
 <? if (!empty($block['title'])): ?>
 
+    <? /* nd-editor-btn — см. комментарий в blocks/.default/button_link.php:
+          красная кнопка с бордовым фоном на наведении, как «Оставить заявку» в
+          шапке. Ссылку ниже класс не получает: в этой папке блок рисует чипы
+          тегов раздела (.tag_ank), у них своё оформление в
+          newdesign-catalog.css. */ ?>
     <? if (!empty($block['settings']['form_id'])): ?>
         <div class="block 5545">
-            <span class="btn btn-default btn-lg  animate-load" data-event="jqm" data-param-form_id="<?=$block['settings']['form_id']?>" data-name="spbutton<?=$block['settings']['form_id']?><?=$rand_link_sp?>">
+            <span class="btn btn-default btn-lg  animate-load nd-editor-btn" data-event="jqm" data-param-form_id="<?=$block['settings']['form_id']?>" data-name="spbutton<?=$block['settings']['form_id']?><?=$rand_link_sp?>" data-nd-form-title="<?=htmlspecialcharsbx($block['title'])?>">
                 <span><?=$block['title']?></span>
             </span>
         </div>

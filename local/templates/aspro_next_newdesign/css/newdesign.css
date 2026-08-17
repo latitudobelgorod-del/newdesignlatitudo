@@ -4130,7 +4130,12 @@ body .nd-filter .bx_filter_block .values_expander {
    2026-08-11). Значения повторяют .nd-btn.nd-btn--red из newdesign-header.css:
    высота 48, радиус 4, поля 16, 16/24 w700, #c60000 / #a80000 на наведении.
    Класс ставят шаблоны button_link.php во ВСЕХ папках блоков
-   (components/sprint.editor/blocks/{.default,.default_detail,aspro-catalog-section}).
+   (components/sprint.editor/blocks/{.default,.default_detail,aspro-catalog-section,
+   aspro-catalog-section-top-tag}). В папках без своего button_link.php
+   (aspro-catalog-element, aspro-news-element) компонент берёт файл из .default —
+   см. порядок поиска в bitrix/components/sprint.editor/blocks/class.php:365.
+   В aspro-catalog-section-top-tag класс стоит только на кнопке формы: ссылку
+   этот блок рисует чипом тега раздела (.tag_ank), у него своё наведение.
    Классы темы из разметки не убраны: на .btn.btn-default завязаны её скрипты
    форм, а сам шаблон блока общий по смыслу со старым дизайном. Отсюда и
    !important — у темы селекторы из двух классов, а внутри .editor она ещё и
