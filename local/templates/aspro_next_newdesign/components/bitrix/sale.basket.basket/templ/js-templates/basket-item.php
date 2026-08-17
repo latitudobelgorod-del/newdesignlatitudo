@@ -440,7 +440,9 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 								<?// hidden-xs снят: скидка есть и в мобильном макете —
 								   // стоит справа от цены за штуку.?>
 								<div id="basket-item-sum-price-difference-{{ID}}">
-									Скидка {{{SUM_DISCOUNT_PRICE_FORMATED}}}
+									<?// Сумма в отдельной обёртке: в узкой колонке строка переносится,
+									   // и рвать её надо после слова «Скидка», а не посреди суммы.?>
+									Скидка <span class="nd-price-diff__sum">{{{SUM_DISCOUNT_PRICE_FORMATED}}}</span>
 								</div>
 							</div>
 						{{/SHOW_DISCOUNT_PRICE}}

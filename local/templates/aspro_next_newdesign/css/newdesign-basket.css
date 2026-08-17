@@ -1021,6 +1021,12 @@
         display: flex !important;
         gap: 6px;
     }
+    /* Тема отбивает описание на 5px по бокам, и название с характеристиками
+       стояли не по краю карточки, а правее цен. Правило общего блока тут
+       бессильно — у темы больше специфичность, поэтому селектор длиннее. */
+    #basket-root .basket-items-list-item-descriptions-inner .basket-item-block-info {
+        padding: 0 !important;
+    }
     /* Название в макете 15/20 и обычного начертания: ссылка внутри заголовка
        тянет свои 700/21 от темы — гасим. */
     #basket-root .basket-item-info-name,
@@ -1115,6 +1121,12 @@
         font-size: 10px;
         line-height: 13px;
     }
+    /* Строка «Скидка N руб» в колонке шириной ~72 не помещается (в макете там
+       «₽», а мы печатаем «руб»). Рвём её после слова «Скидка», чтобы сумма
+       уходила на вторую строку целиком, а не как «Скидка 421 / руб». */
+    #basket-root .nd-price-diff__sum {
+        white-space: nowrap;
+    }
 
     /* Счётчик: в мобильном макете «шт» стоит внутри серой плашки,
        под числом, а не отдельной строкой под ней. */
@@ -1126,7 +1138,9 @@
             "minus unit  plus";
         align-content: center;
         /* Плашка в макете 120×52, радиус 3, поля по 2 — и без боковых
-           отступов: они забирали 20px у колонки цен. */
+           отступов: они забирали 20px у колонки цен. Зазор между строками
+           убираем: «шт» в макете идёт сразу под числом. */
+        gap: 0;
         width: 120px;
         height: 52px;
         margin: 0;
@@ -1144,8 +1158,13 @@
         width: 28px;
         height: 100%;
     }
+    /* Флексом, а не блоком: поле — inline-block, и строчный бокс добавлял
+       под ним 3px на выносной элемент, из-за чего пара «число + шт» стояла
+       в плашке выше центра. */
     #basket-root .basket-item-amount-filed-block {
         grid-area: value;
+        display: flex;
+        align-items: center;
         height: 17px;
     }
     /* Число в счётчике — 14/17 обычного начертания. Через !important: тема
@@ -1157,12 +1176,27 @@
         font-size: 14px !important;
         line-height: 17px !important;
     }
-    #basket-root .basket-item-amount-field-description {
+    /* Тема держит подпись «шт» абсолютом (top:1; bottom:-18) — строка сетки
+       получалась нулевой, и подпись вылезала из-под плашки счётчика.
+       Возвращаем её в поток, тогда число и «шт» встают по центру плашки. */
+    #basket-root .basket-item-block-amount .basket-item-amount-field-description {
+        position: static !important;
+        top: auto !important;
+        bottom: auto !important;
         grid-area: unit;
         margin: 0;
         font-weight: 500;
         font-size: 12px;
         line-height: 17px;
+    }
+    /* Поля темы у поля ввода сдвигали пару «число + шт» вверх. */
+    #basket-root input.basket-item-amount-filed {
+        padding: 0 !important;
+    }
+    /* Боковые поля счётчика тема задаёт сильнее общего блока — они забирали
+       у колонки цен 20px, из-за чего строка скидки ломалась раньше времени. */
+    #basket-root .basket-items-list-item-amount .basket-item-block-amount {
+        margin: 0 !important;
     }
 }
 
