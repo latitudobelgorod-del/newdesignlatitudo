@@ -957,17 +957,29 @@ if (!empty($arResult['GRID']['ROWS'])):
 		return document.querySelector('[data-entity="basket-total-price"]');
 	}
 
+	/* Высоту панели отдаём в CSS: над ней поднимается кнопка обратного
+	   звонка (виджет callbackkiller, правило в css/newdesign-mobile.css).
+	   Считать её в стилях нельзя — высота зависит от строки итога. */
+	function publishHeight() {
+		var h = bar.hidden ? 0 : bar.offsetHeight;
+		document.documentElement.style.setProperty('--nd-basket-bar-h', h + 'px');
+	}
+
 	function sync() {
 		var src = totalNode();
 		/* Пустая корзина — панели быть не должно: строка итога пропадает
 		   вместе с блоком итогов. */
 		if (!src || !src.textContent.trim()) {
 			bar.hidden = true;
+			publishHeight();
 			return;
 		}
 		valueNode.textContent = src.textContent.trim();
 		bar.hidden = false;
+		publishHeight();
 	}
+
+	window.addEventListener('resize', publishHeight);
 
 	bar.querySelector('.nd-basket-bar__btn').addEventListener('click', function () {
 		var btn = document.querySelector('[data-entity="basket-checkout-button"]');

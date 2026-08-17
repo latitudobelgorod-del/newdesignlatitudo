@@ -810,4 +810,21 @@ body.nd-sheet-open {
     bottom: calc(var(--nd-navbar-h) + 16px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
+/* Кнопка обратного звонка (виджет callbackkiller / envybox, подключён
+   в footer.php) висит абсолютом и сама пересчитывает `top` на прокрутке —
+   поэтому она наползала на нижнюю панель навигации, а в корзине ещё и на
+   панель «Заказать». Прибиваем её к экрану над обеими: `top` гасим, иначе
+   инлайновый top от виджета перебьёт наш bottom (при заданных top+height
+   значение bottom игнорируется).
+
+   --nd-basket-bar-h выставляет скрипт панели корзины (шаблон
+   sale.basket.basket/templ), на остальных страницах переменной нет и
+   в расчёт идёт 0. */
+a.callbackkiller.cbk-phone {
+    position: fixed !important;
+    top: auto !important;
+    right: 12px !important;
+    bottom: calc(var(--nd-navbar-h) + var(--nd-basket-bar-h, 0px) + 12px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
 }

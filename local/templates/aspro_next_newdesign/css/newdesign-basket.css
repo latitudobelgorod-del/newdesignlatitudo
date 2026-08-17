@@ -927,24 +927,36 @@
     }
 }
 
+/* Мобильная корзина — Figma «Чистовик», фрейм 20517:145736 (ширина 360).
+   Почти вся типографика тут мельче десктопной, а не крупнее: название 15/20,
+   характеристики 10/13, сумма 20/24, счётчик 120×52. */
 @media (max-width: 767px) {
     .nd-basket-head {
-        align-items: flex-start;
-        gap: 8px;
+        align-items: center;
+        gap: 16px;
     }
     /* В мобильном макете (20517:145736) лента отбита от блока «Доставка» на 36,
        а не на 104, как на десктопе. */
     .nd-related--basket {
         margin-top: 36px;
     }
-    .nd-basket-head__title {
-        font-size: 32px;
-        line-height: 38px;
+    /* Заголовок в макете 30/33. Класс тут бессилен: тема задаёт размер
+       через `#pagetitle` с !important — перебиваем тем же оружием. */
+    body .nd-basket-head #pagetitle {
+        font-size: 30px !important;
+        line-height: 33px !important;
     }
     .nd-basket-head__clear {
         height: auto;
+        gap: 4px;
         padding: 4px 0;
-        font-size: 14px;
+        font-size: 12px;
+        line-height: 16px;
+    }
+    /* Корзинка у «Очистить корзину» в мобильном макете 16, а не 24. */
+    .nd-basket-head__clear svg {
+        width: 16px;
+        height: 16px;
     }
     /* На мобильном карточка складывается в две строки: фото с описанием
        сверху, цены и счётчик — под ними.
@@ -959,23 +971,31 @@
         grid-template-areas:
             "desc desc"
             "sum stepper";
-        column-gap: 16px;
+        column-gap: 12px;
         row-gap: 16px;
-        padding: 16px 0;
+        /* В макете между карточками 24, а от содержимого до разделителя — 12
+           (у первой карточки поле сверху даёт шапка — см. правило :first-child
+           в общем блоке). */
+        padding: 24px 0 12px;
     }
     /* Позиции в мобильном макете разделены линией — на десктопе её нет,
        поэтому базовое правило border:0 перебиваем той же специфичностью. */
     #basket-root .basket-items-list .basket-items-list-item-container {
         border-bottom: 1px solid rgba(82, 82, 100, .12);
     }
-    /* Фото уходит вправо, текст — влево (на десктопе наоборот). Плашка
-       наличия остаётся над кадром, поэтому у правой колонки две строки. */
+    /* Линия есть и под последней позицией, значит поле снизу ей тоже нужно
+       (в общем блоке оно снято — там разделителей нет). */
+    #basket-root .basket-items-list-item-container:last-child {
+        padding-bottom: 12px;
+    }
+    /* Фото уходит вправо, текст — влево (на десктопе наоборот). Плашки наличия
+       в мобильном макете нет, поэтому строка одна: иначе описание, растянутое
+       на обе строки, тянет вниз и кадр — а он в макете стоит вровень
+       с названием. */
     #basket-root .basket-items-list-item-descriptions-inner {
-        grid-template-columns: minmax(0, 1fr) 96px;
-        grid-template-areas:
-            "info stores"
-            "info photo";
-        column-gap: 12px;
+        grid-template-columns: minmax(0, 1fr) 80px;
+        grid-template-areas: "info photo";
+        column-gap: 8px;
         align-items: start;
     }
     #basket-root .basket-item-property-custom-photo {
@@ -983,10 +1003,10 @@
     }
     #basket-root .basket-item-property-custom-photo,
     #basket-root .basket-item-custom-block-photo-item {
-        width: 96px;
+        width: 80px;
     }
     #basket-root .basket-item-custom-block-photo-item {
-        height: 96px;
+        height: 80px;
         border-radius: 6px;
     }
     /* Плашки наличия в мобильном макете на карточке нет (на десктопе есть) —
@@ -999,14 +1019,31 @@
     #basket-root .basket-item-block-info {
         grid-area: info;
         display: flex !important;
-        gap: 8px;
+        gap: 6px;
+    }
+    /* Название в макете 15/20 и обычного начертания: ссылка внутри заголовка
+       тянет свои 700/21 от темы — гасим. */
+    #basket-root .basket-item-info-name,
+    #basket-root h2.basket-item-info-name {
+        font-size: 15px;
+        line-height: 20px;
+    }
+    #basket-root .basket-item-info-name-link {
+        font-weight: 500;
+        font-size: inherit;
+        line-height: inherit;
+    }
+    /* «Удалить» в макете отбито от характеристик на 14 (6 даёт зазор блока). */
+    #basket-root .basket-item-actions-remove {
+        margin-top: 8px;
     }
     /* Вес и размеры в мобильном макете мельче десктопных. */
     #basket-root .basket-item-block-properties,
     #basket-root .basket-item-property {
         gap: 2px 6px;
-        font-size: 12px;
-        line-height: 16px;
+        font-size: 10px;
+        line-height: 13px;
+        letter-spacing: .4px;
     }
 
     /* Цены в макете стоят в два столбца: слева сумма и цена за штуку,
@@ -1043,51 +1080,80 @@
         margin: 0;
         text-align: left;
     }
+    /* Размеры цен из мобильного макета: сумма 20/24, старая 14/20, строка
+       «за шт.» 15/22 (подпись 14), скидка 10/13. Тема даёт скидке свои поля —
+       снимаем, ряд сетки и так отбит. */
     #basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) .basket-item-price-current-text {
-        font-size: 24px;
-        line-height: 28px;
+        font-size: 20px;
+        line-height: 24px;
     }
     #basket-root .basket-item-price-old-text {
-        font-size: 16px;
+        font-size: 14px;
+        line-height: 20px;
+    }
+    #basket-root .nd-price-unit {
         line-height: 22px;
     }
+    #basket-root .nd-price-unit__value {
+        font-size: 15px;
+    }
+    #basket-root .nd-price-unit__title {
+        font-size: 14px;
+        color: #525264;
+    }
     #basket-root .basket-item-price-difference {
-        font-size: 12px;
-        line-height: 16px;
+        padding: 0;
+        font-size: 10px;
+        line-height: 13px;
     }
 
     /* Счётчик: в мобильном макете «шт» стоит внутри серой плашки,
        под числом, а не отдельной строкой под ней. */
     #basket-root .basket-item-block-amount {
         display: grid;
-        grid-template-columns: 40px minmax(0, 1fr) 40px;
+        grid-template-columns: 28px minmax(0, 1fr) 28px;
         grid-template-areas:
             "minus value plus"
             "minus unit  plus";
         align-content: center;
+        /* Плашка в макете 120×52, радиус 3, поля по 2 — и без боковых
+           отступов: они забирали 20px у колонки цен. */
         width: 120px;
-        padding: 0;
+        height: 52px;
+        margin: 0;
+        padding: 0 2px;
+        border-radius: 3px;
+        background: rgba(82, 82, 100, .1);
     }
     #basket-root .basket-item-amount-btn-minus {
         grid-area: minus;
+        width: 28px;
         height: 100%;
     }
     #basket-root .basket-item-amount-btn-plus {
         grid-area: plus;
+        width: 28px;
         height: 100%;
     }
     #basket-root .basket-item-amount-filed-block {
         grid-area: value;
+        height: 17px;
     }
-    #basket-root .basket-item-amount-filed {
-        height: 22px !important;
-        line-height: 22px;
+    /* Число в счётчике — 14/17 обычного начертания. Через !important: тема
+       держит на этом поле свои 13/700 тоже с !important (по той же причине
+       размер из общего блока выше — 16/44 — на странице не работает). */
+    #basket-root input.basket-item-amount-filed {
+        height: 17px !important;
+        font-weight: 500 !important;
+        font-size: 14px !important;
+        line-height: 17px !important;
     }
     #basket-root .basket-item-amount-field-description {
         grid-area: unit;
         margin: 0;
-        font-size: 11px;
-        line-height: 14px;
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 17px;
     }
 }
 
