@@ -38,10 +38,14 @@
     font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
 }
 
-/* Карточка. Крестик лежит рядом с .form, поэтому точка отсчёта — обёртка. */
+/* Карточка. Крестик лежит рядом с .form, поэтому точка отсчёта — обёртка.
+
+   Ширину считаем от экрана, а не от слоя: слой лежит внутри обёртки темы,
+   у которой бывает transform, и тогда его 100% шире видимой области —
+   карточка уезжала за правый край на узких экранах. */
 .form-container > div {
     position: relative;
-    width: 400px;
+    width: min(400px, calc(100vw - 32px));
     max-width: 100%;
     max-height: calc(100vh - 32px);
     margin: 0 !important;
