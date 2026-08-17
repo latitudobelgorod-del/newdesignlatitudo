@@ -131,7 +131,8 @@ $APPLICATION->IncludeComponent(
 		"ADD_SECTIONS_CHAIN" => "N",
 		// PICTURE нужен как запасная иконка карточки, CODE — чтобы найти иконку из макета
 		"SECTION_FIELDS" => array("NAME", "CODE", "PICTURE"),
-		"SECTION_USER_FIELDS" => array("UF_SECTION_IN_MENU", "UF_MENULINK_TOP"),
+		// UF_ND_ICON — «фото-иконка раздела», главный источник картинки карточки
+		"SECTION_USER_FIELDS" => array("UF_SECTION_IN_MENU", "UF_MENULINK_TOP", "UF_ND_ICON"),
 		"USE_FILTER" => "Y",
 		"FILTER_NAME" => "arrFilterLinked",
 		"DISPLAY_PANEL" => $arParams["DISPLAY_PANEL"],
