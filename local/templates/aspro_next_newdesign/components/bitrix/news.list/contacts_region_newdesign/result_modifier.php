@@ -37,10 +37,43 @@ foreach ($arResult['ITEMS'] as &$arItem) {
 		}
 	}
 
-	// Карты из конструктора Яндекса: свойство множественное, приходит массивом
-	// строк с готовым <iframe>. Первая — офис, вторая (если заведут) — склад.
-	$maps = $arItem['PROPERTIES']['YMAP_CONSTR']['~VALUE'] ?? '';
-	$arItem['ND_MAPS'] = array_values(array_filter(array_map('trim', (array) $maps)));
+	/* Карты из конструктора Яндекса (готовый <iframe> строкой).
+	   Основные свойства — YMAP_CONSTR_OFFICE и YMAP_CONSTR_SKLAD: у каждой
+	   карты своя кнопка-переключатель, и офис со складом больше не зависят
+	   от порядка значений. Оба множественные — берём первое непустое.
+
+	   Если новых свойств нет (их не завели или это старая копия базы),
+	   откатываемся на общее YMAP_CONSTR: там первое значение — офис,
+	   второе — склад, как было до появления отдельных свойств. */
+	$ndFirstMap = static function ($values) {
+		foreach ((array) $values as $value) {
+			$value = trim((string) $value);
+			if ($value !== '') {
+				return $value;
+			}
+		}
+
+		return '';
+	};
+
+	$ndOffice = $ndFirstMap($arItem['PROPERTIES']['YMAP_CONSTR_OFFICE']['~VALUE'] ?? '');
+	$ndStore = $ndFirstMap($arItem['PROPERTIES']['YMAP_CONSTR_SKLAD']['~VALUE'] ?? '');
+
+	$arItem['ND_MAPS'] = [];
+
+	if ($ndOffice !== '' || $ndStore !== '') {
+		if ($ndOffice !== '') {
+			$arItem['ND_MAPS'][] = ['TYPE' => 'office', 'HTML' => $ndOffice];
+		}
+		if ($ndStore !== '') {
+			$arItem['ND_MAPS'][] = ['TYPE' => 'store', 'HTML' => $ndStore];
+		}
+	} else {
+		$maps = array_values(array_filter(array_map('trim', (array) ($arItem['PROPERTIES']['YMAP_CONSTR']['~VALUE'] ?? ''))));
+		foreach ($maps as $i => $html) {
+			$arItem['ND_MAPS'][] = ['TYPE' => $i === 0 ? 'office' : 'store', 'HTML' => $html];
+		}
+	}
 }
 unset($arItem);
 ?>

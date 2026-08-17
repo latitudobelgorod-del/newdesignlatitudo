@@ -13,9 +13,11 @@
  * Склад есть не у всех регионов (в Ростове нет) — весь его ряд и кнопка
  * появляются только при заполненных ADDRESS_SKLAD / SCHEDULE_SKLAD.
  *
- * Карты берём из YMAP_CONSTR (готовый <iframe> из конструктора Яндекса).
- * Сейчас у всех регионов заведена одна карта — офиса; если добавить вторую,
- * она считается складской и появляется вторая кнопка-переключатель.
+ * Карты берём из отдельных свойств YMAP_CONSTR_OFFICE и YMAP_CONSTR_SKLAD
+ * (готовый <iframe> из конструктора Яндекса) — на каждую своя кнопка-
+ * переключатель. Если они не заполнены, работает старое общее YMAP_CONSTR.
+ *
+ * Кнопка «Заказать пропуск» — только у московского офиса.
  *
  * Подмена телефона по utm-метке перенесена из старого шаблона contacts_org2.
  */
@@ -50,6 +52,7 @@ $ndTel = static function ($phone) {
 	}
 
 	$city = $arItem['ND_CITY'];
+	$ndIsMoscow = (mb_strtolower(trim((string) $city)) === 'москва');
 	$hasStore = !empty($props['ADDRESS_SKLAD']) || !empty($props['SCHEDULE_SKLAD']);
 	$maps = $arItem['ND_MAPS'];
 	?>
@@ -120,11 +123,19 @@ $ndTel = static function ($phone) {
 					</div>
 					<div class="nd-region__text"><?= htmlspecialcharsBack($props['SCHEDULE']['VALUE']['TEXT']) ?></div>
 				<? endif; ?>
-				<?/* Кнопка вызывает ту же форму PROPUSK, что и в старом шаблоне.
-				     data-nd-form-title — чтобы тема подставила верный заголовок (см. newdesign-header.js) */?>
-				<a class="nd-region__btn animate-load" data-event="jqm" data-param-form_id="PROPUSK"
-				   data-name="spbuttonPROPUSKcontact<?= $arItem['ID'] ?>" data-nd-form-title="Заказать пропуск">Заказать пропуск</a>
-				<div class="nd-region__note">Для пропуска нужен паспорт или права</div>
+				<?/* Пропуск нужен только в московский офис (бизнес-парк «Румянцево»),
+				     в остальных регионах кнопки быть не должно.
+
+				     Регион берём по названию города из связанного элемента ИБ 7
+				     (result_modifier, ND_CITY): символьных кодов у регионов нет,
+				     сравнивать больше не по чему. */?>
+				<? if ($ndIsMoscow): ?>
+					<?/* Кнопка вызывает ту же форму PROPUSK, что и в старом шаблоне.
+					     data-nd-form-title — чтобы тема подставила верный заголовок (см. newdesign-header.js) */?>
+					<a class="nd-region__btn animate-load" data-event="jqm" data-param-form_id="PROPUSK"
+					   data-name="spbuttonPROPUSKcontact<?= $arItem['ID'] ?>" data-nd-form-title="Заказать пропуск">Заказать пропуск</a>
+					<div class="nd-region__note">Для пропуска нужен паспорт или права</div>
+				<? endif; ?>
 			</div>
 		</div>
 
@@ -149,17 +160,18 @@ $ndTel = static function ($phone) {
 
 		<? if ($maps): ?>
 			<?
-			// Подписи кнопок: первая карта — офис, вторая — склад.
+			// Подписи кнопок: тип карты приходит из result_modifier — офис
+			// и склад лежат в своих свойствах, а не берутся по порядку.
 			$mapTitles = [];
-			foreach ($maps as $i => $map) {
-				$what = ($i === 0) ? 'офису' : 'складу';
+			foreach ($maps as $map) {
+				$what = (($map['TYPE'] ?? '') === 'store') ? 'складу' : 'офису';
 				$mapTitles[] = 'Схема проезда к '.$what.($city ? ' г. '.$city : '');
 			}
 			?>
 			<div class="nd-region__maps" data-nd-maps>
 				<? foreach ($maps as $i => $map): ?>
 					<div class="nd-region__map<?= $i ? '' : ' is-active' ?>" data-nd-map="<?= $i ?>">
-						<?= str_replace(['width=', 'height='], ['data-width=', 'data-height='], $map) ?>
+						<?= str_replace(['width=', 'height='], ['data-width=', 'data-height='], $map['HTML']) ?>
 					</div>
 				<? endforeach; ?>
 
