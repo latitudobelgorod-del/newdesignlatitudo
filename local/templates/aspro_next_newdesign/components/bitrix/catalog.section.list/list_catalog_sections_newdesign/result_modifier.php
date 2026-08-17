@@ -57,9 +57,23 @@ foreach ($ndSections as &$arSection) {
 	$ndUfFileId = is_array($ndUfIcon) ? (int) ($ndUfIcon['ID'] ?? 0) : (int) $ndUfIcon;
 
 	if ($ndUfFileId > 0) {
-		$img = CFile::ResizeImageGet($ndUfFileId, ['width' => 128, 'height' => 128], BX_RESIZE_IMAGE_PROPORTIONAL, true);
+		// В поле лежит либо вырезка товара (квадратная — кадрировать нельзя),
+		// либо скопированное фото раздела (широкое — его вписываем в квадрат
+		// кадрированием, иначе получается полоска).
+		$ndFile = CFile::GetFileArray($ndUfFileId);
+		$ndW = (int) ($ndFile['WIDTH'] ?? 0);
+		$ndH = (int) ($ndFile['HEIGHT'] ?? 0);
+		$ndSquare = ($ndW > 0 && $ndH > 0 && abs($ndW / $ndH - 1) <= 0.25);
+
+		$img = CFile::ResizeImageGet(
+			$ndUfFileId,
+			['width' => 128, 'height' => 128],
+			$ndSquare ? BX_RESIZE_IMAGE_PROPORTIONAL : BX_RESIZE_IMAGE_EXACT,
+			true
+		);
 		if (!empty($img['src'])) {
 			$arSection['ND_ICON'] = $img['src'];
+			$arSection['ND_ICON_IS_PHOTO'] = !$ndSquare;
 			continue;
 		}
 	}

@@ -122,9 +122,25 @@ $ndSectionUfIcon = function($link, $size) {
 	if(empty($arMap[$key]))
 		return null;
 
-	$img = CFile::ResizeImageGet($arMap[$key], array('width' => $size, 'height' => $size), BX_RESIZE_IMAGE_PROPORTIONAL, true);
+	// В поле лежит либо вырезка товара (квадратная, её нельзя кадрировать),
+	// либо скопированное фото раздела (широкое, его наоборот надо вписать
+	// в квадрат). Различаем по пропорции самой картинки.
+	$arFile = CFile::GetFileArray($arMap[$key]);
+	$w = (int)($arFile['WIDTH'] ?? 0);
+	$h = (int)($arFile['HEIGHT'] ?? 0);
+	$bSquare = ($w > 0 && $h > 0 && abs($w / $h - 1) <= 0.25);
 
-	return (is_array($img) && $img['src']) ? $img['src'] : null;
+	$img = CFile::ResizeImageGet(
+		$arMap[$key],
+		array('width' => $size, 'height' => $size),
+		$bSquare ? BX_RESIZE_IMAGE_PROPORTIONAL : BX_RESIZE_IMAGE_EXACT,
+		true
+	);
+
+	if(!is_array($img) || !$img['src'])
+		return null;
+
+	return array('SRC' => $img['src'], 'ICON' => $bSquare);
 };
 
 /**
@@ -461,14 +477,18 @@ $ndSectionBrands = function($sectionId) {
 		<?foreach($arSections as $i => $arSection):?>
 			<?
 			// Порядок источников: поле раздела UF_ND_ICON → вырезка из макета
-			// (общая с плитками каталога) → фото раздела. Первые два рисуем
-			// как иконку (без кадрирования), последнее — как миниатюру.
-			$img = $ndSectionUfIcon($arSection['LINK'], 64);
+			// (общая с плитками каталога) → фото раздела.
+			$img   = null;
+			$bIcon = false;
 
-			if(!$img)
-				$img = $ndSectionIcon($arSection);
+			if($arUf = $ndSectionUfIcon($arSection['LINK'], 64))
+			{
+				$img   = $arUf['SRC'];
+				$bIcon = $arUf['ICON'];
+			}
 
-			$bIcon = (bool)$img;
+			if(!$img && ($img = $ndSectionIcon($arSection)))
+				$bIcon = true;
 
 			if(!$img)
 				$img = $ndSectionImg($arSection, 64);

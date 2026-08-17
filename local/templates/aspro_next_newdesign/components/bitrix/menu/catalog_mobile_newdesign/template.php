@@ -75,15 +75,94 @@ $cache->startDataCache();
 ob_start();
 
 /**
- * Картинка раздела 64×64 (в макете и первый, и второй уровень одного размера).
- * Режем квадратом (EXACT): фото разделов широкие, а в макете они заполняют
- * квадрат целиком.
+ * Файлы из поля разделов UF_ND_ICON («фото-иконка раздела») — тот же источник,
+ * что у выпадающего каталога на десктопе. Пользовательских полей в параметрах
+ * пункта меню нет, поэтому один раз строим карту «адрес раздела → файл».
+ * Поля может не быть вовсе (локальная копия базы) — тогда карта пустая.
  */
-$ndSectionImg = function($arItem) {
-	$id = isset($arItem['PARAMS']['PICTURE']) ? (int)$arItem['PARAMS']['PICTURE'] : 0;
+$ndUfIcons = function() {
+	static $arMap;
+
+	if(isset($arMap))
+		return $arMap;
+
+	$arMap = array();
+	$catalogId = (int)CNextCache::$arIBlocks[SITE_ID]['aspro_next_catalog']['aspro_next_catalog'][0];
+
+	global $USER_FIELD_MANAGER;
+	$arFields = $catalogId > 0 && $USER_FIELD_MANAGER
+		? $USER_FIELD_MANAGER->GetUserFields('IBLOCK_'.$catalogId.'_SECTION')
+		: array();
+
+	if(isset($arFields['UF_ND_ICON']))
+	{
+		$res = CIBlockSection::GetList(
+			array('LEFT_MARGIN' => 'ASC'),
+			array('IBLOCK_ID' => $catalogId, 'ACTIVE' => 'Y', 'GLOBAL_ACTIVE' => 'Y', '!UF_ND_ICON' => false),
+			false,
+			array('ID', 'SECTION_PAGE_URL', 'UF_ND_ICON')
+		);
+		while($arSect = $res->GetNext())
+		{
+			$fileId = (int)$arSect['UF_ND_ICON'];
+			if($fileId > 0)
+				$arMap[rtrim($arSect['SECTION_PAGE_URL'], '/').'/'] = $fileId;
+		}
+	}
+
+	return $arMap;
+};
+
+/**
+ * Картинка раздела 64×64 (в макете и первый, и второй уровень одного размера).
+ *
+ * Порядок источников: поле UF_ND_ICON → вырезка товара из макета, лежащая
+ * в шаблоне (images/newdesign/catalog/<код раздела>.png, ими же живут плитки
+ * каталога) → PICTURE раздела.
+ *
+ * Квадратные картинки (вырезки) режем пропорционально, широкие фото — EXACT:
+ * в макете фото заполняет квадрат целиком, а вырезку кадрировать нельзя.
+ */
+$ndSectionImg = function($arItem) use ($ndUfIcons) {
+	$link = (string)$arItem['LINK'];
+	$arMap = $ndUfIcons();
+	$key = rtrim($link, '/').'/';
+
+	$id = isset($arMap[$key]) ? (int)$arMap[$key] : 0;
+
+	if($id <= 0)
+	{
+		// Вырезка из макета: у пунктов не из каталога («Перголы») раздела нет,
+		// но файл под их код в шаблоне лежит.
+		$code = basename(rtrim((string)parse_url($link, PHP_URL_PATH), '/'));
+		if($code !== '' && mb_strpos($code, 'pergola') !== false)
+			$code = 'pergola';
+
+		if($code !== '' && preg_match('/^[a-z0-9_-]+$/i', $code))
+		{
+			$file = SITE_TEMPLATE_PATH.'/images/newdesign/catalog/'.$code.'.png';
+			if(is_file($_SERVER['DOCUMENT_ROOT'].$file))
+				return $file;
+		}
+
+		$id = isset($arItem['PARAMS']['PICTURE']) ? (int)$arItem['PARAMS']['PICTURE'] : 0;
+	}
+
 	if($id <= 0)
 		return null;
-	$img = CFile::ResizeImageGet($id, array('width' => 128, 'height' => 128), BX_RESIZE_IMAGE_EXACT, true);
+
+	$arFile = CFile::GetFileArray($id);
+	$w = (int)($arFile['WIDTH'] ?? 0);
+	$h = (int)($arFile['HEIGHT'] ?? 0);
+	$bSquare = ($w > 0 && $h > 0 && abs($w / $h - 1) <= 0.25);
+
+	$img = CFile::ResizeImageGet(
+		$id,
+		array('width' => 128, 'height' => 128),
+		$bSquare ? BX_RESIZE_IMAGE_PROPORTIONAL : BX_RESIZE_IMAGE_EXACT,
+		true
+	);
+
 	return (is_array($img) && $img['src']) ? $img['src'] : null;
 };
 
