@@ -82,7 +82,53 @@ $cache->startDataCache();
 ob_start();
 
 /**
- * Иконка раздела для левой колонки — та же отрисованная вырезка товара, что
+ * Иконка раздела из пользовательского поля UF_ND_ICON («фото-иконка раздела»).
+ * Это главный источник: картинку заводит контент-менеджер прямо в разделе.
+ * В параметрах пункта меню пользовательских полей нет, поэтому один раз
+ * строим карту «адрес раздела → файл». Поля может не быть вовсе (на локальной
+ * копии базы оно появится только после переливки) — тогда молча пропускаем.
+ */
+$ndSectionUfIcon = function($link, $size) {
+	static $arMap;
+
+	if(!isset($arMap))
+	{
+		$arMap = array();
+		$catalogId = (int)CNextCache::$arIBlocks[SITE_ID]['aspro_next_catalog']['aspro_next_catalog'][0];
+
+		global $USER_FIELD_MANAGER;
+		$arFields = $catalogId > 0 && $USER_FIELD_MANAGER
+			? $USER_FIELD_MANAGER->GetUserFields('IBLOCK_'.$catalogId.'_SECTION')
+			: array();
+
+		if(isset($arFields['UF_ND_ICON']))
+		{
+			$res = CIBlockSection::GetList(
+				array('LEFT_MARGIN' => 'ASC'),
+				array('IBLOCK_ID' => $catalogId, 'ACTIVE' => 'Y', 'GLOBAL_ACTIVE' => 'Y', '!UF_ND_ICON' => false),
+				false,
+				array('ID', 'SECTION_PAGE_URL', 'UF_ND_ICON')
+			);
+			while($arSect = $res->GetNext())
+			{
+				$fileId = (int)$arSect['UF_ND_ICON'];
+				if($fileId > 0)
+					$arMap[rtrim($arSect['SECTION_PAGE_URL'], '/').'/'] = $fileId;
+			}
+		}
+	}
+
+	$key = rtrim((string)$link, '/').'/';
+	if(empty($arMap[$key]))
+		return null;
+
+	$img = CFile::ResizeImageGet($arMap[$key], array('width' => $size, 'height' => $size), BX_RESIZE_IMAGE_PROPORTIONAL, true);
+
+	return (is_array($img) && $img['src']) ? $img['src'] : null;
+};
+
+/**
+ * Запасная иконка — отрисованная вырезка товара из макета, та же, что
  * в плитках каталога на /catalog/ (шаблон list_catalog_sections_newdesign).
  * Файлы лежат в шаблоне под именем символьного кода раздела:
  * images/newdesign/catalog/<CODE>.png. Код берём из адреса пункта — в его
@@ -414,9 +460,14 @@ $ndSectionBrands = function($sectionId) {
 	<div class="nd-cat__aside" role="tablist">
 		<?foreach($arSections as $i => $arSection):?>
 			<?
-			// Сначала — вырезка из макета (общая с плитками каталога), и только
-			// если её нет, фото раздела: у «МПК» своей иконки в макете не было.
-			$img = $ndSectionIcon($arSection);
+			// Порядок источников: поле раздела UF_ND_ICON → вырезка из макета
+			// (общая с плитками каталога) → фото раздела. Первые два рисуем
+			// как иконку (без кадрирования), последнее — как миниатюру.
+			$img = $ndSectionUfIcon($arSection['LINK'], 64);
+
+			if(!$img)
+				$img = $ndSectionIcon($arSection);
+
 			$bIcon = (bool)$img;
 
 			if(!$img)

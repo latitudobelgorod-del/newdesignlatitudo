@@ -12,11 +12,17 @@
  * разделы, которых нет в меню.
  *
  * Иконки (макет Figma, фрейм «Каталог страница» 21349:57069) — это не
- * фотографии разделов, а отрисованные вырезки товаров. В инфоблоке их негде
- * взять: UF_CATALOG_ICON пуст и используется меню старого дизайна, а PICTURE —
- * широкое фото сцены. Поэтому файлы выгружены из макета и лежат в шаблоне под
- * именем символьного кода раздела: images/newdesign/catalog/<CODE>.png.
- * Нет файла — берём PICTURE раздела, нет и её — карточка рисуется без иконки.
+ * фотографии разделов, а отрисованные вырезки товаров.
+ *
+ * Порядок источников:
+ *  1) UF_ND_ICON («фото-иконка раздела») — поле нового дизайна, заполняется
+ *     из админки, эта же картинка идёт в меню каталога;
+ *  2) файл из макета в шаблоне: images/newdesign/catalog/<CODE>.png —
+ *     ими блок жил до появления поля, оставлены запасным вариантом;
+ *  3) PICTURE раздела — широкое фото сцены, режется в квадрат;
+ *  4) ничего — карточка рисуется без иконки.
+ *
+ * UF_CATALOG_ICON не трогаем: он пуст и его читает меню старого дизайна.
  */
 
 $ndIconDir = SITE_TEMPLATE_PATH.'/images/newdesign/catalog/';
@@ -44,6 +50,19 @@ foreach ($arResult['SECTIONS'] as $arItem) {
 foreach ($ndSections as &$arSection) {
 	$arSection['ND_ICON'] = '';
 	$arSection['ND_ICON_IS_PHOTO'] = false;
+
+	// Главный источник — поле раздела UF_ND_ICON («фото-иконка раздела»):
+	// картинку заводит контент-менеджер, и та же попадает в меню каталога.
+	$ndUfIcon = $arSection['UF_ND_ICON'] ?? null;
+	$ndUfFileId = is_array($ndUfIcon) ? (int) ($ndUfIcon['ID'] ?? 0) : (int) $ndUfIcon;
+
+	if ($ndUfFileId > 0) {
+		$img = CFile::ResizeImageGet($ndUfFileId, ['width' => 128, 'height' => 128], BX_RESIZE_IMAGE_PROPORTIONAL, true);
+		if (!empty($img['src'])) {
+			$arSection['ND_ICON'] = $img['src'];
+			continue;
+		}
+	}
 
 	$code = trim((string) ($arSection['CODE'] ?? ''));
 	if ($code !== '' && is_file($_SERVER['DOCUMENT_ROOT'].$ndIconDir.$code.'.png')) {
