@@ -68,7 +68,10 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign-header.css', true);
 	// Мобильные шапка и нижняя панель — последними, они перебивают отступы,
 	// которые newdesign-header.css задаёт под десктопную шапку.
-	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign-mobile.css', true);?>
+	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign-mobile.css', true);
+	// Модальные формы: окно приходит ajax'ом, стили нужны на любой странице.
+	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign-forms.css', true);
+	$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/newdesign-forms.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-forms.js'));?>
 	<?include_once('defines.php');?>
 	<?CNext::SetJSOptions();?>
 <?CNext::ShowPageType('search_title_component');?>

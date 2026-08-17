@@ -1,0 +1,359 @@
+/* ==========================================================================
+   Формы нового дизайна (модальные окна «Расчет», «Заявка», «Звонок», «Видео»,
+   «Пропуск», «Отправить резюме»).
+
+   Макет Figma «ЛАТИТУДО FINAL _ 2026», страница «Чистовик»:
+   десктоп — ряд фреймов от 20554:96213 (x 0, y 31032), мобильный — от
+   20554:96713 (y 32772).
+
+   Размеры десктопа: окно 400 радиус 12, тень 0 12 88 rgba(0,0,0,.2);
+   шапка поля 20/24, заголовок 28/34 700; тело — поля 52 (радиус 4, рамка 2
+   rgba(82,82,100,.15)) с шагом 16; согласие — чекбокс 20 в поле 24; кнопка
+   352×56 радиус 4 #c60000, подпись 16/16 700.
+   Мобильный: окно 360, шапка 36/16/20, заголовок 24/29, тело по 16.
+
+   Разметку печатает components/bitrix/form.result.new/popup — она общая
+   с боевой темой, поэтому переставляем блоки не в шаблоне, а порядком
+   во флексе: в разметке кнопка идёт до согласия, в макете — после капчи.
+
+   Подписи полей в макете лежат внутри поля и всплывают наверх, когда поле
+   заполнено. Класс is-filled ставит js/newdesign-forms.js.
+   ========================================================================== */
+
+/* Окно с формой. Селектор с :has — под формы, а не под остальные попапы
+   темы (быстрый просмотр, выбор города): у них своя ширина и шапка. */
+.popup:has(.form-container) {
+    width: 400px;
+    min-width: 0;
+    max-width: calc(100vw - 32px);
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 12px 88px rgba(0, 0, 0, .2);
+    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+}
+/* Колонкой раскладывает .form-container, а не само окно: у окна display
+   переключает скрипт темы (inline block при открытии), и наш flex он бы
+   перебил. Внутренние обёртки шаблона (див с margin:auto, .form и сам
+   <form>) в раскладке не участвуют — распускаем, чтобы шапка, поля,
+   согласие и кнопка встали одной колонкой и их можно было переставить. */
+.popup:has(.form-container) .form-container {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+.popup:has(.form-container) .form-container > div,
+.popup:has(.form-container) .form-container > div > .form,
+.popup:has(.form-container) .form-container form {
+    display: contents;
+}
+
+/* ---- шапка -------------------------------------------------------------- */
+.popup:has(.form-container) .form_head {
+    padding: 20px 24px;
+}
+.popup:has(.form-container) .form_head h2.formnameru,
+.popup:has(.form-container) .form_head .formnameru {
+    margin: 0;
+    padding: 0;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 34px;
+    color: #0c0d0e;
+    text-align: left;
+    text-transform: none;
+}
+/* Приписка под заголовком («Нужен паспорт или права» у пропуска). */
+.popup:has(.form-container) .nd-form-subtitle {
+    margin-top: 12px;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #c60000;
+}
+/* Крестик в макете — 44×44 в правом верхнем углу, иконка 24 тонкой линией. */
+.popup:has(.form-container) a.close.jqmClose {
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    background: none;
+    opacity: 1;
+}
+.popup:has(.form-container) a.close.jqmClose i {
+    width: 24px;
+    height: 24px;
+    background: currentColor;
+    color: #8f8f9a;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 6l12 12M18 6L6 18' stroke='%23000' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 6l12 12M18 6L6 18' stroke='%23000' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+.popup:has(.form-container) a.close.jqmClose:hover i {
+    color: #101014;
+}
+
+/* ---- тело --------------------------------------------------------------- */
+.popup:has(.form-container) .form_body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 24px 24px;
+    border: 0;
+    background: none;
+}
+.popup:has(.form-container) .form_body > .clearboth,
+.popup:has(.form-container) .form_footer > .clearboth {
+    display: none;
+}
+
+/* Поле. Подпись лежит поверх поля (в разметке она идёт до input), поэтому
+   строка — позиционируемая, а сама подпись не ловит клики. */
+.popup:has(.form-container) .form-control {
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+.popup:has(.form-container) .form-control > label {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    right: 14px;
+    z-index: 1;
+    margin: 0;
+    padding: 0;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transform: translateY(-50%);
+    transform-origin: 0 0;
+    transition: font-size .15s ease, top .15s ease, color .15s ease, transform .15s ease;
+    pointer-events: none;
+}
+/* Звёздочку обязательности в макете не рисуют. */
+.popup:has(.form-container) .form-control .star {
+    display: none;
+}
+.popup:has(.form-container) .form-control input.inputtext,
+.popup:has(.form-container) .form-control input[type="text"],
+.popup:has(.form-container) .form-control input[type="tel"],
+.popup:has(.form-container) .form-control input[type="email"],
+.popup:has(.form-container) .form-control input.phone,
+.popup:has(.form-container) .form-control textarea {
+    width: 100%;
+    height: 52px;
+    min-height: 0;
+    margin: 0;
+    padding: 20px 12px 0;
+    border: 2px solid rgba(82, 82, 100, .15);
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: none;
+    font-family: inherit;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.popup:has(.form-container) .form-control textarea {
+    height: 100px;
+    padding-top: 24px;
+    resize: none;
+}
+.popup:has(.form-container) .form-control input:focus,
+.popup:has(.form-container) .form-control textarea:focus {
+    border-color: rgba(82, 82, 100, .45);
+    outline: none;
+}
+/* Пустое поле: подпись стоит на месте текста, как плейсхолдер. */
+.popup:has(.form-container) .form-control:not(.is-filled):not(.is-focused) > label {
+    top: 26px;
+    font-size: 16px;
+}
+.popup:has(.form-container) .form-control:not(.is-filled):not(.is-focused) input,
+.popup:has(.form-container) .form-control:not(.is-filled):not(.is-focused) textarea {
+    padding-top: 0;
+}
+.popup:has(.form-container) .form-control:not(.is-filled):not(.is-focused) textarea {
+    padding-top: 14px;
+}
+/* Заполненное (или в фокусе): подпись уезжает наверх мелкой и серой. */
+.popup:has(.form-container) .form-control.is-filled > label,
+.popup:has(.form-container) .form-control.is-focused > label {
+    top: 8px;
+    font-size: 12px;
+    line-height: 16px;
+    color: #525264;
+    transform: none;
+}
+/* У длинного текста подпись всегда наверху — по центру она бы налезала. */
+.popup:has(.form-container) .form-control.nd-form-control--area:not(.is-filled):not(.is-focused) > label {
+    top: 14px;
+    transform: none;
+}
+
+/* ---- согласие на обработку --------------------------------------------- */
+.popup:has(.form-container) .licence_block {
+    order: 10;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+}
+.popup:has(.form-container) .licence_block input[type="checkbox"] {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.popup:has(.form-container) .licence_block label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+    cursor: pointer;
+}
+/* Своя клетка: 20×20 в поле 24, как в макете. */
+.popup:has(.form-container) .licence_block label:before {
+    content: '';
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    background: no-repeat center / 20px 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect x='1' y='1' width='18' height='18' rx='2' stroke='%23525264' stroke-opacity='.25' stroke-width='2'/%3E%3C/svg%3E");
+}
+.popup:has(.form-container) .licence_block input[type="checkbox"]:checked + label:before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect width='20' height='20' rx='3' fill='%23c60000'/%3E%3Cpath d='M5 10.5l3.5 3.5L15 7' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.popup:has(.form-container) .licence_block a {
+    color: #c60000;
+    text-decoration: underline;
+}
+.popup:has(.form-container) .licence_block a:hover {
+    text-decoration: none;
+}
+
+/* ---- капча -------------------------------------------------------------- */
+.popup:has(.form-container) .form-control.captcha-row {
+    order: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+/* Подпись «Подтвердите, что вы не робот» в макете не выводится: виджет
+   гугла говорит сам за себя. */
+.popup:has(.form-container) .captcha-row > label {
+    display: none;
+}
+.popup:has(.form-container) .captcha-row .captcha_image:empty {
+    display: none;
+}
+.popup:has(.form-container) .captcha-row .g-recaptcha {
+    transform-origin: 0 0;
+}
+
+/* ---- подвал с кнопкой --------------------------------------------------- */
+.popup:has(.form-container) .form_footer {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 4px 24px 24px;
+    border: 0;
+    background: none;
+}
+.popup:has(.form-container) .form_footer input[type="submit"],
+.popup:has(.form-container) .form_footer .btn {
+    order: 30;
+    width: 100%;
+    height: 56px;
+    margin: 0;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px;
+    background: #c60000;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 16px;
+    color: #fff;
+    text-transform: none;
+    cursor: pointer;
+    transition: background .2s ease;
+}
+.popup:has(.form-container) .form_footer input[type="submit"]:hover,
+.popup:has(.form-container) .form_footer .btn:hover {
+    background: #a50000;
+}
+/* Согласие и капча лежат в разных блоках разметки — собираем их в одну
+   колонку с кнопкой. */
+.popup:has(.form-container) .form_body,
+.popup:has(.form-container) .form_footer {
+    display: flex;
+}
+
+/* ---- сообщение об ошибке и об успехе ------------------------------------ */
+.popup:has(.form-container) .form_result,
+.popup:has(.form-container) .form_body.error {
+    margin: 0;
+    padding: 0 24px 24px;
+    font-size: 16px;
+    line-height: 24px;
+}
+.popup:has(.form-container) .form_result.error,
+.popup:has(.form-container) .form_body.error {
+    color: #c60000;
+}
+
+@media (max-width: 767px) {
+    .popup:has(.form-container) {
+        width: 360px;
+    }
+    .popup:has(.form-container) .form_head {
+        padding: 36px 16px 20px;
+    }
+    .popup:has(.form-container) .form_head h2.formnameru,
+    .popup:has(.form-container) .form_head .formnameru {
+        font-size: 24px;
+        line-height: 29px;
+    }
+    .popup:has(.form-container) a.close.jqmClose {
+        top: 8px;
+        right: 8px;
+    }
+    .popup:has(.form-container) .form_body {
+        padding: 0 16px 15px;
+    }
+    .popup:has(.form-container) .form_footer {
+        padding: 4px 16px 24px;
+    }
+    .popup:has(.form-container) .form_footer input[type="submit"],
+    .popup:has(.form-container) .form_footer .btn {
+        font-size: 15px;
+        line-height: 15px;
+    }
+    /* Виджет reCAPTCHA шире поля формы (304 против 328 минус поля) —
+       ужимаем, иначе он вылезает за край окна. */
+    .popup:has(.form-container) .captcha-row .g-recaptcha {
+        transform: scale(.92);
+        margin-bottom: -6px;
+    }
+}

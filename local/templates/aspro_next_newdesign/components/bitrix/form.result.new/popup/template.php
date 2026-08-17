@@ -30,6 +30,12 @@ $rand = '_'.md5($_SERVER['REQUEST_TIME_FLOAT']); ?>
 			<div class="form_desc"><?=$arResult["FORM_DESCRIPTION"]?></div>
 		<?endif;?>
 
+		<?/* Приписка к пропуску: в макете (Figma «Чистовик», фрейм 20554:103762)
+		     она стоит под заголовком красной строкой, а не по центру над полями,
+		     как раньше. Оформление — .nd-form-subtitle в css/newdesign-forms.css. */?>
+		<?if($_REQUEST["form_id"] == "PROPUSK"):?>
+			<div class="nd-form-subtitle">Нужен паспорт или права</div>
+		<?endif;?>
 	</div>
 	<?if(strlen($arResult["FORM_NOTE"])){?>
 		<div class="form_result <?=($arResult["isFormErrors"] == "Y" ? 'error' : 'success')?>">
@@ -65,13 +71,8 @@ $rand = '_'.md5($_SERVER['REQUEST_TIME_FLOAT']); ?>
 		<?=bitrix_sessid_post();?>
 		<div class="form_body">
 		
-		<?if($_REQUEST["form_id"] == "PROPUSK"):?>
-	<div style="margin: 0 auto;text-align: center;margin: -20px 0 20px;color: red;">Для пропуска нужен паспорт или права</div>
-<?else:?>
+		<?// Приписку про паспорт печатает шапка формы (см. .nd-form-subtitle выше).?>
 
-<?endif;?>
-		
-	
 <?
 //if(isset($_SESSION['UTM']) && !empty($_SESSION['UTM'])){
 
