@@ -82,6 +82,32 @@ $cache->startDataCache();
 ob_start();
 
 /**
+ * Иконка раздела для левой колонки — та же отрисованная вырезка товара, что
+ * в плитках каталога на /catalog/ (шаблон list_catalog_sections_newdesign).
+ * Файлы лежат в шаблоне под именем символьного кода раздела:
+ * images/newdesign/catalog/<CODE>.png. Код берём из адреса пункта — в его
+ * параметрах кода нет, а адрес раздела заканчивается ровно им.
+ * Нет файла — ниже подставится фото раздела, как было раньше.
+ */
+$ndSectionIcon = function($arItem) {
+	$path = parse_url((string)$arItem['LINK'], PHP_URL_PATH);
+	$code = basename(rtrim((string)$path, '/'));
+
+	// «Перголы» ведут не в каталог, а на статью в «Материалах» — раздела
+	// с таким кодом нет, но иконка для них в макете есть (в плитках каталога
+	// она тоже прописана отдельно).
+	if($code !== '' && mb_strpos($code, 'pergola') !== false)
+		$code = 'pergola';
+
+	if($code === '' || !preg_match('/^[a-z0-9_-]+$/i', $code))
+		return null;
+
+	$file = SITE_TEMPLATE_PATH.'/images/newdesign/catalog/'.$code.'.png';
+
+	return is_file($_SERVER['DOCUMENT_ROOT'].$file) ? $file : null;
+};
+
+/**
  * Картинка раздела: в левой колонке 64×64, в плитке 56×56.
  * PICTURE приходит из menu_ext идентификатором файла.
  */
@@ -388,7 +414,13 @@ $ndSectionBrands = function($sectionId) {
 	<div class="nd-cat__aside" role="tablist">
 		<?foreach($arSections as $i => $arSection):?>
 			<?
-			$img = $ndSectionImg($arSection, 64);
+			// Сначала — вырезка из макета (общая с плитками каталога), и только
+			// если её нет, фото раздела: у «МПК» своей иконки в макете не было.
+			$img = $ndSectionIcon($arSection);
+			$bIcon = (bool)$img;
+
+			if(!$img)
+				$img = $ndSectionImg($arSection, 64);
 			// У пунктов не из каталога (добавлены в menu_ext) картинки раздела нет —
 			// подставляем анонс страницы, на которую ведёт ссылка.
 			if(!$img)
@@ -404,7 +436,7 @@ $ndSectionBrands = function($sectionId) {
 					// наведении плитки были пустыми. Подменяет src скрипт при первом
 					// открытии каталога (js/newdesign-header.js).?>
 					<?if($img):?>
-						<img data-nd-src="<?=htmlspecialcharsbx($img)?>" alt="" width="64" height="64">
+						<img class="nd-cat__chip-pic<?=($bIcon ? ' nd-cat__chip-pic--icon' : '')?>" data-nd-src="<?=htmlspecialcharsbx($img)?>" alt="" width="64" height="64">
 					<?else:?>
 						<?$ndImgPlaceholder();?>
 					<?endif;?>

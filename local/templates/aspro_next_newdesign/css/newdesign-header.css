@@ -656,6 +656,14 @@ body {
     object-fit: cover;
     border-radius: 6px;
 }
+/* Вырезка товара из макета (тот же файл, что в плитках каталога) — рисунок
+   на белом фоне без полей: кадрировать его нельзя, иначе срезаются края,
+   а рамка не нужна. Режим darken прячет фон на цветной подложке пункта. */
+.nd-cat__chip-img img.nd-cat__chip-pic--icon {
+    object-fit: contain;
+    border-radius: 0;
+    mix-blend-mode: darken;
+}
 .nd-cat__chip-label {
     flex: 1 1 auto;
     padding: 0 8px;
