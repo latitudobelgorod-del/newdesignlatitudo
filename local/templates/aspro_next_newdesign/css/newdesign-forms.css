@@ -318,6 +318,32 @@
 .form-container .captcha-row .captcha_image:empty {
     display: none;
 }
+/* Виджет Яндекс SmartCaptcha (модуль ceteralabs.smartcaptcha подменяет им
+   штатное поле captcha_word). В макете под капчу отведена полоса на всю
+   ширину колонки; своей рамки у виджета нет.
+
+   Обёртки темы под старую капчу-картинку были уже и плавали флоатом —
+   из-за этого виджет не резервировал высоту и наезжал на текст согласия. */
+.form-container .captcha-row .captcha_image,
+.form-container .captcha-row .captcha_input {
+    position: static !important;
+    float: none !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.form-container .form-control.captcha-row {
+    min-height: 102px;
+}
+.form-container .smart-captcha {
+    display: block;
+    width: 100%;
+    min-height: 102px;
+}
+.form-container .smart-captcha iframe {
+    max-width: 100%;
+}
 
 /* ---- подвал с кнопкой --------------------------------------------------- */
 .form-container .form .form_footer {
