@@ -2,80 +2,112 @@
    Формы нового дизайна (модальные окна «Расчет», «Заявка», «Звонок», «Видео»,
    «Пропуск», «Отправить резюме»).
 
-   Макет Figma «ЛАТИТУДО FINAL _ 2026», страница «Чистовик»:
-   десктоп — ряд фреймов от 20554:96213 (x 0, y 31032), мобильный — от
-   20554:96713 (y 32772).
+   Макет Figma «ЛАТИТУДО FINAL _ 2026», страница «Чистовик»: десктоп — ряд
+   фреймов от 20554:96213 (x 0, y 31032), мобильный — от 20554:96713 (y 32772).
 
-   Размеры десктопа: окно 400 радиус 12, тень 0 12 88 rgba(0,0,0,.2);
-   шапка поля 20/24, заголовок 28/34 700; тело — поля 52 (радиус 4, рамка 2
-   rgba(82,82,100,.15)) с шагом 16; согласие — чекбокс 20 в поле 24; кнопка
-   352×56 радиус 4 #c60000, подпись 16/16 700.
-   Мобильный: окно 360, шапка 36/16/20, заголовок 24/29, тело по 16.
+   Размеры десктопа: карточка 400 радиус 12, тень 0 12 88 rgba(0,0,0,.2);
+   шапка с полями 20/24, заголовок 28/34 700; поля 52 (радиус 4, рамка 2
+   rgba(82,82,100,.15)) с шагом 16; согласие — клетка 20 в поле 24; кнопка
+   во всю ширину, высота 56, подпись 16/16 700.
+   Мобильный: карточка 360, шапка 36/16/20, заголовок 24/29, поля по 16.
 
-   Разметку печатает components/bitrix/form.result.new/popup — она общая
-   с боевой темой, поэтому переставляем блоки не в шаблоне, а порядком
-   во флексе: в разметке кнопка идёт до согласия, в макете — после капчи.
+   Как устроена разметка (form.result.new/popup, общая с боевой темой):
+
+     .popup            — окно jqModal, у него нулевая высота: всё содержимое
+                         внутри .form-container, а она у темы fixed на весь
+                         экран (styles.css). Поэтому окно оформляем не тут.
+     .form-container   — полноэкранный слой; делаем его центрирующим флексом.
+       > div           — единственная обёртка: она и есть карточка окна.
+         a.close       — крестик
+         .form         — шапка, тело и подвал формы
+
+   Порядок блоков в разметке — кнопка, потом согласие; в макете наоборот
+   (поля → согласие → капча → кнопка), поэтому переставляем их порядком
+   во флексе, а не правкой общего шаблона.
 
    Подписи полей в макете лежат внутри поля и всплывают наверх, когда поле
    заполнено. Класс is-filled ставит js/newdesign-forms.js.
    ========================================================================== */
 
-/* Окно с формой. Селектор с :has — под формы, а не под остальные попапы
-   темы (быстрый просмотр, выбор города): у них своя ширина и шапка. */
-.popup:has(.form-container) {
+/* Слой окна: карточку ставим по центру экрана. */
+.form-container {
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box;
+    padding: 16px !important;
+    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+}
+
+/* Карточка. Крестик лежит рядом с .form, поэтому точка отсчёта — обёртка. */
+.form-container > div {
+    position: relative;
     width: 400px;
-    min-width: 0;
-    max-width: calc(100vw - 32px);
+    max-width: 100%;
+    max-height: calc(100vh - 32px);
+    margin: 0 !important;
     padding: 0;
-    border: 0;
+    overflow: hidden auto;
     border-radius: 12px;
     background: #fff;
     box-shadow: 0 12px 88px rgba(0, 0, 0, .2);
-    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
 }
-/* Колонкой раскладывает .form-container, а не само окно: у окна display
-   переключает скрипт темы (inline block при открытии), и наш flex он бы
-   перебил. Внутренние обёртки шаблона (див с margin:auto, .form и сам
-   <form>) в раскладке не участвуют — распускаем, чтобы шапка, поля,
-   согласие и кнопка встали одной колонкой и их можно было переставить. */
-.popup:has(.form-container) .form-container {
+
+/* Содержимое формы — одна колонка. Обёртки шаблона (.form и <form>)
+   в раскладке не участвуют, иначе согласие и кнопку не переставить. */
+.form-container > div > .form {
     display: flex;
     flex-direction: column;
-    padding: 0;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
 }
-.popup:has(.form-container) .form-container > div,
-.popup:has(.form-container) .form-container > div > .form,
-.popup:has(.form-container) .form-container form {
+.form-container > div > .form > form {
     display: contents;
+}
+/* Блоки формы тема пускает флоатами — в колонке они не нужны. */
+.form-container .form_head,
+.form-container .form_body,
+.form-container .form_footer,
+.form-container .form-control,
+.form-container .licence_block {
+    float: none !important;
 }
 
 /* ---- шапка -------------------------------------------------------------- */
-.popup:has(.form-container) .form_head {
-    padding: 20px 24px;
+.form-container .form .form_head {
+    padding: 20px 24px !important;
+    border: 0 !important;
 }
-.popup:has(.form-container) .form_head h2.formnameru,
-.popup:has(.form-container) .form_head .formnameru {
+.form-container .form .form_head h2.formnameru,
+.form-container .form .form_head .formnameru {
     margin: 0;
     padding: 0;
     font-weight: 700;
-    font-size: 28px;
+    font-size: 28px !important;
     line-height: 34px;
     color: #0c0d0e;
     text-align: left;
     text-transform: none;
 }
 /* Приписка под заголовком («Нужен паспорт или права» у пропуска). */
-.popup:has(.form-container) .nd-form-subtitle {
+.form-container .nd-form-subtitle {
     margin-top: 12px;
     font-weight: 400;
     font-size: 16px;
     line-height: 24px;
     color: #c60000;
+    text-align: left;
 }
-/* Крестик в макете — 44×44 в правом верхнем углу, иконка 24 тонкой линией. */
-.popup:has(.form-container) a.close.jqmClose {
-    top: 0;
-    right: 0;
+/* Крестик — 44×44 в правом верхнем углу карточки, иконка 24 тонкой линией. */
+.form-container > div > a.close.jqmClose {
+    position: absolute;
+    top: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: auto !important;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -86,47 +118,49 @@
     background: none;
     opacity: 1;
 }
-.popup:has(.form-container) a.close.jqmClose i {
+.form-container > div > a.close.jqmClose i {
     width: 24px;
     height: 24px;
-    background: currentColor;
-    color: #8f8f9a;
+    background: #8f8f9a;
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 6l12 12M18 6L6 18' stroke='%23000' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 6l12 12M18 6L6 18' stroke='%23000' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain;
 }
-.popup:has(.form-container) a.close.jqmClose:hover i {
-    color: #101014;
+.form-container > div > a.close.jqmClose:hover i {
+    background: #101014;
 }
 
 /* ---- тело --------------------------------------------------------------- */
-.popup:has(.form-container) .form_body {
+.form-container .form .form_body {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 0 24px 24px;
+    margin: 0 !important;
+    padding: 0 24px 24px !important;
     border: 0;
     background: none;
 }
-.popup:has(.form-container) .form_body > .clearboth,
-.popup:has(.form-container) .form_footer > .clearboth {
+.form-container .form_body > .clearboth,
+.form-container .form_footer > .clearboth {
     display: none;
 }
 
-/* Поле. Подпись лежит поверх поля (в разметке она идёт до input), поэтому
-   строка — позиционируемая, а сама подпись не ловит клики. */
-.popup:has(.form-container) .form-control {
+/* Поле. Подпись идёт в разметке до поля и лежит поверх него. */
+.form-container .form-control {
     position: relative;
-    margin: 0;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 !important;
 }
-.popup:has(.form-container) .form-control > label {
-    position: absolute;
-    top: 50%;
-    left: 14px;
-    right: 14px;
+.form-container .form-control > label {
+    position: absolute !important;
+    top: 26px !important;
+    left: 14px !important;
+    right: 14px !important;
+    bottom: auto !important;
     z-index: 1;
-    margin: 0;
-    padding: 0;
+    display: block !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
     font-weight: 400;
     font-size: 16px;
     line-height: 24px;
@@ -135,83 +169,84 @@
     overflow: hidden;
     text-overflow: ellipsis;
     transform: translateY(-50%);
-    transform-origin: 0 0;
-    transition: font-size .15s ease, top .15s ease, color .15s ease, transform .15s ease;
+    transition: font-size .15s ease, top .15s ease, color .15s ease;
     pointer-events: none;
 }
 /* Звёздочку обязательности в макете не рисуют. */
-.popup:has(.form-container) .form-control .star {
+.form-container .form-control .star {
     display: none;
 }
-.popup:has(.form-container) .form-control input.inputtext,
-.popup:has(.form-container) .form-control input[type="text"],
-.popup:has(.form-container) .form-control input[type="tel"],
-.popup:has(.form-container) .form-control input[type="email"],
-.popup:has(.form-container) .form-control input.phone,
-.popup:has(.form-container) .form-control textarea {
-    width: 100%;
-    height: 52px;
-    min-height: 0;
-    margin: 0;
-    padding: 20px 12px 0;
-    border: 2px solid rgba(82, 82, 100, .15);
-    border-radius: 4px;
-    background: #fff;
-    box-shadow: none;
+/* Часть полей тема дублирует плейсхолдером — он бы просвечивал под подписью. */
+.form-container .form-control input::placeholder,
+.form-container .form-control textarea::placeholder {
+    color: transparent;
+}
+.form-container .form-control input.inputtext,
+.form-container .form-control input[type="text"],
+.form-container .form-control input[type="tel"],
+.form-container .form-control input[type="email"],
+.form-container .form-control input.phone,
+.form-container .form-control textarea {
+    width: 100% !important;
+    height: 52px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border: 2px solid rgba(82, 82, 100, .15) !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+    box-shadow: none !important;
     font-family: inherit;
     font-weight: 400;
     font-size: 16px;
     line-height: 24px;
     color: #101014;
 }
-.popup:has(.form-container) .form-control textarea {
-    height: 100px;
-    padding-top: 24px;
+.form-container .form-control textarea {
+    height: 100px !important;
+    padding-top: 14px !important;
     resize: none;
 }
-.popup:has(.form-container) .form-control input:focus,
-.popup:has(.form-container) .form-control textarea:focus {
-    border-color: rgba(82, 82, 100, .45);
+.form-container .form-control input:focus,
+.form-container .form-control textarea:focus {
+    border-color: rgba(82, 82, 100, .45) !important;
     outline: none;
 }
-/* Пустое поле: подпись стоит на месте текста, как плейсхолдер. */
-.popup:has(.form-container) .form-control:not(.is-filled):not(.is-focused) > label {
-    top: 26px;
-    font-size: 16px;
-}
-.popup:has(.form-container) .form-control:not(.is-filled):not(.is-focused) input,
-.popup:has(.form-container) .form-control:not(.is-filled):not(.is-focused) textarea {
-    padding-top: 0;
-}
-.popup:has(.form-container) .form-control:not(.is-filled):not(.is-focused) textarea {
-    padding-top: 14px;
-}
-/* Заполненное (или в фокусе): подпись уезжает наверх мелкой и серой. */
-.popup:has(.form-container) .form-control.is-filled > label,
-.popup:has(.form-container) .form-control.is-focused > label {
-    top: 8px;
+/* Заполненное поле (или поле в фокусе): подпись уезжает наверх мелкой
+   и серой, а текст сдвигается под неё. */
+.form-container .form-control.is-filled > label,
+.form-container .form-control.is-focused > label {
+    top: 8px !important;
     font-size: 12px;
     line-height: 16px;
     color: #525264;
     transform: none;
 }
-/* У длинного текста подпись всегда наверху — по центру она бы налезала. */
-.popup:has(.form-container) .form-control.nd-form-control--area:not(.is-filled):not(.is-focused) > label {
+.form-container .form-control.is-filled input,
+.form-container .form-control.is-focused input {
+    padding-top: 20px !important;
+}
+.form-container .form-control.is-filled textarea,
+.form-container .form-control.is-focused textarea {
+    padding-top: 26px !important;
+}
+/* У длинной подписи (textarea) она всегда наверху — по центру налезала бы. */
+.form-container .form-control.nd-form-control--area > label {
     top: 14px;
     transform: none;
 }
 
 /* ---- согласие на обработку --------------------------------------------- */
-.popup:has(.form-container) .licence_block {
+.form-container .licence_block {
     order: 10;
     position: relative;
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    margin: 0;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 !important;
 }
-.popup:has(.form-container) .licence_block input[type="checkbox"] {
+.form-container .licence_block input[type="checkbox"] {
     position: absolute;
     width: 24px;
     height: 24px;
@@ -219,41 +254,53 @@
     opacity: 0;
     cursor: pointer;
 }
-.popup:has(.form-container) .licence_block label {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin: 0;
-    padding: 0;
+/* Текст согласия — обычной строкой с отбивкой под клетку: флексом ссылка
+   «Политика обработки…» вставала отдельной колонкой справа. */
+.form-container .licence_block label {
+    position: relative;
+    display: block !important;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 0 0 32px !important;
     font-weight: 400;
     font-size: 16px;
     line-height: 24px;
-    color: #101014;
+    color: #101014 !important;
     cursor: pointer;
 }
-/* Своя клетка: 20×20 в поле 24, как в макете. */
-.popup:has(.form-container) .licence_block label:before {
+/* Своя клетка 20×20 в поле 24, как в макете. */
+.form-container .licence_block label:before {
     content: '';
-    flex: 0 0 24px;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 24px;
     height: 24px;
-    border-radius: 3px;
     background: no-repeat center / 20px 20px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect x='1' y='1' width='18' height='18' rx='2' stroke='%23525264' stroke-opacity='.25' stroke-width='2'/%3E%3C/svg%3E");
 }
-.popup:has(.form-container) .licence_block input[type="checkbox"]:checked + label:before {
+.form-container .licence_block input[type="checkbox"]:checked + label:before {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect width='20' height='20' rx='3' fill='%23c60000'/%3E%3Cpath d='M5 10.5l3.5 3.5L15 7' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
-.popup:has(.form-container) .licence_block a {
-    color: #c60000;
+/* Текст согласия тема печатает включаемой областью со своими обёртками —
+   цвет задаём и вложенным элементам, иначе он остаётся блёклым. */
+.form-container .licence_block label,
+.form-container .licence_block label span,
+.form-container .licence_block label p,
+.form-container .licence_block label div {
+    color: #101014 !important;
+}
+.form-container .licence_block a,
+.form-container .licence_block label a {
+    color: #c60000 !important;
     text-decoration: underline;
 }
-.popup:has(.form-container) .licence_block a:hover {
+.form-container .licence_block a:hover {
     text-decoration: none;
 }
 
 /* ---- капча -------------------------------------------------------------- */
-.popup:has(.form-container) .form-control.captcha-row {
+.form-container .form-control.captcha-row {
     order: 20;
     display: flex;
     flex-direction: column;
@@ -261,99 +308,105 @@
 }
 /* Подпись «Подтвердите, что вы не робот» в макете не выводится: виджет
    гугла говорит сам за себя. */
-.popup:has(.form-container) .captcha-row > label {
-    display: none;
+.form-container .captcha-row label {
+    display: none !important;
 }
-.popup:has(.form-container) .captcha-row .captcha_image:empty {
+.form-container .captcha-row .captcha_image:empty {
     display: none;
-}
-.popup:has(.form-container) .captcha-row .g-recaptcha {
-    transform-origin: 0 0;
 }
 
 /* ---- подвал с кнопкой --------------------------------------------------- */
-.popup:has(.form-container) .form_footer {
+.form-container .form .form_footer {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 4px 24px 24px;
-    border: 0;
-    background: none;
+    margin: 0 !important;
+    padding: 4px 24px 24px !important;
+    border: 0 !important;
+    background: none !important;
 }
-.popup:has(.form-container) .form_footer input[type="submit"],
-.popup:has(.form-container) .form_footer .btn {
+.form-container .form_footer input[type="submit"],
+.form-container .form_footer .btn {
     order: 30;
     width: 100%;
     height: 56px;
-    margin: 0;
+    margin: 0 !important;
     padding: 0 16px;
-    border: 0;
+    border: 0 !important;
     border-radius: 4px;
-    background: #c60000;
+    background: #c60000 !important;
     font-family: inherit;
     font-weight: 700;
     font-size: 16px;
     line-height: 16px;
-    color: #fff;
+    color: #fff !important;
     text-transform: none;
     cursor: pointer;
     transition: background .2s ease;
 }
-.popup:has(.form-container) .form_footer input[type="submit"]:hover,
-.popup:has(.form-container) .form_footer .btn:hover {
-    background: #a50000;
-}
-/* Согласие и капча лежат в разных блоках разметки — собираем их в одну
-   колонку с кнопкой. */
-.popup:has(.form-container) .form_body,
-.popup:has(.form-container) .form_footer {
-    display: flex;
+/* На наведении — тот же бордовый, что у кнопки «Оставить заявку» в шапке
+   (.nd-btn--red:hover). Тема красила кнопку формы в свой синий. */
+.form-container .form_footer input[type="submit"]:hover,
+.form-container .form_footer input[type="submit"]:focus,
+.form-container .form_footer input[type="submit"]:active,
+.form-container .form_footer .btn:hover,
+.form-container .form_footer .btn:focus,
+.form-container .form_footer .btn:active {
+    background: #a80000 !important;
+    color: #fff !important;
 }
 
-/* ---- сообщение об ошибке и об успехе ------------------------------------ */
-.popup:has(.form-container) .form_result,
-.popup:has(.form-container) .form_body.error {
+/* ---- сообщения об ошибке и об успехе ------------------------------------ */
+.form-container .form_result,
+.form-container .form_body.error {
     margin: 0;
     padding: 0 24px 24px;
     font-size: 16px;
     line-height: 24px;
 }
-.popup:has(.form-container) .form_result.error,
-.popup:has(.form-container) .form_body.error {
+.form-container .form_result.error,
+.form-container .form_body.error {
     color: #c60000;
 }
 
 @media (max-width: 767px) {
-    .popup:has(.form-container) {
-        width: 360px;
+    /* На узком экране карточка занимает ширину слоя: 360 макета плюс поля
+       по 16 в 390 уже не помещаются, и окно уезжало за правый край. */
+    .form-container {
+        padding: 8px !important;
     }
-    .popup:has(.form-container) .form_head {
-        padding: 36px 16px 20px;
+    .form-container > div {
+        width: 100%;
+        max-width: 360px;
+        max-height: calc(100vh - 16px);
     }
-    .popup:has(.form-container) .form_head h2.formnameru,
-    .popup:has(.form-container) .form_head .formnameru {
-        font-size: 24px;
+    .form-container .form .form_head {
+        padding: 36px 16px 20px !important;
+    }
+    .form-container .form .form_head h2.formnameru,
+    .form-container .form .form_head .formnameru {
+        font-size: 24px !important;
         line-height: 29px;
     }
-    .popup:has(.form-container) a.close.jqmClose {
-        top: 8px;
-        right: 8px;
+    .form-container > div > a.close.jqmClose {
+        top: 8px !important;
+        right: 8px !important;
     }
-    .popup:has(.form-container) .form_body {
-        padding: 0 16px 15px;
+    .form-container .form .form_body {
+        padding: 0 16px 15px !important;
     }
-    .popup:has(.form-container) .form_footer {
-        padding: 4px 16px 24px;
+    .form-container .form .form_footer {
+        padding: 4px 16px 24px !important;
     }
-    .popup:has(.form-container) .form_footer input[type="submit"],
-    .popup:has(.form-container) .form_footer .btn {
+    .form-container .form_footer input[type="submit"],
+    .form-container .form_footer .btn {
         font-size: 15px;
         line-height: 15px;
     }
-    /* Виджет reCAPTCHA шире поля формы (304 против 328 минус поля) —
-       ужимаем, иначе он вылезает за край окна. */
-    .popup:has(.form-container) .captcha-row .g-recaptcha {
+    /* Виджет reCAPTCHA шире колонки формы — ужимаем, иначе вылезает за край. */
+    .form-container .captcha-row .g-recaptcha {
         transform: scale(.92);
+        transform-origin: 0 0;
         margin-bottom: -6px;
     }
 }
