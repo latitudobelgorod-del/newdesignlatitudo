@@ -460,6 +460,7 @@ if (!empty($arResult['GRID']['ROWS']) && is_array($arResult['GRID']['ROWS']))
 $ndRelatedIds = array();
 $ndRelatedIblockId = 0;
 $ndRelatedBySource = array();
+$ndBasketToParent = array();
 
 if ($ndBasketProductIds && CModule::IncludeModule('iblock'))
 {
@@ -558,13 +559,27 @@ if ($ndBasketProductIds && CModule::IncludeModule('iblock'))
 	   На практике каталог один и ветка с выбором не срабатывает. */
 	foreach ($ndRelatedByIblock as $ndIblockId => $ndIds)
 	{
-		/* То, что уже в корзине, предлагать незачем. */
-		$ndIds = array_diff(array_unique($ndIds), $ndParentIds, $ndBasketProductIds);
+		/* То, что уже в корзине, из ленты не вычитаем: такие карточки
+		   рисуются и прячутся скриптом ниже. Иначе товар, добавленный из
+		   ленты, исчезал бы из неё насовсем — при удалении из корзины
+		   возвращать было бы нечего (карточки нет в разметке, а удаление
+		   идёт ajax'ом, без перезагрузки страницы). */
+		$ndIds = array_unique($ndIds);
 
 		if (count($ndIds) > count($ndRelatedIds))
 		{
 			$ndRelatedIds = $ndIds;
 			$ndRelatedIblockId = (int)$ndIblockId;
+		}
+	}
+
+	/* Позиция корзины → её товар в каталоге. По ней скрипт понимает, какая
+	   карточка ленты сейчас лежит в корзине, и прячет её. */
+	foreach ($ndParentToBasket as $ndParentId => $ndSourceIds)
+	{
+		foreach ($ndSourceIds as $ndSourceId)
+		{
+			$ndBasketToParent[$ndSourceId] = (int)$ndParentId;
 		}
 	}
 
@@ -590,6 +605,9 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 	/* Товар корзины → товары, которые он притянул в ленту. Удаление позиции
 	   идёт ajax'ом, страница не перезагружается — ленту подрезаем на месте. */
 	window.__ndBasketRelated = <?=CUtil::PhpToJSObject($ndRelatedBySource)?>;
+	/* Позиция корзины → её товар в каталоге: карточку того, что лежит
+	   в корзине, в ленте не показываем. */
+	window.__ndBasketParent = <?=CUtil::PhpToJSObject($ndBasketToParent)?>;
 </script>
 <div class="nd-related nd-related--basket">
 	<div class="nd-related__head">
@@ -772,19 +790,26 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 		var map = window.__ndBasketRelated;
 		if (!box || !map) return;
 
+		var parents = window.__ndBasketParent || {};
 		var allowed = {};
+		/* Что сейчас лежит в корзине: такие карточки в ленте прячем, а как
+		   только позицию удалят — показываем обратно. */
+		var inBasket = {};
 		[].forEach.call(document.querySelectorAll('#basket-root [data-nd-product-id]'), function (row) {
 			/* Удалённая позиция ещё висит в списке с кнопкой «Восстановить» —
-			   её связанные уже не показываем. */
+			   её связанные уже не показываем, а сама она снова доступна в ленте. */
 			if (row.querySelector('[data-entity="basket-item-restore-button"]')) return;
-			(map[row.getAttribute('data-nd-product-id')] || []).forEach(function (id) {
+			var productId = row.getAttribute('data-nd-product-id');
+			inBasket[parents[productId] || productId] = 1;
+			(map[productId] || []).forEach(function (id) {
 				allowed[id] = 1;
 			});
 		});
 
 		var shown = 0;
 		[].forEach.call(box.querySelectorAll('.item_block'), function (card) {
-			var visible = !!allowed[cardId(card)];
+			var id = cardId(card);
+			var visible = !!allowed[id] && !inBasket[id];
 			card.classList.toggle('nd-related-hidden', !visible);
 			/* Класс перебивает шаблон карточки не везде — дублируем инлайном
 			   с important, иначе спрятанная карточка остаётся в ленте. */
