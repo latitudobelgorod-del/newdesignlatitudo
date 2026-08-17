@@ -3232,3 +3232,30 @@ div[id*="prop_169"] {/*display:none;*/}
 .mega-menu .menu-item.reklamacii_menu {
     display: none !important;
 }
+
+/* ---------------------------------------------------------------------------
+   Яндекс SmartCaptcha в формах (модуль ceteralabs.smartcaptcha подменяет ею
+   штатное поле captcha_word, 17.08.2026).
+
+   Обёртки темы рассчитаны на старую капчу-картинку: они узкие и плавают
+   флоатом, поэтому виджет не резервировал высоту и наезжал на кнопку
+   отправки. Возвращаем блокам обычный поток и держим высоту виджета.
+   ------------------------------------------------------------------------ */
+.form .captcha-row .captcha_image,
+.form .captcha-row .captcha_input,
+.form-container .captcha-row .captcha_image,
+.form-container .captcha-row .captcha_input {
+    position: static;
+    float: none;
+    width: 100%;
+    height: auto;
+}
+.form .captcha-row,
+.form-container .captcha-row {
+    min-height: 102px;
+    overflow: visible;
+}
+.smart-captcha {
+    display: block;
+    min-height: 102px;
+}
