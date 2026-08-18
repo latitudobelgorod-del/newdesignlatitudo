@@ -594,7 +594,24 @@
 
 		checkOutAction: function()
 		{
-			document.location.href = this.params.PATH_TO_ORDER;
+			/* В новом дизайне «Заказать» не уводит на /order/, а открывает модалку
+			   «Оставить заявку» (веб-форма MAINFORM) — так было в старом дизайне.
+			   Окно открывает штатный механизм темы: клик по элементу с
+			   data-event="jqm" ловит делегированный обработчик на document
+			   (js/main.js), поэтому создаём такой элемент и «нажимаем» его.
+			   Заголовок окна тема берёт из названия веб-формы, нужный подставляет
+			   js/newdesign-header.js по data-nd-form-title. */
+			var trigger = document.createElement('span');
+			trigger.style.display = 'none';
+			trigger.setAttribute('data-event', 'jqm');
+			trigger.setAttribute('data-param-form_id', 'MAINFORM');
+			trigger.setAttribute('data-name', 'ndBasketOrder');
+			trigger.setAttribute('data-nd-form-title', 'Заказать');
+			document.body.appendChild(trigger);
+			trigger.click();
+			setTimeout(function () {
+				if (trigger.parentNode) trigger.parentNode.removeChild(trigger);
+			}, 0);
 		},
 
 		addCouponAction: function(event)
