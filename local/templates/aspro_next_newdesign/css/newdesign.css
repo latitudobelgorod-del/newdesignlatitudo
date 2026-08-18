@@ -4770,19 +4770,30 @@ h6 {
 }
 
 /* Точечно там, где тема ставит свой серый и свой кегль мимо наследования
-   от body. */
+   от body.
+
+   Блоки нового дизайна приходят в те же редакторские области (страницы
+   «О компании», «Вакансии» и прочие подключаются через bitrix:main.include),
+   и одиночный класс .nd-* проигрывает по специфичности паре «.editor p».
+   Из-за этого белый текст на тёмных плашках становился чёрным — обложка
+   «О компании», промо каталога, карточки вакансий и сертификатов. Поэтому
+   абзацы, ячейки и пункты со своими классами .nd-* правило не трогает:
+   цвет и кегль у них заданы своей вёрсткой. Два :not — потому что класс
+   .nd-* может стоять и первым, и не первым в списке; проверять его просто
+   вхождением подстроки нельзя, «nd-» встречается внутри чужих имён
+   (например .brand-item). */
 .editor,
-.editor p,
-.editor li,
-.editor td,
+.editor p:not([class^="nd-"]):not([class*=" nd-"]),
+.editor li:not([class^="nd-"]):not([class*=" nd-"]),
+.editor td:not([class^="nd-"]):not([class*=" nd-"]),
 .editor .detail_text,
 .content,
-.content p,
-.content li,
+.content p:not([class^="nd-"]):not([class*=" nd-"]),
+.content li:not([class^="nd-"]):not([class*=" nd-"]),
 .introtext,
-.introtext p,
+.introtext p:not([class^="nd-"]):not([class*=" nd-"]),
 .detail_text,
-.detail_text p {
+.detail_text p:not([class^="nd-"]):not([class*=" nd-"]) {
     color: #101014;
     font-size: 16px;
     line-height: 24px;
