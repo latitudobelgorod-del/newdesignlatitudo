@@ -66,37 +66,37 @@
 <?endif;?>
 
 <?$list_view = ($arParams['LIST_VIEW'] ? $arParams['LIST_VIEW'] : 'slider');?>
-<?// goods links?>
+<?// Материалы проекта — товары, привязанные свойством LINK_GOODS.
+   // Вид тот же, что у товаров акции (news.detail/news_newdesign): серая черта,
+   // заголовок и карточки нового дизайна. Общий include/brand_products.php,
+   // режим сплошного списка. Прежний вызов include/news.detail.products_block.php
+   // рисовал карточки старого дизайна и остался у шаблона projects.
+   //
+   // Блок печатаем, только когда привязанные товары есть и активны: иначе
+   // каталог рисовал заглушку «Раздел сейчас наполняется» под заголовком.
+   // Число товаров считаем сами — оно же задаёт размер порции, чтобы список
+   // вышел целиком: кнопку «Показать ещё» здесь нечем обслуживать (у акции
+   // для неё свой обработчик /local/ajax/promo_products.php), а молча
+   // обрезать список нельзя.?>
 <?if(in_array('LINK_GOODS', $arParams['DETAIL_PROPERTY_CODE']) && $arElement['PROPERTY_LINK_GOODS_VALUE']):?>
-	<div class="wraps goods-block with-padding">
-		<?$GLOBALS['arrProductsFilter'] = array('ID' => $arElement['PROPERTY_LINK_GOODS_VALUE']);?>
-		<?$APPLICATION->IncludeComponent(
-			"bitrix:main.include",
-			"main",
-			array(
-				"COMPONENT_TEMPLATE" => "main",
-				"PATH" => SITE_DIR."include/news.detail.products_block.php",
-				"AREA_FILE_SHOW" => "file",
-				"AREA_FILE_SUFFIX" => "",
-				"AREA_FILE_RECURSIVE" => "Y",
-				"EDIT_TEMPLATE" => "standard.php",
-				"PRICE_CODE" => array(
-					0 => "BASE",
-					1 => "OPT",
-				),
-				"STORES" => array(
-					0 => "1",
-					1 => "2",
-					2 => "",
-				),
-				"BIG_DATA_RCM_TYPE" => "bestsell",
-				"STIKERS_PROP" => "HIT",
-				"SALE_STIKER" => "SALE_TEXT",
-				"TITLE" => (strlen($arParams['T_GOODS']) ? $arParams['T_GOODS'] : GetMessage('T_GOODS'))
-			),
-			false
-		);?>
-	</div>
+	<?
+	$ndGoodsFilter = array('ID' => $arElement['PROPERTY_LINK_GOODS_VALUE'], 'ACTIVE' => 'Y');
+	$ndGoodsIblock = (int)\Bitrix\Main\Config\Option::get('aspro.next', 'CATALOG_IBLOCK_ID', 19);
+	$ndGoodsCount = (int)CIBlockElement::GetList(array(), array_merge($ndGoodsFilter, array('IBLOCK_ID' => $ndGoodsIblock)), array());
+	?>
+	<?if($ndGoodsCount):?>
+		<div class="wraps goods-block with-padding">
+			<?
+			$ldBrand = array(
+				'MODE' => 'flat',
+				'FILTER' => $ndGoodsFilter,
+				'PER_SECTION' => $ndGoodsCount,
+				'TITLE' => 'Материалы',
+			);
+			include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_products.php';
+			?>
+		</div>
+	<?endif;?>
 <?endif;?>
 
 
