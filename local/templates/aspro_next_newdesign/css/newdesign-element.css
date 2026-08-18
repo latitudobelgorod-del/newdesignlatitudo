@@ -2213,3 +2213,12 @@ a.nd-pd__installment:focus {
 .catalog_detail.element_newdesign .choise[hidden] {
     display: none !important;
 }
+
+/* Картинки в описании (блоки редактора sprint.editor) лежат в бутстраповской
+   сетке, и первая колонка ряда сдвигала их на 24px вправо — они не совпадали
+   по левому краю с заголовком и текстом. Гасим отступ только у первой
+   колонки: между соседними колонками зазор нужен. */
+.catalog_detail.element_newdesign .sp-container .row > [class*="col-"]:first-child {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
