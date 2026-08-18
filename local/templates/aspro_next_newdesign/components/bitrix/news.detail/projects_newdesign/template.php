@@ -300,17 +300,11 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 	<div class="row">
 	<div class="col-md-8 col-md-offset-2">
 		<div class="infochat nd-infochat-wrap hidden-xs">
-		<?$APPLICATION->IncludeComponent("bitrix:main.include", ".default",
-			array(
-				"COMPONENT_TEMPLATE" => ".default",
-				"PATH" => SITE_DIR."include/infochat_projects_newdesign.php",
-				"AREA_FILE_SHOW" => "file",
-				"AREA_FILE_SUFFIX" => "",
-				"AREA_FILE_RECURSIVE" => "Y",
-				"EDIT_TEMPLATE" => "standard.php"
-			),
-			false
-		);?>
+		<?// Блок «Уточните наличие и условия доставки» переехал в шаблон:
+		   // /include/ вне Git, а этот код должен уезжать вместе с шаблоном.
+		   // Прежний /include/infochat_projects_newdesign.php остался старым
+		   // шаблонам проектов.?>
+		<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/infochat_projects.php';?>
 		</div>
 		<div class="editor">
             	<?$APPLICATION->IncludeComponent(

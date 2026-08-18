@@ -1156,62 +1156,108 @@ textarea {
     color: #fff;
 }
 
-/* --- широкий вариант: детальные страницы проекта и статьи --- */
-/* Макета на него нет, поэтому берём ту же карточку, только фото уходит влево,
-   а текст выравнивается по левому краю. */
+/* --- широкий вариант: детальная проекта ---------------------------------
+   Макет: Figma «Чистовик», фрейм «Проект» 20524:98253, компонент 20795:39511.
+   Одна строка: круглое фото 188, колонка с заголовком и контактами, кнопка
+   у правого края. Плашка светлее и с меньшим скруглением, чем узкий вариант:
+   фон rgba(82,82,100,.03), радиус 4, поля 24/36. */
 .nd-infochat--wide {
     display: flex;
-    align-items: flex-start;
-    gap: 32px;
-    padding: 32px;
+    align-items: stretch;
+    gap: 24px;
+    padding: 24px 36px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .03);
     text-align: left;
 }
-.nd-infochat--wide .nd-infochat__person {
-    flex: 0 0 auto;
-    width: 160px;
-    text-align: center;
-}
 .nd-infochat--wide .nd-infochat__photo {
-    width: 160px;
+    flex: 0 0 auto;
+    width: 188px;
     max-width: none;
-    margin-top: 0;
+    margin: 0;
 }
-.nd-infochat--wide .nd-infochat__name {
-    margin-top: 14px;
-    font-size: 16px;
-    line-height: 22px;
-}
+/* Колонка держится ширины из макета, пока помещается: на ней заголовок
+   ломается на две строки, как нарисовано. Свободное место уходит вправо,
+   к кнопке. */
 .nd-infochat--wide .nd-infochat__body {
-    flex: 1 1 auto;
+    flex: 0 1 356px;
     min-width: 0;
+    min-height: 188px;
+    display: flex;
+    flex-direction: column;
+    /* Заголовок сверху, контакты внизу — в макете колонка растянута
+       по высоте фото. */
+    justify-content: space-between;
+    gap: 24px;
 }
 .nd-infochat--wide .nd-infochat__title {
     font-size: 22px;
-    line-height: 28px;
+    line-height: 26.4px;
+    font-weight: 700;
+    color: #101014;
 }
 .nd-infochat--wide .nd-infochat__subtitle {
-    font-size: 15px;
-    line-height: 22px;
+    margin-top: 4px;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.nd-infochat--wide .nd-infochat__name {
+    margin: 0;
+    font-size: 18px;
+    line-height: 21.6px;
+    font-weight: 700;
 }
 .nd-infochat--wide .nd-infochat__contacts {
     align-items: flex-start;
-    margin-top: 16px;
+    gap: 8px;
+    margin-top: 8px;
 }
 .nd-infochat--wide .nd-infochat__contact {
-    font-size: 16px;
-    line-height: 24px;
+    gap: 6px;
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 500;
 }
-.nd-infochat--wide .nd-infochat__hint {
-    margin-top: 16px;
-    font-size: 15px;
-    line-height: 22px;
-    color: #52525f;
+.nd-infochat--wide .nd-infochat__icon {
+    color: #101014;
 }
+/* Кнопка из макета: рамка 1px, без заливки, подпись 500 14/20. */
 .nd-infochat--wide .nd-infochat__btn {
+    flex: 0 0 auto;
+    align-self: center;
     display: inline-flex;
-    min-width: 240px;
-    padding: 14px 24px;
-    font-size: 16px;
+    width: 194px;
+    min-width: 0;
+    margin: 0 0 0 auto;
+    padding: 12px 10px;
+    border: 1px solid #525264;
+    border-radius: 4px;
+    background: none;
+    color: #525264;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+}
+.nd-infochat--wide .nd-infochat__btn:hover,
+.nd-infochat--wide .nd-infochat__btn:focus {
+    background: #525264;
+    color: #fff;
+}
+
+@media (max-width: 991px) {
+    /* Кнопка уходит под колонку: рядом с ней на планшете остаётся полоска
+       уже самой кнопки. */
+    .nd-infochat--wide {
+        flex-wrap: wrap;
+    }
+    .nd-infochat--wide .nd-infochat__body {
+        flex: 1 1 320px;
+    }
+    .nd-infochat--wide .nd-infochat__btn {
+        align-self: flex-start;
+        margin-left: 212px;
+    }
 }
 
 @media (max-width: 767px) {
@@ -1222,17 +1268,22 @@ textarea {
         padding: 24px 16px;
         text-align: center;
     }
-    .nd-infochat--wide .nd-infochat__person,
     .nd-infochat--wide .nd-infochat__photo {
         width: 140px;
+    }
+    .nd-infochat--wide .nd-infochat__body {
+        flex: 0 0 auto;
+        min-height: 0;
+        align-items: center;
+        gap: 16px;
     }
     .nd-infochat--wide .nd-infochat__contacts {
         align-items: center;
     }
     .nd-infochat--wide .nd-infochat__btn {
-        display: flex;
-        min-width: 0;
+        align-self: stretch;
         width: 100%;
+        margin-left: 0;
     }
 }
 
@@ -1975,15 +2026,23 @@ a.nd-sections__item:focus {
     margin-top: 32px;
 }
 
-/* Меню в левой колонке нового дизайна: строки-плашки с красной стрелкой,
-   активный пункт тёмный. Разметку даёт тема (.left_block .left_menu),
-   поэтому классы чужие. */
+/* Меню в левой колонке нового дизайна (Figma «Чистовик», фрейм «Услуга»
+   20669:41851, блок 20669:41856): столбец плашек rgba(82,82,100,.05),
+   между ними волосяной зазор 1px, у всего блока скругление 6. Подпись
+   Nunito Sans 500 16/24. Наведение — красная полоса 2px слева и красный
+   текст, текущий пункт — тёмная плашка #525264 с белым текстом.
+
+   Разметку даёт тема (.left_block .left_menu), поэтому классы чужие. Её же
+   оформление приходится гасить: рамка 1px вокруг каждого пункта, свой фон
+   #f9f9f9, жирное начертание и серая полоса-псевдоэлемент при наведении. */
 .left_block .left_menu {
     display: flex;
     flex-direction: column;
     gap: 1px;
     margin: 0;
     padding: 0;
+    overflow: hidden;
+    border-radius: 6px;
     list-style: none;
     font-family: 'Nunito Sans', Arial, sans-serif;
 }
@@ -1991,21 +2050,29 @@ a.nd-sections__item:focus {
     margin: 0;
     padding: 0;
     border: 0;
-    background: rgba(82, 82, 100, .05);
+    background: none;
 }
 .left_block .left_menu > li.item > a {
     display: block;
     padding: 16px 24px;
-    border-left: 2px solid transparent;
+    border: 0;
+    background: rgba(82, 82, 100, .05);
     font-size: 16px;
     line-height: 24px;
-    font-weight: 400;
+    font-weight: 500;
     color: #101014;
     text-decoration: none;
+    /* полоса слева — тенью, а не рамкой: рамка сдвигала бы текст на 2px */
+    box-shadow: inset 2px 0 0 transparent;
+}
+/* Тема рисует при наведении серую полосу псевдоэлементом — она лишняя. */
+.left_block .left_menu > li:hover > a:before,
+.left_block .left_menu > li.item > a:after {
+    content: none;
 }
 .left_block .left_menu > li.item > a:hover,
 .left_block .left_menu > li.item > a:focus {
-    border-left-color: #c60000;
+    box-shadow: inset 2px 0 0 #c60000;
     color: #c60000;
     text-decoration: none;
 }
@@ -2013,6 +2080,7 @@ a.nd-sections__item:focus {
 .left_block .left_menu > li.item.active > a {
     background: #525264;
     color: #fff;
+    box-shadow: none;
 }
 
 @media (max-width: 1199px) {
