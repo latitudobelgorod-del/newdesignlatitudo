@@ -2222,3 +2222,21 @@ a.nd-pd__installment:focus {
     padding-left: 0 !important;
     margin-left: 0 !important;
 }
+
+@media (max-width: 767px) {
+    /* Круглая кнопка звонка (виджет Envybox) висит у нижнего края и налезала
+       на «В корзину» в липкой панели покупки. Панель занимает примерно 150px
+       над нижней навигацией — поднимаем кнопку над ней. Правило только для
+       детальной товара: на других страницах панели нет и двигать нечего. */
+    body:has(.catalog_detail.element_newdesign) .callbackkiller.cbk-phone {
+        bottom: 220px !important;
+    }
+
+    /* Галереи в описании (блоки редактора) на телефоне вставали по одной
+       картинке в ряд. Ставим по две — но только там, где картинок больше
+       одной: одиночная иллюстрация должна остаться во всю ширину. */
+    .catalog_detail.element_newdesign .sp-container .row:has(> [class*="col-"]:nth-child(2)) > [class*="col-"] {
+        float: left;
+        width: 50%;
+    }
+}
