@@ -42,7 +42,7 @@ $ndVacPhone     = '+7 (915) 560-21-35';
 $ndVacPhoneHref = '+79155602135';
 $ndVacEmail     = 'hr@latitudo.ru';
 $ndVacHrName    = 'Ксения Тодераш';
-$ndVacPresent   = '/files/outdor_horeca_mobile.pdf';
+$ndVacPresent   = '/presentation_latitudo.pdf';
 
 /* Инфоблок «Вакансии» ищем по символьному коду, а не по номеру: на боевом
    и на локальной копии номер один и тот же, но завязываться на него не стоит.
