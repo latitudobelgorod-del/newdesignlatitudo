@@ -698,10 +698,16 @@
     cursor: pointer;
     transition: background-color .2s;
 }
+/* Наведение — тот же бордовый, что у кнопки «Оставить заявку» в шапке.
+   Через !important: у темы свой .btn-default:hover (синий) с селектором
+   большей длины, и обычное правило он перебивал. */
 #basket-root .nd-total__btn:hover,
-#basket-root .nd-total__btn:focus {
-    background: #a50000;
-    color: #fff;
+#basket-root .nd-total__btn:focus,
+#basket-root .nd-total__btn:active {
+    background: #a80000 !important;
+    background-color: #a80000 !important;
+    border-color: #a80000 !important;
+    color: #fff !important;
 }
 #basket-root .nd-total__btn.disabled {
     opacity: .5;
@@ -875,14 +881,14 @@
    Поэтому в корзине рамку с сетки снимаем и вешаем те же линии на сами
    ячейки — тогда она обрывается ровно на последней карточке. Нижняя и
    правая линии у ячеек свои, их не трогаем. */
+/* Вместо переноса рамки на ячейки просто ужимаем саму сетку по содержимому:
+   ячейки, уже лежащие в корзине, лента прячет, поэтому :first-child мог
+   оказаться скрытым — левая линия пропадала. При max-content рамка обрывается
+   на последней карточке, а когда карточек больше, чем влезает, сетка снова
+   во всю ширину и прокручивается как раньше. */
 .nd-related--basket .nd-catlist .catalog_block {
-    border: 0 !important;
-}
-.nd-related--basket .nd-catlist .catalog_block .item_block {
-    border-top: 1px solid rgba(82, 82, 100, .15) !important;
-}
-.nd-related--basket .nd-catlist .catalog_block .item_block:first-child {
-    border-left: 1px solid rgba(82, 82, 100, .15) !important;
+    width: max-content;
+    max-width: 100%;
 }
 /* Разделительной полосы под лентой в корзине по макету нет. Селектор из двух
    классов: у .nd-related в newdesign-catalog.css та же специфичность, а он
