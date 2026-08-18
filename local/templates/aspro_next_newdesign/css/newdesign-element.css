@@ -2249,9 +2249,11 @@ a.nd-pd__installment:focus {
         display: none !important;
     }
     .catalog_detail.element_newdesign .sp-container .row:has(> [class*="col-"]:nth-child(3)) > [class*="col-"] {
-        flex: 0 0 50%;
-        max-width: 50%;
-        width: 50%;
+        /* У ряда column-gap 24 — на ровные 50% пара уже не влезает и
+           переносится. Забираем половину зазора у каждой колонки. */
+        flex: 0 0 calc(50% - 12px);
+        max-width: calc(50% - 12px);
+        width: calc(50% - 12px);
     }
 }
 
