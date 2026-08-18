@@ -36,10 +36,27 @@
             + '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/></svg>';
     }
 
-    /* Закрыть панель — тем же триггером темы, которым её открыли */
+    /* Закрыть панель.
+       Кнопкой-открывашкой этого не сделать: тема повесила на .filter_opener
+       только OpenMobileFilter(), а он при открытой шторке молча выходит —
+       поэтому «✕», «Применить» и стрелка «назад» ничего не закрывали.
+       Закрытие у темы живёт в глобальной CloseMobileFilter(); если её вдруг
+       нет, остаются её же триггеры: штатный крестик внутри шторки (мы его
+       прячем, но обработчик висит на документе) и клик по затемнению. */
     function closePanel() {
-        var opener = document.querySelector('.adaptive_filter .filter_opener, .filter_opener');
-        if (opener) opener.click();
+        if (typeof window.CloseMobileFilter === 'function') {
+            try {
+                window.CloseMobileFilter();
+                return;
+            } catch (e) { }
+        }
+        var close = document.querySelector('#mobilefilter .svg-close.close-icons');
+        if (close) {
+            close.click();
+            return;
+        }
+        var overlay = document.querySelector('#mobilefilter-overlay');
+        if (overlay) overlay.click();
     }
 
     function build(panel) {
