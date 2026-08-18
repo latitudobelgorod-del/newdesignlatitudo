@@ -4601,6 +4601,34 @@ ul.c-lists > li:last-child {
    в ряду пять). Тогда линию переносим на сами карточки — она обрывается на
    последней. Там, где ряд полный, всё остаётся как было: линия на сетке
    и через все карточки, без удвоений между рядами. */
+/* Детальная услуги: кнопки, которые контент-менеджер ставит в блоках
+   редактора («Посмотреть проекты», «Заказать консультацию» и прочие), тема
+   красит своим синим — у неё .btn-default синий. В новом дизайне кнопка
+   красная, на наведении бордовая, как в шапке.
+
+   !important и селектор с .editor — у темы правила из двух классов, и
+   одиночного класса не хватает. */
+.services_newdesign .editor .btn.btn-default,
+.services_newdesign .editor a.btn-default,
+.services_newdesign .editor span.btn-default,
+.editor .services_newdesign .btn.btn-default {
+    background: #c60000 !important;
+    background-color: #c60000 !important;
+    border-color: #c60000 !important;
+    color: #fff !important;
+}
+.services_newdesign .editor .btn.btn-default:hover,
+.services_newdesign .editor .btn.btn-default:focus,
+.services_newdesign .editor a.btn-default:hover,
+.services_newdesign .editor a.btn-default:focus,
+.services_newdesign .editor span.btn-default:hover,
+.services_newdesign .editor span.btn-default:focus {
+    background: #a80000 !important;
+    background-color: #a80000 !important;
+    border-color: #a80000 !important;
+    color: #fff !important;
+}
+
 .goods-block .nd-catlist .catalog_block:not(:has(.item_block:nth-child(6))) {
     border-top: 0 !important;
 }

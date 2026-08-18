@@ -73,21 +73,20 @@ if($arParams["SHOW_NEXT_ELEMENT"] == "Y")
 	?>
 <?endif;?>
 <div style="clear:both"></div>
-<hr class="bottoms" />
-<?if($arParams["SHOW_NEXT_ELEMENT"] == "Y"):?>
-	<div class="row links-block">
-		<div class="col-md-12 links">
-			<a class="back-url url-block" href="<?=$arResult['FOLDER'].$arResult['URL_TEMPLATES']['news']?>"><i class="fa fa-angle-left"></i><span><?=($arParams["T_PREV_LINK"] ? $arParams["T_PREV_LINK"] : GetMessage('BACK_LINK'));?></span></a>
-			<?if($arElementNext):?>
-				<a class="next-url url-block" href="<?=$arElementNext['DETAIL_PAGE_URL']?>"><i class="fa fa-angle-right"></i><span><?=($arParams["T_NEXT_LINK"] ? $arParams["T_NEXT_LINK"] : GetMessage('NEXT_LINK'));?></span></a>
-			<?endif;?>
-		</div>
-	</div>
-<?else:?>
-	<div class="row">
-
-		<div class="col-md-6">
-			<a class="back-url url-block" href="<?=$arResult['FOLDER'].$arResult['URL_TEMPLATES']['news']?>"><i class="fa fa-angle-left"></i><span><?=($arParams["T_PREV_LINK"] ? $arParams["T_PREV_LINK"] : GetMessage('BACK_LINK'));?></span></a>
-		</div>
-	</div>
-<?endif;?>
+<?// Кнопки «Назад к списку» / «Следующая услуга» — кнопка дизайн-системы
+   // (.nd-artnav, стили в css/newdesign.css), та же, что под карточкой бренда,
+   // на детальной акции и портфолио. Синие рамки темы (.url-block) и черту
+   // над ними в новом дизайне не используем.?>
+<?$ndSrvNext = ($arParams["SHOW_NEXT_ELEMENT"] == "Y" && $arElementNext);?>
+<nav class="nd-artnav<?=($ndSrvNext ? '' : ' nd-artnav--solo')?>">
+	<a class="nd-artnav__btn" href="<?=$arResult['FOLDER'].$arResult['URL_TEMPLATES']['news']?>">
+		<svg class="nd-artnav__ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		<span><?=($arParams["T_PREV_LINK"] ? $arParams["T_PREV_LINK"] : GetMessage('BACK_LINK'));?></span>
+	</a>
+	<?if($ndSrvNext):?>
+		<a class="nd-artnav__btn" href="<?=$arElementNext['DETAIL_PAGE_URL']?>">
+			<span><?=($arParams["T_NEXT_LINK"] ? $arParams["T_NEXT_LINK"] : GetMessage('NEXT_LINK'));?></span>
+			<svg class="nd-artnav__ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		</a>
+	<?endif;?>
+</nav>
