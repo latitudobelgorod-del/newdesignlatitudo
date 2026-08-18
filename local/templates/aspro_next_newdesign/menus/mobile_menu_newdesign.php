@@ -38,6 +38,13 @@ $aMenuLinks = Array(
 		""
 	),
 	Array(
+		"Акции",
+		"/sale/",
+		Array(),
+		Array("ARROW" => "N"),
+		""
+	),
+	Array(
 		"О компании",
 		"/info/company/",
 		Array(),
