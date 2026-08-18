@@ -36,16 +36,19 @@ $arElement = CNextCache::CIblockElement_GetList(array("CACHE" => array("TAG" => 
 
 
 <div style="clear:both"></div>
-<hr class="bottoms" />
 
-<?/*Кнопка назад с детальной к списку марок*/?>		
-<div class="course-content-footer" style="position: relative;margin-top:20px;">
-	<div class="course-content-footer-nav" >
-		<div class="course-content-footer-item-container" style="margin-right:11px;">
-			<a  href="<?=$arResult['FOLDER'].$arResult['URL_TEMPLATES']['news']?>" class="course-content-footer-button course-content-footer-button-previous">
-				<i class="fa fa-angle-left"></i><span><?=GetMessage('BACK_LINK')?></span>
-			</a>
-		</div>
-	</div>
-</div>
-<?/*Кнопка назад с детальной к списку марок*/?>	
+<?// Черты над кнопкой в макете нет — блок отбит только отступами, поэтому
+   // прежний <hr class="bottoms"> убран.?>
+<?// Кнопка «Назад к списку» под карточкой бренда. Разметка та же, что под
+   // статьёй «Материалов» (.nd-artnav) — в макете это одна и та же кнопка
+   // дизайн-системы (Figma, компонент 132:2431 «size=l, variant=secondary»,
+   // виден на фрейме «Проект» 20524:98253). Прежние плашки темы
+   // (.course-content-footer) в новом дизайне не используем; у старого
+   // дизайна свой шаблон partners_bez_an, там они остаются.
+   // Кнопка одна, поэтому ряд по центру — как пара кнопок в макете.?>
+<nav class="nd-artnav nd-artnav--center">
+	<a class="nd-artnav__btn" href="<?=$arResult['FOLDER'].$arResult['URL_TEMPLATES']['news']?>">
+		<svg class="nd-artnav__ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		<span><?=GetMessage('BACK_LINK')?></span>
+	</a>
+</nav>

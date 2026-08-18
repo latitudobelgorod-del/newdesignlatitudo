@@ -2574,13 +2574,24 @@ a.nd-catmenu__name:focus {
     margin-top: 40px;
 }
 
-/* Кнопки под статьёй «Материалов»: «Назад к списку» и «Следующая статья».
-   По макету — серые плашки без рамки, текст по центру со стрелкой. */
+/* Кнопки «Назад к списку» / «Следующая статья» под статьёй «Материалов» и
+   «Назад к списку» под карточкой бренда. В макете это кнопка дизайн-системы
+   (Figma, компонент 132:2431 «size=l, variant=secondary, colorScheme=neutral»,
+   в работе видна на фрейме «Проект» 20524:98253): высота 48, радиус 4, фон
+   rgba(82,82,100,.10) без рамки, подпись Nunito Sans 700 16/24 цветом #101014,
+   иконка 24×24, отступы по 12 и зазор 8 до подписи. Ширина 427 и зазор 24 —
+   оттуда же: на фрейме пара кнопок делит ряд 878 пополам. */
 .nd-artnav {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 24px;
     margin-top: 40px;
+}
+/* Одна кнопка — ряд по центру, как пара кнопок в макете. Отбивка 52px сверху
+   и снизу — оттуда же (Figma, секция с кнопками на фрейме «Проект»). */
+.nd-artnav--center {
+    justify-content: center;
+    margin: 52px 0;
 }
 .nd-artnav__btn,
 .editor .nd-artnav__btn {
@@ -2588,22 +2599,24 @@ a.nd-catmenu__name:focus {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-width: 240px;
+    width: 427px;
+    max-width: 100%;
     min-height: 48px;
-    padding: 12px 24px;
+    padding: 12px;
     border: 0;
     border-radius: 4px;
-    background: rgba(82, 82, 100, .07);
+    background: rgba(82, 82, 100, .10);
     color: #101014;
-    font-size: 15px;
-    line-height: 20px;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
     text-decoration: none;
 }
 .nd-artnav__btn:hover,
 .nd-artnav__btn:focus,
 .editor .nd-artnav__btn:hover,
 .editor .nd-artnav__btn:focus {
-    background: rgba(82, 82, 100, .12);
+    background: rgba(82, 82, 100, .16);
     color: #101014;
     text-decoration: none;
     border-bottom: 0;
@@ -2611,6 +2624,15 @@ a.nd-catmenu__name:focus {
 .nd-artnav__ico {
     flex: 0 0 auto;
     color: #101014;
+}
+
+/* Две кнопки в ряду держатся ширины из макета, пока помещаются; дальше делят
+   строку поровну, а на телефоне встают друг под друга во всю ширину. */
+@media (max-width: 991px) {
+    .nd-artnav__btn {
+        flex: 1 1 240px;
+        width: auto;
+    }
 }
 
 @media (max-width: 575px) {

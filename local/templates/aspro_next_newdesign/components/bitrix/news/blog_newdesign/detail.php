@@ -134,13 +134,13 @@ if($arParams["SHOW_NEXT_ELEMENT"] == "Y")
    // (.url-block) в новом дизайне не используем. Стили — в css/newdesign.css.?>
 <nav class="nd-artnav">
 	<a class="nd-artnav__btn" href="<?=$arResult['FOLDER'].$arResult['URL_TEMPLATES']['news']?>">
-		<svg class="nd-artnav__ico" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		<svg class="nd-artnav__ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 		<span><?=($arParams["T_PREV_LINK"] ? $arParams["T_PREV_LINK"] : GetMessage('BACK_LINK'));?></span>
 	</a>
 	<?if($ndNextElement['DETAIL_PAGE_URL']):?>
 		<a class="nd-artnav__btn" href="<?=$ndNextElement['DETAIL_PAGE_URL']?>">
 			<span><?=($arParams["T_NEXT_LINK"] ? $arParams["T_NEXT_LINK"] : 'Следующая статья');?></span>
-			<svg class="nd-artnav__ico" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			<svg class="nd-artnav__ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 		</a>
 	<?endif;?>
 </nav>
