@@ -38,19 +38,25 @@ $this->setFrameMode(true);
 
 						$bNdVacOpen = ($iNdVacNum === 0);
 						$iNdVacNum++;
+						// Зарплата в макете стоит не в шапке, а первой плашкой в теле
+						// вакансии, и всегда со знаком рубля: «руб.» из свойства меняем
+						// на «₽», а если валюты в значении нет вовсе — дописываем.
+						// Текстовые значения вроде «по договорённости» не трогаем.
 						$sNdVacPay = trim($arItem['DISPLAY_PROPERTIES']['PAY']['VALUE']);
+						if(strlen($sNdVacPay)){
+							$sNdVacPay = trim(preg_replace('/\s*(?:руб(?:лей|ля)?\.?|₽)\s*$/ui', '', $sNdVacPay));
+							if(preg_match('/\d/u', $sNdVacPay)){
+								$sNdVacPay .= ' ₽';
+							}
+							$sNdVacPayText = 'Зарплата '.$sNdVacPay;
+						}else{
+							$sNdVacPayText = 'Зарплата по результатам собеседования';
+						}
 						?>
 						<div class="nd-vac__acc<?=($bNdVacOpen ? ' is-open' : '')?>" id="<?=$this->GetEditAreaId($arItem['ID'])?>" data-nd-vac-acc>
 							<button class="nd-vac__acc-head" type="button" aria-expanded="<?=($bNdVacOpen ? 'true' : 'false')?>">
 								<span class="nd-vac__acc-title">
 									<span class="nd-vac__acc-name"><?=$arItem['NAME']?></span>
-									<span class="nd-vac__acc-meta">
-										<?if(strlen($sNdVacPay)):?>
-											Зарплата <?=$sNdVacPay?>
-										<?else:?>
-											Зарплата по результатам собеседования
-										<?endif;?>
-									</span>
 								</span>
 								<svg class="nd-vac__acc-ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 									<path d="M4 12h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -59,6 +65,7 @@ $this->setFrameMode(true);
 							</button>
 							<div class="nd-vac__acc-body">
 								<div class="nd-vac__acc-inner">
+									<div class="nd-vac__pay"><?=$sNdVacPayText?></div>
 									<div class="nd-vac__editor">
 										<?$APPLICATION->IncludeComponent(
 											'sprint.editor:blocks',

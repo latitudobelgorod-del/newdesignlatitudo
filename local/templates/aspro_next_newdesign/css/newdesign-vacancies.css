@@ -485,11 +485,6 @@
     font-size: 22px;
     line-height: 26px;
 }
-.nd-vac__acc-meta {
-    font-weight: 400;
-    font-size: 18px;
-    line-height: 25px;
-}
 .nd-vac__acc-ico {
     flex: 0 0 auto;
     margin-top: 4px;
@@ -516,6 +511,24 @@
     gap: 24px;
     padding: 0 24px 24px;
     overflow: hidden;
+}
+/* Зарплата. В макете (фрейм 21310:50839, блок Block_Web/Callout) она стоит
+   не в шапке аккордеона, а первой плашкой в теле вакансии: рамка 1 #C60000,
+   радиус 6, отступы 12/15, текст 18/25.2 500 #C60000.
+
+   Заливка в макете двумя слоями — красный 5% и поверх серый 10%; повторяем
+   их градиентами, чтобы не подбирать плоский цвет на глаз. */
+.nd-vac__pay {
+    padding: 12px 15px;
+    border: 1px solid #c60000;
+    border-radius: 6px;
+    background-image:
+        linear-gradient(rgba(209, 209, 209, .1), rgba(209, 209, 209, .1)),
+        linear-gradient(rgba(198, 0, 0, .05), rgba(198, 0, 0, .05));
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 25px;
+    color: #c60000;
 }
 /* Тело пункта — «Редактор блоков 1» вакансии: обычный текст, списки и
    красная кнопка формы. Общий сброс выше снял отступы у p/ul/li на всём
@@ -1005,13 +1018,14 @@
     .nd-vac__acc-inner {
         padding: 0 16px 16px;
     }
+    .nd-vac__pay {
+        padding: 10px 12px;
+        font-size: 16px;
+        line-height: 22px;
+    }
     .nd-vac__acc-name {
         font-size: 18px;
         line-height: 24px;
-    }
-    .nd-vac__acc-meta {
-        font-size: 16px;
-        line-height: 22px;
     }
     .nd-vac__hr,
     .nd-vac__ask {
