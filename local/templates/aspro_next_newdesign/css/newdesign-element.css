@@ -2240,6 +2240,14 @@ a.nd-pd__installment:focus {
     .catalog_detail.element_newdesign .sp-container .row:has(> [class*="col-"]:nth-child(3)) {
         flex-wrap: wrap;
     }
+    /* Бутстраповский клирфикс .row:before/:after в флекс-ряду становится
+       полноценным элементом на всю ширину и разбивает пары — картинки
+       вставали по одной, хотя ширина у них уже была 50%. */
+    .catalog_detail.element_newdesign .sp-container .row:has(> [class*="col-"]:nth-child(3)):before,
+    .catalog_detail.element_newdesign .sp-container .row:has(> [class*="col-"]:nth-child(3)):after {
+        content: none !important;
+        display: none !important;
+    }
     .catalog_detail.element_newdesign .sp-container .row:has(> [class*="col-"]:nth-child(3)) > [class*="col-"] {
         flex: 0 0 50%;
         max-width: 50%;
