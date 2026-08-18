@@ -152,6 +152,9 @@
         border-bottom: 1px solid rgba(82, 82, 100, .15);
     }
 
+    /* Выбранные значения — серые плашки без рамки, а «Сбросить фильтры»
+       рядом с ними — белая кнопка с рамкой (макет «Фильтры», Ирина,
+       18 августа 2026). */
     .nd-fm-chip {
         display: inline-flex;
         align-items: center;
@@ -159,14 +162,19 @@
         height: 28px;
         margin: 0;
         padding: 0 8px;
-        background: none;
-        border: 2px solid rgba(82, 82, 100, .25);
+        background: rgba(82, 82, 100, .1);
+        border: 0;
         border-radius: 4px;
         color: #101014;
         font-size: 12px;
         line-height: 16px;
         font-weight: 700;
         cursor: pointer;
+    }
+
+    .nd-fm-chip--reset {
+        background: #fff;
+        border: 1px solid rgba(82, 82, 100, .25);
     }
 
     .nd-fm-chip__x {
