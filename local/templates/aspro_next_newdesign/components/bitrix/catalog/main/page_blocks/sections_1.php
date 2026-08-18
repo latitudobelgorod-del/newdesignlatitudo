@@ -1,3 +1,19 @@
+<?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();?>
+<?/*
+ * Корень каталога в новом дизайне рисует sections_newdesign.php. Раньше выбор
+ * стоял в параметрах компонента (/catalog/index.php, SECTIONS_TYPE_VIEW), но
+ * тот файл вне Git, и любая правка параметров каталога в админке переписывает
+ * весь вызов IncludeComponent: 17 августа 2026 переменную $ndCatalogSectionsView
+ * заменило литералом "sections_1", и страница каталога на проде вернулась к
+ * старому виду. Здесь же файл лежит внутри шаблона нового дизайна — админка
+ * его не трогает, и старому дизайну он не достанется: у aspro_next свой
+ * sections_1.php.
+ *
+ * Ниже — прежний блок Аспро, он остаётся как справка и на случай отката:
+ * достаточно убрать include с return.
+ */
+include __DIR__.'/sections_newdesign.php';
+return;?>
  
     <?
             function isMobile()

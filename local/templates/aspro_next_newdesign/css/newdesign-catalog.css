@@ -832,8 +832,10 @@
 }
 
 .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-field {
-    flex: 1 1 0 !important;
-    width: auto !important;
+    /* Ширину полю ставит js/newdesign-catalog.js (fitQtyInput) — ровно под
+       значение, чтобы пару «число + единица» можно было центрировать целиком.
+       Поэтому не 1 1 0 и не width:auto: и то и другое ломает подгонку. */
+    flex: 0 1 auto !important;
     min-width: 0 !important;
     max-width: none !important;
     height: auto !important;
@@ -844,16 +846,26 @@
     font-size: 16px;
     line-height: 24px;
     font-weight: 500;
-    /* Число и единица стоят парой и жмутся к общей середине плитки: поле
-       выравнено вправо, подпись влево. Поэтому здесь не center. */
     text-align: right;
 }
 
+/* Спиннер у input[type=number] съедает часть подогнанной ширины, и последняя
+   цифра пряталась под стрелками. Он тут не нужен — количество меняют «−»/«+». */
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-field {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-field::-webkit-outer-spin-button,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-field::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 /* Единица измерения рядом с числом — «0,45 м²». Span дописывает
-   js/newdesign-catalog.js (syncQtyUnit), внутрь <input> текст не положить.
-   Половинки поля делят место поровну, чтобы пара стояла по центру плитки. */
+   js/newdesign-catalog.js (syncQtyUnit), внутрь <input> текст не положить. */
 .nd-catlist .catalog_item_wrapp .counter_wrapp .nd-qty-unit {
-    flex: 1 1 0;
+    flex: 0 1 auto;
     min-width: 0;
     padding-left: 4px;
     color: #101014;
@@ -862,6 +874,21 @@
     font-weight: 500;
     text-align: left;
     white-space: nowrap;
+}
+
+/* Центровка пары «число + единица». Плитка — flex, по краям кнопки; свободное
+   место целиком забирают автоотступы кнопок и делят его поровну, поэтому
+   надпись встаёт ровно по середине плитки. Делить плитку пополам между полем
+   и подписью нельзя: по центру оказывался бы стык, а не середина надписи,
+   и «1,00 шт» уезжало влево. */
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-button-down,
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus {
+    margin-right: auto !important;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-button-up,
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
+    margin-left: auto !important;
 }
 
 /* Штатный счётчик темы рисует значок «−»/«+» спрайтом ЛЮБОМУ своему прямому
@@ -920,8 +947,8 @@
 }
 
 .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block input.text {
-    flex: 1 1 0 !important;
-    width: auto !important;
+    /* ширину ставит fitQtyInput, см. .measure-field выше */
+    flex: 0 1 auto !important;
     min-width: 0 !important;
     max-width: none !important;
     height: auto !important;
@@ -934,7 +961,6 @@
     color: #101014;
     font-size: 16px;
     font-weight: 500;
-    /* пара «число + единица» стоит по центру плитки, см. .nd-qty-unit */
     text-align: right;
 }
 
@@ -1485,14 +1511,9 @@
     }
 
     /* Единица рядом с числом — на узкой карточке мельче и с меньшим отступом,
-       иначе пара «0,45 м²» не влезает между кнопками счётчика.
-       И место делим не поровну, как на десктопе, а по содержимому: между
-       кнопками остаётся ~57px, «шт» занимает почти половину, и числу «1,00»
-       своей половины уже не хватало — оно обрезалось до «1,0(». */
+       иначе пара «0,45 м²» не влезает между кнопками счётчика. */
     .nd-catlist .catalog_item_wrapp .counter_wrapp .nd-qty-unit {
-        flex: 0 1 auto;
         padding-left: 3px;
-        padding-right: 2px;
         font-size: 14px;
     }
 

@@ -102,6 +102,12 @@
                 var showTotal = function () {
                     cwrap.classList.add('nd-total-on');
                     updateTotal(card);
+                    /* Значение в поле меняет скрипт, а не разметка — наблюдатель
+                       карточки такое не ловит. Ширину поля под новое число
+                       пересчитываем здесь же; с задержкой — потому что компонент
+                       единиц измерения дописывает значение после клика. */
+                    syncQtyUnit(card);
+                    setTimeout(function () { syncQtyUnit(card); }, 60);
                 };
                 cwrap.addEventListener('click', function (e) {
                     if (e.target.closest('.measure-button, .counter_block .plus, .counter_block .minus')) showTotal();
@@ -318,8 +324,14 @@
        .nd-pd-qty-unit) и в корзине (.basket-item-amount-unit): в счётчике
        всегда видно, чего именно взяли столько.
 
-       Внутрь <input> текст не положить, поэтому рядом с ним держим span,
-       а половинки плитки разводит CSS.
+       Внутрь <input> текст не положить, поэтому рядом с ним держим span.
+
+       Пара «число + единица» стоит по центру плитки — как одна надпись.
+       Поделить плитку пополам между полем и подписью нельзя: по центру
+       оказывался бы стык, а не середина надписи, и «1,00 шт» заметно
+       уезжало влево (у числа половина шире, чем у «шт»). Поэтому поле
+       подгоняем под ширину значения (fitQtyInput), а центрирует пару CSS
+       автоотступами у кнопок «−» и «+».
 
        Название единицы даёт переключатель «шт / м² / п.м» этой же карточки:
        у активной кнопки лежит data-unit-name (его ставит maxyss:measure_unit).
@@ -336,6 +348,36 @@
         return measure ? (measure.textContent || '').replace(/[\s\/]/g, '') : '';
     }
 
+    /* Ширина поля по содержимому. Своей ширины «по значению» у <input> нет
+       (`width: auto` — это дефолтные ~20 символов), а без неё пару не
+       центрировать. Меряем зеркальным span'ом тем же шрифтом; результат
+       кэшируем на самом поле, чтобы не мерить на каждый тик наблюдателя. */
+    var qtyRuler = null;
+
+    function fitQtyInput(input) {
+        var val = String(input.value == null ? '' : input.value);
+        var cs = getComputedStyle(input);
+        /* В ключ входит и шрифт: на телефоне у поля свой размер, и при смене
+           ширины окна ту же величину нужно померить заново. */
+        var key = val + '|' + cs.fontSize + '|' + cs.fontWeight + '|' + cs.fontFamily;
+        if (input.__ndFitKey === key) return;
+
+        if (!qtyRuler) {
+            qtyRuler = document.createElement('span');
+            qtyRuler.style.cssText = 'position:absolute;left:-9999px;top:-9999px;' +
+                'white-space:pre;visibility:hidden;pointer-events:none';
+            document.body.appendChild(qtyRuler);
+        }
+        qtyRuler.style.font = cs.font || (cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily);
+        qtyRuler.style.letterSpacing = cs.letterSpacing;
+        qtyRuler.textContent = val;
+
+        input.__ndFitKey = key;
+        /* +1px — на округление подпиксельной ширины, иначе последний знак
+           изредка срезается */
+        input.style.width = (Math.ceil(qtyRuler.getBoundingClientRect().width) + 1) + 'px';
+    }
+
     function syncQtyUnit(card) {
         try {
             var name = cardUnitName(card);
@@ -349,6 +391,8 @@
                 var unit = box.querySelector('.nd-qty-unit');
                 if (!name) {
                     if (unit) unit.parentNode.removeChild(unit);
+                    input.style.width = '';
+                    input.__ndFitKey = null;
                     return;
                 }
                 if (!unit) {
@@ -359,6 +403,7 @@
                 /* только при реальном изменении: правка текста будит
                    MutationObserver карточки, а он зовёт syncState обратно */
                 if (unit.textContent !== name) unit.textContent = name;
+                fitQtyInput(input);
             });
         } catch (e) { }
     }
