@@ -2198,3 +2198,12 @@ a.nd-pd__installment:focus {
     background-color: rgba(82, 82, 100, .18) !important;
     color: #525264 !important;
 }
+
+/* Плашка выбора длины: подпись внутри осталась от темы 13px, в макете
+   (фрейм «Карточка товара» 20489:32753, Alt_RadioButton) — 18/25.2 400.
+   Высоту плашке не фиксируем: пусть растёт под шрифт. */
+.catalog_detail.element_newdesign .nd-sku .bx_size li .cnt {
+    font-size: 18px !important;
+    line-height: 25px !important;
+    font-weight: 400 !important;
+}
