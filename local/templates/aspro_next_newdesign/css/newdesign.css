@@ -4798,3 +4798,57 @@ h6 {
     font-size: 16px;
     line-height: 24px;
 }
+/* ================= баннеры перголы =====================================
+   Сквозной баннер под крошками (page_blocks/page_title_newdesign.php) и
+   баннер на главной под «Категориями товаров» (включаемая область
+   include/newdesign/mainpage/pergola_banner.php). Картинки те же, что в
+   старом дизайне, разница — скругление 4, как у всей вёрстки нового
+   дизайна (просьба Ирины, 18 августа 2026).
+
+   Ширина и поля сквозного баннера повторяют крошки (1440 с полями 52/36/16),
+   баннер главной — контейнер блоков главной (.nd-cats: те же 1440 и поля,
+   верхнего отступа нет, потому что у блока категорий он свой снизу). */
+body .nd-topbanner {
+    max-width: 1440px;
+    margin: 0 auto 24px;
+    padding-left: 52px;
+    padding-right: 52px;
+}
+.nd-mainbanner {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 52px 52px;
+}
+.nd-topbanner a,
+.nd-mainbanner a {
+    display: block;
+    border-bottom: 0;
+}
+.nd-topbanner img,
+.nd-mainbanner img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+@media (max-width: 1199px) {
+    body .nd-topbanner {
+        margin-bottom: 16px;
+        padding-left: 36px;
+        padding-right: 36px;
+    }
+    .nd-mainbanner {
+        padding: 0 24px 40px;
+    }
+}
+
+@media (max-width: 767px) {
+    body .nd-topbanner {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nd-mainbanner {
+        padding: 0 16px 32px;
+    }
+}
