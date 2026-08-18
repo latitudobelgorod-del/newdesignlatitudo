@@ -55,15 +55,71 @@ if (CModule::IncludeModule('iblock')) {
 	}
 }
 
-/* TODO: подставить реальную страницу компании на hh.ru — в макете ссылки нет.
-   Пока ведём на поиск по названию, чтобы кнопка не была битой. */
-$ndVacHhUrl = 'https://hh.ru/search/vacancy?text=%D0%9B%D0%B0%D1%82%D0%B8%D1%82%D1%83%D0%B4%D0%BE';
+/* Страница компании на hh.ru — источник и отзывов, и цифр рейтинга. */
+$ndVacHhUrl = 'https://hh.ru/employer/2821821';
 
-/* Цифры рейтинга взяты из макета. TODO: сверить с карточкой компании на hh. */
-$arNdVacHhStats = array(
-	array('VALUE' => '92%', 'CAP' => 'сотрудников', 'TEXT' => 'Положительно оценивают компанию и рекомендуют её другим'),
-	array('VALUE' => '4,8', 'CAP' => 'общий рейтинг', 'TEXT' => 'Очень хорошо, на основании всех отзывов'),
-);
+/* Отзывы сотрудников и сводка по рейтингу лежат в инфоблоке «Отзывы на HH»
+   (код nd_hh_reviews). Заполняет его /local/tools/hh_reviews_sync.php:
+   тянет отзывы со страницы работодателя на Dream Job, а рейтинг и долю
+   рекомендаций — из виджета hh, и складывает сводку в описание инфоблока.
+   Здесь только читаем. Если инфоблока нет или он пуст, блок с каруселью
+   не печатается, а цифры берём из макета. */
+$arNdVacHhStats = array();
+$arNdVacReviews = array();
+
+if (CModule::IncludeModule('iblock')) {
+	$ndHhIb = CIBlock::GetList(array(), array(
+		'TYPE' => 'aspro_next_content',
+		'CODE' => 'nd_hh_reviews',
+		'ACTIVE' => 'Y',
+		'CHECK_PERMISSIONS' => 'N',
+	))->Fetch();
+
+	if ($ndHhIb) {
+		$ndHhSum = json_decode((string)$ndHhIb['DESCRIPTION'], true);
+		if (is_array($ndHhSum)) {
+			if (!empty($ndHhSum['recommendPercent'])) {
+				$arNdVacHhStats[] = array(
+					'VALUE' => (int)$ndHhSum['recommendPercent'].'%',
+					'CAP' => 'сотрудников',
+					'TEXT' => 'Положительно оценивают компанию и рекомендуют её другим',
+				);
+			}
+			if (!empty($ndHhSum['rating'])) {
+				$arNdVacHhStats[] = array(
+					'VALUE' => str_replace('.', ',', $ndHhSum['rating']),
+					'CAP' => 'общий рейтинг',
+					'TEXT' => 'Очень хорошо, на основании всех отзывов',
+				);
+			}
+		}
+
+		/* Карусель листается вручную, поэтому берём не все 36 отзывов,
+		   а первую дюжину — они же самые свежие (порядок задан импортом). */
+		$ndHhRes = CIBlockElement::GetList(
+			array('SORT' => 'ASC', 'ID' => 'DESC'),
+			array('IBLOCK_ID' => $ndHhIb['ID'], 'ACTIVE' => 'Y', 'CHECK_PERMISSIONS' => 'N'),
+			false,
+			array('nTopCount' => 12),
+			array('ID', 'IBLOCK_ID', 'NAME', 'PREVIEW_TEXT', 'PROPERTY_RATING', 'PROPERTY_REVIEW_DATE')
+		);
+		while ($ndHhRow = $ndHhRes->Fetch()) {
+			$arNdVacReviews[] = array(
+				'POST' => $ndHhRow['NAME'],
+				'RATE' => $ndHhRow['PROPERTY_RATING_VALUE'],
+				'DATE' => $ndHhRow['PROPERTY_REVIEW_DATE_VALUE'],
+				'TEXT' => $ndHhRow['PREVIEW_TEXT'],
+			);
+		}
+	}
+}
+
+if (!$arNdVacHhStats) {
+	$arNdVacHhStats = array(
+		array('VALUE' => '92%', 'CAP' => 'сотрудников', 'TEXT' => 'Положительно оценивают компанию и рекомендуют её другим'),
+		array('VALUE' => '4,8', 'CAP' => 'общий рейтинг', 'TEXT' => 'Очень хорошо, на основании всех отзывов'),
+	);
+}
 
 $arNdVacWhy = array(
 	array('ICO' => 'vip.svg',    'NAME' => 'Лидеры рынка',            'DESC' => 'Не просто продаем,<br>мы формируем тренды'),
@@ -88,15 +144,6 @@ $arNdVacLife = array(
 	array('FILE' => 'life-4.jpg', 'ALT' => 'Коллектив офиса Латитудо'),
 	array('FILE' => 'life-5.jpg', 'ALT' => 'Менеджеры Латитудо с образцами продукции'),
 	array('FILE' => 'life-6.jpg', 'ALT' => 'Рабочий день в офисе Латитудо'),
-);
-
-/* TODO: заменить на реальные отзывы с hh.ru — сейчас это текст из макета.
-   Пустой массив просто убирает карусель, оставляя цифры и кнопку. */
-$arNdVacReviews = array(
-	array('POST' => 'Менеджер по работе с клиентами', 'RATE' => '4,5', 'DATE' => '19 дек 2025', 'TEXT' => 'Очень хорошие условия труда. Приятный чистый офис, понятная мотивация, много входящих заявок. Руководство супер, всегда поддержат и готовы решать проблемы. Регулярные корпоративы.'),
-	array('POST' => 'Менеджер по продажам',           'RATE' => '5,0', 'DATE' => '02 ноя 2025', 'TEXT' => 'Стабильные выплаты два раза в месяц, прозрачная система процентов. Продукт понятный, обучение с первого дня, наставник закреплён за новичком.'),
-	array('POST' => 'Специалист отдела сервиса',      'RATE' => '4,5', 'DATE' => '14 авг 2025', 'TEXT' => 'Компания растёт, задач много и они интересные. Есть куда развиваться внутри: коллеги переходят в смежные направления и на руководящие позиции.'),
-	array('POST' => 'Менеджер по продажам',           'RATE' => '4,0', 'DATE' => '27 май 2025', 'TEXT' => 'Хороший офис в шаговой доступности, дружный коллектив. Входящий поток лидов действительно есть, холодных обзвонов нет.'),
 );
 
 /* Стили и скрипт страницы — отдельными файлами. Включаемая область попадает
@@ -151,7 +198,9 @@ if (!defined('ND_VACANCIES_ASSETS')) {
 				</div>
 			<?endforeach;?>
 		</div>
-		<a class="nd-vac__btn nd-vac__btn--red nd-vac__btn--wide" href="#nd-vac-list">
+		<?// В макете кнопка не во всю ширину, а 418×56 (Figma, фрейм «Вакансии»
+		   // 20493:77227, кнопка 21295:47269) — модификатор --wide убран.?>
+		<a class="nd-vac__btn nd-vac__btn--red nd-vac__btn--fixed" href="#nd-vac-list">
 			<svg class="nd-vac__btn-ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 				<path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
 			</svg>
