@@ -2234,8 +2234,9 @@ a.nd-pd__installment:focus {
 
     /* Галереи в описании (блоки редактора) на телефоне вставали по одной
        картинке в ряд. Ставим по две — но только там, где картинок больше
-       одной: одиночная иллюстрация должна остаться во всю ширину. */
-    .catalog_detail.element_newdesign .sp-container .row:has(> [class*="col-"]:nth-child(2)) > [class*="col-"] {
+       трёх: ряд из картинки и подписи рядом так ломался бы, а одиночная
+       иллюстрация должна остаться во всю ширину. */
+    .catalog_detail.element_newdesign .sp-container .row:has(> [class*="col-"]:nth-child(3)) > [class*="col-"] {
         float: left;
         width: 50%;
     }
