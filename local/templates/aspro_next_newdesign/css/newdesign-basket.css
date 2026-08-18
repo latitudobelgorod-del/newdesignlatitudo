@@ -865,6 +865,30 @@
     display: none !important;
 }
 
+/* Лишние серые линии вокруг ленты в корзине.
+
+   Рамку сетки (.nd-catlist .catalog_block: верхняя и левая линии) и нижние
+   линии ячеек рисует общий шаблон списка — там карточки идут сеткой во всю
+   ширину, и рамка уместна. В ленте карточек всего несколько, а рамка всё
+   равно тянется на всю ширину колонки: справа от товаров висела серая черта,
+   а под лентой шла ещё одна полоса — разделитель блока .nd-related.
+
+   В корзине обе убираем; волосяные линии между соседними карточками
+   остаются — они и есть разделители из макета. */
+.nd-related--basket {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+.nd-related--basket .nd-catlist .catalog_block {
+    border: 0 !important;
+}
+.nd-related--basket .nd-catlist .catalog_block .item_block {
+    border-bottom: 0 !important;
+}
+.nd-related--basket .nd-catlist .catalog_block .item_block:last-child {
+    border-right: 0 !important;
+}
+
 /* ---- адаптив ------------------------------------------------------------ */
 @media (max-width: 1279px) {
     #basket-root .basket-items-list.flexbox--row {
