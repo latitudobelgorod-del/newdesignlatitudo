@@ -532,24 +532,34 @@
 }
 
 /* ---- поле с файлом («Прикрепить файл» в форме резюме) ------------------
+   Макет Figma «Чистовик»: фрейм 20918:56350 (десктоп 400) и 20918:56397
+   (мобильный 360) — строка высотой 68 без рамки поля:
+
+     подпись «Прикрепить файл»   16/24 400 #101014
+     отбивка                     8
+     кнопка «Выбрать файл»       209×36, радиус 4, заливка #C60000 в 10%,
+                                 подпись 16/16 700 #C60000
+     отбивка                     16
+     имя файла                   16/24 400 #101014
+
    Тема отдаёт нативный <input type="file" class="inputfile">, а подпись
-   поля рисует плавающей поверх контрола — на кнопке браузера «Выберите
-   файл» она наплывала, и блок выпадал из оформления остальных полей.
-   Разметку не трогаем (её печатает CNext::drawFormField в корне сайта,
-   вне Git) — правим стилями: подпись ставим обычной строкой над полем,
-   само поле оформляем как остальные, а кнопку выбора красим через
-   ::file-selector-button.
+   поля рисует плавающей поверх контрола. Разметку не трогаем (её печатает
+   CNext::drawFormField в корне сайта, вне Git) — подпись ставим обычной
+   строкой над полем, у самого поля гасим рамку и фон, а кнопку выбора
+   рисуем через ::file-selector-button. Её текст («Выберите файл» в Chrome)
+   и слова «Файл не выбран» пишет браузер — из CSS их не переписать.
 
    :has() нужен, чтобы поймать именно поле с файлом. Там, где его нет,
    подпись останется плавающей — то есть как сейчас, не хуже. */
 .form-container .form-control:has(input.inputfile) > label:not(.error),
 .form-container .form-control:has(input[type="file"]) > label:not(.error) {
     position: static !important;
-    margin: 0 0 6px !important;
+    margin: 0 0 8px !important;
     transform: none !important;
-    font-size: 12px;
-    line-height: 16px;
-    color: #525264;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
     white-space: normal;
 }
 
@@ -558,47 +568,52 @@
     display: block;
     box-sizing: border-box;
     width: 100% !important;
-    min-height: 52px;
+    height: auto !important;
+    min-height: 36px;
     margin: 0 !important;
-    padding: 9px 12px !important;
-    border: 2px solid rgba(82, 82, 100, .15) !important;
-    border-radius: 4px !important;
-    background: #fff !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
     box-shadow: none !important;
     font-family: inherit;
+    font-weight: 400;
     font-size: 16px;
-    line-height: 24px;
-    color: #525264;
+    line-height: 36px;
+    color: #101014;
     cursor: pointer;
 }
 
 .form-container .form-control input.inputfile:focus,
 .form-container .form-control input[type="file"]:focus {
-    border-color: rgba(82, 82, 100, .45) !important;
     outline: none;
 }
 
-/* Кнопка выбора внутри поля — как второстепенная кнопка дизайн-системы. */
+/* Кнопка выбора файла — «мягкая» красная кнопка из макета. */
 .form-container .form-control input.inputfile::file-selector-button,
 .form-container .form-control input[type="file"]::file-selector-button {
-    height: 30px;
-    margin: 0 12px 0 0;
-    padding: 0 12px;
-    border: 1px solid rgba(82, 82, 100, .45);
+    box-sizing: border-box;
+    width: 209px;
+    max-width: 100%;
+    height: 36px;
+    margin: 0 16px 0 0;
+    padding: 0 10px;
+    border: 0;
     border-radius: 4px;
-    background: #fff;
+    background: rgba(198, 0, 0, .1);
     font-family: inherit;
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 500;
-    color: #101014;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 16px;
+    color: #c60000;
+    vertical-align: middle;
     cursor: pointer;
     transition: background-color .15s ease;
 }
 
 .form-container .form-control input.inputfile::file-selector-button:hover,
 .form-container .form-control input[type="file"]::file-selector-button:hover {
-    background: rgba(82, 82, 100, .08);
+    background: rgba(198, 0, 0, .18);
 }
 
 /* Подпись под полем, куда тема пишет ограничения по файлу. */
