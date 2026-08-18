@@ -1009,7 +1009,10 @@
 		if (h1) {
 			new MutationObserver(function () {
 				if (!$('.nd-pd__article', h1)) syncArticle();
-			}).observe(h1, { childList: true });
+				/* Тема иногда переписывает заголовок именем товара — возвращаем
+				   имя предложения, иначе оно «не встаёт» (Ирина, 19 августа 2026). */
+				syncTitle();
+			}).observe(h1, { childList: true, characterData: true, subtree: true });
 		}
 		/* patchScrollToBlock ещё раз на load: если js/main.js в сборке окажется
 		   ниже нашего файла, к моменту init() глобальной scrollToBlock ещё нет. */

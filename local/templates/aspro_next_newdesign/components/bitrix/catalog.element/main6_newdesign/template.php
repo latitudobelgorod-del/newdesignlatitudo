@@ -112,7 +112,22 @@ else {
 	</a>
 	<span class="nd-pd__bar-art"></span>
 </div>
-<h1 id="pagetitle"><?=$goy?></h1>
+<?/* В заголовке — название выбранного торгового предложения (Ирина, 18 августа
+      2026). Печатаем его сразу здесь, а не подставляем скриптом после загрузки:
+      иначе заголовок мигает — сервер отдаёт имя товара, а js меняет его на имя
+      предложения. Выбранное предложение берём так же, как ниже $actualItem.
+      $goy не трогаем: он уходит в микроразметку товара. */
+$ndH1 = $goy;
+if (!empty($arResult['OFFERS'])) {
+	$ndOffer = isset($arResult['OFFERS'][$arResult['OFFERS_SELECTED']])
+		? $arResult['OFFERS'][$arResult['OFFERS_SELECTED']]
+		: reset($arResult['OFFERS']);
+	if (!empty($ndOffer['NAME'])) {
+		$ndH1 = $ndOffer['NAME'];
+	}
+}
+?>
+<h1 id="pagetitle"><?=$ndH1?></h1>
 <div class="basket_props_block" id="bx_basket_div_<?=$arResult["ID"];?>" style="display: none;">
 	<?if (!empty($arResult['PRODUCT_PROPERTIES_FILL'])){
 		foreach ($arResult['PRODUCT_PROPERTIES_FILL'] as $propID => $propInfo){?>
