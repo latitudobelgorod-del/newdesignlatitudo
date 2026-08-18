@@ -1,6 +1,6 @@
 <?
 $MESS['ELEMENT_NOTFOUND'] = 'Элемент не найден';
-$MESS['BACK_LINK'] = 'Назад к списку';
+$MESS['BACK_LINK'] = 'Список марок';
 
 $MESS['T_REVIEWS'] = 'Отзывы';
 $MESS['T_DOCS'] = 'Скачать';
