@@ -6,6 +6,10 @@ global $APPLICATION, $arRegion, $arSite, $arTheme, $perem_metrika, $imya_sayta;
 $arSite = CSite::GetByID(SITE_ID)->Fetch();
 $htmlClass = ($_REQUEST && isset($_REQUEST['print']) ? 'print' : false);
 $bIncludedModule = (\Bitrix\Main\Loader::includeModule("aspro.next"));
+// Капча: не пускаем отправку формы с нерешённым виджетом Яндекс SmartCaptcha
+// (модуль подменяет обязательное поле captcha_word на div, и проверять на
+// клиенте становится нечего). Тот же файл лежит в шаблоне нового дизайна.
+$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/smartcaptcha-guard.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/smartcaptcha-guard.js'));
 $imya_sayta = $_SERVER['SERVER_NAME'];
 
 ?><!DOCTYPE html>

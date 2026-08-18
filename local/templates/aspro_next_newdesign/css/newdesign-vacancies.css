@@ -1060,8 +1060,19 @@
         font-size: 42px;
         line-height: 48px;
     }
+    /* Заголовок «Что говорят сотрудники» и стрелки в одной строке, как в
+       мобильном макете (20517:157768): счётчика «01/12» там нет, а он с
+       отбивками съедал ширину — заголовок ломался на три строки. */
     .nd-vac__hh-head {
         align-items: flex-start;
+        gap: 12px;
+    }
+    .nd-vac__nav {
+        flex: 0 0 auto;
+        gap: 8px;
+    }
+    .nd-vac__nav-count {
+        display: none;
     }
     .nd-vac__nav-btn {
         width: 44px;
