@@ -39,10 +39,18 @@
 	function setup(lead, btn) {
 		var limit = limitFor(lead);
 
-		lead.style.maxHeight = '';
-		lead.classList.remove('nd-sale-lead--collapsed');
+		/* Меряем не «на глаз», а по факту: сворачиваем и смотрим, сколько
+		   содержимого реально ушло под срез. Считать до сворачивания нельзя —
+		   в полосе плавающая картинка, и высота блока до применения
+		   max-height складывается не так, как после. */
+		lead.style.maxHeight = limit + 'px';
+		lead.classList.add('nd-sale-lead--collapsed');
 
-		if (lead.scrollHeight <= limit + MIN_HIDDEN) {
+		var hidden = lead.scrollHeight - lead.clientHeight;
+
+		if (hidden < MIN_HIDDEN) {
+			lead.style.maxHeight = '';
+			lead.classList.remove('nd-sale-lead--collapsed');
 			btn.hidden = true;
 			return;
 		}
@@ -50,9 +58,10 @@
 		btn.hidden = false;
 		lead.dataset.ndSaleLimit = limit;
 
-		if (!btn.classList.contains('is-open')) {
-			lead.style.maxHeight = limit + 'px';
-			lead.classList.add('nd-sale-lead--collapsed');
+		/* Уже раскрыто вручную — сворачивать обратно не надо. */
+		if (btn.classList.contains('is-open')) {
+			lead.style.maxHeight = '';
+			lead.classList.remove('nd-sale-lead--collapsed');
 		}
 	}
 

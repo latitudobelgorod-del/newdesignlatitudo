@@ -210,7 +210,28 @@ if($ndSalePic){
 <?$list_view = ($arParams['LIST_VIEW'] ? $arParams['LIST_VIEW'] : 'slider');?>
 <?// goods links?>
 
-<?if($arResult['PROPERTIES']['LINK_GOODS']['VALUE']):?>
+<?php
+/* Товары акции. Свойство LINK_GOODS бывает заполнено, а сами товары уже сняты
+   с публикации — тогда список выводил заглушку «Раздел сейчас наполняется».
+   Поэтому сначала отбираем активные, и если таких нет — блока нет вовсе.
+   Отобранные ID передаём в фильтр: незачем спрашивать каталог о снятых. */
+$ndSaleGoods = array();
+if (!empty($arResult['PROPERTIES']['LINK_GOODS']['VALUE']) && CModule::IncludeModule('iblock'))
+{
+	$rsNdSaleGoods = CIBlockElement::GetList(
+		array(),
+		array('ID' => $arResult['PROPERTIES']['LINK_GOODS']['VALUE'], 'ACTIVE' => 'Y'),
+		false,
+		false,
+		array('ID')
+	);
+	while ($arNdSaleGood = $rsNdSaleGoods->Fetch())
+	{
+		$ndSaleGoods[] = $arNdSaleGood['ID'];
+	}
+}
+?>
+<?if($ndSaleGoods):?>
     <div class="wraps goods-block with-padding">
 		<?/* Товары акции — тот же список карточек, что на странице бренда
 		   («Шаблон №2, вывод списком»): пять в ряд, первые PER_SECTION сразу,
@@ -222,7 +243,7 @@ if($ndSalePic){
 		$ldBrand = array(
 			'MODE' => 'flat',
 			'FILTER' => array(
-				'ID' => $arResult['PROPERTIES']['LINK_GOODS']['VALUE'],
+				'ID' => $ndSaleGoods,
 				'ACTIVE' => 'Y',
 			),
 			'PER_SECTION' => 20,
