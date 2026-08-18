@@ -2207,3 +2207,9 @@ a.nd-pd__installment:focus {
     line-height: 25px !important;
     font-weight: 400 !important;
 }
+
+/* Скрытая ссылка «Все характеристики» (у товара нет характеристик): у темы
+   .choise со своим display, и атрибут hidden сам по себе её не прячет. */
+.catalog_detail.element_newdesign .choise[hidden] {
+    display: none !important;
+}

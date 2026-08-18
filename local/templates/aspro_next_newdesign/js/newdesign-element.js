@@ -230,6 +230,37 @@
 		box.hidden = false;
 		markCharRows();
 		syncBottomLayout();
+		syncCharsLink();
+	}
+
+	/* Ссылка «Все характеристики». У темы она разворачивает блок на месте, а по
+	   макету должна вести к самому блоку — прокручиваем к нему. Если
+	   характеристик у товара нет, ссылку убираем: вести некуда.
+
+	   Обработчик в фазе перехвата и с stopPropagation — иначе сначала
+	   отработает делегированный обработчик темы по data-block. */
+	function syncCharsLink() {
+		var link = document.querySelector('[data-block=".all_charakter"]');
+		if (!link) return;
+
+		var chars = $('.nd-pd__chars');
+		var target = (chars && chars.children.length) ? chars : $('.row.desc_tab .char_block');
+
+		if (!target) {
+			link.hidden = true;
+			return;
+		}
+
+		link.hidden = false;
+		if (link.getAttribute('data-nd-chars-link')) return;
+		link.setAttribute('data-nd-chars-link', '1');
+
+		link.addEventListener('click', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+			target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}, true);
 	}
 
 	/* Место блока акций зависит от характеристик (макеты 20475:75976 и

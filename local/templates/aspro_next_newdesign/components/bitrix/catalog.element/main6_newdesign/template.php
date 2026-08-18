@@ -2161,7 +2161,10 @@ if (CModule::IncludeModule('iblock')) {
 		['nTopCount' => 6],
 		['ID', 'NAME', 'DETAIL_PAGE_URL', 'PREVIEW_PICTURE', 'PROPERTY_IMAGE_FOR_CATALOG']
 	);
-	while ($arSale = $rsSales->Fetch()) {
+	/* GetNext, а не Fetch: подстановку #SITE_DIR#/#ELEMENT_CODE# в
+	   DETAIL_PAGE_URL делает только он — с Fetch ссылки на акции уходили
+	   с неразобранным шаблоном адреса и не открывались. */
+	while ($arSale = $rsSales->GetNext(false, false)) {
 		/* Берём обычный баннер акции (как на /sale/), а не IMAGE_FOR_CATALOG:
 		   тот нарисован вертикальным — под вставку в сетку каталога. */
 		$picId = (int) ($arSale['PREVIEW_PICTURE'] ?: $arSale['PROPERTY_IMAGE_FOR_CATALOG_VALUE']);
