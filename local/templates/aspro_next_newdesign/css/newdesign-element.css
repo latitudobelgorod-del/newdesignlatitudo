@@ -2236,8 +2236,13 @@ a.nd-pd__installment:focus {
        картинке в ряд. Ставим по две — но только там, где картинок больше
        трёх: ряд из картинки и подписи рядом так ломался бы, а одиночная
        иллюстрация должна остаться во всю ширину. */
+        /* Ряд — флекс с flex:1 1 0 у колонок, поэтому одной ширины мало. */
+    .catalog_detail.element_newdesign .sp-container .row:has(> [class*="col-"]:nth-child(3)) {
+        flex-wrap: wrap;
+    }
     .catalog_detail.element_newdesign .sp-container .row:has(> [class*="col-"]:nth-child(3)) > [class*="col-"] {
-        float: left;
+        flex: 0 0 50%;
+        max-width: 50%;
         width: 50%;
     }
 }
