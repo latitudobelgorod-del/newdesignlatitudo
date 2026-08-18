@@ -148,13 +148,18 @@
     display: none;
 }
 
-/* Поле. Подпись идёт в разметке до поля и лежит поверх него. */
+/* Поле. Подпись идёт в разметке до поля и лежит поверх него.
+
+   Колонка нужна ради сообщения об ошибке: валидатор вставляет его перед
+   полем, а место ему — под полем (см. «сообщения об ошибке» ниже). */
 .form-container .form-control {
     position: relative;
+    display: flex;
+    flex-direction: column;
     margin: 0 !important;
     padding: 0 !important;
 }
-.form-container .form-control > label {
+.form-container .form-control > label:not(.error) {
     position: absolute !important;
     top: 26px !important;
     left: 14px !important;
@@ -218,8 +223,8 @@
 }
 /* Заполненное поле (или поле в фокусе): подпись уезжает наверх мелкой
    и серой, а текст сдвигается под неё. */
-.form-container .form-control.is-filled > label,
-.form-container .form-control.is-focused > label {
+.form-container .form-control.is-filled > label:not(.error),
+.form-container .form-control.is-focused > label:not(.error) {
     top: 8px !important;
     font-size: 12px;
     line-height: 16px;
@@ -235,7 +240,7 @@
     padding-top: 26px !important;
 }
 /* У длинной подписи (textarea) она всегда наверху — по центру налезала бы. */
-.form-container .form-control.nd-form-control--area > label {
+.form-container .form-control.nd-form-control--area > label:not(.error) {
     top: 14px;
     transform: none;
 }
@@ -245,6 +250,7 @@
     order: 10;
     position: relative;
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     gap: 8px;
     margin: 0 !important;
@@ -312,7 +318,7 @@
 }
 /* Подпись «Подтвердите, что вы не робот» в макете не выводится: виджет
    гугла говорит сам за себя. */
-.form-container .captcha-row label {
+.form-container .captcha-row > label:not(.error) {
     display: none !important;
 }
 .form-container .captcha-row .captcha_image:empty {
@@ -394,6 +400,73 @@
 }
 
 /* ---- сообщения об ошибке и об успехе ------------------------------------ */
+
+/* Ошибка отдельного поля.
+
+   jquery.validate (настройки в шаблоне form.result.new/popup) вставляет
+   сообщение как <label class="error"> ПЕРЕД полем, то есть вторым прямым
+   <label> внутри .form-control — там же, где лежит плавающая подпись поля.
+   Без отдельных правил сообщение получало её оформление (absolute поверх
+   поля) и печаталось прямо по подписи. Поэтому:
+     - плавающей подписью считаем только label без класса .error
+       (селекторы выше — `> label:not(.error)`);
+     - само сообщение возвращаем в поток и порядком уводим под поле.
+
+   Класс .error валидатор вешает ещё и на родителя поля (highlight в шаблоне),
+   отсюда рамка через .form-control.error. */
+.form-container .form-control > label.error {
+    order: 5;
+    position: static !important;
+    z-index: auto;
+    display: block !important;
+    width: auto !important;
+    margin: 4px 0 0 !important;
+    padding: 0 !important;
+    font-weight: 400;
+    font-size: 12px !important;
+    line-height: 16px;
+    color: #c60000 !important;
+    white-space: normal;
+    overflow: visible;
+    transform: none !important;
+    pointer-events: auto;
+}
+.form-container .form-control.error input.inputtext,
+.form-container .form-control.error input[type="text"],
+.form-container .form-control.error input[type="tel"],
+.form-container .form-control.error input[type="email"],
+.form-container .form-control.error input.phone,
+.form-container .form-control.error input.inputfile,
+.form-container .form-control.error input[type="file"],
+.form-container .form-control.error textarea {
+    border-color: #c60000 !important;
+}
+
+/* Ошибка согласия на обработку. Блок — флекс-строка с клеткой и текстом,
+   сообщение ставим отдельной строкой под ними; своя клетка ему не нужна. */
+.form-container .licence_block label.error {
+    order: 5;
+    flex: 0 0 100%;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 0 0 32px !important;
+    font-size: 12px !important;
+    line-height: 16px;
+    color: #c60000 !important;
+}
+.form-container .licence_block label.error:before {
+    content: none;
+}
+.form-container .licence_block.error label:not(.error):before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Crect x='1' y='1' width='18' height='18' rx='2' stroke='%23c60000' stroke-width='2'/%3E%3C/svg%3E");
+}
+
+/* Ошибка капчи. Подпись капчи мы прячем целиком — сообщение прятать нельзя. */
+.form-container .captcha-row > label.error {
+    display: block !important;
+}
+
+
 .form-container .form_result,
 .form-container .form_body.error {
     margin: 0;
@@ -459,8 +532,8 @@
 
    :has() нужен, чтобы поймать именно поле с файлом. Там, где его нет,
    подпись останется плавающей — то есть как сейчас, не хуже. */
-.form-container .form-control:has(input.inputfile) > label,
-.form-container .form-control:has(input[type="file"]) > label {
+.form-container .form-control:has(input.inputfile) > label:not(.error),
+.form-container .form-control:has(input[type="file"]) > label:not(.error) {
     position: static !important;
     margin: 0 0 6px !important;
     transform: none !important;
