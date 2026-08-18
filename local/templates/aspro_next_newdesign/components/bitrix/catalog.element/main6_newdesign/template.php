@@ -96,6 +96,22 @@ else {
 <?if ($_SERVER['REQUEST_URI'] !== $arResult['DETAIL_PAGE_URL']):?>
  <?$APPLICATION->SetPageProperty("robots", "noindex, nofollow"); ?>
 <?endif;?>
+<?/* Панель мобильной карточки (макет «Карточка товара» 20512:84167, фрейм
+      «Catalog»): стрелка «назад», свёрнутые крошки «⋯ раздел» и артикул справа.
+      На телефоне она заменяет шапку сайта — так в макете; навигация остаётся в
+      нижней панели .nd-navbar. Раздел, ссылку и артикул подставляет
+      js/newdesign-element.js: раздел берём из хлебных крошек (они уже собраны
+      темой), артикул меняется вместе с торговым предложением. */?>
+<div class="nd-pd__bar" hidden>
+	<button type="button" class="nd-pd__bar-back" aria-label="Назад">
+		<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/></svg>
+	</button>
+	<a class="nd-pd__bar-crumb" href="<?=SITE_DIR?>catalog/">
+		<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.7" fill="currentColor"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/><circle cx="19" cy="12" r="1.7" fill="currentColor"/></svg>
+		<span class="nd-pd__bar-title"></span>
+	</a>
+	<span class="nd-pd__bar-art"></span>
+</div>
 <h1 id="pagetitle"><?=$goy?></h1>
 <div class="basket_props_block" id="bx_basket_div_<?=$arResult["ID"];?>" style="display: none;">
 	<?if (!empty($arResult['PRODUCT_PROPERTIES_FILL'])){

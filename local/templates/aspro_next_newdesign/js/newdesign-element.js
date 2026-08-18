@@ -183,6 +183,8 @@
 		if (stickers && photo && !photo.contains(stickers)) photo.appendChild(stickers);
 
 		syncArticle();
+		syncTitle();
+		syncBarArticle();
 	}
 
 	/* Артикул — в строку заголовка справа (в макете второго заголовка нет).
@@ -206,6 +208,82 @@
 		   В заголовке по макету стоит одно число — берём .value, если он есть. */
 		var value = $('.value', article) || article;
 		span.textContent = value.textContent.trim();
+	}
+
+	/* Название выбранного торгового предложения в заголовке.
+	   Тема умеет это сама (настройка CHANGE_TITLE_ITEM), но в шаблоне карточки
+	   блок закомментирован ещё в старом дизайне, и в h1 оставалось имя товара —
+	   хотя цвет и длина уже выбраны. Берём имя оттуда же, откуда артикул: тема
+	   держит его в своём втором заголовке .product-title-edit (в макете его нет,
+	   он скрыт стилями) и переписывает при каждом переключении предложения.
+	   Меняем только первый текстовый узел h1 — рядом в нём лежит артикул. */
+	function syncTitle() {
+		var h1 = $('.catalog_detail.element_newdesign > h1');
+		var src = $('.info_item > .product-title-edit');
+		if (!h1 || !src) return;
+
+		var name = (src.textContent || '').replace(/\s+/g, ' ').trim();
+		if (!name) return;
+
+		var node = h1.firstChild;
+		if (node && node.nodeType === 3) {
+			if (node.nodeValue.replace(/\s+/g, ' ').trim() !== name) node.nodeValue = name + ' ';
+		} else {
+			h1.insertBefore(document.createTextNode(name + ' '), h1.firstChild);
+		}
+	}
+
+	/* Панель карточки на телефоне (макет 20512:84167, фрейм «Catalog»).
+	   В макете вместо шапки сайта на карточке стоит полоса «‹ ⋯ раздел артикул»,
+	   поэтому шапку прячем классом nd-has-pdbar на <html> — и только когда
+	   панель действительно отрисовалась. Раздел и ссылку берём из хлебных
+	   крошек: они уже собраны темой и переживают смену предложения.
+	   Поведение из просьбы Ирины (18 августа 2026): при прокрутке вниз панель
+	   уезжает, наверху страницы возвращается. */
+	function initBar() {
+		var bar = $('.nd-pd__bar');
+		if (!bar || bar.__ndBar) return;
+		bar.__ndBar = true;
+
+		var links = document.querySelectorAll('#navigation .nd-crumbs__link');
+		var section = links.length ? links[links.length - 1] : null;
+		var crumb = $('.nd-pd__bar-crumb', bar);
+		var title = $('.nd-pd__bar-title', bar);
+		if (section && title && crumb) {
+			title.textContent = (section.textContent || '').replace(/\s+/g, ' ').trim();
+			crumb.setAttribute('href', section.getAttribute('href'));
+		}
+
+		var back = $('.nd-pd__bar-back', bar);
+		if (back) {
+			back.addEventListener('click', function () {
+				/* Пришли по ссылке из списка — возвращаем назад, открыли карточку
+				   сразу (поиск, реклама) — уводим в раздел. */
+				if (window.history.length > 1) window.history.back();
+				else if (crumb) window.location.href = crumb.getAttribute('href');
+			});
+		}
+
+		bar.hidden = false;
+		document.documentElement.classList.add('nd-has-pdbar');
+		syncBarArticle();
+
+		var onScroll = function () {
+			var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+			bar.classList.toggle('is-off', y > 8);
+		};
+		window.addEventListener('scroll', onScroll, { passive: true });
+		onScroll();
+	}
+
+	/* Артикул в панели — тот же, что в заголовке (меняется вместе с
+	   предложением, см. syncArticle). */
+	function syncBarArticle() {
+		var art = $('.nd-pd__bar-art');
+		var src = $('.catalog_detail.element_newdesign > h1 > .nd-pd__article');
+		if (!art || !src) return;
+		var text = src.textContent.trim();
+		if (art.textContent !== text) art.textContent = text;
 	}
 
 	/* Характеристики тема рисует отдельным рядом над документами, из-за чего
@@ -886,6 +964,9 @@
 	function init() {
 		root = $('.catalog_detail.element_newdesign');
 		if (!root) return;
+		/* Панель ставим до проверки галереи: она нужна и там, где своей галереи
+		   нет (товар без фотографий), а дальше init() выходит раньше. */
+		initBar();
 		gallery = $('.nd-pd__gallery', root);
 		if (!gallery) return;
 		photo = $('.nd-pd__photo', gallery);
@@ -915,6 +996,8 @@
 		if (info) {
 			new MutationObserver(function () {
 				syncArticle();
+				syncTitle();
+				syncBarArticle();
 				tagCalcButton();
 				fixMoneyAll();
 			}).observe(info, { childList: true, subtree: true, characterData: true });
@@ -931,7 +1014,7 @@
 		/* patchScrollToBlock ещё раз на load: если js/main.js в сборке окажется
 		   ниже нашего файла, к моменту init() глобальной scrollToBlock ещё нет. */
 		window.addEventListener('load', function () {
-			syncArticle(); tagCalcButton(); patchScrollToBlock(); fixMoneyAll();
+			syncArticle(); syncTitle(); syncBarArticle(); tagCalcButton(); patchScrollToBlock(); fixMoneyAll();
 		});
 		/* Те же таймеры, что на easydecking: часть строк цены ядро дописывает
 		   позже, уже после первого прохода observer'а. */

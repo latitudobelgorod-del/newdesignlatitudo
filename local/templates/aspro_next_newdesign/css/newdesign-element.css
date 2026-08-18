@@ -611,8 +611,12 @@
 }
 
 /* «Заказать расчет» — в макете на этом месте текстовая ссылка со стрелкой,
-   а не синяя кнопка темы (класс обёртке ставит newdesign-element.js) */
-.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc .btn {
+   а не синяя кнопка темы (класс обёртке ставит newdesign-element.js).
+   Второй селектор — по самой кнопке: класс .nd-pd__calc появляется только
+   после скрипта, и до этого момента кнопка успевала мигнуть синим фоном
+   темы (Ирина, 18 августа 2026). */
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc .btn,
+.catalog_detail.element_newdesign .right_info .info_item .one_click {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -630,7 +634,8 @@
     text-transform: none;
     box-shadow: none;
 }
-.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc .btn::after {
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc .btn::after,
+.catalog_detail.element_newdesign .right_info .info_item .one_click::after {
     content: "";
     width: 16px;
     height: 16px;
@@ -1392,11 +1397,31 @@
 /* Блок «Галерея» sprint.editor оформлен общим правилом в css/newdesign.css —
    он одинаков на всех страницах нового дизайна. */
 
+/* ===================== панель мобильной карточки =====================
+   Макет «Карточка товара» 20512:84167, фрейм «Catalog»: полоса 360×64, внутри
+   строка 44 с полями 6 по бокам и 10 сверху; стрелка «назад» 44×44 с иконкой
+   24, следом свёрнутые крошки — точки 24 и название раздела 500 12/16 #101014,
+   справа артикул 400 10/13 #525264.
+
+   На десктопе панели нет — там своя шапка. */
+.nd-pd__bar {
+    display: none;
+}
+
 /* ===================== характеристики =====================
    Макет: заголовок 36/40 w800, строки таблицы через одну с серой заливкой и
    скруглением 6, без точечных выносок темы. Названия слева, значения справа. */
 .catalog_detail.element_newdesign .nd-pd__chars {
     margin-bottom: 52px;
+}
+/* Ссылка «Все характеристики» прокручивает к этому блоку (newdesign-element.js),
+   а шапка прибита к верху окна — заголовок «Характеристики» уезжал под неё.
+   Высоту шапки в --nd-header-h пишет newdesign-header.js; 24 сверху — воздух
+   из макета. Второй селектор — на случай, когда переносить нечего и скрипт
+   ведёт к исходной колонке темы. */
+.catalog_detail.element_newdesign .nd-pd__chars,
+.catalog_detail.element_newdesign .row.desc_tab .char_block {
+    scroll-margin-top: calc(var(--nd-header-h, 156px) + 24px);
 }
 /* переносим колонку темы как есть — гасим её бутстраповскую ширину и поля */
 .catalog_detail.element_newdesign .nd-pd__chars [class*="col-"] {
@@ -1820,6 +1845,103 @@
     .catalog_detail.element_newdesign .right_info .info_item .logistic > div:not(.logistic_title) > span {
         color: #525264;
     }
+    /* Блоки карточки на телефоне отбиты друг от друга серой чертой — так в
+       макете (Ирина, 18 августа 2026): логистические параметры, описание,
+       характеристики, документы, доставка и акции. Скрытые блоки (пока в них
+       ничего не перенесли) правило не задевает: у них hidden. */
+    .catalog_detail.element_newdesign .right_info .info_item .logistic,
+    .catalog_detail.element_newdesign .nd-pd__info,
+    .catalog_detail.element_newdesign .nd-pd__chars,
+    .catalog_detail.element_newdesign .nd-pd__docs,
+    .catalog_detail.element_newdesign .nd-pd__delivery,
+    .catalog_detail.element_newdesign .nd-pd__sales-block {
+        padding-top: 20px;
+        border-top: 1px solid rgba(82, 82, 100, .25);
+    }
+    /* --- панель карточки вместо шапки сайта (макет 20512:84167) ---
+       Панель прибита к верху окна на месте шапки: место под неё уже держит
+       padding-top у body. Класс nd-has-pdbar ставит на <html> скрипт карточки —
+       по нему прячем шапку. Делает это скрипт, а не :has, чтобы шапка не
+       пропала там, где панель по какой-то причине не отрисовалась. */
+    .nd-has-pdbar #nd-mheader {
+        display: none !important;
+    }
+    .nd-pd__bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+        height: 64px;
+        padding: 10px 6px;
+        background: #fff;
+        transition: transform .2s ease;
+    }
+    /* Прокрутили вниз — панель уезжает, вернулись наверх — снова видна. */
+    .nd-pd__bar.is-off {
+        transform: translateY(-100%);
+    }
+    .nd-pd__bar-back {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: #101014;
+        cursor: pointer;
+    }
+    .nd-pd__bar-crumb,
+    .nd-pd__bar-crumb:hover,
+    .nd-pd__bar-crumb:focus {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        color: #101014;
+        text-decoration: none;
+        border-bottom: 0;
+    }
+    .nd-pd__bar-crumb > svg {
+        flex: 0 0 auto;
+    }
+    .nd-pd__bar-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
+        line-height: 16px;
+        font-weight: 500;
+        color: #101014;
+    }
+    .nd-pd__bar-art {
+        flex: 0 0 auto;
+        margin-left: auto;
+        padding-right: 10px;
+        font-size: 10px;
+        line-height: 13px;
+        font-weight: 400;
+        color: #525264;
+    }
+    /* Артикул на телефоне стоит в панели — рядом с заголовком его в макете нет.
+       Копию в h1 всё равно держим: из неё панель и берёт номер. */
+    .nd-has-pdbar .catalog_detail.element_newdesign > h1 > .nd-pd__article {
+        display: none;
+    }
+
+    /* У темы на .logistic.col-md-12 своё правило с большей специфичностью —
+       поля из него перебивали отбивку над чертой (та же грабля, что с display
+       выше). */
+    .catalog_detail.element_newdesign .right_info .info_item .logistic {
+        padding-top: 20px !important;
+    }
+
     /* Горизонтальная прокрутка на телефоне: у bootstrap-строки блока описания
        отрицательные поля по 15px, а компенсирующего padding у контейнера нет —
        страница вылезала на 14px с каждой стороны (scrollWidth 389 при 375).
