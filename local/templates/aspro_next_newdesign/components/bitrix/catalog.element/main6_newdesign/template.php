@@ -1307,7 +1307,7 @@ BX.ready(function() {
 				$ndInstallment = trim(ob_get_clean());
 				?>
 				<?if($ndInstallment !== ''):?>
-					<div class="nd-pd__installment"><?=$ndInstallment?></div>
+					<a class="nd-pd__installment" href="<?=SITE_DIR?>info/rassrochka/"><?=$ndInstallment?></a>
 				<?endif;?>
 
 				<div class="buy_block">

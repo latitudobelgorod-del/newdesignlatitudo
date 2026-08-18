@@ -601,7 +601,8 @@
    Отбивки гасим отрицательными полями: у колонки row-gap 20, а по макету
    тут 4 сверху и 12 снизу. */
 .catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .nd-pd__installment {
-    margin: -16px 0 -8px;
+    display: block;
+    margin: 0 0 4px;
     font-size: 14px;
     line-height: 19.6px;
     font-weight: 500;
@@ -2132,4 +2133,62 @@
         font-weight: 500;
         color: #8f8f9a;
     }
+}
+
+
+/* Под ценой оставался пустой зазор: у .price от темы нижнее поле 20, а плашка
+   скидки .sale_block держит свои отбивки, даже когда пуста (у товара без
+   скидки). В макете строка «Доступно в рассрочку» идёт сразу под ценой. */
+.catalog_detail.element_newdesign .prices_block .cost > .price {
+    margin-bottom: 0 !important;
+}
+.catalog_detail.element_newdesign .prices_block .sale_block:empty {
+    display: none !important;
+}
+
+/* Строка про рассрочку — ссылка на страницу «Рассрочка», но выглядит как
+   раньше: обычный текст без подчёркивания, на наведении красный. */
+a.nd-pd__installment,
+a.nd-pd__installment:visited {
+    color: #525264;
+    text-decoration: none;
+    border-bottom: 0;
+}
+a.nd-pd__installment:hover,
+a.nd-pd__installment:focus {
+    color: #c60000;
+}
+
+/* Кнопка «В корзину»: наведение тема красит своим синим — ставим бордовый,
+   как у кнопки «Оставить заявку» в шапке. */
+.catalog_detail.element_newdesign .buy_block .to-cart:hover,
+.catalog_detail.element_newdesign .buy_block .to-cart:focus,
+.catalog_detail.element_newdesign .buy_block .to-cart:active,
+.catalog_detail.element_newdesign .buy_block .btn.to-cart:hover {
+    background: #a80000 !important;
+    background-color: #a80000 !important;
+    border-color: #a80000 !important;
+    color: #fff !important;
+}
+
+/* Состояние «В корзине» — серая кнопка, как в списке товаров, а не зелёная
+   из старой темы. */
+.catalog_detail.element_newdesign .buy_block .in-cart,
+.catalog_detail.element_newdesign .buy_block a.in-cart,
+.catalog_detail.element_newdesign .buy_block a.in-cart.btn,
+.catalog_detail.element_newdesign .buy_block a.in-cart.btn.btn-default {
+    background: rgba(82, 82, 100, .1) !important;
+    background-color: rgba(82, 82, 100, .1) !important;
+    border: 0 !important;
+    color: #525264 !important;
+}
+.catalog_detail.element_newdesign .buy_block .in-cart *,
+.catalog_detail.element_newdesign .buy_block a.in-cart.btn.btn-default * {
+    color: #525264 !important;
+}
+.catalog_detail.element_newdesign .buy_block .in-cart:hover,
+.catalog_detail.element_newdesign .buy_block a.in-cart.btn.btn-default:hover {
+    background: rgba(82, 82, 100, .18) !important;
+    background-color: rgba(82, 82, 100, .18) !important;
+    color: #525264 !important;
 }
