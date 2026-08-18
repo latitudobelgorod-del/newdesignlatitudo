@@ -443,15 +443,25 @@
 }
 
 /* Ошибка согласия на обработку. Блок — флекс-строка с клеткой и текстом,
-   сообщение ставим отдельной строкой под ними; своя клетка ему не нужна. */
+   сообщение ставим отдельной строкой под ними; своя клетка ему не нужна.
+
+   Позицию сбрасываем явно: тема кладёт это сообщение поверх текста
+   (`label.error` и `.filter.licence_block .error` в styles.css — absolute
+   в левом верхнем углу блока), и без сброса оно печаталось по первой
+   строке согласия. */
 .form-container .licence_block label.error {
     order: 5;
     flex: 0 0 100%;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
     width: 100%;
     margin: 0 !important;
     padding: 0 0 0 32px !important;
     font-size: 12px !important;
-    line-height: 16px;
+    line-height: 16px !important;
     color: #c60000 !important;
 }
 .form-container .licence_block label.error:before {
