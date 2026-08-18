@@ -27,7 +27,9 @@
 
 		if (pic) {
 			var rect = pic.getBoundingClientRect();
-			var need = rect.height + (pic.offsetTop - lead.offsetTop) + 120;
+			/* Запас под картинкой: срез должен приходиться на текст, а не сразу
+			   под фото — иначе на телефоне видно две строки и растушёвку. */
+			var need = rect.height + (pic.offsetTop - lead.offsetTop) + 220;
 			if (need > base) base = Math.round(need);
 		}
 
