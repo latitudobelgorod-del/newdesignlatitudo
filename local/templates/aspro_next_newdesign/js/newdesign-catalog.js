@@ -313,6 +313,57 @@
     }
 
     /* ---------------------------------------------------------------------
+       Единица измерения в счётчике карточки — «0,45 м²» вместо голого «0,45».
+       Так же подписан счётчик на детальной (js/newdesign-element.js,
+       .nd-pd-qty-unit) и в корзине (.basket-item-amount-unit): в счётчике
+       всегда видно, чего именно взяли столько.
+
+       Внутрь <input> текст не положить, поэтому рядом с ним держим span,
+       а половинки плитки разводит CSS.
+
+       Название единицы даёт переключатель «шт / м² / п.м» этой же карточки:
+       у активной кнопки лежит data-unit-name (его ставит maxyss:measure_unit).
+       Переключателя нет у товара с одной единицей — тогда берём приписку
+       к цене, «₽/шт» в .price_measure. Искать строго внутри карточки: свой
+       .price_measure есть у каждой из них, по документу попадётся чужой.
+       ------------------------------------------------------------------ */
+    function cardUnitName(card) {
+        var active = card.querySelector('.measure-unit-block .measure-unit-active');
+        var name = active && active.getAttribute('data-unit-name');
+        if (name) return name.trim();
+
+        var measure = card.querySelector('.price_measure');
+        return measure ? (measure.textContent || '').replace(/[\s\/]/g, '') : '';
+    }
+
+    function syncQtyUnit(card) {
+        try {
+            var name = cardUnitName(card);
+            /* Счётчиков в карточке два — штатный .counter_block темы и
+               .measure-block компонента единиц. Видно всегда один, но какой
+               именно — решает компонент, поэтому подписываем оба. */
+            [].forEach.call(card.querySelectorAll('.counter_wrapp .measure-block, .counter_wrapp .counter_block'), function (box) {
+                var input = box.querySelector('input');
+                if (!input) return;
+
+                var unit = box.querySelector('.nd-qty-unit');
+                if (!name) {
+                    if (unit) unit.parentNode.removeChild(unit);
+                    return;
+                }
+                if (!unit) {
+                    unit = document.createElement('span');
+                    unit.className = 'nd-qty-unit';
+                    input.parentNode.insertBefore(unit, input.nextSibling);
+                }
+                /* только при реальном изменении: правка текста будит
+                   MutationObserver карточки, а он зовёт syncState обратно */
+                if (unit.textContent !== name) unit.textContent = name;
+            });
+        } catch (e) { }
+    }
+
+    /* ---------------------------------------------------------------------
        Текст и состояния — без переносов DOM (иначе ломаются клики)
        ------------------------------------------------------------------ */
     function syncState(card) {
@@ -326,6 +377,7 @@
             updateOldPrice(card);
             updateTotal(card);
             updateVideo(card);
+            syncQtyUnit(card);
 
             var cw = card.querySelector('.counter_wrapp'),
                 ic = card.querySelector('.in-cart'),

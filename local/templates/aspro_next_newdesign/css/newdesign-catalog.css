@@ -832,19 +832,53 @@
 }
 
 .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-field {
-    flex: 1 1 auto !important;
+    flex: 1 1 0 !important;
     width: auto !important;
     min-width: 0 !important;
     max-width: none !important;
     height: auto !important;
-    padding: 0 4px !important;
+    padding: 0 !important;
     background: transparent !important;
     border: 0 !important;
     color: #101014;
     font-size: 16px;
     line-height: 24px;
     font-weight: 500;
-    text-align: center;
+    /* Число и единица стоят парой и жмутся к общей середине плитки: поле
+       выравнено вправо, подпись влево. Поэтому здесь не center. */
+    text-align: right;
+}
+
+/* Единица измерения рядом с числом — «0,45 м²». Span дописывает
+   js/newdesign-catalog.js (syncQtyUnit), внутрь <input> текст не положить.
+   Половинки поля делят место поровну, чтобы пара стояла по центру плитки. */
+.nd-catlist .catalog_item_wrapp .counter_wrapp .nd-qty-unit {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 4px;
+    color: #101014;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* Штатный счётчик темы рисует значок «−»/«+» спрайтом ЛЮБОМУ своему прямому
+   span'у (`.counter_block > span:before` в template_styles.css) и режет его
+   до фиксированного размера. Нашей подписи это доставалось тоже — между
+   числом и единицей появлялся обрезок спрайта. */
+.nd-catlist .catalog_item_wrapp .counter_wrapp .counter_block > span.nd-qty-unit {
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+    line-height: 24px !important;
+}
+
+.nd-catlist .catalog_item_wrapp .counter_wrapp .counter_block > span.nd-qty-unit:before,
+.nd-catlist .catalog_item_wrapp .counter_wrapp .counter_block > span.nd-qty-unit:after {
+    content: none !important;
+    display: none !important;
 }
 
 .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-button {
@@ -886,18 +920,22 @@
 }
 
 .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block input.text {
-    flex: 1 1 auto !important;
+    flex: 1 1 0 !important;
     width: auto !important;
     min-width: 0 !important;
     max-width: none !important;
     height: auto !important;
+    /* штатный отступ поля темы развёл бы число и единицу шире, чем в счётчике
+       компонента единиц измерения — плитки стояли бы вразнобой */
+    padding: 0 !important;
     background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
     color: #101014;
     font-size: 16px;
     font-weight: 500;
-    text-align: center;
+    /* пара «число + единица» стоит по центру плитки, см. .nd-qty-unit */
+    text-align: right;
 }
 
 /* У штатных кнопок счётчика тема рисует значок псевдоэлементом, а внутри
@@ -1425,10 +1463,12 @@
         flex: 1 1 auto !important;
     }
 
-    /* Счётчик в узкой карточке: кнопки и поля уже, иначе значение обрезается */
+    /* Счётчик в узкой карточке: кнопки и поля уже, иначе значение обрезается.
+       Боковые отступы плитки сняты совсем — с единицей измерения рядом с
+       числом («3,00 п.м») каждый пиксель между кнопками на счету. */
     .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-wrapper .measure-block,
     .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block {
-        padding: 0 2px;
+        padding: 0;
         height: 44px;
     }
 
@@ -1441,6 +1481,18 @@
     .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-field,
     .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block input.text {
         padding: 0 !important;
+        font-size: 14px;
+    }
+
+    /* Единица рядом с числом — на узкой карточке мельче и с меньшим отступом,
+       иначе пара «0,45 м²» не влезает между кнопками счётчика.
+       И место делим не поровну, как на десктопе, а по содержимому: между
+       кнопками остаётся ~57px, «шт» занимает почти половину, и числу «1,00»
+       своей половины уже не хватало — оно обрезалось до «1,0(». */
+    .nd-catlist .catalog_item_wrapp .counter_wrapp .nd-qty-unit {
+        flex: 0 1 auto;
+        padding-left: 3px;
+        padding-right: 2px;
         font-size: 14px;
     }
 

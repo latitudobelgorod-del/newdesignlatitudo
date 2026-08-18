@@ -141,6 +141,23 @@ $(document).ready(function() {
 
 <?CNext::setFooterTitle();
 		CNext::bottomActions();
+
+		// Вылетающая корзина (красная плашка у правого края) в новом дизайне не нужна:
+		// в макете её нет, корзина живёт только в шапке. Сам вызов убирать нельзя —
+		// showFooterBasket() кроме плашки печатает arBasketAspro и setBasketStatusBtn(),
+		// на них держится состояние кнопок «В корзину / В корзине» во всём каталоге.
+		// Поэтому подменяем вид корзины на NORMAL: тогда метод печатает только скрипты,
+		// а разметку .basket_wrapp.fly не выводит совсем (CNext.php, showFooterBasket).
+		// Значение правим в самом конце страницы — дальше $arTheme никто не читает.
+		// CNext.php лежит в корне сайта, вне Git, его не трогаем.
+		global $arTheme;
+		if (isset($arTheme['ORDER_BASKET_VIEW'])) {
+			if (is_array($arTheme['ORDER_BASKET_VIEW'])) {
+				$arTheme['ORDER_BASKET_VIEW']['VALUE'] = 'NORMAL';
+			} else {
+				$arTheme['ORDER_BASKET_VIEW'] = 'NORMAL';
+			}
+		}
 		CNext::showFooterBasket();?>
 		
 		
