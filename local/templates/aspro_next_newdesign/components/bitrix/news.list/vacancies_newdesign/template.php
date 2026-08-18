@@ -65,7 +65,7 @@ $this->setFrameMode(true);
 							</button>
 							<div class="nd-vac__acc-body">
 								<div class="nd-vac__acc-inner">
-									<div class="nd-vac__pay"><?=$sNdVacPayText?></div>
+									<div class="nd-vac__pay"><?=$sNdVacPayText?><br><span class="nd-vac__pay-note">(выплаты 2 раза в месяц без задержек)</span></div>
 									<div class="nd-vac__editor">
 										<?$APPLICATION->IncludeComponent(
 											'sprint.editor:blocks',
