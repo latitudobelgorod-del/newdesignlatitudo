@@ -4504,6 +4504,21 @@ ul.c-lists > li:last-child {
     white-space: nowrap;
 }
 
+/* На телефоне дата не помещается рядом с заголовком: он ужимался в узкую
+   колонку и ломался на три строки. Ставим колонкой — заголовок во всю
+   ширину, дата строкой под ним. */
+@media (max-width: 767px) {
+    .nd-sale-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .nd-sale-head #pagetitle,
+    .nd-sale-head h1 {
+        width: 100%;
+    }
+}
+
 .nd-sale-term {
     display: inline-flex;
     align-items: center;
