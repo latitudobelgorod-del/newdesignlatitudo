@@ -4482,11 +4482,33 @@ ul.c-lists > li:last-child {
    Срок акции — плашка под заголовком вместо строчки «Акция действительна
    до 31.08.2026». Оформление наше, из набора плашек нового дизайна:
    светлая подложка, тёмно-серая подпись, радиус 4. */
+/* Заголовок и дата начала акции одной строкой: дата у правого края. */
+.nd-sale-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    margin: 0 0 16px;
+}
+.nd-sale-head #pagetitle,
+.nd-sale-head h1 {
+    margin: 0;
+    padding: 0;
+}
+.nd-sale-date {
+    flex: 0 0 auto;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    color: #525264;
+    white-space: nowrap;
+}
+
 .nd-sale-term {
     display: inline-flex;
     align-items: center;
     height: 28px;
-    margin: 0 0 24px;
+    margin: 0 0 20px;
     padding: 0 10px;
     border-radius: 4px;
     background: #eeeeef;
@@ -4510,9 +4532,10 @@ ul.c-lists > li:last-child {
     flex: 1 1 auto;
     min-width: 0;
 }
+/* Картинка занимает половину полосы — так её видно, а не «марка сбоку». */
 .nd-sale-lead__pic {
-    flex: 0 0 33%;
-    max-width: 420px;
+    flex: 0 0 50%;
+    max-width: 50%;
 }
 .nd-sale-lead__pic img {
     display: block;
@@ -4549,4 +4572,26 @@ ul.c-lists > li:last-child {
     background: #a80000 !important;
     background-color: #a80000 !important;
     border-color: #a80000 !important;
+}
+
+/* Телефоны и адреса под списком товаров акции. Разметка та же, что была
+   у ручного списка в блоках редактора (.c-lists), поэтому вид не меняется —
+   добавляем только отбивку сверху. */
+.nd-sale-contacts {
+    margin: 24px 0 0;
+}
+
+/* Пока список телефонов не убран из блоков редактора — прячем его там, иначе
+   на акциях, где менеджер вставил его руками, он выводится дважды. Правило
+   временное: когда редакторы почистят, его можно убрать. */
+.nd-sale-lead .editor ul.c-lists {
+    display: none;
+}
+
+/* Красную черту под вводным текстом акции (styles.css темы: .introtext,
+   border-bottom 2px #de002b) меняем на серую волосяную — такую же, как под
+   заголовками страниц нового дизайна (.nd-page-head__lead). Правим только
+   на детальной акции: класс .introtext общий для многих страниц темы. */
+.detail.news_newdesign .introtext {
+    border-bottom: 1px solid rgba(82, 82, 100, .15);
 }

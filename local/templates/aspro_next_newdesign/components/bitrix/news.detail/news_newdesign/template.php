@@ -84,7 +84,20 @@ else {
 		
 }
 ?>
-	<h1 id="pagetitle"><?=$goy?></h1>
+<?// Дата начала акции стоит справа от заголовка. Раньше она печаталась
+   // отдельной строкой в самом низу страницы, под товарами, и там её никто
+   // не читал. Значение то же: свойство PERIOD, иначе дата активации.?>
+<?
+$ndSaleDate = strlen($arResult['DISPLAY_PROPERTIES']['PERIOD']['VALUE'])
+	? $arResult['DISPLAY_PROPERTIES']['PERIOD']['VALUE']
+	: ((in_array('DATE_ACTIVE_FROM', $arParams['FIELD_CODE']) && $arResult['DISPLAY_ACTIVE_FROM']) ? $arResult['DISPLAY_ACTIVE_FROM'] : '');
+?>
+	<div class="nd-sale-head">
+		<h1 id="pagetitle"><?=$goy?></h1>
+		<?if($ndSaleDate):?>
+			<div class="nd-sale-date"><?=$ndSaleDate?></div>
+		<?endif;?>
+	</div>
 
 
 <?
@@ -209,6 +222,12 @@ if($ndSalePic){
 	</div>
 <?endif;?>
 
+<?// Телефоны и адреса под товарами — одинаковые на всех акциях, печатает
+   // шаблон. Раньше контент-менеджер вставлял этот список руками в блоки
+   // редактора каждой акции; там, где он уже вставлен, его нужно убрать,
+   // иначе список выведется дважды.?>
+<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/sale_contacts.php';?>
+
 
 
 
@@ -254,16 +273,7 @@ if($ndSalePic){
 	</div>
 <?endif;?>
 
-<?// date active from or dates period active?>
-<?if(strlen($arResult['DISPLAY_PROPERTIES']['PERIOD']['VALUE']) || ($arResult['DISPLAY_ACTIVE_FROM'] && in_array('DATE_ACTIVE_FROM', $arParams['FIELD_CODE']))):?>
-	<div class="period">
-		<?if(strlen($arResult['DISPLAY_PROPERTIES']['PERIOD']['VALUE'])):?>
-			<span class="date"><?=$arResult['DISPLAY_PROPERTIES']['PERIOD']['VALUE']?></span>
-		<?else:?>
-			<span class="date"><?=$arResult['DISPLAY_ACTIVE_FROM']?></span>
-		<?endif;?>
-	</div>
-<?endif;?>
+<?// Дата начала переехала наверх, в строку с заголовком (.nd-sale-head).?>
 
 <?// Описание и блоки редактора переехали выше — в полосу .nd-sale-lead
    // сразу под вводным текстом, до списка товаров.?>
