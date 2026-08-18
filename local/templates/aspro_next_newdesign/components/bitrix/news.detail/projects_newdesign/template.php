@@ -160,11 +160,28 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 						
 					
 					
-						<?if($arResult['PROPERTIES']['REVIEW']['VALUE']):?>
-						<div class="review">
-							<div class="h2">Отзыв заказчика</div>
-							<div class="text" ><?=$arResult['PROPERTIES']['REVIEW']['VALUE']['TEXT'];?></div>
-						</div>
+<?// Отзыв клиента (Figma, фрейм «Проект» 20524:98253, блок 20545:101545):
+					   // заголовок, под ним цитата — вертикальная чёрная полоса 3px,
+					   // отступ 12 и текст, ниже подпись автора из свойства AUTHOR.
+					   // Вариант с фотографией из макета не делаем: свойства с фото
+					   // у проектов нет и заводить его не планируется (решение от
+					   // 18 августа 2026).?>
+					<?
+					$ndRevText = is_array($arResult['PROPERTIES']['REVIEW']['VALUE'])
+						? (string)$arResult['PROPERTIES']['REVIEW']['VALUE']['TEXT']
+						: (string)$arResult['PROPERTIES']['REVIEW']['VALUE'];
+					$ndRevAuthor = trim((string)$arResult['PROPERTIES']['AUTHOR']['VALUE']);
+					?>
+					<?if(trim(strip_tags($ndRevText)) !== ''):?>
+						<section class="nd-review">
+							<h2 class="nd-review__title">Отзыв клиента</h2>
+							<blockquote class="nd-review__quote">
+								<div class="nd-review__text"><?=$ndRevText?></div>
+								<?if($ndRevAuthor):?>
+									<div class="nd-review__author"><?=htmlspecialcharsbx($ndRevAuthor)?></div>
+								<?endif;?>
+							</blockquote>
+						</section>
 					<?endif;?>
 </div>
 	  
