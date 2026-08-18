@@ -602,7 +602,8 @@
    тут 4 сверху и 12 снизу. */
 .catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .nd-pd__installment {
     display: block;
-    margin: 0 0 4px;
+    /* Колонка — флекс с зазором 20; макет просит 4 от цены и 12 до кнопки. */
+    margin: -16px 0 -8px;
     font-size: 14px;
     line-height: 19.6px;
     font-weight: 500;
