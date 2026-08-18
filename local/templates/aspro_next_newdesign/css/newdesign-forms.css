@@ -616,7 +616,11 @@
     background: rgba(198, 0, 0, .18);
 }
 
-/* Подпись под полем, куда тема пишет ограничения по файлу. */
+/* Подпись под полем, куда тема пишет ограничения по файлу. Пустую прячем —
+   иначе она добавляет строке лишние 7px сверх 68 из макета. */
+.form-container .form-control .bx-input-file-desc:empty {
+    display: none;
+}
 .form-container .form-control .bx-input-file-desc {
     display: block;
     margin-top: 6px;
