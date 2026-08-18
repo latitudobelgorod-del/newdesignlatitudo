@@ -25,12 +25,19 @@
         background: #fff;
     }
 
+    /* Пока шторку не открывали, фильтр лежит в левой колонке, и тема его там
+       прячет (.bx_filter.bx_filter_vertical{display:none} в media.css). Наши
+       правила не должны его возвращать: колонка нулевой высоты, а шапка и
+       кнопки панели абсолютные — внизу списка товаров торчал их кусок. */
+    body .bx_filter.nd-filter {
+        display: none !important;
+    }
+
     /* Раскладка панели — абсолютом, а не флексом: внутри шторки тема ставит
        детям свои position/top, и флекс-колонка складывала шапку, список и
        кнопки друг на друга. */
-    body #mobilefilter .nd-filter,
-    body .left_block.filter_visible .nd-filter,
-    body .nd-filter {
+    body #mobilefilter .bx_filter.nd-filter,
+    body #mobilefilter .nd-filter {
         display: block !important;
         position: relative !important;
         width: 100% !important;
