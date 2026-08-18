@@ -4477,3 +4477,76 @@ body .detail_text ol > li:before {
 ul.c-lists > li:last-child {
     margin-bottom: 0;
 }
+
+/* ============ детальная акции (/sale/<код>/) ==========================
+   Срок акции — плашка под заголовком вместо строчки «Акция действительна
+   до 31.08.2026». Оформление наше, из набора плашек нового дизайна:
+   светлая подложка, тёмно-серая подпись, радиус 4. */
+.nd-sale-term {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    margin: 0 0 24px;
+    padding: 0 10px;
+    border-radius: 4px;
+    background: #eeeeef;
+    color: #525264;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Полоса под вводным текстом: слева описание и блоки редактора, справа —
+   картинка акции. Без картинки текст занимает всю ширину. */
+.nd-sale-lead {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+    margin: 0 0 32px;
+}
+.nd-sale-lead__text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.nd-sale-lead__pic {
+    flex: 0 0 33%;
+    max-width: 420px;
+}
+.nd-sale-lead__pic img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+/* Пустой блок редактора не должен растягивать полосу отступами темы. */
+.nd-sale-lead__text .editor:empty {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .nd-sale-lead {
+        flex-direction: column;
+        gap: 20px;
+    }
+    .nd-sale-lead__pic {
+        flex: 0 0 auto;
+        width: 100%;
+        max-width: none;
+        order: -1;
+    }
+}
+
+/* Красная кнопка из блоков редактора: наведение бордовое, как у кнопки
+   «Оставить заявку» в шапке (#a80000). Правило усилено фоном-долготой и
+   селектором с .editor — у темы селекторы из двух классов, и одного
+   !important на сокращении background не хватало. */
+.editor .nd-editor-btn:hover,
+.editor .nd-editor-btn:focus,
+.nd-editor-btn:hover,
+.nd-editor-btn:focus {
+    background: #a80000 !important;
+    background-color: #a80000 !important;
+    border-color: #a80000 !important;
+}

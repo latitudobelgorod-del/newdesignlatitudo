@@ -57,24 +57,8 @@
 	<h2><?=$arResult['NAME']?></h2>
 <?endif;?>
 
-<?// single detail image?>
-<?if($arResult['FIELDS']['DETAIL_PICTURE']):?>
-	<?
-	$atrTitle = (strlen($arResult['DETAIL_PICTURE']['DESCRIPTION']) ? $arResult['DETAIL_PICTURE']['DESCRIPTION'] : (strlen($arResult['DETAIL_PICTURE']['TITLE']) ? $arResult['DETAIL_PICTURE']['TITLE'] : $arResult['NAME']));
-	$atrAlt = (strlen($arResult['DETAIL_PICTURE']['DESCRIPTION']) ? $arResult['DETAIL_PICTURE']['DESCRIPTION'] : (strlen($arResult['DETAIL_PICTURE']['ALT']) ? $arResult['DETAIL_PICTURE']['ALT'] : $arResult['NAME']));
-	?>
-	<?if($arResult['PROPERTIES']['PHOTOPOS']['VALUE_XML_ID'] == 'LEFT'):?>
-		<div class="detailimage image-left col-md-4 col-sm-4 col-xs-12"><a href="<?=$arResult['DETAIL_PICTURE']['SRC']?>" class="fancy" title="<?=$atrTitle?>"><img src="<?=$arResult['DETAIL_PICTURE']['SRC']?>" class="img-responsive" title="<?=$atrTitle?>" alt="<?=$atrAlt?>" /></a></div>
-	<?elseif($arResult['PROPERTIES']['PHOTOPOS']['VALUE_XML_ID'] == 'RIGHT'):?>
-		<div class="detailimage image-right col-md-4 col-sm-4 col-xs-12"><a href="<?=$arResult['DETAIL_PICTURE']['SRC']?>" class="fancy" title="<?=$atrTitle?>"><img src="<?=$arResult['DETAIL_PICTURE']['SRC']?>" class="img-responsive" title="<?=$atrTitle?>" alt="<?=$atrAlt?>" /></a></div>
-	<?elseif($arResult['PROPERTIES']['PHOTOPOS']['VALUE_XML_ID'] == 'TOP'):?>
-		<?$this->SetViewTarget('top_section_filter_content');?>
-		<div class="detailimage image-head"><img src="<?=$arResult['DETAIL_PICTURE']['SRC']?>" class="img-responsive" title="<?=$atrTitle?>" alt="<?=$atrAlt?>"/></div>
-		<?$this->EndViewTarget();?>
-	<?else:?>
-		<div class="detailimage image-wide"><a href="<?=$arResult['DETAIL_PICTURE']['SRC']?>" class="fancy" title="<?=$atrTitle?>"><img src="<?=$arResult['DETAIL_PICTURE']['SRC']?>" class="img-responsive" title="<?=$atrTitle?>" alt="<?=$atrAlt?>" /></a></div>
-	<?endif;?>
-<?endif;?>
+<?// Картинка акции переехала вниз, в полосу с описанием (.nd-sale-lead):
+   // по макету она стоит справа от текста, а не над заголовком.?>
 
 
 
@@ -83,13 +67,11 @@ $convers = ConvertDateTime($arResult["DATE_ACTIVE_TO"], "YYYY-MM-DD HH:MI:SS", "
 $date_activeto = MakeTimeStamp($arResult["DATE_ACTIVE_TO"], "DD.MM.YYYY HH:MI:SS");
 ?>
 
-<?if ($arResult["DATE_ACTIVE_TO"]):?>
-	
-	<?if (($date_activeto) <($time_now)):?>
-							<div class="akciya_end">Акция завершена</div>
-							<?else:?>
-			<div class="akciya_begin" >Акция!</div>
-							<?endif;?>
+<?// Зелёная метка «Акция!» над заголовком убрана: она ничего не сообщает,
+   // раздел и так называется «Акции и скидки». Состояние «Акция завершена»
+   // оставляем — оно информативное.?>
+<?if($arResult["DATE_ACTIVE_TO"] && $date_activeto < $time_now):?>
+	<div class="akciya_end">Акция завершена</div>
 <?endif;?>
 <?if($arResult["IPROPERTY_VALUES"]["ELEMENT_PAGE_TITLE"])
 {
@@ -111,15 +93,28 @@ $convers1 = ConvertDateTime($arResult["DATE_ACTIVE_TO"], "DD.MM.YYYY", "ru");
 				
 
 
-<?if ($arResult["DATE_ACTIVE_TO"]):?>
-								<div class="period">
-									<?if($date_activeto):?>
-										<span class="date">Акция действительна до <?=$convers1?></span>
-									<?else:?>
-										<span class="date"><?=$arResult['DISPLAY_ACTIVE_FROM']?></span>
-									<?endif;?>
-								</div>
-							<?endif;?>
+<?// Срок акции — плашкой под заголовком: «До конца акции 4 дня» вместо
+   // прежней строчки «Акция действительна до 31.08.2026». Считаем остаток
+   // в днях, склонение подбираем по числу. Завершённые акции сюда не
+   // попадают — у них выше стоит «Акция завершена».?>
+<?
+$ndDaysLeft = null;
+if($date_activeto && $date_activeto >= $time_now)
+	$ndDaysLeft = (int)ceil(($date_activeto - $time_now) / 86400);
+
+$ndDaysWord = function($n){
+	$last = $n % 10;
+	$two = $n % 100;
+	if($last === 1 && $two !== 11) return 'день';
+	if($last >= 2 && $last <= 4 && ($two < 12 || $two > 14)) return 'дня';
+	return 'дней';
+};
+?>
+<?if($ndDaysLeft !== null):?>
+	<div class="nd-sale-term"><?=($ndDaysLeft > 0 ? 'До конца акции '.$ndDaysLeft.' '.$ndDaysWord($ndDaysLeft) : 'Акция заканчивается сегодня')?></div>
+<?elseif($arResult["DATE_ACTIVE_TO"] && !$date_activeto && $arResult['DISPLAY_ACTIVE_FROM']):?>
+	<div class="nd-sale-term"><?=$arResult['DISPLAY_ACTIVE_FROM']?></div>
+<?endif;?>
 
 
 <?if(!$bShowTopBanner && strlen($arResult['FIELDS']['PREVIEW_TEXT'])):?>
@@ -134,6 +129,57 @@ $convers1 = ConvertDateTime($arResult["DATE_ACTIVE_TO"], "DD.MM.YYYY", "ru");
 	</div>
 <?endif;?>
 
+
+<?// Полоса под вводным текстом: слева описание акции и блоки редактора
+   // контент-менеджера, справа — картинка акции. Раньше описание и редактор
+   // стояли под списком товаров, а картинка печаталась над заголовком.
+   // Позиция картинки из свойства PHOTOPOS больше не разбирается: в новом
+   // дизайне место у неё одно.?>
+<?
+$ndSalePic = $arResult['FIELDS']['DETAIL_PICTURE'] ? $arResult['DETAIL_PICTURE'] : null;
+if($ndSalePic){
+	$ndPicTitle = strlen($ndSalePic['DESCRIPTION']) ? $ndSalePic['DESCRIPTION'] : (strlen($ndSalePic['TITLE']) ? $ndSalePic['TITLE'] : $arResult['NAME']);
+	$ndPicAlt = strlen($ndSalePic['DESCRIPTION']) ? $ndSalePic['DESCRIPTION'] : (strlen($ndSalePic['ALT']) ? $ndSalePic['ALT'] : $arResult['NAME']);
+}
+?>
+<div class="nd-sale-lead<?=($ndSalePic ? ' nd-sale-lead--pic' : '')?>">
+	<div class="nd-sale-lead__text">
+		<?if(strlen($arResult['FIELDS']['DETAIL_TEXT'])):?>
+			<div class="content">
+				<?if($arResult['DETAIL_TEXT_TYPE'] == 'text'):?>
+					<p><?=$arResult['FIELDS']['DETAIL_TEXT'];?></p>
+				<?else:?>
+					<?=$arResult['FIELDS']['DETAIL_TEXT'];?>
+				<?endif;?>
+			</div>
+		<?endif;?>
+
+		<div class="editor">
+			<?$APPLICATION->IncludeComponent(
+				"sprint.editor:blocks",
+				".default",
+				Array(
+					"ELEMENT_ID" => $arResult["ID"],
+					"IBLOCK_ID" => $arResult["IBLOCK_ID"],
+					"PROPERTY_CODE" => "EDITOR1",
+					"USE_JQUERY" => "N",
+				),
+				$component,
+				Array(
+					"HIDE_ICONS" => "Y"
+				)
+			);?>
+		</div>
+	</div>
+
+	<?if($ndSalePic):?>
+		<div class="nd-sale-lead__pic">
+			<a href="<?=$ndSalePic['SRC']?>" class="fancy" data-fancybox="nd-sale" title="<?=htmlspecialcharsbx($ndPicTitle)?>">
+				<img src="<?=$ndSalePic['SRC']?>" loading="lazy" title="<?=htmlspecialcharsbx($ndPicTitle)?>" alt="<?=htmlspecialcharsbx($ndPicAlt)?>" />
+			</a>
+		</div>
+	<?endif;?>
+</div>
 
 <?$list_view = ($arParams['LIST_VIEW'] ? $arParams['LIST_VIEW'] : 'slider');?>
 <?// goods links?>
@@ -219,35 +265,8 @@ $convers1 = ConvertDateTime($arResult["DATE_ACTIVE_TO"], "DD.MM.YYYY", "ru");
 	</div>
 <?endif;?>
 
-    <div class="editor">
-        <?$APPLICATION->IncludeComponent(
-            "sprint.editor:blocks",
-            ".default",
-            Array(
-                "ELEMENT_ID" => $arResult["ID"],
-                "IBLOCK_ID" => $arResult["IBLOCK_ID"],
-                "PROPERTY_CODE" => "EDITOR1",
-                "USE_JQUERY" => "N",
-               
-            ),
-            $component,
-            Array(
-                "HIDE_ICONS" => "Y"
-            )
-        );?>
-    </div>
-<?if(strlen($arResult['FIELDS']['DETAIL_TEXT'])):?>
-	<div class="content">
-		<?// element detail text?>
-		<?if(strlen($arResult['FIELDS']['DETAIL_TEXT'])):?>
-			<?if($arResult['DETAIL_TEXT_TYPE'] == 'text'):?>
-				<p><?=$arResult['FIELDS']['DETAIL_TEXT'];?></p>
-			<?else:?>
-				<?=$arResult['FIELDS']['DETAIL_TEXT'];?>
-			<?endif;?>
-		<?endif;?>
-	</div>
-<?endif;?>
+<?// Описание и блоки редактора переехали выше — в полосу .nd-sale-lead
+   // сразу под вводным текстом, до списка товаров.?>
 
 	
 <?// show link sale?>
