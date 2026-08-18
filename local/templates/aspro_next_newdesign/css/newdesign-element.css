@@ -2246,3 +2246,11 @@ a.nd-pd__installment:focus {
         width: 50%;
     }
 }
+
+/* Кружки цвета: у ленты .sku-list от темы отрицательное левое поле, из-за
+   которого первый кружок вылезал за левый край колонки, а overflow: hidden
+   срезал ему обводку. Выравниваем ленту по колонке. */
+.catalog_detail.element_newdesign .catalog-detail-sku__list .sku-list {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
