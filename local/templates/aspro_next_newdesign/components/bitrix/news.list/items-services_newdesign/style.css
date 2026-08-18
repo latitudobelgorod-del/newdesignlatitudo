@@ -2,8 +2,13 @@
    Размеры из макета: Figma «Чистовик», фрейм «Проект» 20524:98253,
    секция 20545:102842. */
 
+/* Секция отбита сверху серой чертой — в макете это край блока «Оказанные
+   услуги» (цвет снят пипеткой: #d3d3d8 на белом = rgba(82,82,100,.25)),
+   отступы 52 сверху и снизу оттуда же. */
 .nd-workserv {
-    margin: 52px 0;
+    margin: 0 0 52px;
+    padding-top: 52px;
+    border-top: 1px solid rgba(82, 82, 100, .25);
 }
 
 .nd-workserv__title {
@@ -118,7 +123,8 @@ a.nd-workserv__item:focus .nd-workserv__name {
 
 @media (max-width: 767px) {
     .nd-workserv {
-        margin: 32px 0;
+        margin: 0 0 32px;
+        padding-top: 32px;
     }
     .nd-workserv__title {
         margin-bottom: 24px;

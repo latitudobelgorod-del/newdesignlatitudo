@@ -2,6 +2,96 @@
    Размеры из макета: Figma «Чистовик», фрейм «Проект» 20524:98253. */
 
 /* ---------------------------------------------------------------------------
+   Ряд под заголовком: метки проекта слева, производитель справа
+   (ряд 20545:101484). Плашки 28px с радиусом 2, подпись Nunito Sans 500
+   12/14.4 прописными. Цвета те же, что на карточках портфолио
+   (news.list/list_projects_newdesign/style.css), плюс серая «Проект».
+   ------------------------------------------------------------------------ */
+.nd-projhead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 16px 0 24px;
+}
+
+.nd-projhead__tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.nd-projhead__tag {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 7px;
+    border-radius: 2px;
+    font-size: 12px;
+    line-height: 14.4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.nd-projhead__tag--project {
+    background: #eeeeef;
+    color: #525264;
+}
+
+.nd-projhead__tag--video {
+    background: #e6edff;
+    color: #0048ff;
+}
+
+.nd-projhead__tag--photo {
+    background: #fff3e6;
+    color: #ff8800;
+}
+
+.nd-projhead__tag--review {
+    background: #ffecea;
+    color: #ff4130;
+}
+
+/* Ярлык производителя — тот же, что на карточках портфолио: белая плашка
+   с логотипом бренда и названием. */
+.nd-projhead__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 4px;
+    background: #fff;
+    color: #101014;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.nd-projhead__brand--brand_easydecking::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    background: url(/images/logo_brand_easy.png) no-repeat center / contain;
+}
+
+@media (max-width: 575px) {
+    .nd-projhead {
+        margin: 12px 0 20px;
+    }
+    .nd-projhead__tag {
+        height: 24px;
+        font-size: 11px;
+    }
+}
+
+/* ---------------------------------------------------------------------------
    Галерея (блок 20545:102807)
 
    Лента кадров 600×400, скругление 6, зазор 6 — следующий кадр выглядывает
@@ -59,37 +149,62 @@
     object-fit: cover;
 }
 
-/* Стрелка лежит поверх кадра у самого края ленты — как в макете
-   (Frame 2087329093, 64px у правого края). */
+/* Стрелка из макета (Frame 2087329093) — не кружок, а полоса 64px у края
+   ленты во всю её высоту: градиент от #101014 у самого края к прозрачному
+   внутрь, поверх — белая стрелка 40×40 по центру полосы. */
 .nd-gal__arrow {
     position: absolute;
-    top: 50%;
+    top: 0;
+    bottom: 0;
     z-index: 2;
-    width: 40px;
-    height: 40px;
+    width: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: -20px;
     padding: 0;
     border: 0;
-    border-radius: 50%;
-    background: rgba(16, 16, 20, .35);
+    background: none;
     color: #fff;
     cursor: pointer;
-    transition: background .15s;
 }
 
-.nd-gal__arrow:hover {
-    background: rgba(16, 16, 20, .55);
+.nd-gal__arrow svg {
+    position: relative;
+    z-index: 1;
+    transition: transform .15s;
+}
+
+/* Затемнение отдельным слоем: у самой кнопки фон нельзя — он перекрыл бы
+   стрелку, а прозрачность на кнопке приглушила бы и её. */
+.nd-gal__arrow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
 }
 
 .nd-gal__arrow--prev {
-    left: 12px;
+    left: 0;
+}
+
+.nd-gal__arrow--prev::before {
+    background: linear-gradient(to left, rgba(16, 16, 20, 0), rgba(16, 16, 20, 1));
 }
 
 .nd-gal__arrow--next {
-    right: 12px;
+    right: 0;
+}
+
+.nd-gal__arrow--next::before {
+    background: linear-gradient(to right, rgba(16, 16, 20, 0), rgba(16, 16, 20, 1));
+}
+
+.nd-gal__arrow--prev:hover svg {
+    transform: translateX(-3px);
+}
+
+.nd-gal__arrow--next:hover svg {
+    transform: translateX(3px);
 }
 
 /* Крайние положения ленты: ненужную стрелку прячем, класс ставит скрипт. */

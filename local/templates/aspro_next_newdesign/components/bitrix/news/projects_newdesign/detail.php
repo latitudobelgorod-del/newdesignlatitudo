@@ -111,7 +111,7 @@ $arSectionLinkName = $arSection['NAME'];
 	   // «size=l, variant=secondary», на фрейме «Проект» 20524:98253 пара
 	   // кнопок делит ряд 878 пополам. Синие рамки темы (.url-block) и черту
 	   // над ними в новом дизайне не используем — в макете их нет.?>
-	<nav class="nd-artnav">
+	<nav class="nd-artnav nd-artnav--center">
 		<a class="nd-artnav__btn" href="<?=$arResult['FOLDER'].$arResult['URL_TEMPLATES']['news']?>">
 			<svg class="nd-artnav__ico" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 			<span><?=($arParams["T_PREV_LINK"] ? $arParams["T_PREV_LINK"] : GetMessage('BACK_LINK'));?></span>

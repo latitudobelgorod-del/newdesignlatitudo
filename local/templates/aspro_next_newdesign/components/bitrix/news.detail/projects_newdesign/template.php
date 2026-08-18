@@ -88,7 +88,31 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 		?>
 
 		<h1 id="pagetitle" itemprop="headline"><?=$goy?></h1>
-									
+
+		<?// Под заголовком — метки проекта и производитель (Figma, фрейм «Проект»
+		   // 20524:98253, ряд 20545:101484): слева плашки 28px «Проект / Видео /
+		   // N фото / Отзыв», справа ярлык бренда. Набор меток тот же, что на
+		   // карточках портфолио, но плашки крупнее — там 20px, здесь 28.?>
+		<?
+		$ndBrand = $arResult['PROPERTIES']['SET_BRAND'];
+		$ndHasVideo = !empty($arResult['PROPERTIES']['VIDEO']['VALUE']);
+		$ndPhotoCnt = is_array($arResult['GALLERY_BIG']) ? count($arResult['GALLERY_BIG']) : 0;
+		// REVIEW хранится как HTML — значение приходит массивом с ключом TEXT
+		$ndReview = $arResult['PROPERTIES']['REVIEW']['~VALUE'] ?: $arResult['PROPERTIES']['REVIEW']['VALUE'];
+		$ndHasReview = is_array($ndReview) ? (trim((string)$ndReview['TEXT']) !== '') : (trim((string)$ndReview) !== '');
+		?>
+		<div class="nd-projhead">
+			<div class="nd-projhead__tags">
+				<span class="nd-projhead__tag nd-projhead__tag--project">Проект</span>
+				<?if($ndHasVideo):?><span class="nd-projhead__tag nd-projhead__tag--video">Видео</span><?endif;?>
+				<?if($ndPhotoCnt):?><span class="nd-projhead__tag nd-projhead__tag--photo"><?=$ndPhotoCnt?> фото</span><?endif;?>
+				<?if($ndHasReview):?><span class="nd-projhead__tag nd-projhead__tag--review">Отзыв</span><?endif;?>
+			</div>
+			<?if(!empty($ndBrand['VALUE'])):?>
+				<div class="nd-projhead__brand nd-projhead__brand--<?=htmlspecialcharsbx($ndBrand['VALUE_XML_ID'])?>"><?=htmlspecialcharsbx($ndBrand['VALUE'])?></div>
+			<?endif;?>
+		</div>
+
 			<?if($arResult['GALLERY']):?>
 			<div class="flexslider color-controls dark show-nav-controls bigs top_slider" data-slice="Y" data-plugin-options='{"animation": "slide", "directionNav": true, "controlNav" :true, "animationLoop": true, "slideshow": false, "counts": [1, 1, 1]}'>
 				<ul class="slides items">
@@ -106,9 +130,8 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 						</li>
 					<?endforeach;?>
 				</ul>
-					<? if ($arResult['PROPERTIES']['SET_BRAND']['VALUE']): ?>
-                 <div class="<?=$arResult['PROPERTIES']['SET_BRAND']['VALUE_XML_ID']?>"><?=$arResult['PROPERTIES']['SET_BRAND']['VALUE']?></div>
-               <?endif;?>
+					<?// Ярлык производителя переехал в ряд под заголовком (.nd-projhead) —
+					   // здесь он выводился без стилей, голым текстом под слайдером.?>
 			</div>
 		<?endif;?>												
 </div>
@@ -226,11 +249,14 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 			</div>
 
 			<?if(count($arResult['GALLERY_BIG']) > 1):?>
+				<?// Стрелка из макета — не кружок, а полоса затемнения 64px у края ленты
+				   // (градиент от #101014 к прозрачному) с длинной белой стрелкой 40×40
+				   // по центру. Иконка выгружена из Figma (ico/arrow_right).?>
 				<button type="button" class="nd-gal__arrow nd-gal__arrow--prev" data-nd-gal-prev aria-label="Предыдущее фото">
-					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					<svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M21.0615 8.93934C20.4757 8.35355 19.5243 8.35355 18.9385 8.93934L8.93848 18.9393C8.64562 19.2322 8.49902 19.6167 8.49902 20.0009C8.49902 20.0031 8.49902 20.0054 8.49902 20.0077C8.49902 20.4508 8.69336 20.8472 8.99902 21.122L18.9385 31.0624C19.5243 31.6481 20.4757 31.6481 21.0615 31.0624C21.6473 30.4766 21.6473 29.5251 21.0615 28.9393L13.6299 21.5087H30C30.8284 21.5087 31.501 20.8361 31.501 20.0077C31.501 19.1793 30.8284 18.5067 30 18.5067H13.6162L21.0615 11.0624C21.6473 10.4766 21.6473 9.52513 21.0615 8.93934Z" fill="currentColor"/></svg>
 				</button>
 				<button type="button" class="nd-gal__arrow nd-gal__arrow--next" data-nd-gal-next aria-label="Следующее фото">
-					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					<svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M18.9385 8.93934C19.5243 8.35355 20.4757 8.35355 21.0615 8.93934L31.0615 18.9393C31.3544 19.2322 31.501 19.6167 31.501 20.0009C31.501 20.0031 31.501 20.0054 31.501 20.0077C31.501 20.4508 31.3066 20.8472 31.001 21.122L21.0615 31.0624C20.4757 31.6481 19.5243 31.6481 18.9385 31.0624C18.3527 30.4766 18.3527 29.5251 18.9385 28.9393L26.3701 21.5087H10C9.17157 21.5087 8.49902 20.8361 8.49902 20.0077C8.49903 19.1793 9.17158 18.5067 10 18.5067H26.3838L18.9385 11.0624C18.3527 10.4766 18.3527 9.52513 18.9385 8.93934Z" fill="currentColor"/></svg>
 				</button>
 			<?endif;?>
 		</div>
