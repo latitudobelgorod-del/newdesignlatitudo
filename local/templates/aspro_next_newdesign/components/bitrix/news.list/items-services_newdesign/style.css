@@ -1,0 +1,138 @@
+/* Блок «Оказанные услуги» на детальной проекта.
+   Размеры из макета: Figma «Чистовик», фрейм «Проект» 20524:98253,
+   секция 20545:102842. */
+
+.nd-workserv {
+    margin: 52px 0;
+}
+
+.nd-workserv__title {
+    margin: 0 0 36px;
+    padding: 0;
+    font-size: 52px;
+    line-height: 57.2px;
+    font-weight: 800;
+    color: #101014;
+}
+
+/* Две карточки в ряд: колонки равные, между ними 104, между рядами 36. */
+.nd-workserv__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 36px 104px;
+}
+
+.nd-workserv__item,
+.nd-workserv__item:hover,
+.nd-workserv__item:focus {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    color: #101014;
+    text-decoration: none;
+    border-bottom: 0;
+}
+
+/* Картинка 296×204 — доля 296/616 от карточки, чтобы на промежуточных
+   ширинах пропорция из макета сохранялась. */
+.nd-workserv__pic {
+    position: relative;
+    flex: 0 0 48%;
+    max-width: 296px;
+    aspect-ratio: 296 / 204;
+    display: block;
+    overflow: hidden;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .07);
+}
+
+.nd-workserv__pic img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Плашка на картинке — та же, что на карточках портфолио
+   (news.list/list_projects_newdesign/style.css): 20px, радиус 2. */
+.nd-workserv__tags {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.nd-workserv__tag {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 2px;
+    background: #ffecea;
+    color: #ff4130;
+    font-size: 11px;
+    line-height: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    white-space: nowrap;
+}
+
+.nd-workserv__body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 0;
+}
+
+.nd-workserv__name {
+    font-size: 18px;
+    line-height: 21.6px;
+    font-weight: 700;
+    color: #101014;
+}
+
+.nd-workserv__text {
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 400;
+    color: #101014;
+}
+
+/* Ссылкой карточка становится только при наличии детальной — подсветку
+   даём мягкую, в макете состояний наведения нет. */
+a.nd-workserv__item:hover .nd-workserv__name,
+a.nd-workserv__item:focus .nd-workserv__name {
+    color: #ff4130;
+}
+
+@media (max-width: 991px) {
+    .nd-workserv__list {
+        gap: 28px 40px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-workserv {
+        margin: 32px 0;
+    }
+    .nd-workserv__title {
+        margin-bottom: 24px;
+        font-size: 28px;
+        line-height: 33.6px;
+    }
+    .nd-workserv__list {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+    }
+    .nd-workserv__pic {
+        flex-basis: 40%;
+    }
+    .nd-workserv__body {
+        padding: 0;
+    }
+}

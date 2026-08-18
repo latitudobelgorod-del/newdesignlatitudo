@@ -1,0 +1,149 @@
+/* Детальная проекта — новый дизайн.
+   Размеры из макета: Figma «Чистовик», фрейм «Проект» 20524:98253. */
+
+/* ---------------------------------------------------------------------------
+   Галерея (блок 20545:102807)
+
+   Лента кадров 600×400, скругление 6, зазор 6 — следующий кадр выглядывает
+   справа. Под лентой ряд превью 51×51 с зазором 12. Прокрутка нативная
+   (scroll-snap), стрелки и превью — на script.js этого шаблона.
+   ------------------------------------------------------------------------ */
+.nd-gal {
+    margin: 40px 0;
+}
+
+.nd-gal__title {
+    margin: 0 0 20px;
+    padding: 0;
+    font-size: 22px;
+    line-height: 26.4px;
+    font-weight: 700;
+    color: #101014;
+}
+
+.nd-gal__box {
+    position: relative;
+}
+
+.nd-gal__strip {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    /* полосу прокрутки не показываем — листают стрелками и превью */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.nd-gal__strip::-webkit-scrollbar {
+    display: none;
+}
+
+.nd-gal__slide {
+    flex: 0 0 600px;
+    max-width: 100%;
+    height: 400px;
+    display: block;
+    overflow: hidden;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .07);
+    scroll-snap-align: start;
+    border-bottom: 0;
+}
+
+.nd-gal__slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Стрелка лежит поверх кадра у самого края ленты — как в макете
+   (Frame 2087329093, 64px у правого края). */
+.nd-gal__arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -20px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(16, 16, 20, .35);
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.nd-gal__arrow:hover {
+    background: rgba(16, 16, 20, .55);
+}
+
+.nd-gal__arrow--prev {
+    left: 12px;
+}
+
+.nd-gal__arrow--next {
+    right: 12px;
+}
+
+/* Крайние положения ленты: ненужную стрелку прячем, класс ставит скрипт. */
+.nd-gal__arrow.is-hidden {
+    display: none;
+}
+
+.nd-gal__thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.nd-gal__thumb {
+    width: 51px;
+    height: 51px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .07);
+    opacity: .55;
+    cursor: pointer;
+    transition: opacity .15s;
+}
+
+.nd-gal__thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.nd-gal__thumb.is-active,
+.nd-gal__thumb:hover {
+    opacity: 1;
+}
+
+@media (max-width: 767px) {
+    .nd-gal {
+        margin: 28px 0;
+    }
+    .nd-gal__title {
+        font-size: 20px;
+        line-height: 24px;
+    }
+    /* На телефоне кадр во всю ширину — выглядывающий следующий там мешает. */
+    .nd-gal__slide {
+        flex-basis: 100%;
+        height: 220px;
+    }
+    .nd-gal__thumb {
+        width: 44px;
+        height: 44px;
+    }
+}

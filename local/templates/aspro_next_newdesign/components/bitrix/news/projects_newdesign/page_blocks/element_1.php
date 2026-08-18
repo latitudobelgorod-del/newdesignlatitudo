@@ -1,3 +1,18 @@
+<?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();?>
+<?/*
+ * Детальная проекта в новом дизайне рисует element_newdesign.php. Развилку
+ * держим здесь, а не в параметрах компонента (/projects/index.php,
+ * ELEMENT_TYPE_VIEW): тот файл вне Git, и правка параметров в админке
+ * переписывает весь вызов IncludeComponent — так уже терялся выбор блока
+ * на странице каталога. Этот файл лежит в шаблоне нового дизайна, админка
+ * его не трогает, а старому дизайну не достанется: у aspro_next свой
+ * шаблон компонента projects со своим element_1.php.
+ *
+ * Ниже — прежний блок Аспро, оставлен как справка и на случай отката:
+ * достаточно убрать include с return.
+ */
+include __DIR__.'/element_newdesign.php';
+return;?>
 	<?$APPLICATION->IncludeComponent(
 	"bitrix:news.detail",
 	"projects",
