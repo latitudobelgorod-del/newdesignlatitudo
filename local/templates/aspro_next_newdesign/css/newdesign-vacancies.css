@@ -505,12 +505,19 @@
 .nd-vac__acc.is-open .nd-vac__acc-body {
     grid-template-rows: 1fr;
 }
+/* Свёрнутый пункт: трек грида ужимается до 0fr, но паддинг самого элемента
+   в ноль не уходит — снизу оставалась полоска в 24 (16 на телефоне), и в неё
+   заглядывал верх содержимого (с плашкой зарплаты это стало особенно видно).
+   Поэтому нижний паддинг вешаем только на раскрытый пункт. */
 .nd-vac__acc-inner {
     display: flex;
     flex-direction: column;
     gap: 24px;
-    padding: 0 24px 24px;
+    padding: 0 24px;
     overflow: hidden;
+}
+.nd-vac__acc.is-open .nd-vac__acc-inner {
+    padding-bottom: 24px;
 }
 /* Зарплата. В макете (фрейм 21310:50839, блок Block_Web/Callout) она стоит
    не в шапке аккордеона, а первой плашкой в теле вакансии: рамка 1 #C60000,
@@ -1021,7 +1028,10 @@
         padding: 16px;
     }
     .nd-vac__acc-inner {
-        padding: 0 16px 16px;
+        padding: 0 16px;
+    }
+    .nd-vac__acc.is-open .nd-vac__acc-inner {
+        padding-bottom: 16px;
     }
     .nd-vac__pay {
         padding: 10px 12px;
