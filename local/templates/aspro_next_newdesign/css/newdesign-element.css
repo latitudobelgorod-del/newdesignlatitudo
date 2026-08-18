@@ -2145,6 +2145,11 @@
 .catalog_detail.element_newdesign .prices_block .sale_block:empty {
     display: none !important;
 }
+/* Пустая «старая цена» — инлайн-блок нулевой высоты, но свою строку он всё
+   равно занимает: под ценой оставалось ещё 24px. */
+.catalog_detail.element_newdesign .prices_block .cost > .price.discount:empty {
+    display: none !important;
+}
 
 /* Строка про рассрочку — ссылка на страницу «Рассрочка», но выглядит как
    раньше: обычный текст без подчёркивания, на наведении красный. */
