@@ -4612,9 +4612,20 @@ ul.c-lists > li:last-child {
 .services_newdesign .editor a.btn-default,
 .services_newdesign .editor span.btn-default,
 .editor .services_newdesign .btn.btn-default {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 48px;
+    padding: 0 16px !important;
+    border: 0 !important;
+    border-radius: 4px !important;
     background: #c60000 !important;
     background-color: #c60000 !important;
-    border-color: #c60000 !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    line-height: 24px !important;
+    text-transform: none;
     color: #fff !important;
 }
 .services_newdesign .editor .btn.btn-default:hover,
