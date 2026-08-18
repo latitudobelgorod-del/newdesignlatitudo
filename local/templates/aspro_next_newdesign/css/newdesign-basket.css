@@ -884,8 +884,10 @@
 .nd-related--basket .nd-catlist .catalog_block .item_block:first-child {
     border-left: 1px solid rgba(82, 82, 100, .15) !important;
 }
-/* Разделительной полосы под лентой в корзине по макету нет. */
-.nd-related--basket {
+/* Разделительной полосы под лентой в корзине по макету нет. Селектор из двух
+   классов: у .nd-related в newdesign-catalog.css та же специфичность, а он
+   подключается позже и перебивал одиночный .nd-related--basket. */
+.nd-related.nd-related--basket {
     padding-bottom: 0;
     border-bottom: 0;
 }
