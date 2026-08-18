@@ -148,8 +148,10 @@
         line-height: 33px;
     }
 
+    /* На телефоне карточки идут по одной в ряд — как в макете
+       (Figma «Чистовик», мобильный фрейм «Статьи»). */
     .nd-mat__list {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1fr);
         gap: 16px;
     }
     .nd-mat__pic {
