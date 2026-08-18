@@ -11,11 +11,15 @@
     border-top: 1px solid rgba(82, 82, 100, .25);
 }
 
+/* Кегль заголовка — как у ленты «Может пригодиться» в корзине и «С этим
+   товаром покупают» на детальной (.nd-related__title, newdesign-catalog.css):
+   34/42, на планшете 28/32, на телефоне 22/26. Макетные 52/57.2 рядом с ними
+   выбивались (Ирина, 18 августа 2026). */
 .nd-workserv__title {
     margin: 0 0 36px;
     padding: 0;
-    font-size: 52px;
-    line-height: 57.2px;
+    font-size: 34px;
+    line-height: 42px;
     font-weight: 800;
     color: #101014;
 }
@@ -115,6 +119,13 @@ a.nd-workserv__item:focus .nd-workserv__name {
     color: #ff4130;
 }
 
+@media (max-width: 1199px) {
+    .nd-workserv__title {
+        font-size: 28px;
+        line-height: 32px;
+    }
+}
+
 @media (max-width: 991px) {
     .nd-workserv__list {
         gap: 28px 40px;
@@ -128,8 +139,8 @@ a.nd-workserv__item:focus .nd-workserv__name {
     }
     .nd-workserv__title {
         margin-bottom: 24px;
-        font-size: 28px;
-        line-height: 33.6px;
+        font-size: 22px;
+        line-height: 26px;
     }
     .nd-workserv__list {
         grid-template-columns: minmax(0, 1fr);

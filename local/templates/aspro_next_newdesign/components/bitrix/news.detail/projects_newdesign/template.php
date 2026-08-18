@@ -226,8 +226,12 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 	</div>
 <?endif;?>
 	
+<?// Кнопка формы — красная, как «Оставить заявку» в шапке: .nd-btn.nd-btn--red
+   // из css/newdesign-header.css. Синяя .btn-default осталась у старого
+   // дизайна (шаблон projects). Ширина прежняя — поля по 40 инлайном,
+   // .animate-load и data-event="jqm" открывают ту же форму.?>
 <div class="block" style="margin: 0 auto;text-align: center;">
-<span style="padding-left:40px;padding-right:40px;" class="btn btn-default btn-lg  animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="question"><span>Узнать стоимость</span></span>
+<span style="padding-left:40px;padding-right:40px;" class="nd-btn nd-btn--red animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="question"><span>Узнать стоимость</span></span>
 </div>
 </div>	<?//col-md-8 col-md-offset-2?>		
 </div><?/*row*/?>
