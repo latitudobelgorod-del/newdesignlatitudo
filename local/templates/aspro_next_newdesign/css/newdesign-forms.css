@@ -440,3 +440,82 @@
         margin-bottom: -6px;
     }
 }
+
+/* ---- поле с файлом («Прикрепить файл» в форме резюме) ------------------
+   Тема отдаёт нативный <input type="file" class="inputfile">, а подпись
+   поля рисует плавающей поверх контрола — на кнопке браузера «Выберите
+   файл» она наплывала, и блок выпадал из оформления остальных полей.
+   Разметку не трогаем (её печатает CNext::drawFormField в корне сайта,
+   вне Git) — правим стилями: подпись ставим обычной строкой над полем,
+   само поле оформляем как остальные, а кнопку выбора красим через
+   ::file-selector-button.
+
+   :has() нужен, чтобы поймать именно поле с файлом. Там, где его нет,
+   подпись останется плавающей — то есть как сейчас, не хуже. */
+.form-container .form-control:has(input.inputfile) > label,
+.form-container .form-control:has(input[type="file"]) > label {
+    position: static !important;
+    margin: 0 0 6px !important;
+    transform: none !important;
+    font-size: 12px;
+    line-height: 16px;
+    color: #525264;
+    white-space: normal;
+}
+
+.form-container .form-control input.inputfile,
+.form-container .form-control input[type="file"] {
+    display: block;
+    box-sizing: border-box;
+    width: 100% !important;
+    min-height: 52px;
+    margin: 0 !important;
+    padding: 9px 12px !important;
+    border: 2px solid rgba(82, 82, 100, .15) !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 24px;
+    color: #525264;
+    cursor: pointer;
+}
+
+.form-container .form-control input.inputfile:focus,
+.form-container .form-control input[type="file"]:focus {
+    border-color: rgba(82, 82, 100, .45) !important;
+    outline: none;
+}
+
+/* Кнопка выбора внутри поля — как второстепенная кнопка дизайн-системы. */
+.form-container .form-control input.inputfile::file-selector-button,
+.form-container .form-control input[type="file"]::file-selector-button {
+    height: 30px;
+    margin: 0 12px 0 0;
+    padding: 0 12px;
+    border: 1px solid rgba(82, 82, 100, .45);
+    border-radius: 4px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: #101014;
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+.form-container .form-control input.inputfile::file-selector-button:hover,
+.form-container .form-control input[type="file"]::file-selector-button:hover {
+    background: rgba(82, 82, 100, .08);
+}
+
+/* Подпись под полем, куда тема пишет ограничения по файлу. */
+.form-container .form-control .bx-input-file-desc {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 16px;
+    color: #8f8f9a;
+}
