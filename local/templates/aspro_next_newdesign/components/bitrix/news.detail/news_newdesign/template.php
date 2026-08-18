@@ -1,4 +1,7 @@
 <?if(!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();?>
+<?// Сворачивание длинного описания акции — js/newdesign-sale.js.
+$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/newdesign-sale.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-sale.js'));?>
+
 <?// вывод текущей даты и перевод ее в UNIX-формат?>
 <?$objDateTime = new DateTime();
  $time_now = $objDateTime->getTimestamp();
@@ -155,7 +158,20 @@ if($ndSalePic){
 	$ndPicAlt = strlen($ndSalePic['DESCRIPTION']) ? $ndSalePic['DESCRIPTION'] : (strlen($ndSalePic['ALT']) ? $ndSalePic['ALT'] : $arResult['NAME']);
 }
 ?>
-<div class="nd-sale-lead<?=($ndSalePic ? ' nd-sale-lead--pic' : '')?>">
+<?// Картинка пущена в обтекание (float в newdesign.css), поэтому в разметке она
+   // идёт ПЕРЕД текстом — иначе текст не обтекал бы её, а начинался ниже.
+   // Длинное описание сворачивается кнопкой «Показать все»: решает js/newdesign-sale.js,
+   // он же показывает саму кнопку — только когда текста действительно много.?>
+<div class="nd-sale-lead<?=($ndSalePic ? ' nd-sale-lead--pic' : '')?>" data-nd-sale-lead>
+
+	<?if($ndSalePic):?>
+		<div class="nd-sale-lead__pic">
+			<a href="<?=$ndSalePic['SRC']?>" class="fancy" data-fancybox="nd-sale" title="<?=htmlspecialcharsbx($ndPicTitle)?>">
+				<img src="<?=$ndSalePic['SRC']?>" loading="lazy" title="<?=htmlspecialcharsbx($ndPicTitle)?>" alt="<?=htmlspecialcharsbx($ndPicAlt)?>" />
+			</a>
+		</div>
+	<?endif;?>
+
 	<div class="nd-sale-lead__text">
 		<?if(strlen($arResult['FIELDS']['DETAIL_TEXT'])):?>
 			<div class="content">
@@ -184,15 +200,12 @@ if($ndSalePic){
 			);?>
 		</div>
 	</div>
-
-	<?if($ndSalePic):?>
-		<div class="nd-sale-lead__pic">
-			<a href="<?=$ndSalePic['SRC']?>" class="fancy" data-fancybox="nd-sale" title="<?=htmlspecialcharsbx($ndPicTitle)?>">
-				<img src="<?=$ndSalePic['SRC']?>" loading="lazy" title="<?=htmlspecialcharsbx($ndPicTitle)?>" alt="<?=htmlspecialcharsbx($ndPicAlt)?>" />
-			</a>
-		</div>
-	<?endif;?>
 </div>
+
+<button class="nd-sale-more" type="button" data-nd-sale-more hidden>
+	<span class="nd-sale-more__text">Показать все</span>
+	<svg class="nd-sale-more__ico" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
 
 <?$list_view = ($arParams['LIST_VIEW'] ? $arParams['LIST_VIEW'] : 'slider');?>
 <?// goods links?>

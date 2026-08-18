@@ -4520,22 +4520,29 @@ ul.c-lists > li:last-child {
     white-space: nowrap;
 }
 
-/* Полоса под вводным текстом: слева описание и блоки редактора, справа —
-   картинка акции. Без картинки текст занимает всю ширину. */
+/* Полоса под вводным текстом: картинка акции справа, описание и блоки
+   редактора слева. Картинка пущена во float, а не колонкой флекса: у длинных
+   акций текст в колонке кончался куда ниже картинки, и справа оставалась
+   пустая половина полосы. Теперь текст обтекает картинку и идёт под неё.
+
+   Из-за float блок с текстом не должен создавать свой контекст форматирования
+   (никаких overflow/min-width у .nd-sale-lead__text), иначе обтекания не будет.
+   Длинное описание сворачивается — см. .nd-sale-lead--collapsed ниже. */
 .nd-sale-lead {
-    display: flex;
-    align-items: flex-start;
-    gap: 32px;
+    display: block;
     margin: 0 0 32px;
 }
-.nd-sale-lead__text {
-    flex: 1 1 auto;
-    min-width: 0;
+.nd-sale-lead:after {
+    content: '';
+    display: block;
+    clear: both;
 }
 /* Картинка занимает половину полосы — так её видно, а не «марка сбоку». */
 .nd-sale-lead__pic {
-    flex: 0 0 50%;
+    float: right;
+    width: 50%;
     max-width: 50%;
+    margin: 0 0 24px 32px;
 }
 .nd-sale-lead__pic img {
     display: block;
@@ -4548,16 +4555,60 @@ ul.c-lists > li:last-child {
     display: none;
 }
 
+/* Свёрнутое описание: высоту ставит js/newdesign-sale.js (нижняя граница —
+   картинка целиком плюс несколько строк), снизу растушёвка в белый. */
+.nd-sale-lead--collapsed {
+    position: relative;
+    overflow: hidden;
+}
+.nd-sale-lead--collapsed:before {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    height: 120px;
+    background: linear-gradient(rgba(255, 255, 255, 0), #fff 88%);
+    pointer-events: none;
+}
+/* Кнопка «Показать все» — красной строкой под полосой, стрелка переворачивается. */
+.nd-sale-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: -8px 0 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    color: #c60000;
+    cursor: pointer;
+}
+.nd-sale-more:hover {
+    color: #a30000;
+}
+.nd-sale-more__ico {
+    flex: 0 0 auto;
+    transition: transform .2s ease;
+}
+.nd-sale-more.is-open .nd-sale-more__ico {
+    transform: rotate(180deg);
+}
+
 @media (max-width: 767px) {
-    .nd-sale-lead {
-        flex-direction: column;
-        gap: 20px;
-    }
+    /* На телефоне обтекать нечего — картинка во всю ширину над текстом. */
     .nd-sale-lead__pic {
-        flex: 0 0 auto;
+        float: none;
         width: 100%;
         max-width: none;
-        order: -1;
+        margin: 0 0 20px;
+    }
+    .nd-sale-lead--collapsed:before {
+        height: 96px;
     }
 }
 
