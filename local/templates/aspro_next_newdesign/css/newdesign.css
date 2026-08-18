@@ -4588,6 +4588,12 @@ ul.c-lists > li:last-child {
     color: #c60000;
     cursor: pointer;
 }
+/* Пока скрипт не решил, что прятать есть что, кнопка стоит с атрибутом
+   hidden. Его display:none из браузерных стилей перебивался нашим
+   inline-flex выше — гасим явно. */
+.nd-sale-more[hidden] {
+    display: none !important;
+}
 .nd-sale-more:hover {
     color: #a30000;
 }
