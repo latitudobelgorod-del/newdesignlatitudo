@@ -1504,10 +1504,11 @@
     }
 
     /* Счётчик в узкой карточке: кнопки и поля уже, иначе значение обрезается.
-       Боковые отступы плитки сняты совсем — с единицей измерения рядом с
-       числом («3,00 п.м») каждый пиксель между кнопками на счету. */
+       Боковые отступы плитки сняты совсем — с единицей измерения под числом
+       каждый пиксель между кнопками на счету. */
     .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-wrapper .measure-block,
     .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block {
+        position: relative;
         padding: 0;
         height: 44px;
     }
@@ -1518,17 +1519,36 @@
         width: 22px !important;
     }
 
+    /* Число прижимаем к верху плитки: под ним вторым этажом стоит единица
+       измерения (см. ниже), и вместе они должны выглядеть одним столбиком. */
     .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-field,
     .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block input.text {
+        align-self: flex-start !important;
+        margin-top: 3px !important;
         padding: 0 !important;
         font-size: 14px;
     }
 
-    /* Единица рядом с числом — на узкой карточке мельче и с меньшим отступом,
-       иначе пара «0,45 м²» не влезает между кнопками счётчика. */
+    /* Единица измерения — под числом, а не рядом с ним (Ирина, 19 августа
+       2026): между кнопками счётчика остаётся ~55px, и пара «100 м²» в строку
+       уже не помещается — трёхзначное количество обрезало бы.
+
+       Выносим её из потока: тогда ряд остаётся из трёх элементов
+       («−», число, «+»), число само встаёт по центру, а плитка не растёт в
+       высоту. Поля left/right равны ширине кнопок — так подпись центруется
+       ровно под числом. pointer-events снимаем, чтобы подпись не перехватывала
+       нажатие по полю ввода. */
     .nd-catlist .catalog_item_wrapp .counter_wrapp .nd-qty-unit {
-        padding-left: 3px;
-        font-size: 14px;
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        bottom: 3px;
+        height: 13px;
+        padding: 0 !important;
+        font-size: 11px;
+        line-height: 13px;
+        text-align: center;
+        pointer-events: none;
     }
 
     .nd-catlist .catalog_item_wrapp .to-cart.btn,
