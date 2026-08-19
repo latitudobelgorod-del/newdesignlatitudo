@@ -31,11 +31,13 @@ $badge = trim($arParams['BADGE_TEXT'] ?? '') ?: 'Статья';
 			<?
 			$this->AddEditAction($arItem['ID'], $arItem['EDIT_LINK'], CIBlock::GetArrayByID($arItem['IBLOCK_ID'], 'ELEMENT_EDIT'));
 
+			/* Раньше в разметку уходил оригинал: 800×507 по 150–200 КБ при плитке
+			   424×293. Отдаём ресайз в полтора размера (Ирина, 19 августа 2026). */
+			$pic = is_array($arItem['PREVIEW_PICTURE']) ? $arItem['PREVIEW_PICTURE'] : $arItem['DETAIL_PICTURE'];
 			$src = '';
-			if (is_array($arItem['PREVIEW_PICTURE'])) {
-				$src = $arItem['PREVIEW_PICTURE']['SRC'];
-			} elseif (is_array($arItem['DETAIL_PICTURE'])) {
-				$src = $arItem['DETAIL_PICTURE']['SRC'];
+			if (is_array($pic) && $pic['ID']) {
+				$img = CFile::ResizeImageGet($pic['ID'], ['width' => 636, 'height' => 440], BX_RESIZE_IMAGE_EXACT, true);
+				$src = $img['src'] ?? $pic['SRC'];
 			}
 			$link = $arItem['DETAIL_PAGE_URL'];
 			$tag = $link ? 'a' : 'div';

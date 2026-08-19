@@ -25,7 +25,9 @@ if (!function_exists('ndProjectCard')) {
 		$pic = is_array($item['PREVIEW_PICTURE']) ? $item['PREVIEW_PICTURE'] : $item['DETAIL_PICTURE'];
 		$src = '';
 		if (is_array($pic) && $pic['ID']) {
-			$img = CFile::ResizeImageGet($pic['ID'], ['width' => 858, 'height' => 544], BX_RESIZE_IMAGE_EXACT, true);
+			/* 636×404 — полтора размера плитки (424×269); прежние 858×544 были
+			   больше самих файлов, и ресайз возвращал оригинал (см. акции). */
+			$img = CFile::ResizeImageGet($pic['ID'], ['width' => 636, 'height' => 404], BX_RESIZE_IMAGE_EXACT, true);
 			$src = $img['src'] ?? $pic['SRC'];
 		}
 

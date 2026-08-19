@@ -47,7 +47,10 @@ if ($ndIds && CModule::IncludeModule('iblock')) {
 			$pic = is_array($arItem['PREVIEW_PICTURE']) ? $arItem['PREVIEW_PICTURE'] : $arItem['DETAIL_PICTURE'];
 			$src = '';
 			if (is_array($pic) && $pic['ID']) {
-				$img = CFile::ResizeImageGet($pic['ID'], ['width' => 858, 'height' => 574], BX_RESIZE_IMAGE_EXACT, true);
+				/* 636×426 — полтора размера плитки (424×284). Просили 858×574:
+				   это больше самих файлов (обычно 800×567), ресайза не выходило
+				   и в страницу уходил оригинал по 200–270 КБ (Ирина, 19 августа 2026). */
+				$img = CFile::ResizeImageGet($pic['ID'], ['width' => 636, 'height' => 426], BX_RESIZE_IMAGE_EXACT, true);
 				$src = $img['src'] ?? $pic['SRC'];
 			}
 
