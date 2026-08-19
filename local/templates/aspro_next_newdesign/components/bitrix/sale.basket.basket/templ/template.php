@@ -851,6 +851,72 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 	 корзине уже был, там поменяется количество — и перезагрузка не нужна), а
 	 если позиций стало больше, чем нарисовано, перезагружаем страницу,
 	 вернув прокрутку на прежнее место. */?>
+<?/* Сумма на секунды падала в ноль при смене количества.
+	 Разбор на боевом (19 августа 2026): сервер иногда отвечает на пересчёт
+	 сам себе противоречащим ответом — `EMPTY_BASKET: true`, `GRID.ROWS`
+	 пустой, все суммы нулевые, и при этом `CHANGED_BASKET_ITEMS` со ссылкой
+	 на ту самую позицию. Компонент честно рисует нули, а правильную сумму
+	 возвращает только следующий пересчёт — отсюда «ноль и три секунды
+	 ожидания». Повторить удаётся не всегда, то есть это не наша разметка,
+	 а состояние на стороне сервера.
+
+	 Такой ответ не применяем: `applyBasketResult` пропускаем, поэтому в
+	 `result` остаются прежние (верные) данные и итоги не мигают, и сразу
+	 просим пересчитать заново.
+
+	 Условие узкое, чтобы не проглотить настоящее опустошение корзины:
+	 «корзина пуста» вместе с «вот эта позиция изменилась» — сочетание
+	 невозможное. При удалении последнего товара сервер шлёт
+	 DELETED_BASKET_ITEMS, а CHANGED пустой, и ответ применяется как обычно. */?>
+<script>
+(function () {
+	if (window.__ndBasketEmptyGuard) return;
+	window.__ndBasketEmptyGuard = true;
+
+	function patch() {
+		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+		if (!bc || typeof bc.applyBasketResult !== 'function') return false;
+		if (bc.__ndEmptyGuard) return true;
+		bc.__ndEmptyGuard = true;
+
+		/* Настоящее опустошение корзины отличаем по удалённым позициям: их
+		   компонент обрабатывает прямо перед применением результата. */
+		var origDelete = bc.deleteBasketItems;
+		if (typeof origDelete === 'function') {
+			bc.deleteBasketItems = function (ids) {
+				this.__ndLastDeleted = (ids && ids.length) ? ids.length : 0;
+				return origDelete.apply(this, arguments);
+			};
+		}
+
+		var orig = bc.applyBasketResult;
+		bc.applyBasketResult = function (data) {
+			var rows = data && data.GRID && data.GRID.ROWS ? data.GRID.ROWS : null;
+			var empty = data && data.EMPTY_BASKET && (!rows || !Object.keys(rows).length);
+			var known = this.items ? Object.keys(this.items).length : 0;
+
+			if (empty && known && !this.__ndLastDeleted) {
+				setTimeout(BX.delegate(function () {
+					this.sendRequest('refreshAjax', {});
+				}, this), 200);
+				return;
+			}
+
+			return orig.apply(this, arguments);
+		};
+		return true;
+	}
+
+	if (!patch()) {
+		/* Компонент поднимается ниже по странице — ждём его недолго. */
+		var tries = 0;
+		var timer = setInterval(function () {
+			if (patch() || ++tries > 40) clearInterval(timer);
+		}, 100);
+	}
+})();
+</script>
+
 <script>
 (function () {
 	if (window.__ndBasketAddSync) return;
