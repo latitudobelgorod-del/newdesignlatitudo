@@ -1,7 +1,18 @@
 <?if(!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();?>
 
-<?$this->setFrameMode(true);?>	
+<?$this->setFrameMode(true);?>
 <?use \Bitrix\Main\Localization\Loc;?>
+
+<?// Новый дизайн детальной услуги (макет Figma «Услуга» 20669:41851): шапка с
+   // фотографией и плашками и карточки «Вы получаете». Разметку этих блоков
+   // печатает содержимое элемента, поэтому переклад — стилями по её классам.
+   // Подключаем прямо здесь: файлы нужны только на этой странице.?>
+<?
+$ndSrvCss = SITE_TEMPLATE_PATH.'/css/newdesign-service.css';
+$ndSrvJs  = SITE_TEMPLATE_PATH.'/js/newdesign-service.js';
+?>
+<link rel="stylesheet" href="<?=$ndSrvCss?>?<?=@filemtime($_SERVER['DOCUMENT_ROOT'].$ndSrvCss)?>" />
+<script src="<?=$ndSrvJs?>?<?=@filemtime($_SERVER['DOCUMENT_ROOT'].$ndSrvJs)?>" defer></script>
 
 
 

@@ -1,0 +1,356 @@
+/* ===========================================================================
+   Детальная страница услуги — новый дизайн.
+   Макет Figma «Чистовик», фрейм «Услуга» 20669:41851 (x 34132, y 17208).
+
+   Разметку этих блоков печатает не шаблон, а содержимое элемента: в детальном
+   тексте лежит готовый html с классами #page_str_terras, .main_bl,
+   .block_page_str_terras, .tiz_ter_block. Трогать его нельзя — это контент,
+   который правят в админке. Поэтому переклад делаем стилями по тем же классам.
+
+   Прежнее оформление лежит в css/custom.css (блок PAGE_STROITELSTVO_TERRAS и
+   tiz_ter_block_sprites) — здесь его перебиваем; файл подключается только на
+   детальной услуги, так что на других страницах старые правила в силе.
+   ======================================================================== */
+
+/* ---------------------------------------------------------------------------
+   Шапка услуги: слева карточка с фотографией и заголовком, справа колонка
+   из трёх плашек. По макету 660 + 24 + 320 при контенте 1004.
+   ------------------------------------------------------------------------ */
+.services_newdesign #page_str_terras {
+    padding: 0;
+    margin: 0 0 40px;
+    background: none;
+    color: #101014;
+    text-align: left;
+}
+
+.services_newdesign #page_str_terras .main_bl {
+    display: grid;
+    grid-template-columns: minmax(0, 660fr) minmax(0, 320fr);
+    gap: 24px;
+    align-items: stretch;
+    max-width: none;
+    margin: 0;
+    min-height: 388px;
+}
+
+/* Заголовок — это и есть левая карточка: фон-фотографию задаёт класс страницы
+   (ниже), поверх неё затемнение, чтобы белый текст читался на любом снимке. */
+.services_newdesign #page_str_terras .main_bl > h2 {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    padding: 24px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #525264 center/cover no-repeat;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 36px;
+    line-height: 40px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: none;
+}
+
+/* Затемнение отдельным слоем, а не в градиенте фона: фотографию задаёт класс
+   страницы, и держать в нём ещё и градиент пришлось бы трижды.
+   z-index: -1 обязателен — заголовок это голый текстовый узел, поднять его над
+   слоем нечем, поэтому слой уводим под него. Свой контекст наложения у
+   карточки есть (z-index: 0), так что «минус первый» слой не уедет под фон
+   страницы. */
+.services_newdesign #page_str_terras .main_bl > h2 {
+    z-index: 0;
+}
+.services_newdesign #page_str_terras .main_bl > h2:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgba(16, 16, 20, .45);
+}
+
+/* Фотографии страниц — те же, что были в custom.css. */
+.services_newdesign #page_str_terras.terras-pod-klyuch .main_bl > h2 {
+    background-image: url('/images/services/terras-pod-klyuch.jpg');
+}
+.services_newdesign #page_str_terras.montaj_service .main_bl > h2 {
+    background-image: url('/images/services/montaj_service.jpg');
+}
+.services_newdesign #page_str_terras.ekspluatiruemaya_krovlya .main_bl > h2 {
+    background-image: url('/images/services/krovlya_fon.jpg');
+}
+/* Фон самого блока снимаем: он остался бы позади правой колонки. */
+.services_newdesign #page_str_terras.terras-pod-klyuch,
+.services_newdesign #page_str_terras.montaj_service,
+.services_newdesign #page_str_terras.ekspluatiruemaya_krovlya {
+    background: none;
+}
+
+/* Правая колонка: три плашки, высоту делят поровну. */
+.services_newdesign #page_str_terras .main_bl .main_bl_flex {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: stretch;
+}
+
+.services_newdesign #page_str_terras .main_bl .main_bl_flex .block_page_str_terras {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 20px;
+    border: 0;
+    border-radius: 6px;
+    background: #525264;
+    backdrop-filter: none;
+    text-align: left;
+}
+
+.services_newdesign #page_str_terras .main_bl .main_bl_flex .block_page_str_terras h3 {
+    margin: 0 0 8px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.services_newdesign #page_str_terras .main_bl .main_bl_flex .block_page_str_terras p {
+    margin: 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: 400;
+    color: #fff;
+}
+
+/* --- кнопки внутри карточки ---
+   В разметке они лежат отдельной секцией под шапкой; в карточку их переносит
+   js/newdesign-service.js, он же вешает класс nd-srv-hero__cta. */
+.services_newdesign .nd-srv-hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: auto;
+    padding-top: 24px;
+}
+
+/* Ячейки из разметки — бутстраповские col-md-6: без сброса ширины и float
+   две кнопки по 50% с зазором не влезали в карточку и вставали в столбик. */
+.services_newdesign .nd-srv-hero__cta > * {
+    flex: 0 0 auto;
+    float: none;
+    width: auto;
+    max-width: none;
+    padding: 0;
+}
+
+/* Кнопки темы приходят с классом .colored и красным фоном, объявленным через
+   !important, — перебиваем весом селектора (тег + четыре класса). */
+body .services_newdesign .nd-srv-hero__cta span.btn,
+body .services_newdesign .nd-srv-hero__cta a span.btn,
+body .services_newdesign .nd-srv-hero__cta .btn.btn-default.colored,
+.services_newdesign .nd-srv-hero__cta .btn,
+.services_newdesign .nd-srv-hero__cta a .btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: auto !important;
+    min-width: 204px;
+    height: 56px;
+    padding: 0 24px !important;
+    border: 0 !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+    color: #101014 !important;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px !important;
+    line-height: 24px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    white-space: nowrap;
+    box-shadow: none !important;
+}
+
+/* Вторая кнопка в макете — прозрачная с белой рамкой. */
+body .services_newdesign .nd-srv-hero__cta > *:nth-child(2) span.btn,
+body .services_newdesign .nd-srv-hero__cta > *:nth-child(2) .btn.btn-default.colored,
+.services_newdesign .nd-srv-hero__cta > *:nth-child(2) .btn {
+    background: transparent !important;
+    border: 1px solid #fff !important;
+    color: #fff !important;
+}
+
+/* Заголовок карточки должен прижать кнопки к низу — колонкой. */
+.services_newdesign #page_str_terras .main_bl > h2.nd-srv-hero__card {
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* ---------------------------------------------------------------------------
+   «Вы получаете»: четыре карточки с контурными иконками.
+   Макет: карточка 239×248, радиус 6, рамка 1px rgba(82,82,100,.15), поля 24,
+   иконка 96×96, под ней заголовок 18/22 700 через 16.
+   ------------------------------------------------------------------------ */
+/* Заголовок блока и «Вы получаете:» в макете слева, а не по центру. */
+.services_newdesign .terrace-title,
+.services_newdesign .terrace-subtitle {
+    margin: 0 0 24px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    text-align: left;
+}
+.services_newdesign .terrace-title {
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 700;
+    color: #101014;
+}
+.services_newdesign .terrace-subtitle {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #101014;
+}
+
+.services_newdesign .tiz_ter_block {
+    margin: 0;
+}
+
+.services_newdesign .tiz_ter_block .row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin: 0;
+}
+
+/* Бутстраповские колонки внутри сетки — только обёртки. Флексом, а не блоком:
+   иначе карточка внутри тянется по своему тексту и в ряду с более длинной
+   соседкой остаётся ниже, а под ней зияет пустая полоса. */
+.services_newdesign .tiz_ter_block .row > [class*="col-"] {
+    display: flex;
+    float: none;
+    width: auto;
+    max-width: none;
+    /* Нижнее поле колонки тема оставляет себе на отбивку рядов; в сетке оно
+       добавляется к высоте строки, и под карточками зияла пустая полоса. */
+    margin: 0;
+    padding: 0;
+}
+.services_newdesign .tiz_ter_block .row:before,
+.services_newdesign .tiz_ter_block .row:after {
+    content: none;
+}
+
+.services_newdesign .tiz_ter_block .item {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    padding: 24px;
+    border: 1px solid rgba(82, 82, 100, .15);
+    border-radius: 6px;
+    background: #fff;
+    text-align: left;
+}
+
+/* Пустая подпись из разметки места не занимает. */
+.services_newdesign .tiz_ter_block .item .title:empty {
+    display: none;
+}
+
+.services_newdesign .tiz_ter_block .item > div:last-child {
+    margin-top: 16px;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 700;
+    color: #101014;
+}
+
+/* Иконки: те же узлы, что и раньше, но вместо куска png-спрайта — контурная
+   иконка из макета. Рисуем маской, чтобы цвет задавался стилями. */
+.services_newdesign .tiz_ter_block .item .bg-garantiya,
+.services_newdesign .tiz_ter_block .item .bg-kachestvo,
+.services_newdesign .tiz_ter_block .item .bg-komplektuyushchie,
+.services_newdesign .tiz_ter_block .item .bg-servis {
+    width: 96px;
+    height: 96px;
+    margin: 0;
+    background: #101014;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+.services_newdesign .tiz_ter_block .item .bg-garantiya {
+    -webkit-mask-image: url('/local/templates/aspro_next_newdesign/images/newdesign/services/shield.svg');
+    mask-image: url('/local/templates/aspro_next_newdesign/images/newdesign/services/shield.svg');
+}
+.services_newdesign .tiz_ter_block .item .bg-kachestvo {
+    -webkit-mask-image: url('/local/templates/aspro_next_newdesign/images/newdesign/services/house.svg');
+    mask-image: url('/local/templates/aspro_next_newdesign/images/newdesign/services/house.svg');
+}
+.services_newdesign .tiz_ter_block .item .bg-komplektuyushchie {
+    -webkit-mask-image: url('/local/templates/aspro_next_newdesign/images/newdesign/services/hardhat.svg');
+    mask-image: url('/local/templates/aspro_next_newdesign/images/newdesign/services/hardhat.svg');
+}
+.services_newdesign .tiz_ter_block .item .bg-servis {
+    -webkit-mask-image: url('/local/templates/aspro_next_newdesign/images/newdesign/services/cycle.svg');
+    mask-image: url('/local/templates/aspro_next_newdesign/images/newdesign/services/cycle.svg');
+}
+
+/* ---------------------------------------------------------------------------
+   Планшет и телефон
+   ------------------------------------------------------------------------ */
+@media (max-width: 991px) {
+    .services_newdesign #page_str_terras .main_bl {
+        grid-template-columns: minmax(0, 1fr);
+        min-height: 0;
+    }
+    .services_newdesign #page_str_terras .main_bl > h2 {
+        min-height: 320px;
+        font-size: 28px;
+        line-height: 34px;
+    }
+    .services_newdesign .tiz_ter_block .row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .services_newdesign #page_str_terras .main_bl > h2 {
+        min-height: 260px;
+        padding: 16px;
+        font-size: 26px;
+        line-height: 30px;
+    }
+    .services_newdesign .nd-srv-hero__cta {
+        gap: 8px;
+        padding-top: 16px;
+    }
+    .services_newdesign .nd-srv-hero__cta > * {
+        flex: 1 1 100%;
+    }
+    .services_newdesign .nd-srv-hero__cta .btn {
+        width: 100% !important;
+        min-width: 0;
+    }
+    .services_newdesign .tiz_ter_block .item {
+        padding: 16px;
+    }
+    .services_newdesign .tiz_ter_block .item .bg-garantiya,
+    .services_newdesign .tiz_ter_block .item .bg-kachestvo,
+    .services_newdesign .tiz_ter_block .item .bg-komplektuyushchie,
+    .services_newdesign .tiz_ter_block .item .bg-servis {
+        width: 64px;
+        height: 64px;
+    }
+    .services_newdesign .tiz_ter_block .item > div:last-child {
+        margin-top: 12px;
+        font-size: 16px;
+        line-height: 20px;
+    }
+}
