@@ -32,11 +32,12 @@ $badge = trim($arParams['BADGE_TEXT'] ?? '') ?: 'Статья';
 			$this->AddEditAction($arItem['ID'], $arItem['EDIT_LINK'], CIBlock::GetArrayByID($arItem['IBLOCK_ID'], 'ELEMENT_EDIT'));
 
 			/* Раньше в разметку уходил оригинал: 800×507 по 150–200 КБ при плитке
-			   424×293. Отдаём ресайз в полтора размера (Ирина, 19 августа 2026). */
+			   424×293. Отдаём ресайз в полтора размера и с качеством 82 —
+			   в настройках модуля стоит 100 (Ирина, 19 августа 2026). */
 			$pic = is_array($arItem['PREVIEW_PICTURE']) ? $arItem['PREVIEW_PICTURE'] : $arItem['DETAIL_PICTURE'];
 			$src = '';
 			if (is_array($pic) && $pic['ID']) {
-				$img = CFile::ResizeImageGet($pic['ID'], ['width' => 636, 'height' => 440], BX_RESIZE_IMAGE_EXACT, true);
+				$img = CFile::ResizeImageGet($pic['ID'], ['width' => 640, 'height' => 442], BX_RESIZE_IMAGE_EXACT, true, false, false, 82);
 				$src = $img['src'] ?? $pic['SRC'];
 			}
 			$link = $arItem['DETAIL_PAGE_URL'];

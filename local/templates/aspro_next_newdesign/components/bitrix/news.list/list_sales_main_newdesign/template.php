@@ -47,10 +47,12 @@ if ($ndIds && CModule::IncludeModule('iblock')) {
 			$pic = is_array($arItem['PREVIEW_PICTURE']) ? $arItem['PREVIEW_PICTURE'] : $arItem['DETAIL_PICTURE'];
 			$src = '';
 			if (is_array($pic) && $pic['ID']) {
-				/* 636×426 — полтора размера плитки (424×284). Просили 858×574:
+				/* 640×428 — полтора размера плитки (424×284). Просили 858×574:
 				   это больше самих файлов (обычно 800×567), ресайза не выходило
-				   и в страницу уходил оригинал по 200–270 КБ (Ирина, 19 августа 2026). */
-				$img = CFile::ResizeImageGet($pic['ID'], ['width' => 636, 'height' => 426], BX_RESIZE_IMAGE_EXACT, true);
+				   и в страницу уходил оригинал по 200–270 КБ.
+				   Качество задаём седьмым параметром: в настройках главного модуля
+				   стоит 100, и ресайз получался тяжелее исходника (Ирина, 19 августа 2026). */
+				$img = CFile::ResizeImageGet($pic['ID'], ['width' => 640, 'height' => 428], BX_RESIZE_IMAGE_EXACT, true, false, false, 82);
 				$src = $img['src'] ?? $pic['SRC'];
 			}
 

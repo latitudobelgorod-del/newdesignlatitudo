@@ -43,9 +43,10 @@ $ndStubColors = ['#5856d6', '#003cff', '#af52de', '#ff9500'];
 			$src = '';
 			$fileId = (int) ($arSection['UF_IMAGE_SECTION_MAIN'] ?? 0);
 			if ($fileId) {
-				/* 468×468 — полтора размера плитки (312×312). 632×632 было больше
-				   исходников, ресайз их не трогал и отдавал оригинал. */
-				$img = CFile::ResizeImageGet($fileId, ['width' => 468, 'height' => 468], BX_RESIZE_IMAGE_EXACT, true);
+				/* 470×470 — полтора размера плитки (312×312). 632×632 было больше
+				   исходников, ресайз их не трогал и отдавал оригинал. Качество 82
+				   седьмым параметром: в настройках модуля стоит 100. */
+				$img = CFile::ResizeImageGet($fileId, ['width' => 470, 'height' => 470], BX_RESIZE_IMAGE_EXACT, true, false, false, 82);
 				$src = $img['src'] ?? CFile::GetPath($fileId);
 			}
 			$stub = $ndStubColors[$i % count($ndStubColors)];
