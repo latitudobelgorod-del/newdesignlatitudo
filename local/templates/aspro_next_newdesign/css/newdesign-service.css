@@ -13,8 +13,11 @@
    ======================================================================== */
 
 /* ---------------------------------------------------------------------------
-   Шапка услуги: слева карточка с фотографией и заголовком, справа колонка
-   из трёх плашек. По макету 660 + 24 + 320 при контенте 1004.
+   Шапка услуги: слева карточка с фотографией, справа колонка из плашек.
+   По макету 660 + 24 + 320 при контенте 1004.
+
+   Саму карточку собирает js/newdesign-service.js: в разметке заголовок,
+   описание и кнопки — соседи, а не одно целое, и сеткой их не собрать.
    ------------------------------------------------------------------------ */
 .services_newdesign #page_str_terras {
     padding: 0;
@@ -34,17 +37,37 @@
     min-height: 388px;
 }
 
-/* Заголовок — это и есть левая карточка: фон-фотографию задаёт класс страницы
-   (ниже), поверх неё затемнение, чтобы белый текст читался на любом снимке. */
-.services_newdesign #page_str_terras .main_bl > h2 {
+/* Левая карточка: фотографию задаёт класс страницы (ниже), поверх неё
+   затемнение, чтобы белый текст читался на любом снимке. */
+.services_newdesign #page_str_terras .nd-srv-hero__card {
     position: relative;
+    z-index: 0;
     display: flex;
+    flex-direction: column;
     align-items: flex-start;
-    margin: 0;
     padding: 24px;
     border-radius: 6px;
     overflow: hidden;
     background: #525264 center/cover no-repeat;
+    color: #fff;
+}
+
+/* z-index: -1 обязателен — заголовок и описание внутри карточки не имеют
+   своего контекста наложения, поднять их над слоем нечем, поэтому слой уводим
+   под них. Контекст есть у самой карточки (z-index: 0), так что «минус
+   первый» слой не уедет под фон страницы. */
+.services_newdesign #page_str_terras .nd-srv-hero__card:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgba(16, 16, 20, .45);
+}
+
+.services_newdesign #page_str_terras .nd-srv-hero__card h2 {
+    max-width: 519px;
+    margin: 0 0 12px;
+    padding: 0;
     font-family: 'Nunito Sans', Arial, sans-serif;
     font-size: 36px;
     line-height: 40px;
@@ -53,31 +76,30 @@
     text-shadow: none;
 }
 
-/* Затемнение отдельным слоем, а не в градиенте фона: фотографию задаёт класс
-   страницы, и держать в нём ещё и градиент пришлось бы трижды.
-   z-index: -1 обязателен — заголовок это голый текстовый узел, поднять его над
-   слоем нечем, поэтому слой уводим под него. Свой контекст наложения у
-   карточки есть (z-index: 0), так что «минус первый» слой не уедет под фон
-   страницы. */
-.services_newdesign #page_str_terras .main_bl > h2 {
-    z-index: 0;
+/* Описание под заголовком — оно есть не на каждой услуге. */
+.services_newdesign #page_str_terras .nd-srv-hero__card > div:not(.nd-srv-hero__cta),
+.services_newdesign #page_str_terras .nd-srv-hero__card > p {
+    max-width: 519px;
+    margin: 0;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    color: #fff;
 }
-.services_newdesign #page_str_terras .main_bl > h2:before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: rgba(16, 16, 20, .45);
+
+.services_newdesign #page_str_terras .nd-srv-hero__card br {
+    display: none;
 }
 
 /* Фотографии страниц — те же, что были в custom.css. */
-.services_newdesign #page_str_terras.terras-pod-klyuch .main_bl > h2 {
+.services_newdesign #page_str_terras.terras-pod-klyuch .nd-srv-hero__card {
     background-image: url('/images/services/terras-pod-klyuch.jpg');
 }
-.services_newdesign #page_str_terras.montaj_service .main_bl > h2 {
+.services_newdesign #page_str_terras.montaj_service .nd-srv-hero__card {
     background-image: url('/images/services/montaj_service.jpg');
 }
-.services_newdesign #page_str_terras.ekspluatiruemaya_krovlya .main_bl > h2 {
+.services_newdesign #page_str_terras.ekspluatiruemaya_krovlya .nd-srv-hero__card {
     background-image: url('/images/services/krovlya_fon.jpg');
 }
 /* Фон самого блока снимаем: он остался бы позади правой колонки. */
@@ -87,7 +109,7 @@
     background: none;
 }
 
-/* Правая колонка: три плашки, высоту делят поровну. */
+/* Правая колонка: плашки делят высоту поровну. */
 .services_newdesign #page_str_terras .main_bl .main_bl_flex {
     display: flex;
     flex-direction: column;
@@ -115,13 +137,35 @@
     color: #fff;
 }
 
-.services_newdesign #page_str_terras .main_bl .main_bl_flex .block_page_str_terras p {
+.services_newdesign #page_str_terras .main_bl .main_bl_flex .block_page_str_terras p,
+.services_newdesign #page_str_terras .main_bl .main_bl_flex .block_page_str_terras li {
     margin: 0;
     font-family: 'Nunito Sans', Arial, sans-serif;
     font-size: 12px;
     line-height: 14px;
     font-weight: 400;
     color: #fff;
+}
+
+/* Списки внутри плашек — маркеры мелкие, чтобы не спорить с кеглем 12. */
+.services_newdesign #page_str_terras .main_bl .main_bl_flex .block_page_str_terras ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+}
+.services_newdesign #page_str_terras .main_bl .main_bl_flex .block_page_str_terras li + li {
+    margin-top: 6px;
+}
+.services_newdesign #page_str_terras .main_bl .main_bl_flex .block_page_str_terras li:before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    margin: 0 8px 3px 0;
+    border-radius: 50%;
+    background: #fff;
+    vertical-align: middle;
 }
 
 /* --- кнопки внутри карточки ---
@@ -138,10 +182,12 @@
 /* Ячейки из разметки — бутстраповские col-md-6: без сброса ширины и float
    две кнопки по 50% с зазором не влезали в карточку и вставали в столбик. */
 .services_newdesign .nd-srv-hero__cta > * {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     float: none;
     width: auto;
-    max-width: none;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
     padding: 0;
 }
 
@@ -181,12 +227,6 @@ body .services_newdesign .nd-srv-hero__cta > *:nth-child(2) .btn.btn-default.col
     color: #fff !important;
 }
 
-/* Заголовок карточки должен прижать кнопки к низу — колонкой. */
-.services_newdesign #page_str_terras .main_bl > h2.nd-srv-hero__card {
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
 /* ---------------------------------------------------------------------------
    «Вы получаете»: четыре карточки с контурными иконками.
    Макет: карточка 239×248, радиус 6, рамка 1px rgba(82,82,100,.15), поля 24,
@@ -212,8 +252,10 @@ body .services_newdesign .nd-srv-hero__cta > *:nth-child(2) .btn.btn-default.col
     color: #101014;
 }
 
+/* Снизу отбивка до следующего блока: прежние 30px по кругу мы сняли, и
+   карточки упирались в то, что идёт дальше (Ирина, 19 августа 2026). */
 .services_newdesign .tiz_ter_block {
-    margin: 0;
+    margin: 0 0 40px;
 }
 
 .services_newdesign .tiz_ter_block .row {
@@ -303,6 +345,52 @@ body .services_newdesign .nd-srv-hero__cta > *:nth-child(2) .btn.btn-default.col
 }
 
 /* ---------------------------------------------------------------------------
+   Меню услуг на телефоне: выпадающий список над шапкой.
+   Разметку добавляет js/newdesign-service.js. На десктопе меню остаётся
+   в боковой колонке, поэтому список показываем только там, где тема эту
+   колонку прячет, — ниже 992px (css/media.css).
+   ------------------------------------------------------------------------ */
+.nd-srv-menu {
+    display: none;
+}
+
+@media (max-width: 991px) {
+    .services_newdesign .nd-srv-menu,
+    .nd-srv-menu {
+        display: block;
+        margin: 0 0 16px;
+    }
+
+    .nd-srv-menu .nd-srv-menu__select {
+        display: block;
+        width: 100%;
+        height: 48px;
+        padding: 0 40px 0 16px;
+        border: 1px solid rgba(82, 82, 100, .25);
+        border-radius: 6px;
+        background: #fff;
+        color: #101014;
+        font-family: 'Nunito Sans', Arial, sans-serif;
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 500;
+        text-overflow: ellipsis;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        /* Галочка — в фоне: родную стрелку убрали вместе с appearance. */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23101014' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+    }
+
+    .nd-srv-menu .nd-srv-menu__select:focus {
+        outline: none;
+        border-color: rgba(82, 82, 100, .5);
+    }
+}
+
+/* ---------------------------------------------------------------------------
    Планшет и телефон
    ------------------------------------------------------------------------ */
 @media (max-width: 991px) {
@@ -310,8 +398,10 @@ body .services_newdesign .nd-srv-hero__cta > *:nth-child(2) .btn.btn-default.col
         grid-template-columns: minmax(0, 1fr);
         min-height: 0;
     }
-    .services_newdesign #page_str_terras .main_bl > h2 {
+    .services_newdesign #page_str_terras .nd-srv-hero__card {
         min-height: 320px;
+    }
+    .services_newdesign #page_str_terras .nd-srv-hero__card h2 {
         font-size: 28px;
         line-height: 34px;
     }
@@ -321,9 +411,11 @@ body .services_newdesign .nd-srv-hero__cta > *:nth-child(2) .btn.btn-default.col
 }
 
 @media (max-width: 767px) {
-    .services_newdesign #page_str_terras .main_bl > h2 {
+    .services_newdesign #page_str_terras .nd-srv-hero__card {
         min-height: 260px;
         padding: 16px;
+    }
+    .services_newdesign #page_str_terras .nd-srv-hero__card h2 {
         font-size: 26px;
         line-height: 30px;
     }
@@ -334,9 +426,20 @@ body .services_newdesign .nd-srv-hero__cta > *:nth-child(2) .btn.btn-default.col
     .services_newdesign .nd-srv-hero__cta > * {
         flex: 1 1 100%;
     }
-    .services_newdesign .nd-srv-hero__cta .btn {
+    /* Подписи у кнопок бывают длинные («Посмотреть проекты террас на крыше») —
+       в одну строку такая кнопка вылезала за карточку. */
+    body .services_newdesign .nd-srv-hero__cta span.btn,
+    body .services_newdesign .nd-srv-hero__cta a span.btn,
+    body .services_newdesign .nd-srv-hero__cta .btn.btn-default.colored,
+    .services_newdesign .nd-srv-hero__cta .btn,
+    .services_newdesign .nd-srv-hero__cta a .btn {
         width: 100% !important;
         min-width: 0;
+        height: auto;
+        min-height: 56px;
+        padding: 12px 16px !important;
+        white-space: normal;
+        text-align: center;
     }
     .services_newdesign .tiz_ter_block .item {
         padding: 16px;

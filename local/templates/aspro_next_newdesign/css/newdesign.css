@@ -3304,12 +3304,102 @@ body .nd-filter .price_numbers .bx_filter_input_container input::placeholder {
     color: #8f8f9a;
 }
 
-/* «Показать» не выводим — применение мгновенное (скрипт в шаблоне
-   кликает по этой же кнопке). Плашку с количеством тоже прячем. */
-body .nd-filter #set_filter,
-body .nd-filter .bx_filter_popup_result {
+/* Кнопка «Показать N товаров»: отбор применяется только по ней (мгновенное
+   применение снято 19 августа 2026, см. шаблон фильтра). Подпись с числом
+   подставляет скрипт темы. */
+/* Цвета через !important: у темы .btn.white красная надпись, объявленная
+   тем же способом, — без этого подпись сливалась с фоном кнопки. */
+body .nd-filter #set_filter.bx_filter_search_button {
+    display: block;
+    width: 100%;
+    height: 46px;
+    margin: 0 0 12px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 6px;
+    background: #c60000 !important;
+    color: #fff !important;
+    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 700;
+    text-transform: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+body .nd-filter #set_filter.bx_filter_search_button:hover {
+    background: #a80000 !important;
+}
+/* Пока идёт пересчёт, тема ставит кнопке disabled. */
+body .nd-filter #set_filter.bx_filter_search_button[disabled] {
+    opacity: .6;
+    cursor: default;
+}
+
+/* Плашка «Выбрано N — Показать» у изменённой группы. Скрипт темы переносит
+   её в .bx_filter_container_modef нужной группы и проставляет inline top,
+   отсчитанный от верха формы, — значит, содержащим блоком должна быть сама
+   форма, а не что-то по дороге. */
+body .nd-filter form.smartfilter {
+    position: relative;
+}
+body .nd-filter .bx_filter_section,
+body .nd-filter .bx_filter_block,
+body .nd-filter .bx_filter_parameters_box,
+body .nd-filter .bx_filter_parameters_box_container,
+body .nd-filter .bx_filter_container_modef {
+    position: static;
+}
+body .nd-filter .bx_filter_popup_result#modef {
+    position: absolute;
+    left: calc(100% + 20px);
+    z-index: 5;
+    padding: 8px 8px 8px 16px;
+    border-radius: 6px;
+    background: #101014;
+    color: #fff;
+    font-size: 14px;
+    line-height: 32px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(16, 16, 20, .18);
+}
+/* Вертикальную координату скрипт темы считает по label[data-role=label_…], а
+   в новом дизайне такой ярлык есть ещё и в мобильной шторке — брался её,
+   и плашка уезжала на сотни пикселей вверх. Своё «top» не назначаем: плашка
+   и так лежит в блоке той группы, которую только что тронули, — статического
+   положения достаточно (Ирина, 19 августа 2026).
+   Показ и скрытие остаются за скриптом темы (инлайновый display), поэтому
+   display здесь не трогаем вовсе. */
+body .nd-filter .bx_filter_popup_result#modef[style] {
+    top: auto !important;
+}
+body .nd-filter .bx_filter_popup_result#modef .btn {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    margin-left: 12px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px;
+    background: #c60000 !important;
+    color: #fff !important;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+    text-transform: none;
+    box-shadow: none;
+}
+body .nd-filter .bx_filter_popup_result#modef .btn:hover {
+    background: #a80000 !important;
+    color: #fff !important;
+}
+/* Второй экземпляр плашки — для шторки на телефоне, у неё своя нижняя
+   панель с кнопкой «Применить». */
+body .nd-filter .bx_filter_popup_result#modef_mobile {
     display: none !important;
 }
+
 body .nd-filter .bx_filter_button_box {
     padding-top: 32px;
 }

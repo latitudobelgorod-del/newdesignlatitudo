@@ -4,9 +4,9 @@ use \Bitrix\Main\Localization\Loc;?>
 			
 <?/* Копия main под новый дизайн (макет Figma «Чистовик», фрейм «Категория»
 	23495:57181): заголовок «Фильтры», группы без плашек со свёрткой, шеврон
-	слева, цена двумя полями без ползунка, внизу одна кнопка «Сбросить
-	фильтры». Кнопку «Показать» не выводим — фильтр применяется сразу,
-	сабмит формы вешаем на изменение полей (см. скрипт в конце файла).
+	слева, цена двумя полями без ползунка, внизу кнопки «Показать N товаров»
+	и «Сбросить фильтры». Отбор применяется только по «Показать» — как в
+	старом дизайне (Ирина, 19 августа 2026).
 	Оформление — .nd-filter* в css/newdesign.css. */?>
 <?
 // По макету раскрыты только первые две группы. Настройка DISPLAY_EXPANDED
@@ -828,10 +828,12 @@ $ndIsExpanded = function($arItem) use (&$ndBoxIndex) {
 									<?echo Loc::getMessage("CT_BCSF_FILTER_COUNT", array("#ELEMENT_COUNT#" => '<span id="modef_num">'.intval($arResult["ELEMENT_COUNT"]).'</span>'));?>
 									<a rel="nofollow" href="<?echo str_replace('/filter/clear/', '/', $arResult["FILTER_URL"]);?>" class="btn btn-default white white-bg"><?echo Loc::getMessage("CT_BCSF_FILTER_SHOW")?></a>
 								</div>
-								<?// «Показать» по макету не выводим — фильтр применяется сразу.
-								   // Саму кнопку из разметки не убираем: на неё завязаны скрипты
-								   // темы (пересчёт количества, data-href на SEF-адрес фильтра),
-								   // и именно её кликает наш авто-сабмит. Прячем стилями.?>
+								<?// Кнопка «Показать N товаров»: отбор применяется только по ней.
+								   // Мгновенное применение, которое стояло здесь с 4 августа, снято
+								   // 19 августа 2026 — по просьбе Ирины вернулись к поведению
+								   // старого дизайна: галочки копятся, список перезагружается один
+								   // раз. Подпись и адрес кнопке проставляет скрипт темы
+								   // (JCSmartFilter.bindUrlToButton), плашку «Выбрано N» — он же.?>
 								<input class="bx_filter_search_button btn white" type="submit" id="set_filter" name="set_filter" data-href="" value="<?=Loc::getMessage("CT_BCSF_SET_FILTER")?>" />
 								<button class="bx_filter_search_reset btn btn-transparent nd-filter__reset" type="reset" id="del_filter" name="del_filter" data-href="">
 									<?=Loc::getMessage("CT_BCSF_DEL_FILTER")?>
@@ -865,68 +867,4 @@ $ndIsExpanded = function($arItem) use (&$ndBoxIndex) {
 		})
 	</script>
 
-	<?// Мгновенное применение вместо кнопки «Показать» (Ирина, 2026-08-04).
-	   // Ничего своего не изобретаем: скрипт темы после каждого изменения
-	   // пересчитывает количество товаров и перевешивает на #set_filter переход
-	   // по актуальному SEF-адресу фильтра (JCSmartFilter.bindUrlToButton).
-	   // Поэтому просто дожидаемся конца пересчёта — на это время тема ставит
-	   // кнопке disabled — и кликаем по ней. Так сохраняются человекопонятные
-	   // /filter/-адреса; если скрипт темы не отработал, кнопка осталась
-	   // submit'ом и форма уйдёт обычным GET.
-	   //
-	   // Только на десктопе. На телефоне фильтр — шторка со своей кнопкой
-	   // «Применить» (макет 21408:72598), и мгновенное применение её обесмысливало:
-	   // страница перезагружалась после каждой галочки, шторка закрывалась, до
-	   // «Применить» дело не доходило (Ирина, 19 августа 2026). Ширину проверяем
-	   // в момент изменения, а не при загрузке: поворот телефона и открытие
-	   // страницы на планшете меняют ветку без перезагрузки.
-	   // Отбор по кнопке «Применить» уходит из js/newdesign-filter-mobile.js
-	   // и своим путём — почему, написано там.?>
-	<script>
-	(function($){
-		$(function(){
-			var $form = $('form.smartfilter'),
-				timer = null,
-				waiting = null;
-
-			if(!$form.length || $form.data('nd-instant')) return;
-			$form.data('nd-instant', 'Y');
-
-			function apply(){
-				var btn = document.getElementById('set_filter');
-				if(!btn){ $form.trigger('submit'); return; }
-
-				var started = new Date().getTime(), sawBusy = false;
-				clearInterval(waiting);
-				waiting = setInterval(function(){
-					if(btn.disabled){ sawBusy = true; return; }
-					/* Ушли, когда пересчёт закончился, либо если его вовсе
-					   не было — тогда ждём короткую паузу и всё равно идём. */
-					if(sawBusy || new Date().getTime() - started > 1200){
-						clearInterval(waiting);
-						$(btn).trigger('click');
-					}
-				}, 100);
-			}
-
-			function isMobile(){
-				return window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
-			}
-
-			function schedule(delay){
-				if(isMobile()) return;
-				clearTimeout(timer);
-				timer = setTimeout(apply, delay);
-			}
-
-			/* Галочки применяем почти сразу, поля цены — с паузой, чтобы не
-			   перезагружать страницу на каждой набранной цифре. */
-			$form.on('change', 'input[type=checkbox], input[type=radio]', function(){ schedule(400); });
-			$form.on('input', 'input.min-price, input.max-price', function(){ schedule(1200); });
-			$form.on('keydown', 'input.min-price, input.max-price', function(e){
-				if(e.which === 13 && !isMobile()){ e.preventDefault(); schedule(0); }
-			});
-		});
-	})(jQuery);
-	</script>
 <?}?>

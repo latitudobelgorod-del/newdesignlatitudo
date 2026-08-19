@@ -434,4 +434,12 @@
     body .nd-filter .bx_filter_button_box {
         display: none !important;
     }
+
+    /* Плашку «Выбрано N — Показать» скрипт темы уносит к изменённой группе;
+       в шторке она перекрывала бы список — счётчик и так на нижней панели. */
+    body .nd-filter .bx_filter_popup_result#modef,
+    body .nd-filter .bx_filter_popup_result#modef[style*="display: inline-block"],
+    body .nd-filter .bx_filter_popup_result#modef[style*="display:inline-block"] {
+        display: none !important;
+    }
 }
