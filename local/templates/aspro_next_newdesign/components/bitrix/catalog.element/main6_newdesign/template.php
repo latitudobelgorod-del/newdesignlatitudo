@@ -1511,10 +1511,34 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 
 	<?$bPriceCount = ($arParams['USE_PRICE_COUNT'] == 'Y');?>
 	<?if($arResult['OFFERS']):?>
+		<?// «Вилку» цен считаем по тем же предложениям, что печатаем ниже.
+		   // $arResult['MIN_PRICE'] и MAX_PRICE — цены текущего предложения, а не
+		   // минимум и максимум по всем: на доске 145х21 в разметку уходило
+		   // lowPrice = highPrice = 3179 при живых предложениях 2384 и 3179, то
+		   // есть поисковики видели «от 3179» вместо «от 2384» (проверка
+		   // микроразметки, 19 августа 2026). Если цен не оказалось вовсе,
+		   // возвращаемся к прежним значениям — пустой lowPrice хуже неточного.?>
+		<?
+		$ndOfferPrices = array();
+		foreach($arResult['OFFERS'] as $arOffer)
+		{
+			$ndPrice = ($arOffer['MIN_PRICE']['DISCOUNT_VALUE'] ? $arOffer['MIN_PRICE']['DISCOUNT_VALUE'] : $arOffer['MIN_PRICE']['VALUE']);
+			if($ndPrice > 0)
+				$ndOfferPrices[] = $ndPrice;
+		}
+		unset($arOffer, $ndPrice);
+
+		$ndLowPrice = $ndOfferPrices
+			? min($ndOfferPrices)
+			: ($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE']);
+		$ndHighPrice = $ndOfferPrices
+			? max($ndOfferPrices)
+			: ($arResult['MAX_PRICE']['DISCOUNT_VALUE'] ? $arResult['MAX_PRICE']['DISCOUNT_VALUE'] : $arResult['MAX_PRICE']['VALUE']);
+		?>
 		<span itemprop="offers" itemscope itemtype="http://schema.org/AggregateOffer" style="display:none;">
 			<meta itemprop="offerCount" content="<?=count($arResult['OFFERS'])?>" />
-			<meta itemprop="lowPrice" content="<?=($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE'] )?>" />
-			<meta itemprop="highPrice" content="<?=($arResult['MAX_PRICE']['DISCOUNT_VALUE'] ? $arResult['MAX_PRICE']['DISCOUNT_VALUE'] : $arResult['MAX_PRICE']['VALUE'] )?>" />
+			<meta itemprop="lowPrice" content="<?=$ndLowPrice?>" />
+			<meta itemprop="highPrice" content="<?=$ndHighPrice?>" />
 			<meta itemprop="priceCurrency" content="<?=$arResult['MIN_PRICE']['CURRENCY']?>" />
 			<?foreach($arResult['OFFERS'] as $arOffer):?>
 				<?$currentOffersList = array();?>
@@ -1531,8 +1555,17 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 						<?endif;?>
 					<?endforeach;?>
 				<?endforeach;?>
+				<?// Артикул предложения складываем из значений его свойств
+				   // («3010/Каштан»). Когда свойств у предложения нет, строка
+				   // выходила пустой, и в разметке оставался пустой sku —
+				   // валидаторы Google и Яндекса считают это ошибкой. Берём
+				   // тогда ID предложения, а совсем без значения тег не печатаем.?>
+				<?$ndOfferSku = trim(implode('/', $currentOffersList));?>
+				<?if($ndOfferSku === '') $ndOfferSku = $arOffer['ID'];?>
 				<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-					<meta itemprop="sku" content="<?=implode('/', $currentOffersList)?>" />
+					<?if($ndOfferSku !== ''):?>
+						<meta itemprop="sku" content="<?=$ndOfferSku?>" />
+					<?endif;?>
 					<meta itemprop="name" content="<?=$arOffer["NAME"] ?>" />
 					<link itemprop="url" href="<?=$arOffer['DETAIL_PAGE_URL']?>?pid=<?=$arOffer['ID']?>" />
 					<meta itemprop="price" content="<?=($arOffer['MIN_PRICE']['DISCOUNT_VALUE']) ? $arOffer['MIN_PRICE']['DISCOUNT_VALUE'] : $arOffer['MIN_PRICE']['VALUE']?>" />
