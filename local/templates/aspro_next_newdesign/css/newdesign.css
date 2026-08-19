@@ -4905,6 +4905,8 @@ body .nd-topbanner {
         position: fixed !important;
         top: auto !important;
         right: 16px !important;
-        bottom: 24px !important;
+        /* Подняли над самым углом по просьбе Ирины (19 августа 2026): в углу
+           кнопка садилась на правый край кнопки «Заказать» в корзине. */
+        bottom: 96px !important;
     }
 }
