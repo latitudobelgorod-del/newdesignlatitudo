@@ -3225,6 +3225,17 @@ body .nd-filter .bx_filter_param_text img {
     width: auto;
     vertical-align: middle;
 }
+/* Значок бренда перед названием (макет 21408:72662: 20×20, до подписи 6).
+   Он лежит соседом подписи во флексе .bx_filter_input_checkbox, у которого
+   зазор 12 — недостающую разницу снимаем отрицательным полем, чтобы не
+   заводить второй gap. */
+body .nd-filter .nd-filter__logo {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    margin: 0 -6px 0 0;
+    object-fit: contain;
+}
 body .nd-filter .bx_filter_param_label:hover .bx_filter_input_checkbox {
     color: #c60000;
 }

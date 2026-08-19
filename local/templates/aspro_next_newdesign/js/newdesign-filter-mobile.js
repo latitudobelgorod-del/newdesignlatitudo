@@ -130,6 +130,17 @@
         return text;
     }
 
+    /* Значок бренда для чипа — тот же, что в списке значений (макет
+       21408:72598: в чипе картинка 20×20 перед названием). */
+    function labelLogo(label) {
+        var img = label.querySelector('.nd-filter__logo');
+        return img ? img.getAttribute('src') : '';
+    }
+
+    function esc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     /* Чипы выбранных значений + «Сбросить фильтры» */
     function renderChips(panel) {
         var box = panel.querySelector('.nd-fm-chips');
@@ -140,7 +151,7 @@
             if (!input.checked) return;
             var label = panel.querySelector('label[for="' + input.id + '"]');
             if (!label) return;
-            items.push({id: input.id, text: labelText(label)});
+            items.push({id: input.id, text: labelText(label), logo: labelLogo(label)});
         });
 
         /* цена — одним чипом «от … до …» */
@@ -162,7 +173,9 @@
         box.classList.add('is-filled');
         box.innerHTML = items.map(function (it) {
             return '<button type="button" class="nd-fm-chip" data-for="' + (it.id || '') + '"'
-                + (it.price ? ' data-price="Y"' : '') + '>' + it.text
+                + (it.price ? ' data-price="Y"' : '') + '>'
+                + (it.logo ? '<img class="nd-fm-chip__logo" src="' + esc(it.logo) + '" width="20" height="20" alt="" />' : '')
+                + esc(it.text)
                 + '<span class="nd-fm-chip__x" aria-hidden="true"></span></button>';
         }).join('') + '<button type="button" class="nd-fm-chip nd-fm-chip--reset">Сбросить фильтры</button>';
 

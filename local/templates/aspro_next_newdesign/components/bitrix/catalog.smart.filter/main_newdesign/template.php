@@ -785,6 +785,13 @@ $ndIsExpanded = function($arItem) use (&$ndBoxIndex) {
 											/>
 											<label data-role="label_<?=$ar["CONTROL_ID"]?>" class="bx_filter_param_label <?=($isSize ? "nab sku" : "");?> <?=($i==$count ? "last" : "");?> <? echo $ar["DISABLED"] ? 'disabled': '' ?>" for="<? echo $ar["CONTROL_ID"] ?>">
 												<span class="bx_filter_input_checkbox">
+													<?// Значок бренда 20×20 перед названием (макет 21408:72662).
+													   // Ссылку подставляет result_modifier — компонент картинки
+													   // для свойств-привязок не отдаёт. Бренды без картинки
+													   // остаются просто текстом.?>
+													<?if(!empty($ar["ND_LOGO"])):?>
+														<img class="nd-filter__logo" src="<?=$ar["ND_LOGO"]?>" width="20" height="20" alt="<?=$ar["VALUE"];?>" loading="lazy" />
+													<?endif;?>
 
 													<span class="bx_filter_param_text" title="<?=$ar["VALUE"];?>"><?=$ar["VALUE"];?><?
 													if ($arParams["DISPLAY_ELEMENT_COUNT"] !== "N" && isset($ar["ELEMENT_COUNT"]) && !$isSize):

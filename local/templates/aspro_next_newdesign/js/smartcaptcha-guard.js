@@ -15,6 +15,13 @@
  * Обработчик висит на документе в фазе перехвата, чтобы сработать раньше
  * submitHandler'а jquery.validate и ajax-отправки темы.
  *
+ * Но перехват гасит и саму проверку полей: jquery.validate слушает submit на
+ * форме, то есть уже за нашим обработчиком, и после stopImmediatePropagation
+ * до него ничего не доходило. На пустой форме подсвечивалась одна капча —
+ * «обязательна только капча» (Ирина, 19 августа 2026). Поэтому перед отменой
+ * отправки сами просим валидатор проверить форму: он подсветит телефон,
+ * согласие на обработку данных и остальные обязательные поля.
+ *
  * Файл одинаковый в обоих шаблонах (aspro_next и aspro_next_newdesign): формы
  * и капча общие, а подключать чужой шаблон по абсолютному пути некрасиво.
  */
@@ -58,6 +65,20 @@
 
 	setInterval(watch, 1000);
 
+	/* Проверка полей глазами самой формы. Валидатор на форму вешает шаблон
+	   (form.result.new/popup и соседние) — если его нет, тихо выходим и ведём
+	   себя как раньше. Родной вызов .valid() рисует те же подписи и классы
+	   .error, что и обычная отправка, так что оформление не расходится. */
+	function highlightFields(form) {
+		var jq = window.jQuery;
+		if (!jq || !jq.fn || !jq.fn.valid) return;
+
+		var $form = jq(form);
+		if (!$form.data('validator')) return;
+
+		try { $form.valid(); } catch (err) { }
+	}
+
 	document.addEventListener('submit', function (e) {
 		var form = e.target;
 		if (!form || !form.querySelector) return;
@@ -69,7 +90,13 @@
 		e.stopPropagation();
 		if (e.stopImmediatePropagation) e.stopImmediatePropagation();
 
+		highlightFields(form);
+
 		var note = showNote(box);
-		if (note.scrollIntoView) note.scrollIntoView({ block: 'center' });
+		/* Прокручиваем к капче, только когда остальные поля в порядке: иначе
+		   подсказка увела бы от незаполненного поля вниз, к капче. */
+		if (note.scrollIntoView && !form.querySelector('label.error:not([style*="display: none"])')) {
+			note.scrollIntoView({ block: 'center' });
+		}
 	}, true);
 })();
