@@ -872,7 +872,16 @@ $ndIsExpanded = function($arItem) use (&$ndBoxIndex) {
 	   // Поэтому просто дожидаемся конца пересчёта — на это время тема ставит
 	   // кнопке disabled — и кликаем по ней. Так сохраняются человекопонятные
 	   // /filter/-адреса; если скрипт темы не отработал, кнопка осталась
-	   // submit'ом и форма уйдёт обычным GET.?>
+	   // submit'ом и форма уйдёт обычным GET.
+	   //
+	   // Только на десктопе. На телефоне фильтр — шторка со своей кнопкой
+	   // «Применить» (макет 21408:72598), и мгновенное применение её обесмысливало:
+	   // страница перезагружалась после каждой галочки, шторка закрывалась, до
+	   // «Применить» дело не доходило (Ирина, 19 августа 2026). Ширину проверяем
+	   // в момент изменения, а не при загрузке: поворот телефона и открытие
+	   // страницы на планшете меняют ветку без перезагрузки.
+	   // Отбор по кнопке «Применить» уходит из js/newdesign-filter-mobile.js
+	   // и своим путём — почему, написано там.?>
 	<script>
 	(function($){
 		$(function(){
@@ -900,7 +909,12 @@ $ndIsExpanded = function($arItem) use (&$ndBoxIndex) {
 				}, 100);
 			}
 
+			function isMobile(){
+				return window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+			}
+
 			function schedule(delay){
+				if(isMobile()) return;
 				clearTimeout(timer);
 				timer = setTimeout(apply, delay);
 			}
@@ -910,7 +924,7 @@ $ndIsExpanded = function($arItem) use (&$ndBoxIndex) {
 			$form.on('change', 'input[type=checkbox], input[type=radio]', function(){ schedule(400); });
 			$form.on('input', 'input.min-price, input.max-price', function(){ schedule(1200); });
 			$form.on('keydown', 'input.min-price, input.max-price', function(e){
-				if(e.which === 13){ e.preventDefault(); schedule(0); }
+				if(e.which === 13 && !isMobile()){ e.preventDefault(); schedule(0); }
 			});
 		});
 	})(jQuery);

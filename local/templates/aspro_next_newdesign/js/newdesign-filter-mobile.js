@@ -98,8 +98,13 @@
             else closePanel();
         });
         bar.querySelector('.nd-fm-bar__apply').addEventListener('click', function () {
-            if (panel.classList.contains('nd-fm-sub')) closeSub(panel);
-            else closePanel();
+            /* На экране «Все» кнопка только возвращает к списку групп: выбор
+               там продолжается, применять рано. */
+            if (panel.classList.contains('nd-fm-sub')) {
+                closeSub(panel);
+                return;
+            }
+            applyFilter(panel);
         });
         bar.querySelector('.nd-fm-bar__reset').addEventListener('click', function () {
             resetAll(panel);
@@ -113,6 +118,49 @@
                 setTimeout(function () { renderChips(panel); }, 0);
             }
         });
+    }
+
+    /* Применение по кнопке. Мгновенное применение живёт только на десктопе
+       (см. шаблон catalog.smart.filter/main_newdesign), на телефоне отбор
+       уходит в адрес именно отсюда.
+
+       Кнопку темы #set_filter не кликаем. Она не хранит адрес в атрибуте —
+       тема навешивает на неё обработчик с зашитым адресом (bindUrlToButton) и
+       перевешивает после каждого пересчёта. Если пересчёт не дошёл до конца —
+       а на телефоне это бывает: разметку групп мы перестраиваем, и штатный
+       updateItem спотыкается, — на кнопке остаётся адрес из инициализации,
+       /filter/clear/, то есть «показать всё». Нажатие «Применить» тогда молча
+       сбрасывало бы отбор.
+
+       Поэтому берём адрес там, где тема его действительно держит, — в ссылке
+       «Показать N товаров» (#modef). До пересчёта она указывает на сам раздел;
+       если так и осталось, отправляем форму обычным GET: адрес получается
+       не человекопонятный, зато отбор точно применится. */
+    function applyFilter(panel) {
+        var link = panel.querySelector('#modef a[href], #modef_mobile a[href]');
+        var href = link ? link.getAttribute('href') : '';
+
+        if (href && href !== location.pathname && href.indexOf('/filter/clear/') === -1) {
+            location.href = href;
+            return;
+        }
+
+        var form = panel.querySelector('form.smartfilter') || panel.closest('form.smartfilter');
+        if (!form) {
+            closePanel();
+            return;
+        }
+
+        /* Без set_filter компонент отбор из запроса не применяет, а штатная
+           кнопка в сериализацию не попадает: тема меняет ей type на button. */
+        if (!form.querySelector('input[name="set_filter"][type="hidden"]')) {
+            var flag = document.createElement('input');
+            flag.type = 'hidden';
+            flag.name = 'set_filter';
+            flag.value = 'Y';
+            form.appendChild(flag);
+        }
+        form.submit();
     }
 
     function resetAll(panel) {
