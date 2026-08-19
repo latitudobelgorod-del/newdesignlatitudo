@@ -392,7 +392,18 @@ $renderImg = CFile::ResizeImageGet($arItem['PREVIEW_PICTURE'], Array("width" => 
 							    	<div class="<?=$arItem['PROPERTIES']['SET']['VALUE_XML_ID']?>"></div>
 								    
 					<?endif;?>
-										<img class="lazy img-responsive" src="/assets/lazyload/loading.gif" data-original="<?=$arItem["PREVIEW_PICTURE"]["SRC"]?>"  alt="<?=$a_alt;?>" title="<?=$a_title;?>" />								
+										<?/* Раньше в data-original уходил оригинал (обычно 500×500 по
+										     150–200 КБ) при плитке 231×231. Отдаём ресайз 348×348 с качеством 82:
+										     в настройках модуля стоит 100 (Ирина, 19 августа 2026). */?>
+										<?
+										$ndPicId = (int) $arItem["PREVIEW_PICTURE"]["ID"];
+										$ndPicSrc = $arItem["PREVIEW_PICTURE"]["SRC"];
+										if ($ndPicId > 0) {
+											$ndPic = CFile::ResizeImageGet($ndPicId, array("width" => 348, "height" => 348), BX_RESIZE_IMAGE_PROPORTIONAL, true, false, false, 82);
+											if (!empty($ndPic["src"])) $ndPicSrc = $ndPic["src"];
+										}
+										?>
+										<img class="lazy img-responsive" src="/assets/lazyload/loading.gif" data-original="<?=$ndPicSrc?>"  alt="<?=$a_alt;?>" title="<?=$a_title;?>" />								
 										
 									<?elseif( !empty($arItem["DETAIL_PICTURE"])):?>
 										<?$img = CFile::ResizeImageGet($arItem["DETAIL_PICTURE"], array( "width" => 170, "height" => 170 ), BX_RESIZE_IMAGE_PROPORTIONAL,true );?>

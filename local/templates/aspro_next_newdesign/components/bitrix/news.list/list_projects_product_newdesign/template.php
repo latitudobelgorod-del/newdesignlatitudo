@@ -44,7 +44,12 @@ $ndBadge = trim((string) ($arParams['BADGE_TEXT'] ?? '')) ?: 'Проект';
 			$src = '';
 			$picId = (int) ($arItem['PREVIEW_PICTURE']['ID'] ?? $arItem['DETAIL_PICTURE']['ID'] ?? 0);
 			if ($picId > 0) {
-				$img = CFile::ResizeImageGet($picId, ['width' => 640, 'height' => 400], BX_RESIZE_IMAGE_EXACT, true);
+				/* 636×398 — полтора размера плитки (424×265), качество 82 седьмым
+				   параметром. Прежние 640×400 при настройке модуля «качество 100»
+				   весили по 220–260 КБ, а таких плиток на странице шестнадцать:
+				   3,8 МБ из восьми (Ирина, 19 августа 2026). Размер сдвинут, чтобы
+				   Битрикс сложил файлы в новый каталог кеша. */
+				$img = CFile::ResizeImageGet($picId, ['width' => 636, 'height' => 398], BX_RESIZE_IMAGE_EXACT, true, false, false, 82);
 				$src = $img['src'] ?? '';
 			}
 

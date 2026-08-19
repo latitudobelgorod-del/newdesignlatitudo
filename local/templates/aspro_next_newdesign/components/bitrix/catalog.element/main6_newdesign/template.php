@@ -596,11 +596,15 @@ if ($ndProfileVal) {
 											<meta property="og:image" content="<?=(!$isEmpty ? $arImage["BIG"]["src"] : $arImage["SRC"]);?>">
 						
 											
-											<img  src="<?=$arImage["SMALL"]["src"]?>"  alt="<?=$alt;?>" title="<?=$title;?>"<?=(!$i ? ' itemprop="image"' : '')?>/>
+											<?/* loading="lazy": сама галерея темы уведена за левый край
+											     (css/newdesign-element.css), но её картинки всё равно грузились —
+											     шесть файлов по 220 КБ на страницу. Ленивые за экраном не
+											     запрашиваются, а если галерею когда-то покажут — подгрузятся. */?>
+											<img  src="<?=$arImage["SMALL"]["src"]?>"  alt="<?=$alt;?>" title="<?=$title;?>"<?=(!$i ? ' itemprop="image"' : '')?> loading="lazy"/>
 
 										<?/*</a>*/?>
 									<?}else{?>
-										<img  src="<?=$arImage["SRC"]?>" alt="<?=$alt;?>" title="<?=$title;?>" />
+										<img  src="<?=$arImage["SRC"]?>" alt="<?=$alt;?>" title="<?=$title;?>" loading="lazy" />
 									<?}?>
 								</li>
 							<?}?>
@@ -2232,7 +2236,9 @@ if (CModule::IncludeModule('iblock')) {
 		/* Берём обычный баннер акции (как на /sale/), а не IMAGE_FOR_CATALOG:
 		   тот нарисован вертикальным — под вставку в сетку каталога. */
 		$picId = (int) ($arSale['PREVIEW_PICTURE'] ?: $arSale['PROPERTY_IMAGE_FOR_CATALOG_VALUE']);
-		$arSale['ND_PIC'] = $picId ? CFile::ResizeImageGet($picId, ['width' => 618, 'height' => 618], BX_RESIZE_IMAGE_PROPORTIONAL, true) : false;
+		/* Качество 82 седьмым параметром: в настройках модуля стоит 100, и баннер
+		   акции весил под 200 КБ. Размер сдвинут на пиксель — за новым кешем. */
+		$arSale['ND_PIC'] = $picId ? CFile::ResizeImageGet($picId, ['width' => 620, 'height' => 620], BX_RESIZE_IMAGE_PROPORTIONAL, true, false, false, 82) : false;
 		$ndSales[] = $arSale;
 	}
 }
