@@ -3382,8 +3382,8 @@ body .nd-filter .bx_filter_popup_result#modef .btn {
     padding: 0 16px;
     border: 0;
     border-radius: 4px;
-    background: #c60000 !important;
-    color: #fff !important;
+    background: #fff !important;
+    color: #101014 !important;
     font-size: 14px;
     line-height: 20px;
     font-weight: 700;
@@ -3391,8 +3391,8 @@ body .nd-filter .bx_filter_popup_result#modef .btn {
     box-shadow: none;
 }
 body .nd-filter .bx_filter_popup_result#modef .btn:hover {
-    background: #a80000 !important;
-    color: #fff !important;
+    background: #ececef !important;
+    color: #101014 !important;
 }
 /* Второй экземпляр плашки — для шторки на телефоне, у неё своя нижняя
    панель с кнопкой «Применить». */

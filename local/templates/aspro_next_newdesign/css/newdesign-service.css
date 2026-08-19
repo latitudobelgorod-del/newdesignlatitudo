@@ -218,14 +218,8 @@ body .services_newdesign .nd-srv-hero__cta .btn.btn-default.colored,
     box-shadow: none !important;
 }
 
-/* Вторая кнопка в макете — прозрачная с белой рамкой. */
-body .services_newdesign .nd-srv-hero__cta > *:nth-child(2) span.btn,
-body .services_newdesign .nd-srv-hero__cta > *:nth-child(2) .btn.btn-default.colored,
-.services_newdesign .nd-srv-hero__cta > *:nth-child(2) .btn {
-    background: transparent !important;
-    border: 1px solid #fff !important;
-    color: #fff !important;
-}
+/* Обе кнопки белые: прозрачная вторая, как в макете, на фотографии читалась
+   плохо — Ирина попросила сделать её такой же, как первую (19 августа 2026). */
 
 /* ---------------------------------------------------------------------------
    «Вы получаете»: четыре карточки с контурными иконками.
