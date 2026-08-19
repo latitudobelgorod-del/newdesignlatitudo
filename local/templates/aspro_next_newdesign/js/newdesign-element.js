@@ -1182,3 +1182,70 @@
 		}
 	}, 100);
 })();
+
+/**
+ * Штатная галерея темы не тянет свои картинки.
+ *
+ * Разметку слайдов тема перерисовывает своим скриптом при выборе предложения,
+ * поэтому loading="lazy" из шаблона на них не попадает: узлы создаются заново
+ * с готовым src. Сама галерея уведена за левый край (css/newdesign-element.css),
+ * видит её никто, а браузер честно скачивал по пять-шесть фотографий 500×500 —
+ * на боевом это 1,1 МБ на каждую карточку товара (Ирина, 19 августа 2026).
+ *
+ * Свою галерею мы строим из data-nd-slides и от этих узлов не зависим, поэтому
+ * адрес просто убираем в data-nd-defer: разметка и обработчики темы остаются на
+ * месте, а запрос не уходит. Если галерею когда-нибудь снова покажут — адрес
+ * лежит рядом и его несложно вернуть.
+ */
+(function () {
+	'use strict';
+
+	if (window.__ndIdleGallery) return;
+	window.__ndIdleGallery = true;
+
+	var BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+
+	function strip(root) {
+		if (!root || !root.querySelectorAll) return;
+
+		var imgs = root.querySelectorAll ? root.querySelectorAll('img') : [];
+
+		Array.prototype.forEach.call(imgs, function (img) {
+			var src = img.getAttribute('src');
+			if (!src || src === BLANK || img.hasAttribute('data-nd-defer')) return;
+			img.setAttribute('data-nd-defer', src);
+			img.setAttribute('src', BLANK);
+		});
+	}
+
+	function watch() {
+		var slider = document.querySelector('.element_newdesign .img_wrapper > .item_slider');
+		if (!slider) return false;
+
+		strip(slider);
+
+		if (window.MutationObserver) {
+			new MutationObserver(function (records) {
+				for (var i = 0; i < records.length; i++) {
+					var added = records[i].addedNodes;
+					for (var j = 0; j < added.length; j++) {
+						if (added[j].nodeType !== 1) continue;
+						if (added[j].tagName === 'IMG') strip(added[j].parentNode);
+						else strip(added[j]);
+					}
+					/* Тема меняет и сам атрибут у существующей картинки. */
+					if (records[i].type === 'attributes') strip(records[i].target.parentNode);
+				}
+			}).observe(slider, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+		}
+
+		return true;
+	}
+
+	if (!watch()) {
+		var tries = 0;
+		var timer = setInterval(function () {
+			if (watch() || ++tries > 40) clearInterval(timer);
+		}, 100);
+	}
+})();
