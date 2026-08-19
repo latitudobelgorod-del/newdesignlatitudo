@@ -1204,48 +1204,62 @@
 	window.__ndIdleGallery = true;
 
 	var BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+	var SELECTOR = '.element_newdesign .img_wrapper .item_slider img';
 
-	function strip(root) {
-		if (!root || !root.querySelectorAll) return;
+	/* Сметаем по всему документу, а не от узла галереи: flexslider оборачивает
+	   ленту в свой .flex-viewport и клонирует слайды, а тема при выборе
+	   предложения перерисовывает контейнер целиком — наблюдатель, повешенный
+	   на старый узел, оставался бы ни при чём. */
+	function sweep() {
+		var imgs = document.querySelectorAll(SELECTOR);
 
-		var imgs = root.querySelectorAll ? root.querySelectorAll('img') : [];
-
-		Array.prototype.forEach.call(imgs, function (img) {
+		for (var i = 0; i < imgs.length; i++) {
+			var img = imgs[i];
 			var src = img.getAttribute('src');
-			if (!src || src === BLANK || img.hasAttribute('data-nd-defer')) return;
+
+			if (!src || src === BLANK || img.hasAttribute('data-nd-defer')) continue;
+
 			img.setAttribute('data-nd-defer', src);
 			img.setAttribute('src', BLANK);
-		});
-	}
-
-	function watch() {
-		var slider = document.querySelector('.element_newdesign .img_wrapper > .item_slider');
-		if (!slider) return false;
-
-		strip(slider);
-
-		if (window.MutationObserver) {
-			new MutationObserver(function (records) {
-				for (var i = 0; i < records.length; i++) {
-					var added = records[i].addedNodes;
-					for (var j = 0; j < added.length; j++) {
-						if (added[j].nodeType !== 1) continue;
-						if (added[j].tagName === 'IMG') strip(added[j].parentNode);
-						else strip(added[j]);
-					}
-					/* Тема меняет и сам атрибут у существующей картинки. */
-					if (records[i].type === 'attributes') strip(records[i].target.parentNode);
-				}
-			}).observe(slider, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
 		}
-
-		return true;
 	}
 
-	if (!watch()) {
-		var tries = 0;
-		var timer = setInterval(function () {
-			if (watch() || ++tries > 40) clearInterval(timer);
-		}, 100);
+	sweep();
+
+	/* Первые секунды — на каждый кадр: слайды рисует скрипт темы, и чем раньше
+	   уберём адрес, тем больше запросов браузер успеет отменить. */
+	if (window.requestAnimationFrame) {
+		var until = 0;
+		var tick = function () {
+			sweep();
+			if (++until < 180) requestAnimationFrame(tick);
+		};
+		requestAnimationFrame(tick);
+	}
+
+	document.addEventListener('DOMContentLoaded', sweep);
+	[300, 1000, 2500, 5000].forEach(function (ms) { setTimeout(sweep, ms); });
+
+	if (window.MutationObserver) {
+		var scheduled = false;
+		var run = function () { scheduled = false; sweep(); };
+
+		var observer = new MutationObserver(function () {
+			if (scheduled) return;
+			scheduled = true;
+			(window.queueMicrotask || setTimeout)(run, 0);
+		});
+
+		var start = function () {
+			observer.observe(document.body, {
+				childList: true,
+				subtree: true,
+				attributes: true,
+				attributeFilter: ['src']
+			});
+		};
+
+		if (document.body) start();
+		else document.addEventListener('DOMContentLoaded', start);
 	}
 })();
