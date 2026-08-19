@@ -3236,6 +3236,28 @@ body .nd-filter .nd-filter__logo {
     margin: 0 -6px 0 0;
     object-fit: contain;
 }
+/* Свойства, у которых в умном фильтре выбран вид «радио-кнопки» (у
+   «Применения» это так, DISPLAY_TYPE = K), тема печатает другой разметкой:
+   обёртка .filter.label_block.radio, подпись — .bx_filter_param_text1, а у
+   пункта «Все» подпись вообще без класса. Правила выше на неё не ложились:
+   `body .nd-filter .bx_filter_param_text1` весит (0,2,1), а тема бьёт по
+   `.bx_filter_vertical .bx_filter_block label span` (0,2,2) и
+   `body .filter.label_block input + label` (0,2,3) — отсюда 13px, серый цвет
+   и лишний отступ слева 23px. Повторяем те же значения селекторами потяжелее:
+   группы фильтра должны выглядеть одинаково.
+   Дочерний комбинатор обязателен — счётчик «(12)» лежит внутри подписи, и без
+   него правило задело бы и его. */
+body .nd-filter .bx_filter_block .bx_filter_input_checkbox > span {
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #101014;
+}
+body .nd-filter .filter.label_block input + label {
+    padding: 8px 0;
+    font-size: 16px;
+    color: #101014;
+}
 body .nd-filter .bx_filter_param_label:hover .bx_filter_input_checkbox {
     color: #c60000;
 }

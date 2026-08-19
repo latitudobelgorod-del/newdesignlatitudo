@@ -273,6 +273,14 @@
         line-height: 24px;
     }
 
+    /* Подписи значений на телефоне живут в чипах и берут кегль от чипа. На
+       десктопе он задан прямо подписи (newdesign.css, разбор радио-групп), а
+       у медиазапроса своего веса нет — повторяем селектор с запасом, иначе
+       строка в чипе получала бы десктопный интерлиньяж 20. */
+    body .nd-filter .bx_filter_block .bx_filter_param_label .bx_filter_input_checkbox > span {
+        line-height: 24px;
+    }
+
     /* квадрат чекбокса в чипе не рисуем — состояние показывает рамка */
     body .nd-filter .bx_filter_input_checkbox:before {
         content: none !important;
