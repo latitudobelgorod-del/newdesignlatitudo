@@ -73,7 +73,9 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 	$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign-forms.css', true);
 	$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/newdesign-forms.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-forms.js'));
 	// Капча: не пускаем отправку формы с нерешённым виджетом.
-	$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/smartcaptcha-guard.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/smartcaptcha-guard.js'));?>
+	$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/smartcaptcha-guard.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/smartcaptcha-guard.js'));
+	// Цифра у корзины после добавления товара: штатная цепочка темы её не обновляет.
+	$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/newdesign-basket-count.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-basket-count.js'));?>
 	<?include_once('defines.php');?>
 	<?CNext::SetJSOptions();?>
 <?CNext::ShowPageType('search_title_component');?>
