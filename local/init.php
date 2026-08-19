@@ -4,7 +4,13 @@
  *
  * Файл лежит в /local, поэтому он в Git и приезжает на обе машины. Основной
  * init.php сайта (bitrix/php_interface/init.php) этим не заменяется: ядро
- * подключает оба, /local/init.php раньше (bitrix/modules/main/include.php).
+ * подключает оба и по разным путям — getLocalPath("init.php") и
+ * getLocalPath("php_interface/init.php", BX_PERSONAL_ROOT), см.
+ * bitrix/modules/main/include.php.
+ *
+ * Заводить вместо этого /local/php_interface/init.php НЕЛЬЗЯ: getLocalPath
+ * нашёл бы его первым, и bitrix/php_interface/init.php перестал бы
+ * подключаться совсем.
  */
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
@@ -14,48 +20,107 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 /**
  * Не даём модулю капчи ломать JSON-ответы.
  *
- * ceteralabs.smartcaptcha на OnEndBufferContent дописывает свой <script> и
- * <style> в ответ, у которого не нашлось </head> (см. lib/eventhandlers/main.php,
- * ветка else). В html это безобидно, а в JSON — нет: ответ перестаёт
- * разбираться, и обработчик молча выходит.
+ * ceteralabs.smartcaptcha на OnEndBufferContent дописывает в ответ свои <style>
+ * и <script> — двумя разными способами (lib/eventhandlers/main.php):
  *
- * Из-за этого в корзине не пересчитывались количество и сумма: компонент
- * sale.basket.basket получал ответ, JSON.parse падал на «Unexpected
- * non-whitespace character after JSON», и до перерисовки итогов дело не
- * доходило. Тем же ломалась цепочка после «В корзину»: jQuery не мог разобрать
- * ответ /ajax/item.php, и счётчик корзины не обновлялся (Ирина, 19 августа 2026).
+ *   1. Запрос ajax'ный (есть bxajaxid или заголовок X-Requested-With) — блок
+ *      идёт В НАЧАЛО ответа: $content = self::ajaxInlineInit(...).$content;
+ *   2. Иначе — тег captcha.js дописывается перед </head>, а если </head> в
+ *      ответе нет, то В КОНЕЦ: $content .= $script.$style;
+ *
+ * В html оба безобидны, в JSON — нет: ответ перестаёт разбираться.
+ *
+ * Сначала здесь закрыли только второй способ. Из-за него в корзине не
+ * пересчитывались количество и сумма: компонент sale.basket.basket получал
+ * ответ, JSON.parse падал на «Unexpected non-whitespace character after JSON»,
+ * и до перерисовки итогов дело не доходило. Тем же ломалась цепочка после
+ * «В корзину»: jQuery не мог разобрать ответ /ajax/item.php, и счётчик корзины
+ * не обновлялся (Ирина, 19 августа 2026).
+ *
+ * Первый способ остался незакрытым, и это не теория — на боевом latitudo.ru
+ * он воспроизводится одним запросом:
+ *
+ *   curl -d 'PRODUCT_ID=1' https://latitudo.ru/ajax/goals.php
+ *   → {"ID":"1",…}                                                 320 байт
+ *
+ *   он же с -H 'X-Requested-With: XMLHttpRequest'
+ *   → <style>.smart-captcha{…</script>{"ID":"1",…}                1018 байт
+ *
+ * jQuery шлёт X-Requested-With в любом $.ajax, так что под ударом любой наш
+ * JSON-эндпоинт. На vrn.easydecking.ru по этой самой причине не работало
+ * «В корзину» из списка товаров: разбор падал на нулевом символе, success не
+ * вызывался, кнопка крутилась вечно. Здесь чиним до того, как выстрелит.
  *
  * Чиним снаружи, не трогая модуль: свой обработчик с большим весом сортировки
- * идёт после его собственного и срезает дописанное — но только если ответ и
- * правда JSON и только если после обрезки он разбирается. Ошибиться такой
- * проверкой нельзя: не разобралось — оставляем как было.
+ * идёт после его собственного (модуль регистрируется весом по умолчанию) и
+ * срезает дописанное с обоих концов. Режем только если после обрезки остаётся
+ * разбираемый JSON — не разобралось, оставляем байт в байт.
+ *
+ * Из html-ответов не режем ничего: в ajax-формах (попапы приезжают разметкой,
+ * а не JSON) этот же блок и рисует виджет капчи.
+ *
+ * Правка общая с easydecking (local/init.php, easydeckingKeepJsonResponsesValid).
+ * Держать одинаковыми.
  */
 AddEventHandler('main', 'OnEndBufferContent', 'ndKeepJsonResponsesValid', 9999);
 
 function ndKeepJsonResponsesValid(&$content)
 {
-    if (defined('ADMIN_SECTION')) {
+    if (defined('ADMIN_SECTION') || !is_string($content) || $content === '') {
         return;
     }
 
-    $probe = ltrim($content);
-    if ($probe === '' || ($probe[0] !== '{' && $probe[0] !== '[')) {
+    $head    = '<style>.smart-captcha{';
+    $headEnd = '})();</script>';
+    $tail    = '<script src="https://smartcaptcha.yandexcloud.net/captcha.js"';
+
+    /* Дешёвый отсев: смотрим только начало ответа, чтобы не копировать и не
+       перебирать целиком каждую html-страницу. Тег captcha.js есть и в обычной
+       странице (модуль вставляет его перед </head>), так что искать по нему
+       нельзя — гейт только по началу. */
+    $probe = ltrim(substr($content, 0, 64));
+
+    if ($probe === '') {
         return;
     }
 
-    // Ответ и так в порядке — модуль до него не добрался.
-    if (json_decode($content) !== null) {
+    $injectedHead = (strncmp($probe, $head, strlen($head)) === 0);
+
+    if (!$injectedHead && $probe[0] !== '{' && $probe[0] !== '[') {
         return;
     }
 
-    $marker = '<script src="https://smartcaptcha.yandexcloud.net/captcha.js"';
-    $pos = strpos($content, $marker);
-    if ($pos === false) {
+    $body = $content;
+
+    if ($injectedHead) {
+        $end = strpos($body, $headEnd);
+
+        if ($end === false) {
+            return;
+        }
+
+        $body = substr($body, $end + strlen($headEnd));
+    }
+
+    /* Именно strrpos: дописанное всегда в самом конце, а такая же строка может
+       встретиться и внутри JSON. */
+    $tailPos = strrpos($body, $tail);
+
+    if ($tailPos !== false) {
+        $body = substr($body, 0, $tailPos);
+    }
+
+    $body = trim($body);
+
+    if ($body === '' || $body === $content || ($body[0] !== '{' && $body[0] !== '[')) {
         return;
     }
 
-    $cut = rtrim(substr($content, 0, $pos));
-    if (json_decode($cut) !== null) {
-        $content = $cut;
+    json_decode($body);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        return;
     }
+
+    $content = $body;
 }
