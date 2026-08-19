@@ -90,7 +90,17 @@ else {$goy=$arResult['NAME'];}
 	</div>
 	
 	<?else:?>
-	<h1 id="pagetitle"><?=$goy?></h1>
+	<?// H1 детальной услуги — как на страницах «Информации» (news.detail/about):
+	   // во всю ширину над обеими колонками, крупно и с чертой снизу. Шаблон
+	   // рисуется внутри правой колонки (слева меню услуг), поэтому заголовок
+	   // отдаём в отложенную область `nd_page_head`; заглушку под неё выводит
+	   // page_blocks/page_title_newdesign.php, оформление — .nd-cat-head
+	   // в css/newdesign.css (Ирина, 19 августа 2026).
+	   // В буфере только строка $goy — отложенных функций внутри нет, иначе
+	   // маркер уехал бы мимо области.?>
+	<?ob_start();?>
+		<div class="nd-cat-head"><h1 id="pagetitle"><?=$goy?></h1></div>
+	<?$APPLICATION->AddViewContent('nd_page_head', ob_get_clean());?>
 		<?if(strlen($arResult['FIELDS']['DETAIL_TEXT'])):?>
 				<div class="content">
 					<?// element detail text?>

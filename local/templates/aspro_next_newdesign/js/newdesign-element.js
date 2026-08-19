@@ -455,6 +455,21 @@
 		return measure ? (measure.textContent || '').replace(/[\s\/]/g, '') : '';
 	}
 
+	/* Целое количество печатаем без хвоста из нулей: компонент единиц гонит
+	   значение через toFixed(2) и рисует «1,00 шт», а штатный счётчик темы —
+	   «1 шт» (Ирина, 19 августа 2026). Дробные значения (0,45 м²) не трогаем.
+	   То же самое в карточках списка — js/newdesign-catalog.js. */
+	function trimQty(input) {
+		var raw = String(input.value == null ? '' : input.value);
+		if (!/^-?\d+(?:[.,]\d+)?$/.test(raw)) return;
+
+		var num = parseFloat(raw.replace(',', '.'));
+		if (!isFinite(num) || num !== Math.round(num)) return;
+
+		var whole = String(Math.round(num));
+		if (raw !== whole) input.value = whole;
+	}
+
 	function syncQtyUnit() {
 		if (!root) return;
 		var name = currentUnitName();
@@ -464,6 +479,7 @@
 		Array.prototype.forEach.call(root.querySelectorAll('.buy_block .measure-block, .buy_block .counter_block'), function (box) {
 			var input = box.querySelector('input');
 			if (!input) return;
+			trimQty(input);
 			var unit = box.querySelector('.nd-pd-qty-unit');
 			if (!name) {
 				if (unit) unit.parentNode.removeChild(unit);

@@ -131,7 +131,7 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 					<?endforeach;?>
 				</ul>
 					<?// Ярлык производителя переехал в ряд под заголовком (.nd-projhead) —
-					   // здесь он выводился без стилей, голым текстом под слайдером.?>
+					   // здесь он выводился без стилей, голым текстом под слайдером.?>
 			</div>
 		<?endif;?>												
 </div>
@@ -229,9 +229,12 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 <?// Кнопка формы — красная, как «Оставить заявку» в шапке: .nd-btn.nd-btn--red
    // из css/newdesign-header.css. Синяя .btn-default осталась у старого
    // дизайна (шаблон projects). Ширина прежняя — поля по 40 инлайном,
-   // .animate-load и data-event="jqm" открывают ту же форму.?>
+   // .animate-load и data-event="jqm" открывают ту же форму.
+   // data-nd-form-title обязателен: без него в окне стоит имя формы из
+   // админки — «Общая форма» (Ирина, 19 августа 2026). Атрибут читает
+   // js/newdesign-header.js, он же чинит заголовок у кнопок вне шапки.?>
 <div class="block" style="margin: 0 auto;text-align: center;">
-<span style="padding-left:40px;padding-right:40px;" class="nd-btn nd-btn--red animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="question"><span>Узнать стоимость</span></span>
+<span style="padding-left:40px;padding-right:40px;" class="nd-btn nd-btn--red animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="question" data-nd-form-title="Узнать стоимость"><span>Узнать стоимость</span></span>
 </div>
 </div>	<?//col-md-8 col-md-offset-2?>		
 </div><?/*row*/?>

@@ -378,6 +378,25 @@
         input.style.width = (Math.ceil(qtyRuler.getBoundingClientRect().width) + 1) + 'px';
     }
 
+    /* «1,00 шт» в одной карточке и «1 шт» в соседней: количество печатают два
+       разных счётчика. Компонент единиц гонит значение через toFixed(2), а
+       штатный счётчик темы отдаёт целое как есть; у товаров без единиц
+       компонента нет — отсюда и разнобой (Ирина, 19 августа 2026).
+       Хвост из нулей снимаем, дробные значения (0,45 м²) не трогаем. Значение
+       компонент читает через parseFloat, так что «1» ему равно «1.00»; события
+       не шлём — пересчитывать нечего. Запятую вместо точки рисует сам браузер:
+       поле type=number показывает значение по локали. */
+    function trimQty(input) {
+        var raw = String(input.value == null ? '' : input.value);
+        if (!/^-?\d+(?:[.,]\d+)?$/.test(raw)) return;
+
+        var num = parseFloat(raw.replace(',', '.'));
+        if (!isFinite(num) || num !== Math.round(num)) return;
+
+        var whole = String(Math.round(num));
+        if (raw !== whole) input.value = whole;
+    }
+
     function syncQtyUnit(card) {
         try {
             var name = cardUnitName(card);
@@ -387,6 +406,8 @@
             [].forEach.call(card.querySelectorAll('.counter_wrapp .measure-block, .counter_wrapp .counter_block'), function (box) {
                 var input = box.querySelector('input');
                 if (!input) return;
+
+                trimQty(input);
 
                 var unit = box.querySelector('.nd-qty-unit');
                 if (!name) {
@@ -644,9 +665,49 @@
     }
 
     /* ---------------------------------------------------------------------
+       Ссылки на посадочные страницы из описания раздела — в ряд с сортировкой.
+
+       У разных разделов эти ссылки приходят по-разному. Террасная доска
+       набирает их блоком «верхние теги» (sprint.editor), и он печатается прямо
+       в панели сортировки — .section_tag_top. У заборной доски такого блока
+       нет, а ссылки лежат внутри описания раздела отдельным блоком
+       .landings_list_inline: серые плашки под H2, а строка с сортировкой
+       пустая (Ирина, 19 августа 2026).
+
+       Собрать их на сервере не выходит: описание раздела печатает другой
+       компонент и раньше, чем панель сортировки, а выдрать из него один блок
+       нечем. Поэтому переносим ссылки на месте и оформляем как обычные чипы —
+       дальше их подхватывает collapseTags и сворачивает в один ряд.
+       ------------------------------------------------------------------ */
+    function adoptLandingTags() {
+        try {
+            var box = document.querySelector('.nd-catlist-sort__tags .section_tag_top');
+            if (!box || box.__ndAdopted) return;
+            /* Свои теги у раздела есть — чужие не добавляем. */
+            if (box.querySelector('.tag_ank')) return;
+
+            var src = document.querySelector('.landings_list_inline');
+            if (!src) return;
+
+            var links = [].slice.call(src.querySelectorAll('.item a[href]'));
+            if (!links.length) return;
+
+            box.__ndAdopted = true;
+            links.forEach(function (a) {
+                var chip = document.createElement('div');
+                chip.className = 'tag_ank';
+                chip.appendChild(a);
+                box.appendChild(chip);
+            });
+            src.style.display = 'none';
+        } catch (e) { }
+    }
+
+    /* ---------------------------------------------------------------------
        Чипы тегов: в макете они свёрнуты в один ряд, остальные прячет «…»
        ------------------------------------------------------------------ */
     function collapseTags() {
+        adoptLandingTags();
         try {
             var box = document.querySelector('.nd-catlist-sort__tags .section_tag_top');
             if (!box || box.__ndOpened) return;
