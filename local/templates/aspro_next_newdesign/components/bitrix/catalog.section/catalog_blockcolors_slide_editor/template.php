@@ -793,29 +793,9 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 
 <?//Вариации цветов?>
 
-<script>
-$(document).ready(function() {
-    $('.list__catalog_sku').each(function() {
-        var $block = $(this);
-        var productId = $block.data('product-id');
-        if (!productId) return;
-        $.ajax({
-            url: '/ajax/get_colors.php?id=' + productId,
-            method: 'GET',
-            success: function(html) {
-                if (html.trim() !== '') {
-                    $block.html(html);
-                } else {
-                    $block.hide();
-                }
-            },
-            error: function(xhr, status, error) {
-                console.log('AJAX error for product ' + productId + ': ' + error);
-            }
-        });
-    });
-});
-</script>
+<?// Кружки цветов грузит js/newdesign-sku-colors.js — одной пачкой на всю
+   // страницу. Здесь был свой $.ajax на каждую плитку: 34 запроса с главной,
+   // по 1,3 с каждый (Ирина, 19 августа 2026).?>
 <?//Вариации цветов?>
 <?//Обновление остатков?>
 

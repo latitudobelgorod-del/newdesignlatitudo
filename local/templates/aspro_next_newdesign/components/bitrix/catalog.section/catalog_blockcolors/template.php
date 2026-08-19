@@ -331,12 +331,12 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
                                 <? if ($arItem['PROPERTIES']['SET']['VALUE']): ?>
                                     <div class="<?=$arItem['PROPERTIES']['SET']['VALUE_XML_ID']?>"></div>
                                 <?endif;?>
-                                <img  src="<?=$arItem["PREVIEW_PICTURE"]["SRC"]?>"  alt="<?=$a_alt;?>" title="<?=$a_title;?>"  />
+                                <img  src="<?=$arItem["PREVIEW_PICTURE"]["SRC"]?>"  alt="<?=$a_alt;?>" title="<?=$a_title;?>" loading="lazy" />
                             <?elseif( !empty($arItem["DETAIL_PICTURE"])):?>
                                 <?$img = CFile::ResizeImageGet($arItem["DETAIL_PICTURE"], array( "width" => 170, "height" => 170 ), BX_RESIZE_IMAGE_PROPORTIONAL,true );?>
-                                <img   src="<?=$img["src"]?>" alt="<?=$a_alt;?>" title="<?=$a_title;?>"  />
+                                <img   src="<?=$img["src"]?>" alt="<?=$a_alt;?>" title="<?=$a_title;?>" loading="lazy" />
                             <?else:?>
-                                <img  src="/images/no_photo_medium.png" alt="<?=$a_alt;?>" title="<?=$a_title;?>" />
+                                <img  src="/images/no_photo_medium.png" alt="<?=$a_alt;?>" title="<?=$a_title;?>" loading="lazy" />
                             <?endif;?>
 						</a>						
                    
@@ -807,29 +807,9 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 </script>
 
 
-<script>
-$(document).ready(function() {
-    $('.list__catalog_sku').each(function() {
-        var $block = $(this);
-        var productId = $block.data('product-id');
-        if (!productId) return;
-        $.ajax({
-            url: '/ajax/get_colors.php?id=' + productId,
-            method: 'GET',
-            success: function(html) {
-                if (html.trim() !== '') {
-                    $block.html(html);
-                } else {
-                    $block.hide();
-                }
-            },
-            error: function(xhr, status, error) {
-                console.log('AJAX error for product ' + productId + ': ' + error);
-            }
-        });
-    });
-});
-</script>
+<?// Кружки цветов грузит js/newdesign-sku-colors.js — одной пачкой на всю
+   // страницу. Здесь был свой $.ajax на каждую плитку: 34 запроса с главной,
+   // по 1,3 с каждый (Ирина, 19 августа 2026).?>
 
 
 <script>
