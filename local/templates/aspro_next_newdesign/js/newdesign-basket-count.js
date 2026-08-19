@@ -14,8 +14,10 @@
  * пишем в те же узлы, что и тема (.basket-link.basket .count с классами
  * empted / basket-count), — они есть и в шапке, и в нижней панели.
  *
- * Спрашиваем дважды: добавление на боевом занимает секунду-полторы, и один
- * запрос иногда успевает раньше самого добавления.
+ * Спрашиваем не один раз: добавление на боевом занимает секунду-полторы, и
+ * первый же запрос успевает раньше самого добавления — сервер отдаёт прежнее
+ * число. Поэтому опрашиваем с нарастающей паузой и останавливаемся, как только
+ * число изменилось (или после последней попытки).
  */
 (function () {
 	'use strict';
@@ -23,12 +25,21 @@
 	if (window.__ndBasketCount) return;
 	window.__ndBasketCount = true;
 
-	var DELAYS = [1200, 3000];
+	var DELAYS = [700, 1500, 2500, 4000, 6000];
 	var timers = [];
+	var startCount = null;
 
 	function siteDir() {
 		var o = window.arNextOptions;
 		return (o && o.SITE_DIR) ? o.SITE_DIR : '/';
+	}
+
+	/* Что сейчас нарисовано у корзины — с этим и сравниваем ответы сервера. */
+	function shownCount() {
+		var box = document.querySelector('.basket-link.basket .count');
+		if (!box) return null;
+		var n = parseInt((box.textContent || '').trim(), 10);
+		return isNaN(n) ? 0 : n;
 	}
 
 	function apply(count) {
@@ -54,13 +65,22 @@
 			/* Ответ — кусок html со скриптом, разбирать его целиком незачем:
 			   нужно одно число. */
 			var m = /'BASKET_COUNT'\s*:\s*'(\d+)'/.exec(xhr.responseText || '');
-			if (m) apply(m[1]);
+			if (!m) return;
+
+			apply(m[1]);
+
+			/* Дождались изменения — остальные попытки отменяем. */
+			if (startCount !== null && parseInt(m[1], 10) !== startCount) {
+				timers.forEach(clearTimeout);
+				timers = [];
+			}
 		};
 		try { xhr.send('ACTION=add'); } catch (e) { }
 	}
 
 	function schedule() {
 		timers.forEach(clearTimeout);
+		startCount = shownCount();
 		timers = DELAYS.map(function (ms) { return setTimeout(refresh, ms); });
 	}
 
