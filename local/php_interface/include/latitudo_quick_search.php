@@ -40,6 +40,16 @@ class LatitudoQuickSearch
 	const PROP_OFFER_ARTICLE = 307;
 	const PROP_OFFER_LINK    = 167;
 
+	/** Свои марки идут в подсказках первыми: сначала EasyDecking, следом
+	   LATITUDO, потом все остальные (Ирина, 2 сентября 2026). Ключи — ID
+	   элементов справочника брендов (ИБ 12), значения — вес сортировки. */
+	private static $brandWeight = array(
+		26365 => 1, // EasyDecking
+		24936 => 2, // LATITUDO
+	);
+	/** Вес для всех прочих марок и товаров без марки. */
+	const BRAND_WEIGHT_OTHER = 3;
+
 	/** Короче двух символов не ищем: выдача была бы бессмысленной. */
 	const MIN_QUERY_LEN = 2;
 	/** Больше шести слов в запросе не бывает, остальное отбрасываем. */
@@ -305,10 +315,24 @@ class LatitudoQuickSearch
 				$pos  = 0;
 			}
 
-			$found[] = array($rank, $pos, $row['n'], $id);
+			/* Вес марки. Точное попадание в артикул (ранг 0) марке не
+			   уступает: по такому запросу человек ищет конкретную позицию, и
+			   увести её вниз ради чужого бренда нельзя. Для остальных вес
+			   марки — главный ключ. */
+			$brand = ($rank === 0)
+				? 0
+				: (isset($row['b']) ? $row['b'] : self::BRAND_WEIGHT_OTHER);
+
+			$found[] = array($rank, $pos, $row['n'], $id, $brand);
 		}
 
+		/* Порядок: сначала точный артикул, затем свои марки (EasyDecking,
+		   LATITUDO, остальные), внутри марки — по релевантности, положению
+		   первого слова в названии и алфавиту. */
 		usort($found, function ($a, $b) {
+			if ($a[4] !== $b[4]) {
+				return $a[4] < $b[4] ? -1 : 1;
+			}
 			if ($a[0] !== $b[0]) {
 				return $a[0] < $b[0] ? -1 : 1;
 			}
@@ -422,8 +446,10 @@ class LatitudoQuickSearch
 		}
 
 		$cache = \Bitrix\Main\Data\Cache::createInstance();
-		// v2 — в кеш добавлена карта артикулов; со старым ключом формат другой.
-		$key = 'v2|'.self::indexVersion();
+		/* v2 — в кеш добавлена карта артикулов; v3 — вес марки у каждой записи.
+		   Версию в ключе поднимаем при смене формата: со старым ключом в кеше
+		   лежит запись без нужных полей. */
+		$key = 'v3|'.self::indexVersion();
 
 		if ($cache->initCache(self::CACHE_TTL, $key, self::CACHE_PATH)) {
 			$data = $cache->getVars();
@@ -462,7 +488,7 @@ class LatitudoQuickSearch
 		$articles = array();
 
 		$rs = $DB->Query(
-			'SELECT e.ID, e.NAME, art.VALUE AS ARTICLE, brand.NAME AS BRAND '
+			'SELECT e.ID, e.NAME, art.VALUE AS ARTICLE, brand.NAME AS BRAND, br.VALUE_NUM AS BRAND_ID '
 			.'FROM b_iblock_element e '
 			.'LEFT JOIN b_iblock_element_property art '
 				.'ON art.IBLOCK_ELEMENT_ID = e.ID AND art.IBLOCK_PROPERTY_ID = '.self::PROP_ARTICLE.' '
@@ -475,10 +501,14 @@ class LatitudoQuickSearch
 		while ($row = $rs->Fetch()) {
 			$id   = (int)$row['ID'];
 			$name = self::plainText($row['NAME']);
+			$brandId = (int)$row['BRAND_ID'];
 			$raw[$id] = array(
 				'name' => $name,
 				'hay'  => $name.' '.$row['ARTICLE'].' '.self::plainText($row['BRAND']),
 				'art'  => (string)$row['ARTICLE'],
+				'bw'   => isset(self::$brandWeight[$brandId])
+					? self::$brandWeight[$brandId]
+					: self::BRAND_WEIGHT_OTHER,
 			);
 			self::addArticle($articles, $row['ARTICLE'], $id, 0);
 		}
@@ -515,6 +545,7 @@ class LatitudoQuickSearch
 				// сеновал иначе раздувается в разы без пользы для поиска.
 				'h' => self::wordSet($item['hay']),
 				'a' => self::wordSet($item['art']),
+				'b' => $item['bw'],
 			);
 		}
 
