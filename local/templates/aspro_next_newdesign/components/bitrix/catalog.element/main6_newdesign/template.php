@@ -1087,16 +1087,21 @@ BX.ready(function() {
 
 							
 							
-							<?if($showProps):?>
-								<div class="top_props">
+							<? /* Ссылка «Все характеристики» печатается всегда, а не только при
+							      $showProps и длинном списке свойств: у дивана ПРИМО и кляймера
+							      характеристики на странице есть, а ссылки на них не было —
+							      условие по числу свойств до них не дотягивалось (Ирина,
+							      2 сентября 2026).
 
-									<div class="props props_list">
-									<?if($iCountProps > $arParams['VISIBLE_PROP_COUNT']):?>
-											<div class=""><span class="choise colored" data-block=".all_charakter"><?=GetMessage('ALL_CHARS');?></span></div>
-										<?endif;?>
-									</div>
+							      Прячет её js/newdesign-element.js (syncCharsLink), когда
+							      блока характеристик на странице вправду нет: только скрипт
+							      знает, перенёс он его или нет. Класс nd-pd__chars-link — за
+							      обёртку, чтобы прятать её целиком, а не одну надпись. */ ?>
+							<div class="top_props nd-pd__chars-link" hidden>
+								<div class="props props_list">
+									<div class=""><span class="choise colored" data-block=".all_charakter"><?=GetMessage('ALL_CHARS');?></span></div>
 								</div>
-							<?endif;?>
+							</div>
 							
 							<?/*Примеры применения материала*/?>
 							<?if($arResult["PROPERTIES"]["LINK_PORTFOLIO"]["VALUE"]):?>
@@ -2509,6 +2514,11 @@ if (CModule::IncludeModule('iblock')) {
             )
 ); ?>
 	</div>
+	<? /* На телефоне лента превращается в список 2×2 с кнопкой «Показать ещё»
+	      (Ирина, 2 сентября 2026): пролистывать вбок узкую ленту неудобно, и в
+	      мобильном макете 20511:14365 карточки лежат сеткой. Кнопку показывает
+	      и ведёт js/newdesign-catalog.js, на десктопе она скрыта стилями. */ ?>
+	<button type="button" class="nd-related__more nd-brandsect__more-btn" hidden>Показать ещё</button>
 </div>
 	<?endif;?>
 <?/*С этим товаром покупают*/?>

@@ -1782,9 +1782,44 @@
     .nd-related__head {
         margin-bottom: 16px;
     }
+    /* --- на телефоне лента становится списком 2×2 ---
+       Пролистывать вбок узкую ленту неудобно, и в мобильном макете 20511:14365
+       карточки лежат сеткой. Показываем первые четыре, остальные раскрывает
+       кнопка «Показать ещё» (js/newdesign-catalog.js). Стрелки и счётчик
+       страниц тут не нужны — листать больше нечего.
+
+       !important — потому что правило-лента выше само стоит с !important:
+       иначе его не перебить (там сетка шаблона списка с grid !important). */
+    .nd-related__nav {
+        display: none;
+    }
+    .nd-related .nd-catlist .catalog_block {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        flex-wrap: wrap !important;
+        gap: 16px;
+        overflow-x: visible;
+        scroll-snap-type: none;
+    }
     .nd-related .nd-catlist .catalog_block .item_block {
-        flex-basis: 50% !important;
-        max-width: 50% !important;
+        flex-basis: auto !important;
+        max-width: none !important;
+    }
+    /* Карточки сверх первой порции прячет скрипт. */
+    .nd-related .nd-catlist .catalog_block .item_block.nd-related-hidden {
+        display: none !important;
+    }
+    .nd-related__more {
+        margin-top: 24px;
+    }
+    .nd-related__more[hidden] {
+        display: none;
+    }
+}
+/* На десктопе лента листается стрелками — кнопка не нужна. */
+@media (min-width: 768px) {
+    .nd-related__more {
+        display: none;
     }
 }
 

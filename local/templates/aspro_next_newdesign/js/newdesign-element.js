@@ -329,16 +329,24 @@
 	function syncCharsLink() {
 		var link = document.querySelector('[data-block=".all_charakter"]');
 		if (!link) return;
+		/* Прячем обёртку, а не саму надпись: у скрытого span остаётся ряд
+		   .top_props, и на его месте висела пустая строка. */
+		var wrap = link.closest ? link.closest('.nd-pd__chars-link') : null;
+		var box = wrap || link;
 
 		var chars = $('.nd-pd__chars');
-		var target = (chars && chars.children.length) ? chars : $('.row.desc_tab .char_block');
+		/* .char_block тема печатает и пустым — характеристиками считаем только
+		   то, где вправду есть строки таблицы (тот же отбор, что в moveChars). */
+		var srcChars = $('.row.desc_tab .char_block');
+		if (srcChars && !srcChars.querySelector('tr')) srcChars = null;
+		var target = (chars && chars.children.length) ? chars : srcChars;
 
 		if (!target) {
-			link.hidden = true;
+			box.hidden = true;
 			return;
 		}
 
-		link.hidden = false;
+		box.hidden = false;
 		if (link.getAttribute('data-nd-chars-link')) return;
 		link.setAttribute('data-nd-chars-link', '1');
 
@@ -1152,6 +1160,10 @@
 		/* moveChars() выходит раньше, если характеристик нет — раскладку
 		   нижнего ряда в этом случае надо доопределить самим. */
 		syncBottomLayout();
+		/* И отдельно от moveChars(): та выходит раньше, когда переносить
+		   нечего или уже перенесли, а решить судьбу ссылки надо всегда —
+		   в разметке она стоит скрытой. */
+		syncCharsLink();
 		moveDocs();
 		tagCalcButton();
 		syncSkuTitles();

@@ -962,9 +962,73 @@
         sync();
     }
 
-    function initAllRelated() {
-        Array.prototype.forEach.call(document.querySelectorAll('.nd-related'), initRelated);
+    /* ------------------------------------------------------------------
+       На телефоне лента «С этим товаром покупают» — не карусель, а список
+       2×2 с кнопкой «Показать ещё» (Ирина, 2 сентября 2026). Карточки уже
+       все в разметке, догружать нечего: показываем первую порцию, лишние
+       помечаем классом, по кнопке открываем следующие четыре.
+
+       Пересчитываем и на смену ширины: с телефона на планшет лента снова
+       становится каруселью, и спрятанные карточки надо вернуть.
+       ------------------------------------------------------------------ */
+    var RELATED_STEP = 4;
+
+    function initRelatedList(box) {
+        var track = box.querySelector('.catalog_block');
+        var more = box.querySelector('.nd-related__more');
+        if (!track || !more) return;
+
+        var items = track.querySelectorAll('.item_block');
+        if (!items.length) return;
+
+        var isMobile = window.matchMedia('(max-width: 767px)').matches;
+
+        if (!isMobile) {
+            Array.prototype.forEach.call(items, function (el) {
+                el.classList.remove('nd-related-hidden');
+            });
+            more.hidden = true;
+            box.ndRelatedShown = 0;
+            return;
+        }
+
+        /* Сколько уже открыто, помним на узле: при ресайзе внутри телефона
+           порция не должна схлопываться обратно к четырём. */
+        var shown = box.ndRelatedShown || RELATED_STEP;
+        box.ndRelatedShown = shown;
+
+        function apply() {
+            Array.prototype.forEach.call(items, function (el, i) {
+                el.classList.toggle('nd-related-hidden', i >= box.ndRelatedShown);
+            });
+            more.hidden = box.ndRelatedShown >= items.length;
+        }
+
+        if (!box.ndRelatedMoreBound) {
+            box.ndRelatedMoreBound = true;
+            more.addEventListener('click', function () {
+                box.ndRelatedShown += RELATED_STEP;
+                apply();
+            });
+        }
+
+        apply();
     }
+
+    function initAllRelated() {
+        Array.prototype.forEach.call(document.querySelectorAll('.nd-related'), function (box) {
+            initRelated(box);
+            initRelatedList(box);
+        });
+    }
+
+    var relatedRz;
+    window.addEventListener('resize', function () {
+        clearTimeout(relatedRz);
+        relatedRz = setTimeout(function () {
+            Array.prototype.forEach.call(document.querySelectorAll('.nd-related'), initRelatedList);
+        }, 150);
+    });
 
     if (document.readyState !== 'loading') initAllRelated();
     else document.addEventListener('DOMContentLoaded', initAllRelated);

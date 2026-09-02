@@ -585,9 +585,20 @@
 }
 .catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__title { order: 1; }
 .catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__list  { order: 2; }
-.catalog_detail.element_newdesign .right_info .info_item .sku_props                 { order: 3; width: auto !important; flex: 1 1 300px; }
-.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block        { order: 4; width: auto !important; flex: 0 0 auto; margin-left: auto !important; }
-.catalog_detail.element_newdesign .right_info .info_item .prices_block              { order: 5; }
+/* Переключатель единиц стоит справа от ЦЕНЫ, а не в ряду чипов длины, как в
+   макете 20752:35994 (решение Ирины от 2 сентября 2026). Причина: у товаров с
+   длинным списком чипы переносятся на две строки (кляймер Latitudo Фикс —
+   шесть высот ножки), переключатель прилипал к первой строке и висел в воздухе.
+   Рядом с ценой место есть всегда.
+
+   Поэтому чипы забирают строку целиком (flex-basis 100%), а цена и единицы
+   делят следующую. */
+.catalog_detail.element_newdesign .right_info .info_item .sku_props                 { order: 3; width: auto !important; flex: 1 1 100%; }
+.catalog_detail.element_newdesign .right_info .info_item .prices_block              { order: 4; flex: 1 1 auto; width: auto !important; min-width: 0; }
+.catalog_detail.element_newdesign .right_info .info_item .measure-unit-block        { order: 5; width: auto !important; flex: 0 0 auto; margin-left: auto !important; }
+/* Кнопка покупки идёт своей строкой под ценой — иначе она встала бы третьей
+   в ряд с ценой и единицами. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block                 { flex: 1 1 100%; }
 .catalog_detail.element_newdesign .right_info .info_item .nd-pd__installment        { order: 6; }
 .catalog_detail.element_newdesign .right_info .info_item .buy_block                 { order: 7; }
 .catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc               { order: 8; }
@@ -2661,7 +2672,32 @@ a.nd-pd__installment:focus {
        applyBuyBar(); порядок им нужен на случай, когда панель не собралась. */
     .catalog_detail.element_newdesign .right_info .info_item .prices_block              { order: 7; }
     .catalog_detail.element_newdesign .right_info .info_item .buy_block                 { order: 8; }
-    .catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc               { order: 9; }
+
+    /* --- пустота под ссылками «Все характеристики» ---
+       Кнопки «Заказать расчёт» в мобильном макете нет, а её обёртка занимала
+       72 по высоте, и на телефоне под логистикой висел пустой экран
+       (Ирина, 2 сентября 2026). Пустой .r1 — оттуда же. */
+    .catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc,
+    .catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .r1 {
+        display: none;
+    }
+
+    /* --- отбивки внутри правой колонки (20510:14187) ---
+       В макете зазор между строками блока 16, а между подписью «Цвет: …» и
+       кружками 8. У ряда .row свой row-gap 20 — он и «склеивал» строки. */
+    .catalog_detail.element_newdesign .right_info .info_item .middle_info .row {
+        row-gap: 16px;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__list {
+        margin-top: -8px;
+    }
+    /* Между блоками в макете 3 (полоса) плюс по 24 полей с обеих сторон —
+       нижнее поле предыдущего блока задаём верхним отступом следующего.
+       Без него заголовок «Есть в наличии» подходил к чипам длины вплотную. */
+    .catalog_detail.element_newdesign .right_info .info_item .wraps.stores_wrapper,
+    .catalog_detail.element_newdesign .right_info .info_item .logistic {
+        margin-top: 24px;
+    }
 
     /* --- отбивка блоков (Frame 277131443) ---
        Блоки в макете белые и разделены полосой 3 цвета #EEEEEF во всю ширину
