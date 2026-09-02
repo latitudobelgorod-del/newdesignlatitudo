@@ -50,6 +50,13 @@ if ($ndHasActivity) {
         $GLOBALS[$arParams['FILTER_NAME']][] = [
             '<DATE_ACTIVE_TO' => ConvertDateTime(date('d.m.Y'), 'DD.MM.YYYY'),
         ];
+
+        /* Завершенные акции сортируем по дате окончания активности: сверху те,
+           что закончились последними. У активных сортировка прежняя (SORT). */
+        $arParams['SORT_BY1'] = 'ACTIVE_TO';
+        $arParams['SORT_ORDER1'] = 'DESC';
+        $arParams['SORT_BY2'] = 'SORT';
+        $arParams['SORT_ORDER2'] = 'ASC';
     }
 }
 
