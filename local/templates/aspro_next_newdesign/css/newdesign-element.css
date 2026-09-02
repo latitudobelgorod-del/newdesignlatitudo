@@ -1455,6 +1455,16 @@
     gap: 0 24px;
     margin: 0;
 }
+/* У бутстраповского .row есть клиринг через ::before и ::after (`content:" ";
+   display:table`). В блочной раскладке они невидимы, а во flex становятся
+   полноценными элементами нулевой ширины — и забирают по зазору 24 с каждой
+   стороны ряда. Из-за этого сетка блоков контент-менеджера стояла на 24
+   правее заголовка и не доходила до правого края (Ирина, 2 сентября 2026).
+   Та же болезнь была у ряда правой колонки, лечится так же. */
+.element_newdesign .editor.default_detail .sp-container > .row::before,
+.element_newdesign .editor.default_detail .sp-container > .row::after {
+    display: none;
+}
 .element_newdesign .editor.default_detail .sp-container > .row > [class*="col-"] {
     flex: 1 1 0;
     width: auto;
@@ -2788,4 +2798,80 @@ a.nd-pd__installment:focus {
     .catalog_detail.element_newdesign .nd-pd__sales-block {
         padding-top: 36px;
     }
+}
+
+/* ===================== просмотр чертежа профиля =====================
+   Чертежи профилей — очень широкие PNG (3186×551), и «во весь экран» они
+   растягивались в узкую полосу через всю страницу. По договорённости от
+   2 сентября 2026 показываем чертёж вписанным в серый квадрат 500×500 по
+   центру экрана. Окно своё, а не fancybox темы: там размеры проставляются
+   инлайном, и задать свой квадрат можно было бы только войной !important.
+
+   Разметку собирает js/newdesign-element.js (openProfileView). */
+.nd-pd__profview {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(16, 16, 20, .72);
+}
+.nd-pd__profview[hidden] {
+    display: none;
+}
+/* Квадрат из макета — 500. На узком экране ужимаем по ширине окна, оставаясь
+   квадратом: сторона считается от меньшей из двух величин. */
+.nd-pd__profview-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 500px;
+    height: 500px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vw - 32px);
+    padding: 24px;
+    border-radius: 6px;
+    background: #eeeeef;
+}
+/* Селектор «класс + тег»: у темы есть `.detail img { max-height:100% }` с той
+   же силой, и одиночный класс ей проигрывал. */
+.nd-pd__profview-box img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0;
+    object-fit: contain;
+}
+.nd-pd__profview-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+    cursor: pointer;
+}
+.nd-pd__profview-close:hover,
+.nd-pd__profview-close:focus {
+    background: rgba(255, 255, 255, .2);
+    color: #fff;
+}
+/* Пока окно открыто, страница под ним не прокручивается. */
+.nd-profview-open,
+.nd-profview-open body {
+    overflow: hidden;
 }

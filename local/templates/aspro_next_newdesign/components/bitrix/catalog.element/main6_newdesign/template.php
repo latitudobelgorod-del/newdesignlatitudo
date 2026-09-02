@@ -498,10 +498,16 @@ if ($ndProfileVal) {
 	<? if ($ndProfileSrc): ?>
 		<div class="nd-pd__profile">
 			<span class="nd-pd__profile-label">Профиль доски</span>
-			<? /* Своя группа fancybox, а не общая «nd-pd»: иначе чертёж попадёт в
-			      карусель фотографий товара и стрелки начнут листать на него.
-			      Ссылка ведёт на исходный файл — он и открывается во весь экран. */ ?>
-			<a class="nd-pd__profile-link" href="<?= htmlspecialcharsbx($ndProfileSrc) ?>" data-fancybox="nd-pd-profile" title="Профиль доски">
+			<? /* Открываем не через fancybox темы, а своим окном (см.
+			      js/newdesign-element.js, initProfileView): чертежи — очень
+			      широкие PNG (3186×551), и во весь экран fancybox растягивал их
+			      в узкую полосу через всю страницу. По макету-договорённости от
+			      2 сентября 2026 чертёж показывается вписанным в серый квадрат
+			      500×500 по центру экрана.
+
+			      href оставляем настоящий: без скрипта ссылка просто откроет
+			      файл, а не окажется мёртвой. */ ?>
+			<a class="nd-pd__profile-link" href="<?= htmlspecialcharsbx($ndProfileSrc) ?>" title="Профиль доски">
 				<img class="nd-pd__profile-img" src="<?= htmlspecialcharsbx($ndProfileSrc) ?>" alt="Профиль доски" loading="lazy">
 			</a>
 		</div>

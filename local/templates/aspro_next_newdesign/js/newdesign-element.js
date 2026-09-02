@@ -400,6 +400,64 @@
 		if ($('.nd-docs, .files_block', body)) box.hidden = false;
 	}
 
+	/* ================= просмотр чертежа профиля =================
+	   Чертежи профилей — очень широкие PNG (3186×551). Fancybox темы открывал
+	   их «во весь экран», то есть растягивал в узкую полосу через всю страницу,
+	   и рассмотреть сечение было нельзя. По договорённости от 2 сентября 2026
+	   показываем чертёж вписанным в серый квадрат 500×500 по центру экрана.
+
+	   Окно собираем один раз и держим в документе: картинка тяжёлая, и второе
+	   открытие не должно грузить её заново. Закрывается по клику вне квадрата,
+	   по крестику и по Esc. */
+	var profileView;
+
+	function openProfileView(src, alt) {
+		if (!profileView) {
+			profileView = document.createElement('div');
+			profileView.className = 'nd-pd__profview';
+			profileView.hidden = true;
+			profileView.innerHTML =
+				'<button type="button" class="nd-pd__profview-close" aria-label="Закрыть">' +
+				'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+				'<path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+				'</svg></button>' +
+				'<div class="nd-pd__profview-box"><img alt=""></div>';
+
+			profileView.addEventListener('click', function (e) {
+				/* Клик по самому квадрату не закрывает — только по фону и крестику. */
+				if (!e.target.closest || !e.target.closest('.nd-pd__profview-box')) closeProfileView();
+			});
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape' || e.keyCode === 27) closeProfileView();
+			});
+			document.body.appendChild(profileView);
+		}
+
+		var img = profileView.querySelector('img');
+		if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+		img.setAttribute('alt', alt || '');
+		profileView.hidden = false;
+		document.documentElement.classList.add('nd-profview-open');
+	}
+
+	function closeProfileView() {
+		if (!profileView) return;
+		profileView.hidden = true;
+		document.documentElement.classList.remove('nd-profview-open');
+	}
+
+	function initProfileView() {
+		var link = $('.nd-pd__profile-link', root);
+		if (!link || link.getAttribute('data-nd-profview')) return;
+		link.setAttribute('data-nd-profview', '1');
+
+		link.addEventListener('click', function (e) {
+			e.preventDefault();
+			var img = link.querySelector('img');
+			openProfileView(link.getAttribute('href'), img ? img.getAttribute('alt') : '');
+		});
+	}
+
 	/* ================= пустые логистические параметры =================
 	   У товара с торговыми предложениями тема печатает скелет из четырёх плиток
 	   (длина, ширина, толщина, вес) со своим style="display:none" и заполняет
@@ -1142,6 +1200,7 @@
 		   выходит раньше. */
 		initBar();
 		initDesc();
+		initProfileView();
 		syncLogistic();
 		gallery = $('.nd-pd__gallery', root);
 		if (!gallery) return;
