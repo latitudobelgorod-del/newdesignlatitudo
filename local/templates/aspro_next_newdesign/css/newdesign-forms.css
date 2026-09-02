@@ -628,3 +628,110 @@
     line-height: 16px;
     color: #8f8f9a;
 }
+
+/* ---- окно быстрого заказа (aspro:oneclickbuy.next/shop) ------------------
+
+   Разметка у него своя, не от form.result.new: обёрток .form_head/.form_body/
+   .form_footer нет, заголовок лежит в .popup-intro рядом с .form, кнопка —
+   в .but-r, а приписка «*после отправки заказа вам перезвонит наш менеджер»
+   оформлена ещё одним .licence_block, только без чекбокса.
+
+   Оформление полей, согласия и капчи выше подходит как есть — окно лежит
+   в той же .form-container. Здесь задаём то, что общим формам дают обёртки:
+   поля карточки, шаг между блоками, заголовок и кнопку. Порядок во флексе
+   тот же, что в макете: поля → согласие → капча → кнопка, приписка под
+   кнопкой.
+   ========================================================================= */
+.popup[class*="one_click_buy"] .form-container > div > .popup-intro {
+    padding: 20px 24px 0;
+}
+.popup[class*="one_click_buy"] .form-container .pop-up-title {
+    margin: 0;
+    padding: 0;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 34px;
+    color: #0c0d0e;
+    text-align: left;
+    text-transform: none;
+}
+/* Шаг 16 и поля карточки: у общих форм они на .form_body/.form_footer. */
+.popup[class*="one_click_buy"] .form-container > div > .form {
+    gap: 16px;
+    padding: 20px 24px 24px !important;
+}
+/* Тема даёт полям свою заливку классом .bg — в макете поле белое с рамкой. */
+.popup[class*="one_click_buy"] .form-container .form-control.bg {
+    background: none !important;
+    border: 0 !important;
+}
+/* Согласие в общих формах лежит в .form_footer, то есть ниже капчи. Здесь оно
+   идёт до неё по разметке — ставим порядок руками, чтобы окна не расходились. */
+.popup[class*="one_click_buy"] .form-container .licence_block:has(input[type="checkbox"]) {
+    order: 25;
+}
+/* Кнопка — та же, что в подвале общих форм. */
+.popup[class*="one_click_buy"] .form-container .but-r {
+    order: 30;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.popup[class*="one_click_buy"] .form-container .but-r .btn {
+    display: block;
+    float: none !important;
+    width: 100%;
+    height: 56px;
+    margin: 0 !important;
+    padding: 0 16px;
+    border: 0 !important;
+    border-radius: 4px;
+    background: #c60000 !important;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 16px;
+    color: #fff !important;
+    text-transform: none;
+    cursor: pointer;
+    transition: background .2s ease;
+}
+.popup[class*="one_click_buy"] .form-container .but-r .btn:hover,
+.popup[class*="one_click_buy"] .form-container .but-r .btn:focus,
+.popup[class*="one_click_buy"] .form-container .but-r .btn:active {
+    background: #a80000 !important;
+    color: #fff !important;
+}
+/* Приписка про менеджера — .licence_block без чекбокса: ни клетки, ни
+   отбивки под неё, обычная мелкая строка под кнопкой. */
+.popup[class*="one_click_buy"] .form-container .licence_block:not(:has(input[type="checkbox"])) {
+    order: 40;
+    margin-top: -4px !important;
+}
+.popup[class*="one_click_buy"] .form-container .licence_block:not(:has(input[type="checkbox"])) label {
+    padding: 0 !important;
+    font-size: 14px;
+    line-height: 20px;
+    color: #525264 !important;
+    cursor: default;
+}
+.popup[class*="one_click_buy"] .form-container .licence_block:not(:has(input[type="checkbox"])) label:before {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .popup[class*="one_click_buy"] .form-container > div > .popup-intro {
+        padding: 36px 16px 0;
+    }
+    .popup[class*="one_click_buy"] .form-container .pop-up-title {
+        font-size: 24px;
+        line-height: 29px;
+    }
+    .popup[class*="one_click_buy"] .form-container > div > .form {
+        padding: 20px 16px 24px !important;
+    }
+    .popup[class*="one_click_buy"] .form-container .but-r .btn {
+        font-size: 15px;
+        line-height: 15px;
+    }
+}
