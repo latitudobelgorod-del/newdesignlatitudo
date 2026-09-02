@@ -2547,3 +2547,178 @@ a.nd-pd__installment:focus {
     padding-left: 0 !important;
     overflow: visible !important;
 }
+
+/* ============================================================================
+   Мобильная карточка — сверка с макетом (Figma 20510:14156, «Карточка товара»
+   360, x=13740). Правки от 2 сентября 2026.
+
+   Блок идёт последним в файле намеренно: он доводит то, что выше уже задано
+   десктопными правилами с длинными селекторами, а медиа-запрос специфичности
+   не добавляет — перебить их можно только порядком.
+   ========================================================================= */
+@media (max-width: 767px) {
+    /* --- размеры заголовков ---
+       В макете на телефоне заголовок товара и заголовки блоков «Описание»,
+       «Характеристики», «Документы», «Доставка», «Акции» — все 26/28.6 w800.
+       Разъезд шёл оттого, что часть из них ловила правило 991px (28/34), а
+       характеристики оставались с десктопными 36/40.
+
+       !important — вынужденно: в мобильной части сборки темы лежит
+       `body h1 { font-size:26px; line-height:30px }`, и она приходит позже
+       нашего файла. Специфичности тут не хватает ни одному селектору, а
+       трогать сборку темы нельзя. */
+    .catalog_detail.element_newdesign > h1,
+    .element_newdesign .nd-pd__h2,
+    .catalog_detail.element_newdesign .nd-pd__chars h4,
+    .catalog_detail.element_newdesign .nd-pd__chars .char_block > [class*="col-"] > h4,
+    .catalog_detail.element_newdesign .row.desc_tab h4 {
+        font-size: 26px !important;
+        line-height: 28.6px !important;
+        font-weight: 800;
+    }
+    /* Ленты ниже карточки — крупнее: 30/33 (20511:14367 и 20511:14897). */
+    .element_newdesign .nd-related__title,
+    .nd-related__title {
+        font-size: 30px !important;
+        line-height: 33px !important;
+        font-weight: 800;
+    }
+
+    /* --- кнопки поверх фото (20510:14174 и 20510:15265) ---
+       Круглые 32 с заливкой «чёрный 64%», без светлой рамки: она осталась от
+       десктопных плашек 48 и на фото читалась ободком. */
+    .nd-pd__video,
+    .nd-pd__zoom {
+        border: 0;
+        background: rgba(0, 0, 0, .64);
+    }
+    /* Значок видео в макете — сплошной треугольник 16 (ico Media/Play Fill), а
+       не «плей в рамке», который стоял здесь раньше. Рисуем фоном: сама иконка
+       приходит из разметки и на десктопе остаётся прежней. */
+    .nd-pd__video svg {
+        display: none;
+    }
+    .nd-pd__video {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M13.495 7.124 4.831 2.134C4.164 1.75 3.333 2.236 3.333 3.011v9.978c0 .775.831 1.261 1.498.877l8.664-4.99a1.012 1.012 0 0 0 0-1.752Z' fill='%23fff'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 16px 16px;
+    }
+
+    /* --- точки под фото (20511:14968) ---
+       Текущее фото — не сплошная тёмная пилюля, а дорожка 40×8 «чёрный 64%», в
+       которой закрашена белым левая часть 24. Остальные точки — 8×8 того же
+       тёмного цвета. */
+    .nd-pd__dot.is-active {
+        position: relative;
+        overflow: hidden;
+    }
+    .nd-pd__dot.is-active::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 24px;
+        border-radius: 4px;
+        background: #fff;
+    }
+
+    /* --- «Профиль доски» (20510:14177) ---
+       Чертёж в мобильном макете 89×12 — вчетверо ниже десктопных 32. Крупная
+       картинка перетягивала на себя всю строку 44, подпись рядом терялась.
+       Десктопную высоту не трогаем: там своя договорённость (см. выше по файлу,
+       правило .nd-pd__profile .nd-pd__profile-img). */
+    .nd-pd__profile .nd-pd__profile-img {
+        max-height: 12px;
+    }
+
+    /* --- «Доступно в рассрочку для физических лиц» ---
+       Это ссылка на страницу рассрочки — подчёркиваем, чтобы читалась ссылкой
+       (Ирина, 2 сентября 2026; в макете подчёркивания нет, но и ссылкой текст
+       там не помечен). Цвет и кегль — из макета: 14/19.6 w500 #8F8F9A. */
+    .catalog_detail.element_newdesign .right_info .info_item .nd-pd__installment,
+    .catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .nd-pd__installment {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        color: #8f8f9a;
+    }
+
+    /* --- порядок блоков (20510:14156) ---
+       рассрочка → метка о цене → цвет → длина → наличие → логистика → ссылки
+       «Все характеристики» и «Примеры применения материала».
+
+       Строку рассрочки и блок наличия переносит js/newdesign-element.js: они
+       лежат в разных родителях, и order там бессилен. Здесь — только порядок
+       внутри ряда .middle_info .row, куда скрипт кладёт наличие. */
+    .catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__title { order: 1; }
+    .catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__list  { order: 2; }
+    .catalog_detail.element_newdesign .right_info .info_item .sku_props                 { order: 3; }
+    .catalog_detail.element_newdesign .right_info .info_item .wraps.stores_wrapper      { order: 4; }
+    .catalog_detail.element_newdesign .right_info .info_item .logistic                  { order: 5; }
+    .catalog_detail.element_newdesign .right_info .info_item .top_props                 { order: 6; }
+    /* Цену, единицы и кнопку покупки на телефоне уносит в нижнюю панель
+       applyBuyBar(); порядок им нужен на случай, когда панель не собралась. */
+    .catalog_detail.element_newdesign .right_info .info_item .prices_block              { order: 7; }
+    .catalog_detail.element_newdesign .right_info .info_item .buy_block                 { order: 8; }
+    .catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc               { order: 9; }
+
+    /* --- отбивка блоков (Frame 277131443) ---
+       Блоки в макете белые и разделены полосой 3 цвета #EEEEEF во всю ширину
+       экрана, а не волосяной чертой по краю содержимого.
+
+       Полосу рисуем псевдоэлементом шириной 100vw, а не рамкой с
+       отрицательными полями: блоки лежат на разной глубине — часть прямо в
+       колонке, часть внутри бутстраповского ряда с его собственными полями, и
+       одной величины отступа на всех нет. Псевдоэлемент от вложенности не
+       зависит.
+
+       Поля блоков из макета: у наличия и логистики 24, у разделов ниже
+       (описание, характеристики, документы, доставка, акции) 36. */
+    .catalog_detail.element_newdesign .right_info .info_item .logistic,
+    .catalog_detail.element_newdesign .right_info .info_item .wraps.stores_wrapper,
+    .catalog_detail.element_newdesign .nd-pd__info,
+    .catalog_detail.element_newdesign .nd-pd__chars,
+    .catalog_detail.element_newdesign .nd-pd__docs,
+    .catalog_detail.element_newdesign .nd-pd__delivery,
+    .catalog_detail.element_newdesign .nd-pd__sales-block {
+        position: relative;
+        border-top: 0;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item .logistic::before,
+    .catalog_detail.element_newdesign .right_info .info_item .wraps.stores_wrapper::before,
+    .catalog_detail.element_newdesign .nd-pd__info::before,
+    .catalog_detail.element_newdesign .nd-pd__chars::before,
+    .catalog_detail.element_newdesign .nd-pd__docs::before,
+    .catalog_detail.element_newdesign .nd-pd__delivery::before,
+    .catalog_detail.element_newdesign .nd-pd__sales-block::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        /* 16 — поля .wrapper_inner: ровно на столько блоки отстоят от краёв
+           экрана. Через 100vw не делаем: вьюпортная ширина считается вместе с
+           полосой прокрутки, полоса вылезала на 8px за документ и на телефоне
+           появлялась горизонтальная прокрутка. */
+        left: -16px;
+        right: -16px;
+        height: 3px;
+        background: #eeeeef;
+    }
+    /* Полосе над наличием и логистикой мешал `overflow: hidden` у .right_info
+       (он выше по файлу и нужен на десктопе, чтобы колонка держала обтекание).
+       На телефоне колонка идёт во всю ширину и обтекать в ней нечему. */
+    .element_newdesign .item_main_info .right_info {
+        overflow: visible;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item .logistic,
+    .catalog_detail.element_newdesign .right_info .info_item .wraps.stores_wrapper {
+        padding-top: 24px;
+    }
+    .catalog_detail.element_newdesign .nd-pd__info,
+    .catalog_detail.element_newdesign .nd-pd__chars,
+    .catalog_detail.element_newdesign .nd-pd__docs,
+    .catalog_detail.element_newdesign .nd-pd__delivery,
+    .catalog_detail.element_newdesign .nd-pd__sales-block {
+        padding-top: 36px;
+    }
+}

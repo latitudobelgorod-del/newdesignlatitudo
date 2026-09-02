@@ -927,12 +927,38 @@
 		}
 	}
 
+	/* Наличие по городам в мобильном макете (20510:14156) идёт ПОСЛЕ выбора
+	   цвета и длины и перед логистическими параметрами. В разметке темы оно
+	   лежит прямо в .info_item, а цвет, длина и логистика — во вложенном ряду
+	   .middle_info .row, поэтому одним order его туда не поставить: order
+	   работает только среди соседей. Переносим узел в тот же ряд, перед
+	   логистикой, а порядок внутри ряда доводит css (order у .stores_wrapper).
+
+	   Узел не наш, но торговый JS темы ищет склады по id (#stores) и по классам
+	   внутри — от смены родителя это не ломается. */
+	function applyStores(isMobile) {
+		var stores = root.querySelector('.wraps.stores_wrapper');
+		if (!stores) return;
+		rememberHome(stores, 'stores');
+		var home = buyHomes.stores;
+
+		if (isMobile) {
+			var logistic = root.querySelector('.middle_info .row .logistic');
+			if (logistic && logistic.parentNode && stores.nextElementSibling !== logistic) {
+				logistic.parentNode.insertBefore(stores, logistic);
+			}
+		} else if (home && home.parent && stores.parentNode !== home.parent) {
+			home.parent.insertBefore(stores, home.next);
+		}
+	}
+
 	function applyBuyBar() {
 		if (!root) return;
 		var isMobile = window.matchMedia('(max-width: 767px)').matches;
 		var bar = document.getElementById('nd-pd-buybar');
 
 		applyInstallment(isMobile);
+		applyStores(isMobile);
 
 		if (!isMobile) {
 			if (!bar) return;
