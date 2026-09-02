@@ -1266,6 +1266,12 @@
     text-decoration: underline;
     cursor: pointer;
 }
+/* Стрелка «\f107» из FontAwesome, которую тема вешает на .choise::before
+   (template_styles.css), в макете не нарисована — обе ссылки там просто
+   подчёркнуты (Ирина, 2 сентября 2026). */
+.catalog_detail.element_newdesign .right_info .info_item .top_props .props .choise::before {
+    content: none;
+}
 
 /* Выделение выбранного цвета. Тема рисует его через .sku-list__item.active::after —
    это квадрат 52×52 с чёрной рамкой 1px и радиусом 7, он и выглядел «странной
@@ -2694,9 +2700,34 @@ a.nd-pd__installment:focus {
     /* Между блоками в макете 3 (полоса) плюс по 24 полей с обеих сторон —
        нижнее поле предыдущего блока задаём верхним отступом следующего.
        Без него заголовок «Есть в наличии» подходил к чипам длины вплотную. */
-    .catalog_detail.element_newdesign .right_info .info_item .wraps.stores_wrapper,
-    .catalog_detail.element_newdesign .right_info .info_item .logistic {
+    /* Селектор с .middle_info .row внутри — вынужденно длинный: наличие и
+       логистика лежат в бутстраповском ряду, а на его детей стоит правило
+       `.middle_info .row > .col-md-6 > * { margin: 0; padding: 0 }` (выше по
+       файлу, оно чинит раскладку темы). Оно длиннее коротких селекторов и
+       съедало и отступ, и поле — на телефоне заголовок «Есть в наличии» шёл
+       вплотную к чипам длины (Ирина, 2 сентября 2026). */
+    .catalog_detail.element_newdesign .right_info .info_item .middle_info .row .wraps.stores_wrapper,
+    .catalog_detail.element_newdesign .right_info .info_item .middle_info .row .logistic {
         margin-top: 24px;
+        padding-top: 24px;
+    }
+
+    /* Первый блок правой колонки в макете тоже отбит полосой и полем 24 —
+       строка «Доступно в рассрочку» шла сразу за чертой под галереей. */
+    .catalog_detail.element_newdesign .right_info .info_item > .nd-pd__installment {
+        display: block;
+        position: relative;
+        margin-top: 0;
+        padding-top: 24px;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item > .nd-pd__installment::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -16px;
+        right: -16px;
+        height: 3px;
+        background: #eeeeef;
     }
 
     /* --- отбивка блоков (Frame 277131443) ---
