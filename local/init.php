@@ -124,3 +124,32 @@ function ndKeepJsonResponsesValid(&$content)
 
     $content = $body;
 }
+
+/**
+ * Приоритет своих марок в поиске: у каждого товара каталога держим числовой
+ * вес марки (EasyDecking — 1, LATITUDO — 2, остальные — 3). По нему сортирует
+ * выдачу bitrix:catalog.section: марка у товара — привязка к справочнику, и
+ * сортировать по ней база умеет только по ID бренда, а нужный порядок из
+ * номеров не выходит (Ирина, 2 сентября 2026).
+ *
+ * Пересчитываем при каждом сохранении товара — тогда смена марки в админке и
+ * обмен с 1С не рассинхронизируют вес. Разовая заливка по каталогу —
+ * tools/nd_brand_weight_fill.php.
+ *
+ * Логика в local/php_interface/include/latitudo_brand_weight.php.
+ */
+AddEventHandler('iblock', 'OnAfterIBlockElementAdd', 'ndSyncBrandWeight');
+AddEventHandler('iblock', 'OnAfterIBlockElementUpdate', 'ndSyncBrandWeight');
+
+function ndSyncBrandWeight(&$arFields)
+{
+    /* Инфоблок сверяем числом, а не константой класса: файл подключаем уже
+       после проверки, чтобы на сохранении любого другого инфоблока (а их на
+       сайте десяток) не тянуть его впустую. */
+    if ((int)$arFields['IBLOCK_ID'] !== 19) {
+        return;
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_brand_weight.php';
+    LatitudoBrandWeight::onAfterSave($arFields);
+}

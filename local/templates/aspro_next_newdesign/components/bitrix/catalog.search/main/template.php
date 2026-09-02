@@ -24,6 +24,8 @@ global $USER;
    привязки предложений — она добавляла к выборке товары, чьи предложения
    попали в результаты поиска, а это теперь сделано на шаг раньше. */
 require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_quick_search.php';
+/* Приоритет своих марок на выдаче — сортировка ниже по файлу. */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_brand_weight.php';
 
 $arElements = LatitudoQuickSearch::findProducts(isset($_REQUEST['q']) ? $_REQUEST['q'] : '');
 
@@ -117,6 +119,26 @@ if (is_array($arElements) && !empty($arElements)) {
 		   этой переменной нет, блок остаётся пустым. */?>
 		<? include(__DIR__ . "/../../catalog/main/sort_newdesign.php"); ?>
 
+		<? /* Свои марки первыми — тот же порядок, что в подсказках шапки:
+		      EasyDecking, следом LATITUDO, потом остальные (Ирина, 2 сентября
+		      2026). Сортируем по служебному свойству-весу: марка у товара —
+		      привязка к справочнику, и база умеет упорядочить её только по ID
+		      бренда, а нужного порядка из номеров не выходит. Вес проставляет
+		      обработчик из local/init.php, разовая заливка —
+		      local/tools/nd_brand_weight_fill.php.
+
+		      Вес — первый ключ только для сортировки по умолчанию. Выбрал
+		      человек «сначала дешёвые» — его выбор главнее, иначе список
+		      разъехался бы на три ценовых лесенки подряд; марка тогда решает
+		      только равенство цен. */ ?>
+		<?
+		$ndBrandSort  = 'PROPERTY_'.LatitudoBrandWeight::CODE;
+		$ndSortField  = ($sort === 'sort') ? $ndBrandSort : $sort;
+		$ndSortOrder  = ($sort === 'sort') ? 'asc'        : $sort_order;
+		$ndSortField2 = ($sort === 'sort') ? 'sort'       : $ndBrandSort;
+		$ndSortOrder2 = ($sort === 'sort') ? $sort_order  : 'asc';
+		?>
+
 		<div class="ajax_load <?=$display;?>">
 		<div class="catalog <?=$display;?> search">
 			<?
@@ -130,8 +152,10 @@ if (is_array($arElements) && !empty($arElements)) {
 					"TYPE_SKU" => $arTheme["TYPE_SKU"]["VALUE"],
 					"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
 					"IBLOCK_ID" => $arParams["IBLOCK_ID"],
-					"ELEMENT_SORT_FIELD" => $sort,
-					"ELEMENT_SORT_ORDER" => $sort_order,
+					"ELEMENT_SORT_FIELD" => $ndSortField,
+					"ELEMENT_SORT_ORDER" => $ndSortOrder,
+					"ELEMENT_SORT_FIELD2" => $ndSortField2,
+					"ELEMENT_SORT_ORDER2" => $ndSortOrder2,
 					"PAGE_ELEMENT_COUNT" => $arParams["PAGE_ELEMENT_COUNT"],
 					"LINE_ELEMENT_COUNT" => $arParams["LINE_ELEMENT_COUNT"],
 					"HIDE_NOT_AVAILABLE" => $arParams["HIDE_NOT_AVAILABLE"],
