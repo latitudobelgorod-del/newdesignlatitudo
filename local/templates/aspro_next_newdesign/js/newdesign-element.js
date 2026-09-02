@@ -300,6 +300,15 @@
 		   в ряду .desc_tab. */
 		var block = $('.row.desc_tab .char_block');
 		if (!block) return;
+
+		/* Пустой .char_block тема печатает и там, где характеристик нет вовсе
+		   (комплект LED-светильников ТеррaСвет, 2 сентября 2026). Перенеси мы
+		   его — колонка нижнего ряда стала бы непустой, syncBottomLayout не
+		   поставил бы nd-pd__bottom--nochars, и документы с доставкой остались
+		   бы в правой половине против пустой левой. Считаем характеристиками
+		   только то, где вправду есть строки таблицы. */
+		if (!block.querySelector('tr')) return;
+
 		var node = block;
 		while (node.parentElement && !node.parentElement.classList.contains('desc_tab')) {
 			node = node.parentElement;

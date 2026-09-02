@@ -1508,8 +1508,11 @@
     font-weight: 800;
     color: #101014;
 }
-/* пустой ряд-источник после переноса не должен давать отступов и линии */
-.catalog_detail.element_newdesign .row.desc_tab:not(:has(.char_block)) {
+/* Пустой ряд-источник после переноса не должен давать отступов и линии.
+   Условие по строкам таблицы, а не по самому .char_block: там, где
+   характеристик нет, тема всё равно печатает пустой .char_block, и скрипт его
+   не забирает — по нему ряд считался бы непустым и рисовал свой <hr>. */
+.catalog_detail.element_newdesign .row.desc_tab:not(:has(.char_block tr)) {
     display: none;
 }
 .catalog_detail.element_newdesign .char_block table {
