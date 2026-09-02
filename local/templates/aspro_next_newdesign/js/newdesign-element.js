@@ -383,6 +383,87 @@
 		if ($('.nd-docs, .files_block', body)) box.hidden = false;
 	}
 
+	/* ================= свёрнутое описание =================
+	   По макету (20475:75842, узел INFO 20489:34210) описание обрезано по
+	   высоте, поверх нижней части лежит шторка со ссылкой «Показать все», и
+	   характеристики начинаются сразу за ней. Разметка и стили — в шаблоне
+	   main6_newdesign и newdesign-element.css.
+
+	   Сворачивает блок скрипт, а не CSS: описание редакторское, его высота
+	   заранее неизвестна, а на коротких описаниях шторка не нужна вовсе.
+	   Без скрипта описание видно целиком — это и есть безопасное состояние. */
+	var descBox, descMore, descLabel;
+
+	/* Высота обрезки из макета: 280 на десктопе и 208 на телефоне (там в те же
+	   280 внешних входят поля блока). */
+	function descLimit() {
+		return window.matchMedia('(max-width: 767px)').matches ? 208 : 280;
+	}
+
+	/* Сворачиваем не всё, что переросло обрезку: если описание длиннее её на
+	   пару строк, шторка высотой 96 съест больше, чем спрячет. Запас — высота
+	   самой шторки. */
+	function syncDesc() {
+		if (!descBox || !descMore) return;
+		/* Раскрыл сам — больше не трогаем: пересчёт по загрузке картинок или
+		   повороту экрана иначе схлопнул бы блок под руками. */
+		if (descBox.getAttribute('data-nd-open') === '1') return;
+
+		/* Меряем в развёрнутом виде и с убранной шторкой: развёрнутой она стоит
+		   в потоке и сама добавляет высоту. */
+		descMore.hidden = true;
+		descBox.classList.remove('is-collapsed');
+		var full = descBox.scrollHeight;
+		var limit = descLimit();
+
+		if (full <= limit + 96) return;
+
+		descBox.classList.add('is-collapsed');
+		descMore.hidden = false;
+	}
+
+	function toggleDesc() {
+		var collapsed = descBox.classList.toggle('is-collapsed');
+
+		descBox.setAttribute('data-nd-open', collapsed ? '0' : '1');
+		descMore.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+		if (descLabel) descLabel.textContent = collapsed ? 'Показать все' : 'Скрыть';
+
+		/* При сворачивании страница «прыгает»: ссылка уезжает вверх вместе с
+		   содержимым, и под курсором оказывается уже другой блок. Возвращаем
+		   верх описания под шапку, если он ушёл выше окна. */
+		if (collapsed) {
+			var top = descBox.getBoundingClientRect().top;
+			if (top < navHeight()) {
+				window.scrollTo(0, window.pageYOffset + top - navHeight() - 24);
+			}
+		}
+	}
+
+	function initDesc() {
+		descBox = $('.nd-pd__desc', root);
+		descMore = descBox && $('.nd-pd__desc-more', descBox);
+		if (!descBox || !descMore) return;
+
+		descLabel = $('.nd-pd__desc-more-text', descMore);
+		descMore.setAttribute('aria-expanded', 'false');
+		descMore.addEventListener('click', toggleDesc);
+
+		syncDesc();
+
+		/* Картинки блоков «Цвета и фактуры» грузятся лениво и до загрузки почти
+		   ничего не занимают — до неё высота содержимого заведомо меньше
+		   настоящей. Пересчитываем по load и ещё пару раз следом. */
+		window.addEventListener('load', syncDesc);
+		[300, 1000, 2500].forEach(function (ms) { setTimeout(syncDesc, ms); });
+
+		var rz;
+		window.addEventListener('resize', function () {
+			clearTimeout(rz);
+			rz = setTimeout(syncDesc, 150);
+		});
+	}
+
 	/* ================= подпись выбора предложения =================
 	   В макете (Figma 20752:35990) над плашками стоит «Длина: 3000мм» — с
 	   выбранным значением, как у цвета выше. Тема печатает только название
@@ -980,9 +1061,11 @@
 	function init() {
 		root = $('.catalog_detail.element_newdesign');
 		if (!root) return;
-		/* Панель ставим до проверки галереи: она нужна и там, где своей галереи
-		   нет (товар без фотографий), а дальше init() выходит раньше. */
+		/* Панель и свёрнутое описание ставим до проверки галереи: они нужны и
+		   там, где своей галереи нет (товар без фотографий), а дальше init()
+		   выходит раньше. */
 		initBar();
+		initDesc();
 		gallery = $('.nd-pd__gallery', root);
 		if (!gallery) return;
 		photo = $('.nd-pd__photo', gallery);

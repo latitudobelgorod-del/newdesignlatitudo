@@ -1397,6 +1397,67 @@
 /* Блок «Галерея» sprint.editor оформлен общим правилом в css/newdesign.css —
    он одинаков на всех страницах нового дизайна. */
 
+/* ===================== свёрнутое описание =====================
+   Макет 20475:75842, узел INFO 20489:34210: описание обрезано по высоте 280,
+   поверх нижней части — шторка 96 с заливкой «прозрачный → белый к 80%» и
+   ссылкой «Показать все» (18/25 w500, красная, стрелка 16 справа, 4 между).
+   До нижнего края обрезки от ссылки 8.
+
+   Свернуть блок можно только скриптом: высота содержимого заранее неизвестна,
+   и на коротких описаниях шторка не нужна. Класс is-collapsed и снятие hidden
+   с кнопки — на newdesign-element.js. Без скрипта описание видно целиком.
+
+   Развёрнутое состояние в макете не нарисовано (в «развёрнутом» фрейме
+   осталась та же ссылка): по договорённости от 2 сентября 2026 ссылка
+   становится «Скрыть», стрелка разворачивается вверх, градиента нет, и она
+   уходит в поток под содержимое. */
+.element_newdesign .nd-pd__desc {
+    position: relative;
+}
+.element_newdesign .nd-pd__desc.is-collapsed {
+    max-height: 280px;
+    overflow: hidden;
+}
+.element_newdesign .nd-pd__desc-more {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    margin: 24px 0 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: #c60000;
+    font-size: 18px;
+    line-height: 25px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+}
+.element_newdesign .nd-pd__desc-more[hidden] {
+    display: none;
+}
+/* Свёрнуто — шторка во всю ширину, прижата к нижнему краю обрезки. */
+.element_newdesign .nd-pd__desc.is-collapsed .nd-pd__desc-more {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 96px;
+    margin: 0;
+    padding: 0 0 8px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #fff 80%);
+}
+/* Стрелка на 3 выше базовой линии текста — как в макете. */
+.element_newdesign .nd-pd__desc-more-ico {
+    flex: 0 0 auto;
+    margin-bottom: 3px;
+    transform: rotate(180deg);
+    transition: transform .2s;
+}
+.element_newdesign .nd-pd__desc.is-collapsed .nd-pd__desc-more-ico {
+    transform: none;
+}
+
 /* ===================== панель мобильной карточки =====================
    Макет «Карточка товара» 20512:84167, фрейм «Catalog»: полоса 360×64, внутри
    строка 44 с полями 6 по бокам и 10 сверху; стрелка «назад» 44×44 с иконкой
@@ -1863,6 +1924,22 @@
     .catalog_detail.element_newdesign .nd-pd__sales-block {
         padding-top: 20px;
         border-top: 1px solid rgba(82, 82, 100, .25);
+    }
+    /* Свёрнутое описание на телефоне (макет 20510:14156, узел 20510:14227):
+       та же обрезка 280 по внешнему краю блока, но в неё входят поля 36 сверху
+       и снизу — на содержимое остаётся 208, а шторка над ним 104. Верхнее поле
+       у нас 20 (общий ритм блоков карточки выше), поэтому 280 не повторяем:
+       обрезаем ровно содержимое, ссылка встаёт вплотную к нижнему краю. */
+    .element_newdesign .nd-pd__desc.is-collapsed {
+        max-height: 208px;
+    }
+    .element_newdesign .nd-pd__desc.is-collapsed .nd-pd__desc-more {
+        height: 104px;
+        padding-bottom: 0;
+    }
+    .element_newdesign .nd-pd__desc-more {
+        font-size: 16px;
+        line-height: 24px;
     }
     /* --- панель карточки вместо шапки сайта (макет 20512:84167) ---
        Панель прибита к верху окна на месте шапки: место под неё уже держит

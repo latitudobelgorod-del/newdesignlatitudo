@@ -1849,6 +1849,15 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 			<?if($arResult["DETAIL_TEXT"] || ($arResult["PREVIEW_TEXT"]) || ($arResult["PROPERTIES"]["EDITOR1"]) || ((count($arResult["PROPERTIES"][$instr_prop]["VALUE"]) && is_array($arResult["PROPERTIES"][$instr_prop]["VALUE"])) || count($arResult["SECTION_FULL"]["UF_FILES"]))):?>
 			<div class="nd-pd__info">
 
+					<? /* Описание в макете свёрнуто до 280 по высоте, дальше градиент и
+					      ссылка «Показать все» (фрейм «Карточка товара» 20475:75842,
+					      узел INFO 20489:34210). Обёртка .nd-pd__desc — это то, что
+					      обрезается; ряд .row.desc_tab с источниками характеристик и
+					      документов остаётся снаружи, его разбирает newdesign-element.js.
+					      Свёрнутым блок делает скрипт, а не разметка: без него (или пока
+					      он не отработал) описание видно целиком. */ ?>
+					<div class="nd-pd__desc">
+
 						<? /* Заголовок «Описание» из макета: у темы его нет, текст шёл сразу
 						      после карточки. Ставим, только если описание вправду есть. */ ?>
 						<?if(strlen($arResult["PREVIEW_TEXT"]) || strlen($arResult["DETAIL_TEXT"])):?>
@@ -1883,6 +1892,19 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
                     )
                 );?>
             </div>
+
+						<? /* Шторка со ссылкой — последним узлом внутри обрезаемой обёртки,
+						      как «Down» в макете: прижата к её нижнему краю поверх текста.
+						      Ставим всегда, но с hidden: показывает её newdesign-element.js
+						      только там, где описание вправду не помещается в свёрнутую
+						      высоту. Кнопка, а не ссылка, — перехода по ней нет. */ ?>
+						<button type="button" class="nd-pd__desc-more" hidden>
+							<span class="nd-pd__desc-more-text">Показать все</span>
+							<svg class="nd-pd__desc-more-ico" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+								<path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</button>
+					</div><?/* /.nd-pd__desc */?>
 
 <?if(!$showProps && $arResult['OFFERS']){
 			foreach($arResult['OFFERS'] as $arOffer){
