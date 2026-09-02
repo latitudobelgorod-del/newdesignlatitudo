@@ -4354,11 +4354,19 @@ body .nd-filter .bx_filter_block .values_expander {
    см. порядок поиска в bitrix/components/sprint.editor/blocks/class.php:365.
    В aspro-catalog-section-top-tag класс стоит только на кнопке формы: ссылку
    этот блок рисует чипом тега раздела (.tag_ank), у него своё наведение.
+
+   Тем же правилом красим кнопки форм, вставленные разметкой темы прямо
+   в текст страницы (`.btn.btn-default` с `data-event="jqm"` — так сделана
+   «Обсудить проект» в `projects/index_projects_bottom_text.php`). Класса
+   `nd-editor-btn` у них нет: включаемые области правятся из публички и общие
+   со старым дизайном, где кнопка должна остаться синей, — поэтому цепляемся
+   за разметку темы, а не за свой класс.
    Классы темы из разметки не убраны: на .btn.btn-default завязаны её скрипты
    форм, а сам шаблон блока общий по смыслу со старым дизайном. Отсюда и
    !important — у темы селекторы из двух классов, а внутри .editor она ещё и
    подчёркивает все ссылки. */
-.nd-editor-btn {
+.nd-editor-btn,
+.btn.btn-default[data-event="jqm"] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -4384,7 +4392,9 @@ body .nd-filter .bx_filter_block .values_expander {
     transition: background-color .15s ease;
 }
 .nd-editor-btn:hover,
-.nd-editor-btn:focus {
+.nd-editor-btn:focus,
+.btn.btn-default[data-event="jqm"]:hover,
+.btn.btn-default[data-event="jqm"]:focus {
     background: #a80000 !important;
     text-decoration: none !important;
 }
@@ -4393,19 +4403,26 @@ body .nd-filter .bx_filter_block .values_expander {
 .nd-editor-btn:hover,
 .nd-editor-btn:hover span,
 .nd-editor-btn:focus,
-.nd-editor-btn:focus span {
+.nd-editor-btn:focus span,
+.btn.btn-default[data-event="jqm"],
+.btn.btn-default[data-event="jqm"] span,
+.btn.btn-default[data-event="jqm"]:hover span,
+.btn.btn-default[data-event="jqm"]:focus span {
     color: #fff !important;
 }
 /* Обёртка кнопки-формы: у темы это блочный .block с собственными полями. */
 .nd-editor-btn:before,
-.nd-editor-btn:after {
+.nd-editor-btn:after,
+.btn.btn-default[data-event="jqm"]:before,
+.btn.btn-default[data-event="jqm"]:after {
     content: none !important;
 }
 
 /* На узком экране длинная подпись в одну строку вылезала бы за край и давала
    горизонтальную прокрутку — разрешаем перенос и растим кнопку по высоте. */
 @media (max-width: 767px) {
-    .nd-editor-btn {
+    .nd-editor-btn,
+    .btn.btn-default[data-event="jqm"] {
         max-width: 100%;
         height: auto;
         padding: 12px 16px !important;
@@ -4819,7 +4836,9 @@ ul.c-lists > li:last-child {
 .editor .nd-editor-btn:hover,
 .editor .nd-editor-btn:focus,
 .nd-editor-btn:hover,
-.nd-editor-btn:focus {
+.nd-editor-btn:focus,
+.btn.btn-default[data-event="jqm"]:hover,
+.btn.btn-default[data-event="jqm"]:focus {
     background: #a80000 !important;
     background-color: #a80000 !important;
     border-color: #a80000 !important;

@@ -372,7 +372,11 @@
 	   как document. Кнопки вне шапки подключаются к починке явно — атрибутом
 	   data-nd-form-title, чтобы случайно не перехватить чужие триггеры темы. */
 	document.addEventListener('click', function (e) {
-		var trigger = e.target.closest('#nd-header [data-event="jqm"], [data-event="jqm"][data-nd-form-title]');
+		/* Кнопки форм, вставленные разметкой темы прямо в текст страницы
+		   («Обсудить проект» на /projects/), своего атрибута не имеют и иметь
+		   не могут: включаемые области правятся из публички и общие со старым
+		   дизайном. У них подпись кнопки и есть нужный заголовок — берём её. */
+		var trigger = e.target.closest('#nd-header [data-event="jqm"], [data-event="jqm"][data-nd-form-title], [data-event="jqm"].btn.btn-default');
 		if (!trigger) return;
 
 		/* data-nd-form-title задаёт заголовок явно — нужен там, где подпись кнопки
