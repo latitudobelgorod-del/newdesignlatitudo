@@ -832,6 +832,17 @@
 .catalog_detail.element_newdesign .right_info .info_item .middle_info .row:has(> .col-md-6.measur) > .col-md-6 {
     float: none;
 }
+/* У бутстраповского .row есть клиринг через ::before и ::after (`content:" ";
+   display:table`). В блочной раскладке они невидимы, но во flex становятся
+   полноценными элементами нулевой ширины — и съедают по одному зазору с
+   каждой стороны первой строки. Из-за этого блок выбора предложения стоял на
+   16px правее цены и был на 16px уже колонки (светильник ТеррaСвет Орион,
+   2 сентября 2026). Гасим их — на самой раскладке они уже ни на что не
+   влияют. */
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .row:has(> .col-md-6.measur)::before,
+.catalog_detail.element_newdesign .right_info .info_item .middle_info .row:has(> .col-md-6.measur)::after {
+    display: none;
+}
 /* Нижний отступ 15px у блоков выбора (из template_styles.css темы) оставлял
    единицы на 15px ниже кнопок длины даже при выравнивании по нижнему краю.
    На easydecking гасится тем же правилом — переносим. */
@@ -919,7 +930,9 @@
     height: 24px;
     border: 0;
     background: none;
-    font-size: 20px;
+    /* Знак рисуем иконкой (ниже), а не текстом: у штатного счётчика это
+       обычный «-» шрифтом, и он выходил заметно тоньше макета. */
+    font-size: 0;
     line-height: 1;
     color: #101014;
     cursor: pointer;
@@ -1028,6 +1041,32 @@
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block > span.minus::before,
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block > span.plus::before {
     content: none !important;
+}
+/* Сами знаки — иконками из макета (InputNumberStepper 20489:32372, иконки
+   24×24): полоса 15,8 при толщине 1,8 со скруглёнными концами, цвет #101014.
+   Текстовый «-» темы против неё выглядел тонким — заметно у товаров без
+   торговых предложений, где виден именно штатный счётчик (Ирина, 2 сентября
+   2026). У товаров с предложениями знаки рисует своей картинкой модуль единиц
+   измерения — там уже как в макете, и .measure-button мы не трогаем.
+
+   Мобильная панель покупки собирается из тех же узлов, поэтому правило общее
+   для неё и для десктопной колонки. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block > span.minus,
+#nd-pd-buybar .counter_block > span.minus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Crect x='4.35' y='11.1' width='15.8' height='1.8' rx='.9' fill='%23101014'/%3E%3C/svg%3E");
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block > span.plus,
+#nd-pd-buybar .counter_block > span.plus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Crect x='4.1' y='11.1' width='15.8' height='1.8' rx='.9' fill='%23101014'/%3E%3Crect x='11.1' y='4.1' width='1.8' height='15.8' rx='.9' fill='%23101014'/%3E%3C/svg%3E");
+}
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block > span.minus,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block > span.plus,
+#nd-pd-buybar .counter_block > span.minus,
+#nd-pd-buybar .counter_block > span.plus {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 24px 24px;
+    font-size: 0;
 }
 /* Счётчик и кнопка делят ряд поровну и добирают до правого края колонки.
    Было flex:0 0 266px — кнопка получалась 266, счётчик 255, и справа
@@ -1299,6 +1338,17 @@
     line-height: 19.6px;
     font-weight: 500;
     color: #8F8F9A;
+}
+/* Незаполненные логистические параметры прятать нечем: у товара с торговыми
+   предложениями тема печатает скелет из четырёх пустых плиток со своим
+   `style="display:none"`, а наш `display: grid !important` его перебивает — и
+   там, где скрипт темы плитки ничем не заполнил, оставались четыре пустых
+   серых прямоугольника (светильник ТеррaСвет Орион, 2 сентября 2026). Класс
+   nd-empty ставит js/newdesign-element.js: только он знает, что в плитку в
+   итоге попало. !important — потому что правила выше тоже с ним. */
+.catalog_detail.element_newdesign .right_info .info_item .logistic.nd-empty,
+.catalog_detail.element_newdesign .right_info .info_item .logistic > .nd-empty {
+    display: none !important;
 }
 
 /* Ссылки под карточкой */
@@ -1598,6 +1648,17 @@
 .element_newdesign .nd-pd__bottom--nochars .nd-pd__sales-block {
     grid-column: 1;
     grid-row: 1;
+}
+/* Ни характеристик, ни акций: занять левую клетку нечем, и документы с
+   доставкой стояли друг под другом слева против пустой правой половины.
+   Растворяем колонку (display: contents) — оба блока становятся ячейками
+   сетки и встают в ряд: документы слева, доставка справа. Нижний отступ у
+   документов при этом лишний: он разводил их с доставкой по вертикали. */
+.element_newdesign .nd-pd__bottom--nochars.nd-pd__bottom--nosales .nd-pd__bottom-col {
+    display: contents;
+}
+.element_newdesign .nd-pd__bottom--nochars.nd-pd__bottom--nosales .nd-pd__docs {
+    margin-bottom: 0;
 }
 /* колонка-источник документов после переноса пустеет — не оставляем от неё поля */
 .element_newdesign .nd-pd__docs-src:empty {

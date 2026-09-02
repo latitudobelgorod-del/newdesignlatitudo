@@ -392,6 +392,39 @@
 		if ($('.nd-docs, .files_block', body)) box.hidden = false;
 	}
 
+	/* ================= пустые логистические параметры =================
+	   У товара с торговыми предложениями тема печатает скелет из четырёх плиток
+	   (длина, ширина, толщина, вес) со своим style="display:none" и заполняет
+	   его скриптом при выборе предложения. Наш `display: grid !important` этот
+	   инлайновый стиль перебивает, поэтому там, где у предложения параметров
+	   нет, оставались четыре пустых серых плитки (светильник ТеррaСвет Орион,
+	   2 сентября 2026). У товара без предложений то же самое даёт шаблон:
+	   пустые поля каталога проходят его проверку isset().
+
+	   Значение отличаем от подписи по <span>: подпись всегда в нём, значение —
+	   голым текстом рядом. Пусто — прячем плитку; пусты все — весь блок. */
+	function syncLogistic() {
+		var box = $('.right_info .info_item .logistic', root);
+		if (!box) return;
+
+		var items = box.querySelectorAll('.product-dlina, .product-shirina, .product-tolwina, .product-weight');
+		var shown = 0;
+
+		Array.prototype.forEach.call(items, function (item) {
+			var label = item.querySelector('span');
+			var text = item.textContent || '';
+			if (label) text = text.replace(label.textContent, '');
+			/* \s в JS берёт и неразрывный пробел — тема ставит его между
+			   подписью и значением. */
+			var empty = !text.replace(/\s/g, '');
+
+			item.classList.toggle('nd-empty', empty);
+			if (!empty) shown++;
+		});
+
+		box.classList.toggle('nd-empty', !shown);
+	}
+
 	/* ================= свёрнутое описание =================
 	   По макету (20475:75842, узел INFO 20489:34210) описание обрезано по
 	   высоте, поверх нижней части лежит шторка со ссылкой «Показать все», и
@@ -1075,6 +1108,7 @@
 		   выходит раньше. */
 		initBar();
 		initDesc();
+		syncLogistic();
 		gallery = $('.nd-pd__gallery', root);
 		if (!gallery) return;
 		photo = $('.nd-pd__photo', gallery);
@@ -1108,6 +1142,11 @@
 				syncBarArticle();
 				tagCalcButton();
 				fixMoneyAll();
+				/* Плитки логистики тема заполняет при выборе предложения —
+				   пересматриваем их вместе с остальной правой колонкой.
+				   Зацикливания нет: classList.toggle тем же значением
+				   атрибут не переписывает и новой записи наблюдателю не даёт. */
+				syncLogistic();
 			}).observe(info, { childList: true, subtree: true, characterData: true });
 		}
 
@@ -1125,13 +1164,17 @@
 		/* patchScrollToBlock ещё раз на load: если js/main.js в сборке окажется
 		   ниже нашего файла, к моменту init() глобальной scrollToBlock ещё нет. */
 		window.addEventListener('load', function () {
-			syncArticle(); syncTitle(); syncBarArticle(); tagCalcButton(); patchScrollToBlock(); fixMoneyAll();
+			syncArticle(); syncTitle(); syncBarArticle(); tagCalcButton(); patchScrollToBlock(); fixMoneyAll(); syncLogistic();
 		});
 		/* Те же таймеры, что на easydecking: часть строк цены ядро дописывает
 		   позже, уже после первого прохода observer'а. */
 		fixMoneyAll();
 		setTimeout(fixMoneyAll, 600);
 		setTimeout(fixMoneyAll, 1500);
+		/* Плитки логистики у товара с предложениями заполняет скрипт темы, и
+		   не всегда до первого прохода наблюдателя. */
+		setTimeout(syncLogistic, 600);
+		setTimeout(syncLogistic, 1500);
 
 		/* Панель собираем, как только ядро построило кнопку покупки: опрос
 		   каждые 250 мс, но не дольше ~8 секунд. Плюс реакция на смену
