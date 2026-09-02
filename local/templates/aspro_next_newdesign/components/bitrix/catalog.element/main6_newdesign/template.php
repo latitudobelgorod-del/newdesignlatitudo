@@ -1438,11 +1438,17 @@ BX.ready(function() {
 					
 					
 <?
-$arFilter = Array('IBLOCK_ID'=>19, 'GLOBAL_ACTIVE'=>'Y');
-$db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, false, Array("UF_DELBUTTON"));
+/* Ссылку «Рассчитать … вместе с менеджером» можно отключить для раздела
+   галкой UF_DELBUTTON. Спрашиваем её у раздела ЭТОГО товара — раньше запрос шёл
+   без фильтра по разделу, с сортировкой по timestamp_x, и брал первый попавшийся
+   раздел каталога. Галка стоит ровно у одного раздела из 91, он и оказывался
+   первым — ссылка пропадала со всех карточек сразу (Ирина, 2 сентября 2026).
+   Тем же приёмом читается UF_BUTTON_OT выше по файлу. */
+$arFilter = Array('IBLOCK_ID' => 19, 'ID' => $arResult['SECTION']['ID']);
+$db_list = CIBlockSection::GetList(Array(), $arFilter, false, Array("UF_DELBUTTON"));
   if($uf_value = $db_list->GetNext()):
      $value=$uf_value["UF_DELBUTTON"];
-     
+
   endif;
   ?>
 <?//Проверить условие кнопки?>
