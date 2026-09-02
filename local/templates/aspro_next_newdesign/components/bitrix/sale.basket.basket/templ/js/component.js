@@ -594,24 +594,29 @@
 
 		checkOutAction: function()
 		{
-			/* В новом дизайне «Заказать» не уводит на /order/, а открывает модалку
-			   «Оставить заявку» (веб-форма MAINFORM) — так было в старом дизайне.
-			   Окно открывает штатный механизм темы: клик по элементу с
-			   data-event="jqm" ловит делегированный обработчик на document
-			   (js/main.js), поэтому создаём такой элемент и «нажимаем» его.
-			   Заголовок окна тема берёт из названия веб-формы, нужный подставляет
-			   js/newdesign-header.js по data-nd-form-title. */
-			var trigger = document.createElement('span');
-			trigger.style.display = 'none';
-			trigger.setAttribute('data-event', 'jqm');
-			trigger.setAttribute('data-param-form_id', 'MAINFORM');
-			trigger.setAttribute('data-name', 'ndBasketOrder');
-			trigger.setAttribute('data-nd-form-title', 'Заказать');
-			document.body.appendChild(trigger);
-			trigger.click();
-			setTimeout(function () {
-				if (trigger.parentNode) trigger.parentNode.removeChild(trigger);
-			}, 0);
+			/* «Заказать» открывает форму быстрого заказа (aspro:oneclickbuy.next,
+			   ajax/one_click_buy_basket.php). Именно она создаёт заказ, шлёт письмо
+			   NEW_ONE_CLICK_BUY на korzina@ и заводит лид в Б24 — в старом дизайне
+			   её открывала отдельная кнопка «Быстрый заказ», которую тема дописывала
+			   в .basket-checkout-section-inner. В новой панели итогов такого контейнера
+			   нет, кнопка не появлялась, а «Заказать» открывала веб-форму MAINFORM —
+			   письмо уходило на formsort@ как обычная заявка, заказ не создавался.
+
+			   Функцию объявляет js/main.js темы. Если её вдруг нет, ведём себя как
+			   штатный шаблон и уходим на страницу оформления. */
+			if (typeof window.oneClickBuyBasket === 'function')
+			{
+				/* Тема ставит флаг «уже нажали» на .fast_order — своей кнопки у нас
+				   нет, поэтому от повторного открытия страхуемся сами. */
+				if (this.ndOrderFormOpening) return;
+				this.ndOrderFormOpening = true;
+				setTimeout(BX.delegate(function() { this.ndOrderFormOpening = false; }, this), 1500);
+
+				window.oneClickBuyBasket();
+				return;
+			}
+
+			document.location.href = this.params.PATH_TO_ORDER;
 		},
 
 		addCouponAction: function(event)
