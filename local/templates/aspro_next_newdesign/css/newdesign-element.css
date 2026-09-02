@@ -643,7 +643,10 @@
     width: auto;
     height: auto;
     min-height: 0;
-    padding: 0;
+    /* !important: у темы на .btn своё поле 16 слева и справа с более длинным
+       селектором. Из-за него подпись стояла на 16 правее остальной колонки
+       (Ирина, 2 сентября 2026). */
+    padding: 0 !important;
     border: 0;
     border-radius: 0;
     background: none !important;
