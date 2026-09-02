@@ -730,30 +730,13 @@ if ($ndProfileVal) {
 <div class="right_info">
 <div class="info_item">
 
-<?
-	$get_fields = CIBlockSection::GetList(
-		array(),
-		array(
-			'IBLOCK_ID' => 19,
-			'ID' => $arResult['SECTION']['ID']
-		),
-		false,
-		array(
-			'UF_BUTTON_OT'
-		)
-	);
-	if($get_fields_item = $get_fields->GetNext()) { 
-	$my_fields_1 = $get_fields_item['UF_BUTTON_OT'];		
-	}					
-?>
-<?if ($my_fields_1==1):?>
-<script>
-$(document).ready(function() {
-$( ".info_item .middle_info .prices .price" ).prepend( "от " );
-							});
-</script>
-<?endif;?>	
-	
+<? /* Предлог «от» перед ценой убран (Ирина, 2 сентября 2026). Раздел мог
+      включить его галкой UF_BUTTON_OT, и тогда по $(document).ready сюда
+      дописывалось «от », а следом скрипт темы перерисовывал .price ценой
+      выбранного предложения — предлог исчезал. На загрузке он успевал
+      мелькнуть, и в новом дизайне его нет ни в одном макете. Вместе со
+      скриптом убран и запрос за полем раздела: больше его читать некому. */ ?>
+
 <?$isArticle=(strlen($arResult["DISPLAY_PROPERTIES"]["CML2_ARTICLE"]["VALUE"]) || ($arResult['SHOW_OFFERS_PROPS'] && $showCustomOffer));?>
 
 <?if ($arResult["OFFERS"]) :?>
@@ -1155,8 +1138,31 @@ BX.ready(function() {
 									</div>
 								<?}?>
 							</div>
-							<?\Aspro\Functions\CAsproSku::showItemPrices($arParams, $arResult, $item_id, $min_price_id, $arItemIDs, 'Y');
+							<? /* Предлог «от» перед ценой (Ирина, 2 сентября 2026).
 
+							      Его печатает сам модуль: CAsproSku::showItemPrices берёт
+							      $prefix = GetMessage("CATALOG_FROM") и ставит перед
+							      .values_wrapper. Дальше скрипт темы переписывает .price
+							      ценой выбранного предложения, и предлог пропадает — но на
+							      загрузке успевает мелькнуть. В макете его нет нигде.
+
+							      Голый текстовый узел ни спрятать стилями, ни убрать
+							      настройкой компонента нельзя, а править файл модуля тем
+							      более (обновление затрёт). Поэтому ловим вывод и режем
+							      предлог из готовой разметки.
+
+							      Шаблон замены нарочно не по слову «от», а по «всему тексту
+							      между открытием .price и .values_wrapper»: там ничего,
+							      кроме предлога и пробелов, не бывает, зато не зависит ни от
+							      языка, ни от кодировки. */ ?>
+							<?
+							ob_start();
+							\Aspro\Functions\CAsproSku::showItemPrices($arParams, $arResult, $item_id, $min_price_id, $arItemIDs, 'Y');
+							echo preg_replace(
+								'~(<div class="price[^>]*>)[^<]*(?=<span class="values_wrapper")~',
+								'$1',
+								ob_get_clean()
+							);
 							?>
                             <?
                                 foreach ($arResult["OFFERS"] as $off){
