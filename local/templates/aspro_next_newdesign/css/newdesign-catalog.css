@@ -1812,14 +1812,20 @@
     .nd-related__more {
         margin-top: 24px;
     }
-    .nd-related__more[hidden] {
-        display: none;
-    }
 }
-/* На десктопе лента листается стрелками — кнопка не нужна. */
+/* На десктопе лента листается стрелками — кнопка не нужна. Она же скрывается,
+   пока показаны все карточки (атрибут hidden ставит скрипт).
+
+   !important и селектор в два класса — вынужденно: кнопка переиспользует
+   оформление .nd-brandsect__more-btn, а у того `display: flex` объявлен ниже
+   по файлу. При равной силе побеждал он, и на десктопе кнопка «Показать ещё»
+   висела под лентой (Ирина, 2 сентября 2026). */
+.nd-related .nd-related__more[hidden] {
+    display: none !important;
+}
 @media (min-width: 768px) {
-    .nd-related__more {
-        display: none;
+    .nd-related .nd-related__more {
+        display: none !important;
     }
 }
 
