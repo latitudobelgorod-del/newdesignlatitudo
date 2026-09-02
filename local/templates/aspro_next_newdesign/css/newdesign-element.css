@@ -654,6 +654,22 @@
     text-transform: none;
     box-shadow: none;
 }
+/* Подпись лежит во вложенном span, и тема красит его в белый (кнопка-то у неё
+   синяя). Наследование от .one_click белый цвет не перебивает — на белом фоне
+   строка была невидимой, оставалась только пустая полоса (Ирина, 2 сентября
+   2026). Красим сам span. */
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc .btn span,
+.catalog_detail.element_newdesign .right_info .info_item .one_click span {
+    color: #c60000 !important;
+    /* Кегль и подчёркивание тоже задаём здесь: у вложенного span своё
+       начертание от кнопки темы (16px, полужирный), и от .one_click оно не
+       наследуется. В макете 21289:63166 — 14/19.6 w500 с подчёркиванием. */
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
 .catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc .btn::after,
 .catalog_detail.element_newdesign .right_info .info_item .one_click::after {
     content: "";
