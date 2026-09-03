@@ -387,6 +387,12 @@ while ($sp = $propRes->Fetch()) {
     if (isset($skipCodes[$code]) || strncmp($code, 'CML2_', 5) === 0) {
         continue;
     }
+    /* EDITOR1/EDITOR2/… — содержимое редактора блоков sprint.editor: там лежит
+       json со всей вёрсткой описания, характеристикой это не является и весит
+       десятки килобайт (Ирина, 3 сентября 2026). */
+    if (preg_match('/^EDITOR\d*$/', $code)) {
+        continue;
+    }
     // Файлы и привязки — не характеристики.
     if (in_array($sp['PROPERTY_TYPE'], ['F', 'E', 'G'], true)) {
         continue;
@@ -399,6 +405,11 @@ while ($sp = $propRes->Fetch()) {
     }
     $raw = trim((string) $raw);
     if ($raw === '') {
+        continue;
+    }
+    /* Страховка на случай, если вёрстка редактора приедет под другим кодом:
+       характеристика — это короткое значение, а не json на килобайты. */
+    if (strlen($raw) > 300 || strncmp($raw, '{"version"', 10) === 0) {
         continue;
     }
 
