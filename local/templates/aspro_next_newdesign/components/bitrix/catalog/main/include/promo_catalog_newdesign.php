@@ -28,8 +28,16 @@ ob_start();
    компонента, и `global $arSection` подменил бы его локальный $arSection
    пустым глобальным — после этого CNext::checkBreadcrumbsChain() обнуляет
    хлебные крошки и страница падает на array_merge. */
+/* Сквозной баннер каталога (сервис LatitudoBanner, одна запись инфоблока
+   nd_banner). Считаем ДО акций: он нужен и в разделах без акций тоже. */
+$ndBannerView = class_exists('LatitudoBanner')
+	? LatitudoBanner::catalogBanner(isset($arSection["ID"]) ? (int)$arSection["ID"] : 0)
+	: null;
+
 $ndPromoIblockId = (int)CNextCache::$arIBlocks[SITE_ID]["aspro_next_content"]["aspro_next_stock"][0];
 $ndPromoRegion = (isset($arRegion) && $arRegion ? $arRegion : array());
+
+$ndPromoUnique = array();
 
 if($ndPromoIblockId && $arSection["ID"]){
 	// раздел и все его родители: акция, привязанная к «Террасной доске»,
@@ -85,8 +93,23 @@ if($ndPromoIblockId && $arSection["ID"]){
 		}
 	}
 
-	if($ndPromoUnique):?>
+}
+
+	if($ndPromoUnique || $ndBannerView):?>
 		<div id="nd-promo-pool" style="display:none;">
+			<?/* Сквозной баннер — такая же плитка пула и идёт ПЕРВОЙ: скрипт
+			   ставит первую плитку последней ячейкой второго ряда (при четырёх
+			   колонках это 8-я — та самая позиция из макета), а акции
+			   сдвигаются на следующие места (Ирина, 3 сентября 2026).
+			   Отдельного пути вывода у баннера нет намеренно: так он сам
+			   подстраивается под число колонок, попадает в вычитание товаров со
+			   страницы и переезжает после «Показать ещё». */?>
+			<?if($ndBannerView):?>
+				<?++$GLOBALS['ND_CATALOG_PROMO_COUNT'];?>
+				<div class="item_block nd-promo-cell nd-catbanner">
+					<?=LatitudoBanner::render($ndBannerView, 'nd-catbanner__inner')?>
+				</div>
+			<?endif;?>
 			<?foreach($ndPromoUnique as $ndPromoItem):?>
 				<?
 				$ndPromoFile = CFile::GetFileArray($ndPromoItem["PROPERTY_IMAGE_FOR_CATALOG_VALUE"]);
@@ -103,7 +126,6 @@ if($ndPromoIblockId && $arSection["ID"]){
 			<?endforeach;?>
 		</div>
 	<?endif;
-}
 
 $GLOBALS['ND_CATALOG_PROMO_HTML'] = ob_get_clean();
 ?>
