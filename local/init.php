@@ -201,3 +201,120 @@ function ndBannerSingleRecordGuard(&$arFields)
 
     return true;
 }
+
+/**
+ * Ложные страницы пагинации отдают 404.
+ *
+ * Проблема: к ЛЮБОМУ адресу можно дописать ?PAGEN_1=17, ?PAGEN_5=17,
+ * ?PAGEN_55555=5648586858 — и страница отвечает 200. Битрикс при неверном
+ * номере молча показывает первую страницу (CDBResult::calculatePageNumber:
+ * если PAGEN вне диапазона, NavPageNomer сбрасывается в 1), поэтому дубли
+ * попадают в индекс. Яндекс.Вебмастер их и нашёл (Ирина, 3 сентября 2026).
+ *
+ * Проверять приходится ПОСЛЕ отрисовки: сколько на странице навигаций и
+ * сколько у каждой страниц, до вывода не знает никто. Поэтому висим на
+ * OnEndBufferContent — буфер ещё не отдан, заголовок поставить можно.
+ *
+ * Страница считается настоящей, если выполняется хотя бы одно:
+ *   - запрошена первая страница (PAGEN_i=1) — это сам раздел;
+ *   - в разметке есть пейджер, и его ТЕКУЩАЯ страница равна запрошенной
+ *     (у нового дизайна это .nd-pager__page--current, у темы — .nav-current-page);
+ *   - запрошенный номер не больше самого большого номера в ссылках пейджера
+ *     (страховка на случай шаблона с незнакомой разметкой — лучше пропустить
+ *     лишнее, чем отдать 404 на живой странице).
+ * Плюс сама навигация должна существовать: номер после PAGEN_ не может быть
+ * больше числа навигаций на странице ($GLOBALS['NavNum'] считает их сам
+ * Битрикс в CDBResult::NavStart).
+ */
+AddEventHandler('main', 'OnEndBufferContent', 'ndFakePagination404');
+
+function ndFakePagination404(&$content)
+{
+    static $done = false;
+    if ($done) {
+        return;
+    }
+
+    // Только обычные GET-страницы: ajax-ответы и файлы не трогаем.
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET' || defined('PUBLIC_AJAX_MODE')) {
+        return;
+    }
+    if (!is_string($content) || stripos($content, '<html') === false) {
+        return;
+    }
+
+    $pagen = [];
+    foreach ($_GET as $key => $value) {
+        if (preg_match('/^PAGEN_(.+)$/', $key, $m)) {
+            $pagen[$m[1]] = is_array($value) ? '' : (string)$value;
+        }
+    }
+    if (!$pagen) {
+        return;
+    }
+
+    $navCount = (int)($GLOBALS['NavNum'] ?? 0);
+    $fake = false;
+
+    foreach ($pagen as $index => $value) {
+        // Номер навигации и номер страницы — только целые положительные.
+        if (!preg_match('/^\d+$/', (string)$index) || !preg_match('/^\d+$/', $value)) {
+            $fake = true;
+            break;
+        }
+
+        $index = (int)$index;
+        $page = (int)$value;
+
+        if ($index < 1 || $page < 1) {
+            $fake = true;
+            break;
+        }
+        // Такой навигации на странице нет вовсе.
+        if ($index > $navCount) {
+            $fake = true;
+            break;
+        }
+        // Первая страница — это сам раздел, она есть всегда.
+        if ($page === 1) {
+            continue;
+        }
+
+        // Текущая страница по разметке пейджера.
+        $current = 0;
+        if (preg_match('/nd-pager__page--current[^>]*>\s*(\d+)/u', $content, $m)) {
+            $current = (int)$m[1];
+        } elseif (preg_match('/nav-current-page[^>]*>\s*(\d+)/u', $content, $m)) {
+            $current = (int)$m[1];
+        }
+        if ($current === $page) {
+            continue;
+        }
+
+        /* Страховка: номер в пределах ссылок пейджера считаем настоящим.
+           Сам запрошенный номер из подсчёта выбрасываем — он попадает в
+           разметку из текущего адреса (canonical, ссылки сортировки, «Показать
+           ещё»), и без этого ?PAGEN_1=999 сам себя объявлял бы настоящим.
+           Настоящая текущая страница ссылкой всё равно не печатается: пейджер
+           помечает её как current, а этот случай проверен выше. */
+        $maxLinked = 0;
+        if (preg_match_all('/PAGEN_'.$index.'=(\d+)/', $content, $mm)) {
+            $linked = array_diff(array_map('intval', $mm[1]), [$page]);
+            $maxLinked = $linked ? max($linked) : 0;
+        }
+        if ($page > $maxLinked) {
+            $fake = true;
+            break;
+        }
+    }
+
+    if (!$fake) {
+        return;
+    }
+
+    $done = true;
+    CHTTP::SetStatus('404 Not Found');
+    // Роботу важен код ответа; содержимое оставляем прежним, чтобы не плодить
+    // редиректы и не ломать вёрстку страницы для человека, который уже открыл её.
+    $content = str_ireplace('</head>', '<meta name="robots" content="noindex, follow"></head>', $content);
+}
