@@ -4,7 +4,14 @@
 // Подключается из корневого .footer_clients_newdesign.menu.php.
 $aMenuLinks = Array(
 	Array(
-		"Отзывы и наши работы", 
+		"Отзывы", 
+		"/company/reviews/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Портфолио", 
 		"/projects/", 
 		Array(), 
 		Array(), 

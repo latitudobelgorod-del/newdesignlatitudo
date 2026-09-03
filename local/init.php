@@ -314,7 +314,33 @@ function ndFakePagination404(&$content)
 
     $done = true;
     CHTTP::SetStatus('404 Not Found');
-    // Роботу важен код ответа; содержимое оставляем прежним, чтобы не плодить
-    // редиректы и не ломать вёрстку страницы для человека, который уже открыл её.
+
+    /* Показываем человеку, что страницы нет, а не первую страницу списка.
+
+       Целиком собрать штатную 404.php отсюда нельзя: проверка срабатывает уже
+       после отрисовки, а повторный заход в пролог из обработчика буфера кладёт
+       ответ в ноль (проверено 3 сентября 2026). Поэтому меняем только середину
+       страницы — шапка, подвал и стили уже отрисованы и остаются на месте.
+
+       Ориентир — <div class="container …> внутри .middle: это общая обёртка
+       содержимого во всех шаблонах темы. Если разметка вдруг окажется другой,
+       содержимое останется прежним, но код ответа и запрет индексации всё
+       равно будут выставлены — это главное. */
+    $errorHtml = '<div class="container">'
+        .'<div class="nd-404">'
+        .'<div class="nd-404__code">404</div>'
+        .'<h1 class="nd-404__title">Такой страницы нет</h1>'
+        .'<p class="nd-404__text">Возможно, она была удалена или в адресе опечатка.</p>'
+        .'<div class="nd-404__links">'
+        .'<a class="nd-404__btn" href="/">На главную</a>'
+        .'<a class="nd-404__btn nd-404__btn--ghost" href="/catalog/">В каталог</a>'
+        .'</div></div></div>';
+
+    $open = strpos($content, '<div class="middle ');
+    $tail = $open === false ? false : strpos($content, '<footer', $open);
+    if ($open !== false && $tail !== false) {
+        $content = substr($content, 0, $open).'<div class="middle">'.$errorHtml.'</div>'.substr($content, $tail);
+    }
+
     $content = str_ireplace('</head>', '<meta name="robots" content="noindex, follow"></head>', $content);
 }
