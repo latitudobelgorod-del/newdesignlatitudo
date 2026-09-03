@@ -1018,6 +1018,63 @@
 		}
 	}
 
+	/* Единица измерения в верхней строке панели, когда переключателя нет.
+	   Кнопки «шт / м² / п.м» строит модуль maxyss:measure_unit, и только у
+	   товаров, у которых единиц несколько. У остальных (чехол, вставка, всё,
+	   что продаётся штуками) правая половина строки оставалась пустой, и
+	   единицы в панели не было видно вовсе (Ирина, 3 сентября 2026).
+	   Рисуем неизменяемую подпись с текущей единицей — той же, что подписывает
+	   счётчик; берётся она из приписки к цене («/шт» в .price_measure).
+
+	   Пишем только при изменении и создаём узел только раз: строку дёргает
+	   applyBuyBar, а его — MutationObserver правой колонки. */
+	function applyBarUnitLabel(bar) {
+		var top = bar && bar.querySelector('.nd-pd-buybar__top');
+		if (!top) return;
+		var label = top.querySelector('.nd-pd-unit');
+		var name = bar.querySelector('.measure-unit-block') ? '' : currentUnitName();
+
+		if (!name) {
+			if (label) label.parentNode.removeChild(label);
+			return;
+		}
+		if (!label) {
+			label = document.createElement('div');
+			label.className = 'nd-pd-unit';
+			top.appendChild(label);
+		}
+		setText(label, name);
+	}
+
+	/* «Рассчитать вместе с менеджером» на телефоне нужна в панели покупки, под
+	   счётчиком (Ирина, 3 сентября 2026). В правой колонке ссылку прячет css:
+	   там она оставалась одна под логистикой и висела в пустоте.
+
+	   Кладём её в .buy_block — тот целиком уезжает в панель, поэтому ссылка
+	   едет с ним и на десктопе возвращается на место вместе с остальными.
+	   Вставляем ПЕРЕД строкой «Общая стоимость», если та уже собрана: порядок
+	   макета — счётчик, ссылка, итог. Если строки ещё нет, дописываем в конец,
+	   а ensureTotalRow() потом сам поставит итог последним.
+
+	   Проверка parentNode обязательна: applyBuyBar дёргает MutationObserver
+	   правой колонки, и безусловный перенос будил бы его бесконечно. */
+	function applyCalcButton(isMobile) {
+		var calc = root.querySelector('.nd-pd__calc');
+		if (!calc) return;
+		rememberHome(calc, 'calc');
+		var home = buyHomes.calc;
+
+		if (isMobile) {
+			var buy = root.querySelector('.buy_block');
+			if (!buy || calc.parentNode === buy) return;
+			var total = buy.querySelector('.nd-pd-total');
+			if (total) buy.insertBefore(calc, total);
+			else buy.appendChild(calc);
+		} else if (home && home.parent && calc.parentNode !== home.parent) {
+			home.parent.insertBefore(calc, home.next);
+		}
+	}
+
 	function applyBuyBar() {
 		if (!root) return;
 		var isMobile = window.matchMedia('(max-width: 767px)').matches;
@@ -1025,6 +1082,7 @@
 
 		applyInstallment(isMobile);
 		applyStores(isMobile);
+		applyCalcButton(isMobile);
 
 		if (!isMobile) {
 			if (!bar) return;
@@ -1093,6 +1151,7 @@
 		   экрана держит уже она. Если навигации нет, панель оказывается на
 		   самом низу, и вырез компенсируем здесь. */
 		bar.style.bottom = nh ? nh + 'px' : 'env(safe-area-inset-bottom, 0px)';
+		applyBarUnitLabel(bar);
 		/* Тело сдвигаем, иначе панель закрывает низ страницы. !important —
 		   у темы свой padding-bottom под нижнюю навигацию. */
 		document.body.style.setProperty('padding-bottom', (bar.offsetHeight + nh + 12) + 'px', 'important');

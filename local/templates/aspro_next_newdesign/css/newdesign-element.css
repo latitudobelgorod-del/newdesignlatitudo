@@ -2195,12 +2195,13 @@
         left: 0;
         right: 0;
         z-index: 1001;
-        /* Поля из макета (Frame 2087329375): ряд цены отбит на 8, ряд счётчика
-           на 4, снизу 4. Общие 4 задаём панели, недостающие 4 у ряда цены.
+        /* Поля по бокам — страничные 16, как у всей правой колонки и заголовка
+           (Ирина, 3 сентября 2026): при макетных 4 цена и счётчик прилипали к
+           краям экрана, а остальная страница шла с отбивкой 16.
            safe-area здесь НЕ нужен: панель стоит над нижней навигацией, и
            отступ под вырез держит она. Когда навигации нет, панель садится на
            низ экрана — тогда вырез компенсирует applyBuyBar через bottom. */
-        padding: 8px 4px 4px;
+        padding: 8px 16px 8px;
         border-top: 2px solid rgba(82, 82, 100, .25);
         background: #fff;
         box-shadow: 0 -4px 16px rgba(16, 16, 20, .1);
@@ -2211,7 +2212,8 @@
         justify-content: space-between;
         gap: 20px;
         margin-bottom: 8px;
-        padding: 0 4px;
+        /* Своих полей у ряда нет — боковые держит сама панель (16). */
+        padding: 0;
     }
     /* Порядок из макета — цена слева, единицы справа. order задаём здесь
        заново: панель лежит внутри .right_info .info_item, и десктопные правила
@@ -2258,6 +2260,27 @@
         height: 35px;
         font-size: 17px;
         line-height: 20px;
+    }
+    /* Единица измерения, когда переключателя нет: у товара она одна, и модуль
+       maxyss своих кнопок не строит — правая половина строки оставалась
+       пустой, единицы в панели не было видно (Ирина, 3 сентября 2026).
+       Подпись рисует js/newdesign-element.js (applyBarUnitLabel).
+       Метрики те же, что у кнопок переключателя, но заливка нейтральная и
+       рамки нет: это подпись, а не кнопка — переключать не на что. */
+    #nd-pd-buybar .nd-pd-unit {
+        display: flex;
+        order: 2;
+        flex: 0 0 auto;
+        align-items: center;
+        height: 35px;
+        padding: 0 12px;
+        border-radius: 3px;
+        background: rgba(82, 82, 100, .1);
+        font-size: 17px;
+        line-height: 20px;
+        font-weight: 500;
+        color: #101014;
+        white-space: nowrap;
     }
     #nd-pd-buybar .buy_block,
     #nd-pd-buybar .offer_buy_block,
@@ -2317,11 +2340,26 @@
     #nd-pd-buybar .counter_wrapp.nd-has-measure .counter_block {
         display: none !important;
     }
+    /* Плитка счётчика — сетка 3x2, а не ряд: количество и единица стоят
+       ДВУМЯ строками (Ирина, 3 сентября 2026). В одну строку «0,42 м²» с двумя
+       кнопками не помещалось — число прижималось к «минусу», а на длинных
+       значениях подпись обрезалась.
+       Кнопки занимают крайние колонки во всю высоту, число и подпись делят
+       среднюю. Порядок детей у обеих плиток одинаковый (кнопка, поле, подпись,
+       кнопка), но раскладку задаём явными grid-area, а не автопотоком: у
+       штатного счётчика темы между узлами есть текстовые узлы, и автопоток
+       раскладывал бы их непредсказуемо.
+       align-content: center — иначе строки растянулись бы на все 56 и пара
+       «число + единица» разъехалась бы к краям плитки. */
     #nd-pd-buybar .measure-block,
     #nd-pd-buybar .counter_block {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        align-items: center;
+        display: grid !important;
+        grid-template-columns: 28px minmax(0, 1fr) 28px;
+        /* Ровно две половины по 28: так кнопки, перекрывающие обе строки,
+           тянутся на все 56 и площадь нажатия не теряется. Число прижимаем к
+           низу своей половины, единицу — к верху своей, и пара смыкается на
+           середине плитки, а не разъезжается к её краям. */
+        grid-template-rows: 1fr 1fr;
         height: 56px;
         margin: 0;
         padding: 0 2px;
@@ -2329,37 +2367,49 @@
         border-radius: 3px;
         background: rgba(82, 82, 100, .1);
     }
+    #nd-pd-buybar .measure-block > .measure-button-down,
+    #nd-pd-buybar .counter_block > span.minus {
+        grid-area: 1 / 1 / 3 / 2;
+    }
+    #nd-pd-buybar .measure-block > .measure-field,
+    #nd-pd-buybar .counter_block > input.text {
+        grid-area: 1 / 2 / 2 / 3;
+        align-self: end;
+    }
+    #nd-pd-buybar .measure-block > .nd-pd-qty-unit,
+    #nd-pd-buybar .counter_block > .nd-pd-qty-unit {
+        grid-area: 2 / 2 / 3 / 3;
+        align-self: start;
+    }
+    #nd-pd-buybar .measure-block > .measure-button-up,
+    #nd-pd-buybar .counter_block > span.plus {
+        grid-area: 1 / 3 / 3 / 4;
+    }
     #nd-pd-buybar .measure-field,
     #nd-pd-buybar .counter_block input.text {
-        height: 54px;
+        height: auto;
         margin: 0;
         padding: 0;
         border: 0;
         border-radius: 0;
         background: transparent;
         box-shadow: none;
-        text-align: right;
+        text-align: center;
         font-size: 14px;
         line-height: 19.6px;
         font-weight: 500;
         color: #101014;
     }
-    /* Единица рядом с числом — как на десктопе (span дописывает
-       js/newdesign-element.js). Поле и подпись делят место поровну и жмутся к
-       общей середине плитки. */
-    #nd-pd-buybar .measure-field,
-    #nd-pd-buybar .counter_block input.text,
+    /* Единица — второй строкой под числом. Кегль тот же 14/19.6: обе строки
+       вместе занимают 39 из 56, плитка не растёт. */
     #nd-pd-buybar .nd-pd-qty-unit {
-        flex: 1 1 0;
         min-width: 0;
-    }
-    #nd-pd-buybar .nd-pd-qty-unit {
-        padding-left: 3px;
+        padding: 0;
         font-size: 14px;
         line-height: 19.6px;
         font-weight: 500;
         color: #101014;
-        text-align: left;
+        text-align: center;
         white-space: nowrap;
     }
     /* «--» и «++» получались потому, что знак нативного счётчика рисуется и
@@ -2370,17 +2420,24 @@
     #nd-pd-buybar .counter_block .plus::before {
         content: none !important;
     }
+    /* Кнопки тянутся во всю высоту плитки сами (обе строки сетки), поэтому
+       ни фиксированной высоты, ни интерлиньяжа 56 им давать нельзя: и то и
+       другое задаёт им собственные 56, а раз они перекрывают ОБЕ строки, сетка
+       раздувала каждую до 28 — число и единица разъезжались к краям плитки.
+       Знаки у обеих кнопок нарисованы фоновой картинкой (правила выше по
+       файлу), текст погашен font-size: 0, так что от line-height здесь ничего
+       не зависит. */
     #nd-pd-buybar .counter_block .minus,
     #nd-pd-buybar .counter_block .plus,
     #nd-pd-buybar .measure-button {
-        flex: 0 0 28px !important;
+        align-self: stretch;
         width: 28px;
-        height: 56px;
+        height: auto;
         margin: 0;
         border: 0;
         background-color: transparent;
         font-size: 20px;
-        line-height: 56px;
+        line-height: 0;
         color: #101014;
         text-align: center;
         cursor: pointer;
@@ -2448,6 +2505,22 @@
         line-height: 16.8px;
         font-weight: 700;
         color: #101014;
+    }
+
+    /* «Рассчитать вместе с менеджером» — на телефоне ссылка живёт в панели
+       покупки, отдельной строкой под счётчиком (Ирина, 3 сентября 2026).
+       В правой колонке она по-прежнему скрыта (правило ниже по файлу): там
+       она висела в пустоте под логистикой, а нужна рядом с кнопкой покупки.
+       Селектор с id обязателен: панель физически лежит внутри
+       .right_info .info_item, и правило, которое прячет ссылку в колонке,
+       достаёт её и здесь — перебиваем специфичностью идентификатора.
+       Оформление (красная подчёркнутая строка со стрелкой) не повторяем:
+       правила для .nd-pd__calc .btn выше по файлу продолжают действовать,
+       ровно потому же — панель внутри .info_item. */
+    #nd-pd-buybar .nd-pd__calc {
+        display: block;
+        margin: 8px 0 0;
+        padding: 0;
     }
 
     /* В макете рассрочка идёт первой в колонке — до плашки о цене. Плашка и
