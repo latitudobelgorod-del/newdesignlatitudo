@@ -5040,15 +5040,158 @@ body .nd-topbanner {
 }
 
 /* =========================================================================
-   Ложные адреса пагинации показывают штатную страницу ошибки.
+   Страница «Страница не найдена» — новый дизайн (.nd-e404).
 
-   Разметку подставляет обработчик ndFakePagination404 в local/init.php,
-   берётся она из page_blocks/error404_body.php (тело корневого 404.php).
-   Своих стилей блоку не заводим: оформление у него от старого шаблона и
-   приезжает вместе с разметкой. Привести его к новому дизайну — отдельная
-   задача (Ирина, 3 сентября 2026).
+   Разметка одна на два случая: обычные ненайденные адреса (корневой 404.php) и
+   ложные адреса пагинации (обработчик ndFakePagination404 в local/init.php).
+   Файл вёрстки — page_blocks/error404_body.php.
 
-   .nd-404 здесь только обёртка: по ней обработчик прячет прежнее содержимое
-   страницы (правило в самом обработчике, строкой <style>), поэтому теги
-   остаются сбалансированными и подвал не разъезжается.
+   Обёртка .nd-404 — от обработчика: по ней он прячет прежнее содержимое
+   страницы, не вырезая теги (иначе разъезжается подвал).
+
+   Типографика и кнопки те же, что в остальном новом дизайне: Nunito Sans,
+   заголовок 52/57 w800, кнопки высотой 48 с радиусом 6.
    ========================================================================= */
+.nd-e404 {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 72px 52px 96px;
+    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+}
+/* Цифра — крупная подложка, а не картинка: масштабируется без файлов и не
+   мешает тексту (в старой версии svg на 554px наезжал на колонку). */
+.nd-e404__code {
+    font-size: 140px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -4px;
+    color: rgba(198, 0, 0, .12);
+}
+.nd-e404__title {
+    margin: 8px 0 0;
+    font-size: 52px;
+    line-height: 57px;
+    font-weight: 800;
+    color: #101014;
+}
+.nd-e404__text {
+    max-width: 620px;
+    margin: 16px 0 0;
+    font-size: 18px;
+    line-height: 25px;
+    color: #525264;
+}
+.nd-e404__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+}
+.nd-e404__btn {
+    display: inline-flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 28px;
+    border: 2px solid #c60000;
+    border-radius: 6px;
+    background: #c60000;
+    color: #fff !important;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 700;
+    text-decoration: none !important;
+}
+.nd-e404__btn:hover,
+.nd-e404__btn:focus {
+    background: #a90000;
+    border-color: #a90000;
+    color: #fff !important;
+}
+.nd-e404__btn--ghost {
+    border-color: #101014;
+    background: #fff;
+    color: #101014 !important;
+}
+.nd-e404__btn--ghost:hover,
+.nd-e404__btn--ghost:focus {
+    background: rgba(82, 82, 100, .05);
+    border-color: #101014;
+    color: #101014 !important;
+}
+.nd-e404__links {
+    margin-top: 56px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(82, 82, 100, .15);
+}
+.nd-e404__links-title {
+    display: block;
+    margin-bottom: 16px;
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 700;
+    color: #101014;
+}
+.nd-e404__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+/* Чипы те же, что у посадочных ссылок в каталоге. */
+.nd-e404__chip {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .08);
+    color: #101014 !important;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    text-decoration: none !important;
+}
+.nd-e404__chip:hover,
+.nd-e404__chip:focus {
+    background: rgba(82, 82, 100, .16);
+    color: #101014 !important;
+}
+
+@media (max-width: 1279px) {
+    .nd-e404 {
+        padding: 48px 24px 72px;
+    }
+    .nd-e404__code {
+        font-size: 110px;
+    }
+    .nd-e404__title {
+        font-size: 36px;
+        line-height: 40px;
+    }
+}
+@media (max-width: 767px) {
+    .nd-e404 {
+        padding: 32px 16px 56px;
+    }
+    .nd-e404__code {
+        font-size: 84px;
+        letter-spacing: -2px;
+    }
+    .nd-e404__title {
+        font-size: 28px;
+        line-height: 31px;
+    }
+    .nd-e404__text {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .nd-e404__actions {
+        flex-direction: column;
+    }
+    .nd-e404__btn {
+        justify-content: center;
+    }
+    .nd-e404__links {
+        margin-top: 40px;
+        padding-top: 24px;
+    }
+}

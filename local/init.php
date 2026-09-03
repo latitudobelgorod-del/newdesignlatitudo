@@ -339,7 +339,17 @@ function ndFakePagination404(&$content)
         $body = ob_get_clean();
 
         if (is_string($body) && $body !== '') {
-            $inject = '<style>.middle > *:not(.nd-404):not(style){display:none !important;}</style>'
+            /* Прячем прежнее содержимое страницы. Одного правила по .middle
+               мало: у страниц с боковым меню (например /info/dostavka/)
+               заголовок и левая колонка лежат ВЫШЕ, прямо в .wrapper_inner, и
+               на скриншоте Ирины остались видны рядом с блоком ошибки
+               (3 сентября 2026). Правая колонку заодно растягиваем во всю
+               ширину — так же делает и сам 404.php своим инлайновым стилем. */
+            $inject = '<style>'
+                .'.middle > *:not(.nd-404):not(style){display:none !important;}'
+                .'.nd-page-head-wrap,.left_block{display:none !important;}'
+                .'.right_block{float:none !important;width:100% !important;}'
+                .'</style>'
                 .'<div class="nd-404">'.$body.'</div>';
             $content = substr($content, 0, $openEnd + 1).$inject.substr($content, $openEnd + 1);
         }
