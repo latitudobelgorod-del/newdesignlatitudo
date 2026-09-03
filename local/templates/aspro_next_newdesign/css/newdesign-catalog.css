@@ -2321,3 +2321,42 @@ body .nd-brandhead #pagetitle {
     object-fit: cover;
     object-position: center top;
 }
+
+/* =========================================================================
+   «Смотреть полный каталог» — кнопка под списком на страницах с фильтром.
+
+   Приводим к виду кнопки «Сбросить фильтры» из макета (Figma 20517:160798):
+   высота 48, радиус 6, рамка 2px #101014, белая заливка, надпись 16 w700.
+   Спецификацию не дублируем мысленно — она уже описана у .nd-filter__reset в
+   newdesign.css, здесь повторяем те же значения только потому, что файлы
+   разные; при правке макета менять оба места.
+
+   Селектор с классом темы: у .btn.white своя рамка, цвет и радиус, и без
+   переопределения кнопка оставалась синей рамкой старого дизайна
+   (Ирина, 3 сентября 2026). */
+.bx_filter_search_reset.nd-showall {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    margin: 24px 0 0;
+    padding: 0 24px;
+    border: 2px solid #101014;
+    border-radius: 6px;
+    background: #fff;
+    color: #101014;
+    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 700;
+    text-transform: none;
+    text-decoration: none;
+    box-shadow: none;
+}
+.bx_filter_search_reset.nd-showall:hover,
+.bx_filter_search_reset.nd-showall:focus {
+    border-color: #101014;
+    background: rgba(82, 82, 100, .05);
+    color: #101014;
+    text-decoration: none;
+}

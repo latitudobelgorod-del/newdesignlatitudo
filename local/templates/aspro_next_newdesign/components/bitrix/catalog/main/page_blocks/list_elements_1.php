@@ -898,7 +898,11 @@ if($arSection["PLACE"]){
 			   </div>
 			   
 		<? if (substr_count($_SERVER['REQUEST_URI'], '/filter/')) : ?>
-            <button class="bx_filter_search_reset btn white" type="reset" id="del_filter" name="del_filter"  data-href="">Смотреть полный каталог</button>
+            <?/* Кнопка нового дизайна: та же, что «Сбросить фильтры» в панели
+               фильтра (Figma 20517:160798) — белая, рамка 2px, радиус 6,
+               надпись 16 w700. Раньше приезжала синей кнопкой темы
+               (Ирина, 3 сентября 2026). */?>
+            <button class="bx_filter_search_reset btn white nd-showall" type="reset" id="del_filter" name="del_filter"  data-href="">Смотреть полный каталог</button>
 			
 				<? if  (strpos($_SERVER['REQUEST_URI'], 'PAGEN') === false):?>
 										<?/*SEO текст для посадочных страниц каталога по регионам НИЗ*/?>
