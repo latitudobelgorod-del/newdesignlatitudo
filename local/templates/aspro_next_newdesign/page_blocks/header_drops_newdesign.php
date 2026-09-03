@@ -5,7 +5,7 @@
  * catalog_wide_newdesign).
  *
  * Макет Figma «Чистовик»:
- *   «Наши работы»   — фрейм 20738:46104 (плитки: фото 152×101 + название);
+ *   «Портфолио»     — фрейм 20738:46104 (плитки: фото 152×101 + название);
  *   «Производители» — фрейм 21034:65643 (плитки с логотипами);
  *   «Услуги»        — фрейм 20566:27852 (чипы одной строкой с переносом).
  * Для «Партнерам» отдельного фрейма в макете нет — рисуем чипами, как «Услуги».
@@ -105,7 +105,7 @@ $ndDropPartners = function() {
 };
 
 /**
- * Наши работы — разделы портфолио первого уровня (ИБ 18), та же выборка, что
+ * Портфолио — разделы портфолио первого уровня (ИБ 18), та же выборка, что
  * у плиток на /projects/ (page_blocks/sections_list_newdesign.php шаблона
  * news/projects_newdesign). Картинка в макете 152×101 — режем с запасом
  * под ретину.
@@ -168,7 +168,7 @@ $ndDropBrands = function() {
 $arDrops = array(
 	array('KEY' => SITE_DIR.'services/', 'TITLE' => 'Услуги',         'TYPE' => 'chips',  'ITEMS' => $ndDropServices()),
 	array('KEY' => SITE_DIR.'info/',     'TITLE' => 'Партнерам',      'TYPE' => 'chips',  'ITEMS' => $ndDropPartners()),
-	array('KEY' => SITE_DIR.'projects/', 'TITLE' => 'Наши работы',    'TYPE' => 'tiles',  'ITEMS' => $ndDropWorks()),
+	array('KEY' => SITE_DIR.'projects/', 'TITLE' => 'Портфолио',    'TYPE' => 'tiles',  'ITEMS' => $ndDropWorks()),
 	array('KEY' => SITE_DIR.'brands/',   'TITLE' => 'Производители',  'TYPE' => 'brands', 'ITEMS' => $ndDropBrands()),
 );
 ?>

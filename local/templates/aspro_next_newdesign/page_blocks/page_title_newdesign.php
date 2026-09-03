@@ -34,14 +34,4 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 		);?>
 	</div>
 </div>
-<?/* Сквозной баннер «Комплект Пергола + мебель» — та же картинка и ссылка, что
-   в старом дизайне (page_blocks/page_title_3.php). На самой странице перголы
-   не печатаем: баннер туда и ведёт. */?>
-<? if (strpos($APPLICATION->GetCurPage(false), '/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/') !== 0): ?>
-<div class="nd-topbanner">
-	<a href="/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/">
-		<img src="/images/banners/banner_pergola.jpg" alt="Комплект Пергола + мебель" title="Комплект Пергола + мебель" loading="lazy">
-	</a>
-</div>
-<? endif; ?>
 <div class="nd-page-head-wrap"><?$APPLICATION->ShowViewContent('nd_page_head');?></div>

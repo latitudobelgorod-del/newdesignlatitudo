@@ -65,7 +65,7 @@ $ndTelHref = function($value) {
 $arMainNav = array(
 	array('TEXT' => 'Услуги',       'LINK' => '/services/'),
 	array('TEXT' => 'Партнерам',    'LINK' => '/info/'),
-	array('TEXT' => 'Наши работы',  'LINK' => '/projects/'),
+	array('TEXT' => 'Портфолио',    'LINK' => '/projects/'),
 );
 
 // Нижняя строка меню — два обычных меню Битрикса, правятся из админки:
@@ -376,7 +376,7 @@ $basketCount = (int)$arBasketPrices['BASKET_COUNT'];
 	);?>
 </div>
 
-<?// Остальные выпадающие панели («Услуги», «Партнерам», «Наши работы»,
+<?// Остальные выпадающие панели («Услуги», «Партнерам», «Портфолио»,
 // «Производители»). Привязываются к пунктам шапки по адресу ссылки.?>
 <?include(__DIR__.'/header_drops_newdesign.php');?>
 

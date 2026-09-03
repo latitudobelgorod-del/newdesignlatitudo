@@ -5,7 +5,7 @@
 // в четвёртый параметр Array("CLASS" => "accent").
 $aMenuLinks = Array(
 	Array(
-		"Акции",
+		"Акции и скидки",
 		"/sale/",
 		Array(),
 		Array("CLASS" => "accent"),
