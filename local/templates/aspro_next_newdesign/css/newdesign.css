@@ -5040,79 +5040,15 @@ body .nd-topbanner {
 }
 
 /* =========================================================================
-   Страница «такой страницы нет» для ложных адресов пагинации.
+   Ложные адреса пагинации показывают штатную страницу ошибки.
 
-   Разметку подставляет обработчик ndFakePagination404 в local/init.php: он
-   срабатывает уже после отрисовки, поэтому меняет только середину страницы —
-   шапка и подвал остаются от исходного шаблона. Оформление здесь, чтобы не
-   держать стили строкой в php.
+   Разметку подставляет обработчик ndFakePagination404 в local/init.php,
+   берётся она из page_blocks/error404_body.php (тело корневого 404.php).
+   Своих стилей блоку не заводим: оформление у него от старого шаблона и
+   приезжает вместе с разметкой. Привести его к новому дизайну — отдельная
+   задача (Ирина, 3 сентября 2026).
+
+   .nd-404 здесь только обёртка: по ней обработчик прячет прежнее содержимое
+   страницы (правило в самом обработчике, строкой <style>), поэтому теги
+   остаются сбалансированными и подвал не разъезжается.
    ========================================================================= */
-.nd-404 {
-    max-width: 1440px;
-    margin: 0 auto;
-    padding: 80px 52px 100px;
-    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
-    text-align: center;
-}
-.nd-404__code {
-    font-size: 120px;
-    line-height: 1;
-    font-weight: 800;
-    color: rgba(82, 82, 100, .15);
-}
-.nd-404__title {
-    margin: 16px 0 0;
-    font-size: 42px;
-    line-height: 46px;
-    font-weight: 800;
-    color: #101014;
-}
-.nd-404__text {
-    margin: 12px 0 0;
-    font-size: 18px;
-    line-height: 25px;
-    color: #525264;
-}
-.nd-404__links {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 32px;
-}
-.nd-404__btn {
-    display: inline-flex;
-    align-items: center;
-    height: 48px;
-    padding: 0 24px;
-    border: 2px solid #c60000;
-    border-radius: 6px;
-    background: #c60000;
-    color: #fff !important;
-    font-size: 16px;
-    line-height: 20px;
-    font-weight: 700;
-    text-decoration: none !important;
-}
-.nd-404__btn--ghost {
-    border-color: #101014;
-    background: #fff;
-    color: #101014 !important;
-}
-@media (max-width: 767px) {
-    .nd-404 {
-        padding: 48px 16px 64px;
-    }
-    .nd-404__code {
-        font-size: 72px;
-    }
-    .nd-404__title {
-        font-size: 28px;
-        line-height: 31px;
-    }
-    .nd-404__links {
-        flex-direction: column;
-    }
-    .nd-404__btn {
-        justify-content: center;
-    }
-}
