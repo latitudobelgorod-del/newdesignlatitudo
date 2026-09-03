@@ -194,10 +194,13 @@
 		}
 
 		var url = ndVideoEmbed(href);
-		btn.setAttribute('href', url);
-		/* YouTube и Vimeo fancybox разбирает сам, остальное открываем фреймом. */
-		btn.setAttribute('data-type', /youtu|vimeo/i.test(url) ? '' : 'iframe');
-		btn.hidden = false;
+		/* Пишем только при изменении. Кнопка лежит внутри .img_wrapper, за
+		   которым тема иногда следит своими наблюдателями — лишняя запись
+		   атрибута будит их без нужды. */
+		var type = /youtu|vimeo/i.test(url) ? '' : 'iframe';
+		if (btn.getAttribute('href') !== url) btn.setAttribute('href', url);
+		if (btn.getAttribute('data-type') !== type) btn.setAttribute('data-type', type);
+		if (btn.hidden) btn.hidden = false;
 	}
 
 	/* --- переносы узлов темы --- */
@@ -1339,21 +1342,24 @@
 		}
 
 		/* Скрытая галерея темы: адрес ролика она проставляет уже после нашей
-		   инициализации, и без наблюдателя кнопка видео так и оставалась
-		   спрятанной (Ирина, 3 сентября 2026). Смотрим за тем же узлом, где
-		   лежит .rut-video, и пересобираем кнопку, когда ссылка появится или
-		   сменится вместе с предложением.
-		   Зацикливания нет: syncVideo трогает кнопку над фото, а она лежит вне
-		   .img_wrapper, за которым мы следим. */
-		var imgWrap = $('.item_main_info .img_wrapper');
-		if (imgWrap) {
-			new MutationObserver(syncVideo).observe(imgWrap, {
-				childList: true,
-				subtree: true,
-				attributes: true,
-				attributeFilter: ['href', 'class']
-			});
-		}
+		   инициализации, и единственного захода syncVideo() не хватало — кнопка
+		   так и оставалась спрятанной (Ирина, 3 сентября 2026).
+
+		   Опрашиваем, а НЕ следим наблюдателем. Наблюдатель за .img_wrapper тут
+		   смертельно опасен: кнопка .nd-pd__video лежит ВНУТРИ него, и запись
+		   href из syncVideo() будит того же наблюдателя — страница уходила в
+		   вечный цикл и вешала вкладку намертво (проверено на живом сайте,
+		   3 сентября 2026, правку откатывали).
+
+		   Двух секунд хватает: тема рисует карточку предложения по BX.ready.
+		   Как только адрес проставлен, опрос прекращаем — дальше кнопку
+		   пересобирает rebuild() при смене цвета или длины. */
+		var videoTries = 0;
+		var videoPoll = setInterval(function () {
+			syncVideo();
+			var btn = $('.nd-pd__video', photo);
+			if ((btn && !btn.hidden) || ++videoTries > 8) clearInterval(videoPoll);
+		}, 250);
 
 		/* Заголовок тема тоже переписывает целиком (вместе с нашим артикулом) —
 		   возвращаем копию, как только она пропала. */
