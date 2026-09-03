@@ -190,10 +190,137 @@ if (!$saved || (string) $saved['VALUE'] !== $short) {
     );
 }
 
+// --- торговые предложения и цены по единицам измерения ---
+
+/**
+ * Приложению мало ссылки: по тому же адресу оно хочет увидеть предложения
+ * товара (длины, цвета) и цену каждого в тех же единицах, что показывает сайт.
+ *
+ * Как это устроено на сайте:
+ * - предложения лежат в отдельном инфоблоке (20), связь — свойство, которое
+ *   отдаёт CCatalogSKU::GetInfoByProductIBlock();
+ * - базовая единица предложения — поле MEASURE карточки товара каталога
+ *   (b_catalog_product), символ берём из справочника CCatalogMeasure;
+ * - дополнительные единицы задаёт множественное свойство UNIT_KOEF модуля
+ *   maxyss.measureunits: ЗНАЧЕНИЕ — коэффициент, ОПИСАНИЕ — id единицы из того
+ *   же справочника. Так его читает и сам модуль (см. component.php: он получает
+ *   свойство параметром MEASURE_RESULT и раскладывает VALUE/DESCRIPTION).
+ *
+ * Пересчёт: цена за единицу = базовая цена × коэффициент. Коэффициент — это
+ * «сколько базовых единиц в одной такой»: у доски 3 м коэффициент п.м равен
+ * 1/3, а м² — 2,33 (в квадратном метре 2,33 доски). Сверено с витриной:
+ * 1575 ₽/шт × 2,38 = 3750 ₽/м², ровно как на странице товара.
+ *
+ * Цену берём как гость (группа 2) и с учётом скидок — GetOptimalPrice отдаёт
+ * ровно то число, что видит посетитель.
+ */
+$offers = [];
+$skuInfo = CModule::IncludeModule('catalog')
+    ? CCatalogSKU::GetInfoByProductIBlock(ND_SHORT_LINK_IBLOCK)
+    : false;
+
+if ($skuInfo) {
+    $offerRows = [];
+    $res = CIBlockElement::GetList(
+        ['SORT' => 'ASC', 'ID' => 'ASC'],
+        [
+            'IBLOCK_ID' => $skuInfo['IBLOCK_ID'],
+            'ACTIVE' => 'Y',
+            'PROPERTY_' . $skuInfo['SKU_PROPERTY_ID'] => (int) $row['ID'],
+        ],
+        false,
+        false,
+        ['ID', 'IBLOCK_ID', 'NAME', 'XML_ID']
+    );
+    while ($o = $res->GetNext()) {
+        $offerRows[(int) $o['ID']] = $o;
+    }
+
+    if ($offerRows) {
+        $ids = array_keys($offerRows);
+
+        /* Единицы читаем поэлементно. Пакетный GetPropertyValues тут не годится:
+           даже в расширенном режиме он отдаёт по UNIT_KOEF пусто, а нам нужны
+           ОБА поля — значение (коэффициент) и описание (id единицы). Проверено;
+           предложений у товара единицы, так что цикл дешёвый. */
+        $koef = [];
+        foreach ($ids as $offerId) {
+            $koef[$offerId] = [];
+            $propRes = CIBlockElement::GetProperty(
+                $skuInfo['IBLOCK_ID'],
+                $offerId,
+                'sort',
+                'asc',
+                ['CODE' => 'UNIT_KOEF']
+            );
+            while ($pv = $propRes->Fetch()) {
+                $ratio = (float) str_replace(',', '.', (string) $pv['VALUE']);
+                $measureId = (int) $pv['DESCRIPTION'];
+                if ($ratio > 0 && $measureId > 0) {
+                    $koef[$offerId][] = ['ratio' => $ratio, 'measure_id' => $measureId];
+                }
+            }
+        }
+
+        // Базовая единица и остаток — одним запросом на все предложения.
+        $product = [];
+        $prodRes = CCatalogProduct::GetList([], ['ID' => $ids], false, false, ['ID', 'MEASURE', 'QUANTITY']);
+        while ($pr = $prodRes->Fetch()) {
+            $product[(int) $pr['ID']] = $pr;
+        }
+
+        // Справочник единиц: тянем разом и держим в памяти.
+        $measures = [];
+        $mRes = CCatalogMeasure::GetList([], []);
+        while ($mm = $mRes->Fetch()) {
+            $measures[(int) $mm['ID']] = $mm['SYMBOL_RUS'] ?: $mm['MEASURE_TITLE'];
+        }
+
+        foreach ($offerRows as $offerId => $o) {
+            $optimal = CCatalogProduct::GetOptimalPrice($offerId, 1, [2], 'N');
+            $base = $optimal ? (float) $optimal['RESULT_PRICE']['DISCOUNT_PRICE'] : 0.0;
+            $currency = $optimal ? (string) $optimal['RESULT_PRICE']['CURRENCY'] : '';
+
+            $baseMeasureId = (int) ($product[$offerId]['MEASURE'] ?? 0);
+            $baseUnit = $measures[$baseMeasureId] ?? '';
+
+            $prices = [];
+            if ($base > 0) {
+                // Первой идёт базовая единица — та, в которой товар кладут в корзину.
+                $prices[] = [
+                    'unit' => $baseUnit,
+                    'measure_id' => $baseMeasureId ?: null,
+                    'ratio' => 1,
+                    'value' => round($base, 2),
+                ];
+                foreach ($koef[$offerId] as $u) {
+                    $prices[] = [
+                        'unit' => $measures[$u['measure_id']] ?? '',
+                        'measure_id' => $u['measure_id'],
+                        'ratio' => $u['ratio'],
+                        'value' => round($base * $u['ratio'], 2),
+                    ];
+                }
+            }
+
+            $offers[] = [
+                'id' => $offerId,
+                'name' => $o['~NAME'],
+                'xml_id' => $o['~XML_ID'],
+                'quantity' => isset($product[$offerId]) ? (float) $product[$offerId]['QUANTITY'] : null,
+                'available' => isset($product[$offerId]) && (float) $product[$offerId]['QUANTITY'] > 0,
+                'currency' => $currency,
+                'prices' => $prices,
+            ];
+        }
+    }
+}
+
 nd_json(200, [
     'id'     => (int) $row['ID'],
     'name'   => $row['~NAME'],
     'xml_id' => $row['~XML_ID'],
     'url'    => ND_SHORT_LINK_HOST . $uri,
     'short'  => $short,
+    'offers' => $offers,
 ]);
