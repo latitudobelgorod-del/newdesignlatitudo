@@ -2353,10 +2353,14 @@ body .nd-brandhead #pagetitle {
     text-decoration: none;
     box-shadow: none;
 }
-.bx_filter_search_reset.nd-showall:hover,
-.bx_filter_search_reset.nd-showall:focus {
-    border-color: #101014;
-    background: rgba(82, 82, 100, .05);
-    color: #101014;
+/* !important и класс темы в селекторе — по той же причине, что у
+   .nd-filter__reset в newdesign.css: тема красит кнопки под курсором своим
+   синим через !important, и без этого кнопка синеет (Ирина, 3 сентября 2026). */
+.btn.bx_filter_search_reset.nd-showall:hover,
+.btn.bx_filter_search_reset.nd-showall:active,
+.btn.bx_filter_search_reset.nd-showall:focus {
+    border-color: #101014 !important;
+    background-color: rgba(82, 82, 100, .05) !important;
+    color: #101014 !important;
     text-decoration: none;
 }

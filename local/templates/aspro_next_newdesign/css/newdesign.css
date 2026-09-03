@@ -1002,11 +1002,20 @@ textarea {
     font-weight: 700;
     text-decoration: none;
 }
+/* Наведение. Селектор длиннее и с !important не для красоты: у темы в
+   css/custom.css стоит `.btn.btn-transparent:hover { background-color:
+   #4056e8 !important; border-color: #4056e8 !important; color: #fff
+   !important }` — из-за него кнопка синела под курсором (Ирина, 3 сентября
+   2026). Перебить можно только не меньшей специфичностью и тем же !important. */
+.btn.btn-transparent.nd-filter__reset:hover,
+.btn.btn-transparent.nd-filter__reset:active,
+.btn.btn-transparent.nd-filter__reset:focus,
 .nd-filter__reset:hover,
 .nd-filter__reset:focus {
-    color: #101014;
+    background-color: rgba(82, 82, 100, .05) !important;
+    border-color: #101014 !important;
+    color: #101014 !important;
     text-decoration: none;
-    background: rgba(82, 82, 100, .05);
 }
 
 @media (max-width: 767px) {
