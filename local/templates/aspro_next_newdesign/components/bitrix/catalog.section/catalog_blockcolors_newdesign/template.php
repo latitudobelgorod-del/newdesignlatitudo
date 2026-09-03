@@ -7,6 +7,56 @@
    скриптов навесил бы вторые обработчики на те же клики. */?>
 <?$ldItemsOnly = (($arParams['LD_ITEMS_ONLY'] ?? '') === 'Y');?>
 
+<?/* ===================== сквозной баннер каталога =====================
+   Баннер — ячейка товарной сетки, но НЕ товар: он не попадает в выборку, не
+   влияет ни на nPageSize, ни на счётчик найденного, ни на фильтр, ни на
+   сортировку, ни на пагинацию. Двадцать товаров остаются двадцатью, баннер
+   просто добавляется к ним на выводе.
+
+   Включается параметром ND_BANNER — этот шаблон рисует карточки не только в
+   разделе каталога, но и на детальной товара, и в блоке «Может заинтересовать»
+   на главной, а баннер нужен только в разделе. Параметр попадает в идентификатор
+   кеша сам (CBitrixComponent::getCacheID перебирает весь arParams), так что
+   выдача с баннером и без него не перепутается.
+
+   Только первая страница. Догрузка «Показать ещё» (js/newdesign-ui.js) тянет
+   следующую страницу целиком и дописывает детей списка — раз на второй странице
+   баннера в разметке нет, дублироваться ему неоткуда.
+
+   Раздел берём из arResult['ID'] — это раздел, который компонент уже разрешил
+   сам, с учётом и SECTION_ID, и ЧПУ-пути. */?>
+<?
+$ndBanner = null;
+$ndBannerPrinted = false;
+$ndCardIndex = 0;
+
+if (!$ldItemsOnly && ($arParams['ND_BANNER'] ?? '') === 'Y' && class_exists('LatitudoBanner')) {
+	$ndNavPage = (isset($arResult['NAV_RESULT']) && is_object($arResult['NAV_RESULT']))
+		? (int)$arResult['NAV_RESULT']->NavPageNomer
+		: 1;
+
+	if ($ndNavPage <= 1) {
+		$ndBanner = LatitudoBanner::catalogBanner($arResult['ID'] ?? 0);
+		/* Тег инфоблока баннера — в кеш ЭТОГО компонента: без него правка
+		   баннера не долетит до выдачи, пока не истечёт кеш списка товаров. */
+		LatitudoBanner::registerCacheTag();
+	}
+}
+
+/* Ячейка баннера повторяет классы ячейки товара: ширину колонок задаёт та же
+   бутстраповская сетка, в php количество колонок не зашито. */
+$ndBannerCell = function () use (&$ndBanner, &$ndBannerPrinted, &$col) {
+	if (!$ndBanner || $ndBannerPrinted) {
+		return '';
+	}
+	$ndBannerPrinted = true;
+
+	return '<div class="item_block nd-catbanner col-'.(int)$col.' col-lg-3 col-md-4 col-sm-4 col-xs-6">'
+		.LatitudoBanner::render($ndBanner, 'nd-catbanner__inner')
+		.'</div>';
+};
+?>
+
 <?/* Страница бренда: где кончается один раздел и начинается следующий.
    Считаем сразу — заголовок первого раздела печатается ещё до сетки, а
    result_modifier к этому моменту уже разложил товары по разделам и
@@ -328,11 +378,17 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 			<div class="catalog_block nd-catlist__list items block_list margin0 row flexbox<?=$ldBrandGrid?>">
 		<?}?>
 
-		
+		<?/* Баннер — после первых трёх карточек текущей страницы. Считаем свой
+		   счётчик, а не ключ массива: на странице бренда товары приезжают
+		   разложенными по разделам, и ключи там не подряд. */?>
+		<?if($ndCardIndex === 3){echo $ndBannerCell();}?>
+		<?$ndCardIndex++;?>
+
+
 			<div  class="item_block col-<?=$col;?> col-lg-3 col-md-4  col-sm-4 col-xs-6 ">
-		
+
 				<div class="catalog_item_wrapp item">
-		
+
 				
 					
 
@@ -934,8 +990,11 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
         }?>
 
 		<?}?>
-		
-	
+
+		<?/* Товаров на странице меньше трёх — баннер всё равно нужен, ставим
+		   его последней ячейкой сетки. */?>
+		<?echo $ndBannerCell();?>
+
 					    <? $json = json_encode($arr_count_article); ?>
     <script type="text/javascript">
         (function (){

@@ -632,6 +632,12 @@ $ar_res = $res->GetNext();
 						"SHOW_COUNTER_LIST" => $arParams["SHOW_COUNTER_LIST"],
 						"SECTION_ID" => $arResult["VARIABLES"]["SECTION_ID"],
 						"SECTION_CODE" => $arResult["VARIABLES"]["SECTION_CODE"],
+						/* Сквозной баннер в сетке товаров нужен только здесь, в
+						   списке раздела. Тот же шаблон карточек рисует «С этим
+						   товаром покупают» на детальной и «Может заинтересовать»
+						   на главной — там баннеру не место, поэтому включаем
+						   его параметром, а не внутри шаблона. */
+						"ND_BANNER" => "Y",
 						"AJAX_REQUEST" => $isAjax,
 						"ELEMENT_SORT_FIELD" => $sort,
 						"ELEMENT_SORT_ORDER" => $sort_order,

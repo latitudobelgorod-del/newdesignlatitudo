@@ -153,3 +153,51 @@ function ndSyncBrandWeight(&$arFields)
     require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_brand_weight.php';
     LatitudoBrandWeight::onAfterSave($arFields);
 }
+
+/**
+ * Сквозной баннер: сервис и защита от второй записи.
+ *
+ * На сайте всегда ровно один текущий баннер — новый запускается заменой данных
+ * в существующей записи, а не созданием второй. Штатного способа запретить
+ * «Добавить элемент» в админке нет, поэтому ставим обработчик: он рубит
+ * добавление второго элемента в инфоблок баннера с внятным текстом ошибки.
+ *
+ * Сам класс подключаем лениво, уже после сверки инфоблока: на сохранении любого
+ * другого инфоблока (а их на сайте десяток) тянуть его незачем.
+ *
+ * Логика в local/php_interface/include/latitudo_banner.php.
+ */
+/* Класс подключаем сразу, а не лениво в обработчике: его зовут шаблоны —
+   блок главной и список товаров, — а там require делать неоткуда. Файл
+   маленький и без побочных эффектов, на каждый хит это ничего не стоит. */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_banner.php';
+
+AddEventHandler('iblock', 'OnBeforeIBlockElementAdd', 'ndBannerSingleRecordGuard');
+
+function ndBannerSingleRecordGuard(&$arFields)
+{
+    $iblockId = LatitudoBanner::iblockId();
+    if (!$iblockId || (int)$arFields['IBLOCK_ID'] !== $iblockId) {
+        return true;
+    }
+
+    $exists = CIBlockElement::GetList(
+        [],
+        ['IBLOCK_ID' => $iblockId, 'CHECK_PERMISSIONS' => 'N'],
+        false,
+        ['nTopCount' => 1],
+        ['ID']
+    )->Fetch();
+
+    if ($exists) {
+        global $APPLICATION;
+        $APPLICATION->throwException(
+            'Сквозной баннер на сайте один. Новый баннер запускается заменой данных '
+            . 'в существующей записи (элемент #'.$exists['ID'].'), а не созданием второй.'
+        );
+
+        return false;
+    }
+
+    return true;
+}
