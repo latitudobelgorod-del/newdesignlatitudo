@@ -1,7 +1,8 @@
 # Stock Sync API — Apache rewrite rules
 # For shared hosting with Apache
 
-SetEnv STOCK_SYNC_TOKEN lat1tud0_st0ck_sync_2026
+# Токен ЗДЕСЬ НЕ ДЕРЖИМ: этот файл в Git, а репозиторий публичный.
+# Он лежит в config.php рядом (config.php вне Git).
 
 RewriteEngine On
 RewriteBase /local/stock-sync/

@@ -13,3 +13,5 @@
 /local/php_interface/dbconn.php
 # боевой токен API коротких ссылок — вне Git, образец рядом в config.sample.php
 /local/short-link/config.php
+# боевой токен обмена остатков с 1С — вне Git, образец рядом в config.sample.php
+/local/stock-sync/config.php

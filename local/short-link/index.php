@@ -78,6 +78,27 @@ $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
 $id = (int) $request->get('id');
 $xmlId = trim((string) $request->get('xml_id'));
 $code = trim((string) $request->get('code'));
+$url = trim((string) $request->get('url'));
+
+/**
+ * Приложению удобнее оперировать адресом страницы товара, а не его ID, поэтому
+ * принимаем и его. Адрес приводим к символьному коду: у детальных страниц
+ * каталога последний сегмент пути — это CODE элемента, дальше работает тот же
+ * поиск, что и по ?code=.
+ *
+ * Берём именно path: и полный адрес с доменом, и один путь дают одинаковый
+ * результат, а хвосты вида ?utm_source=… и #anchor отбрасываются сами.
+ * Региональные поддомены тем самым тоже не мешают — товар один и тот же.
+ */
+if ($code === '' && $url !== '') {
+    $path = parse_url($url, PHP_URL_PATH);
+    if (is_string($path)) {
+        $segments = array_values(array_filter(explode('/', trim($path, '/')), 'strlen'));
+        if ($segments) {
+            $code = rawurldecode(end($segments));
+        }
+    }
+}
 
 $filter = ['IBLOCK_ID' => ND_SHORT_LINK_IBLOCK, 'ACTIVE' => 'Y'];
 if ($id > 0) {
@@ -87,7 +108,7 @@ if ($id > 0) {
 } elseif ($code !== '') {
     $filter['=CODE'] = $code;
 } else {
-    nd_json(400, ['detail' => 'Pass one of: id, xml_id, code']);
+    nd_json(400, ['detail' => 'Pass one of: url, id, xml_id, code']);
 }
 
 $row = CIBlockElement::GetList(

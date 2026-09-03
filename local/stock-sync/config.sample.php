@@ -1,13 +1,23 @@
 <?php
 /**
- * Stock Sync Configuration.
+ * Stock Sync Configuration — ОБРАЗЕЦ.
  *
- * DB credentials are auto-detected from Bitrix settings.
- * Only token needs manual configuration.
+ * Реальный config.php лежит ВНЕ Git: скопировать этот файл и подставить токен.
+ *
+ *     cp config.sample.php config.php
+ *
+ * Прежний токен (lat1tud0_st0ck_sync_2026) лежал прямо здесь и в SetEnv внутри
+ * .htaccess, то есть попал в публичный репозиторий — поэтому он сменён
+ * (3 сентября 2026). Реквизиты БД по-прежнему берутся из настроек Битрикса.
  */
 
 // --- Auth ---
-define('STOCK_SYNC_TOKEN', getenv('STOCK_SYNC_TOKEN') ?: 'lat1tud0_st0ck_sync_2026');
+// Боевой токен лежит в config.php, который ВНЕ Git. Здесь только заглушка.
+define('STOCK_SYNC_TOKEN', getenv('STOCK_SYNC_TOKEN') ?: 'ПОДСТАВЬ_СВОЙ_ТОКЕН');
+
+// Прежний токен — принимается ВРЕМЕННО, пока его не сменят на стороне 1С.
+// Как только обмен переедет на новый, эту строку убрать.
+define('STOCK_SYNC_TOKEN_OLD', '');
 
 // --- IP whitelist ---
 $ALLOWED_IPS = ['94.25.96.22', '82.151.114.182'];

@@ -70,12 +70,43 @@ function verify_ip(): void {
     }
 }
 
+/**
+ * Принимаем ДВА токена — рабочий и, на время пересадки, прежний.
+ *
+ * Прежний токен попал в публичный репозиторий (лежал прямо в config.php и в
+ * SetEnv внутри .htaccess), поэтому его меняем. Но обмен с 1С идёт постоянно,
+ * и одномоментная замена уронила бы его до тех пор, пока новый токен не
+ * пропишут на стороне 1С. Поэтому STOCK_SYNC_TOKEN_OLD принимается временно;
+ * как только 1С переключат, строку с ним в config.php надо убрать
+ * (3 сентября 2026).
+ *
+ * Сравниваем все принимаемые токены без раннего выхода: hash_equals бережёт от
+ * подбора по времени ответа только пока время не зависит от того, какой именно
+ * токен совпал.
+ */
 function verify_token(): void {
     $token = $_SERVER['HTTP_X_API_TOKEN'] ?? '';
-    if (empty(STOCK_SYNC_TOKEN)) {
+
+    $accepted = [];
+    if (defined('STOCK_SYNC_TOKEN') && STOCK_SYNC_TOKEN !== '') {
+        $accepted[] = STOCK_SYNC_TOKEN;
+    }
+    if (defined('STOCK_SYNC_TOKEN_OLD') && STOCK_SYNC_TOKEN_OLD !== '') {
+        $accepted[] = STOCK_SYNC_TOKEN_OLD;
+    }
+
+    if (!$accepted) {
         json_response(500, ['detail' => 'API_TOKEN is not configured on the server']);
     }
-    if (!hash_equals(STOCK_SYNC_TOKEN, $token)) {
+
+    $ok = false;
+    foreach ($accepted as $valid) {
+        if (hash_equals($valid, $token)) {
+            $ok = true;
+        }
+    }
+
+    if (!$ok) {
         json_response(401, ['detail' => 'Invalid or missing X-Api-Token']);
     }
 }
