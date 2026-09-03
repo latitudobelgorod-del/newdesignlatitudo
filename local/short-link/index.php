@@ -276,9 +276,29 @@ if ($skuInfo) {
             $measures[(int) $mm['ID']] = $mm['SYMBOL_RUS'] ?: $mm['MEASURE_TITLE'];
         }
 
+        /* Длина предложения. Свойство списочное, поэтому берём не VALUE (там
+           id значения), а VALUE_ENUM — уже «3000». Приложению этот размер
+           нужен, чтобы не выкусывать его из названия товара. */
+        $offerLength = [];
+        foreach ($ids as $offerId) {
+            $lenRes = CIBlockElement::GetProperty($skuInfo['IBLOCK_ID'], $offerId, 'sort', 'asc', ['CODE' => 'DLINA']);
+            while ($lv = $lenRes->Fetch()) {
+                $len = trim((string) ($lv['VALUE_ENUM'] !== null && $lv['VALUE_ENUM'] !== '' ? $lv['VALUE_ENUM'] : $lv['VALUE']));
+                if ($len !== '') {
+                    $offerLength[$offerId] = is_numeric($len) ? (float) $len : $len;
+                    break;
+                }
+            }
+        }
+
         foreach ($offerRows as $offerId => $o) {
             $optimal = CCatalogProduct::GetOptimalPrice($offerId, 1, [2], 'N');
+            /* Отдаём ОБЕ цены: базовую и со скидкой. Раньше была только вторая,
+               и приложение не могло решить, что печатать, когда акция кончится
+               (замечание от команды приложения, 3 сентября 2026). Сегодня они
+               часто равны — это значит, что скидки на товар просто нет. */
             $base = $optimal ? (float) $optimal['RESULT_PRICE']['DISCOUNT_PRICE'] : 0.0;
+            $basePrice = $optimal ? (float) $optimal['RESULT_PRICE']['BASE_PRICE'] : 0.0;
             $currency = $optimal ? (string) $optimal['RESULT_PRICE']['CURRENCY'] : '';
 
             $baseMeasureId = (int) ($product[$offerId]['MEASURE'] ?? 0);
@@ -292,6 +312,7 @@ if ($skuInfo) {
                     'measure_id' => $baseMeasureId ?: null,
                     'ratio' => 1,
                     'value' => round($base, 2),
+                    'base' => round($basePrice, 2),
                 ];
                 foreach ($koef[$offerId] as $u) {
                     $prices[] = [
@@ -299,6 +320,7 @@ if ($skuInfo) {
                         'measure_id' => $u['measure_id'],
                         'ratio' => $u['ratio'],
                         'value' => round($base * $u['ratio'], 2),
+                        'base' => round($basePrice * $u['ratio'], 2),
                     ];
                 }
             }
@@ -307,14 +329,105 @@ if ($skuInfo) {
                 'id' => $offerId,
                 'name' => $o['~NAME'],
                 'xml_id' => $o['~XML_ID'],
+                'length_mm' => $offerLength[$offerId] ?? null,
                 'quantity' => isset($product[$offerId]) ? (float) $product[$offerId]['QUANTITY'] : null,
                 'available' => isset($product[$offerId]) && (float) $product[$offerId]['QUANTITY'] > 0,
                 'currency' => $currency,
+                'has_discount' => $basePrice > 0 && $base > 0 && $basePrice > $base,
                 'prices' => $prices,
             ];
         }
     }
 }
+
+/**
+ * Характеристики товара — те же свойства, что сайт печатает в блоке
+ * «Характеристики»: профиль, ширина, толщина, длины, расход, вес, гарантия и
+ * прочее. Приложению они нужны, чтобы собрать подпись вида «146×23 мм | 3 и 4 м»
+ * и не выкусывать числа из названия («146х23х3010») — замечание команды
+ * приложения, 3 сентября 2026.
+ *
+ * Отдаём ВСЕ заполненные пользовательские свойства, а не список кодов из
+ * шаблона: там он свой для каждого раздела (в карточке доски это условие по
+ * SECTION_ID 98/510), и повторять его здесь значило бы ломаться на любом другом
+ * разделе. Пусть приложение берёт нужные по коду.
+ *
+ * Служебное отсекаем: файлы, привязки к элементам и разделам, обменные поля 1С
+ * и наши собственные (короткая ссылка, коэффициенты единиц — они уже отданы
+ * отдельно, в prices).
+ *
+ * Читаем одним запросом без фильтра: фильтр GetProperty по CODE принимает
+ * только одну строку, массив кодов роняет запрос («real_escape_string():
+ * Argument #1 must be of type string, array given»).
+ */
+$skipCodes = [
+    ND_SHORT_LINK_PROP => true,   // короткая ссылка — она уже в поле short
+    'UNIT_KOEF' => true,          // коэффициенты единиц — уже посчитаны в prices
+    'BASE_KOEF' => true,
+    'MINIMUM_PRICE' => true,      // цены отдаём предложениями, а не строкой
+    'MAXIMUM_PRICE' => true,
+    'LIST_PRISE' => true,         // «назначение фида» — внутренняя разметка выгрузок
+    'COLOR_MAIN_EL' => true,      // технический код цвета для подбора
+    'ND_BRAND_WEIGHT' => true,    // наш вес марки для сортировки выдачи
+];
+
+$chars = [];
+$sizes = [
+    'width_mm' => null,
+    'thickness_mm' => null,
+    'lengths_mm' => [],
+];
+
+$propRes = CIBlockElement::GetProperty(ND_SHORT_LINK_IBLOCK, (int) $row['ID'], 'sort', 'asc', ['ACTIVE' => 'Y']);
+
+while ($sp = $propRes->Fetch()) {
+    $code = (string) $sp['CODE'];
+
+    // Служебное и обменное наружу не отдаём.
+    if (isset($skipCodes[$code]) || strncmp($code, 'CML2_', 5) === 0) {
+        continue;
+    }
+    // Файлы и привязки — не характеристики.
+    if (in_array($sp['PROPERTY_TYPE'], ['F', 'E', 'G'], true)) {
+        continue;
+    }
+
+    // У списочных свойств VALUE — это id значения, подпись лежит в VALUE_ENUM.
+    $raw = $sp['VALUE_ENUM'] !== null && $sp['VALUE_ENUM'] !== '' ? $sp['VALUE_ENUM'] : $sp['VALUE'];
+    if (is_array($raw)) {
+        continue;
+    }
+    $raw = trim((string) $raw);
+    if ($raw === '') {
+        continue;
+    }
+
+    $value = is_numeric($raw) ? (float) $raw : $raw;
+
+    // Множественные свойства приходят несколькими строками — копим массивом.
+    if (isset($chars[$code])) {
+        $chars[$code]['value'] = array_merge((array) $chars[$code]['value'], [$value]);
+    } else {
+        $chars[$code] = [
+            'code' => $code,
+            'name' => (string) $sp['NAME'],
+            'value' => $sp['MULTIPLE'] === 'Y' ? [$value] : $value,
+        ];
+    }
+
+    // Размеры дублируем отдельно — они нужны почти всегда, а искать их по коду
+    // в общем списке приложению неудобно.
+    if ($code === 'IT_8') {
+        $sizes['width_mm'] = $value;
+    } elseif ($code === 'IT_6') {
+        $sizes['thickness_mm'] = $value;
+    } elseif ($code === 'DLINA_DOSKA_DPK') {
+        $sizes['lengths_mm'][] = $value;
+    }
+}
+
+sort($sizes['lengths_mm']);
+$chars = array_values($chars);
 
 nd_json(200, [
     'id'     => (int) $row['ID'],
@@ -322,5 +435,7 @@ nd_json(200, [
     'xml_id' => $row['~XML_ID'],
     'url'    => ND_SHORT_LINK_HOST . $uri,
     'short'  => $short,
+    'sizes'  => $sizes,
+    'chars'  => $chars,
     'offers' => $offers,
 ]);
