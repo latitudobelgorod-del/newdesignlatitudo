@@ -1094,6 +1094,8 @@
 			});
 			bar.parentNode.removeChild(bar);
 			document.body.style.removeProperty('padding-bottom');
+			document.documentElement.classList.remove('nd-has-buybar');
+			document.documentElement.style.removeProperty('--nd-buybar-top');
 			return;
 		}
 
@@ -1155,6 +1157,11 @@
 		/* Тело сдвигаем, иначе панель закрывает низ страницы. !important —
 		   у темы свой padding-bottom под нижнюю навигацию. */
 		document.body.style.setProperty('padding-bottom', (bar.offsetHeight + nh + 12) + 'px', 'important');
+		/* Верхнюю кромку панели отдаём стилям: по ней поднимается кнопка
+		   обратного звонка, иначе её круг ложится на строку с ценой и
+		   единицами (см. .callbackkiller в css/newdesign-element.css). */
+		document.documentElement.classList.add('nd-has-buybar');
+		document.documentElement.style.setProperty('--nd-buybar-top', (bar.offsetHeight + nh + 12) + 'px');
 	}
 
 	/* Листание фото пальцем. На телефоне лента превью скрыта, и до появления
