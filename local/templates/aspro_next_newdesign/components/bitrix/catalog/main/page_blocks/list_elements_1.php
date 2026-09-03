@@ -901,8 +901,24 @@ if($arSection["PLACE"]){
             <?/* Кнопка нового дизайна: та же, что «Сбросить фильтры» в панели
                фильтра (Figma 20517:160798) — белая, рамка 2px, радиус 6,
                надпись 16 w700. Раньше приезжала синей кнопкой темы
-               (Ирина, 3 сентября 2026). */?>
-            <button class="bx_filter_search_reset btn white nd-showall" type="reset" id="del_filter" name="del_filter"  data-href="">Смотреть полный каталог</button>
+               (Ирина, 3 сентября 2026).
+
+               Это ССЫЛКА на чистый адрес раздела, а не кнопка сброса. Штатная
+               кнопка темы уводила на /filter/clear/ и этот хвост оставался в
+               адресной строке — лишний адрес того же раздела и в истории, и
+               для поисковика (Ирина, 3 сентября 2026). Чистый адрес получаем,
+               отрезая всё от /filter/: раздел определяется частью пути до него.
+
+               Сам фильтр при этом сбрасывается: у умного фильтра состояние
+               живёт в адресе, а не в сессии. */?>
+            <?
+            $ndCleanUrl = $APPLICATION->GetCurPage(false);
+            $ndFilterPos = strpos($ndCleanUrl, '/filter/');
+            if ($ndFilterPos !== false) {
+                $ndCleanUrl = substr($ndCleanUrl, 0, $ndFilterPos + 1);
+            }
+            ?>
+            <a class="bx_filter_search_reset btn white nd-showall" href="<?=htmlspecialcharsbx($ndCleanUrl)?>">Смотреть полный каталог</a>
 			
 				<? if  (strpos($_SERVER['REQUEST_URI'], 'PAGEN') === false):?>
 										<?/*SEO текст для посадочных страниц каталога по регионам НИЗ*/?>
