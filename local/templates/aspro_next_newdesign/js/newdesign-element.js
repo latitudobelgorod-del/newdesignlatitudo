@@ -161,18 +161,43 @@
 		}).join('');
 	}
 
+	/* Кнопка «Смотреть видео» над фото.
+
+	   Две вещи, из-за которых ролик на детальной не открывался, хотя в списке
+	   раздела работал (Ирина, 3 сентября 2026):
+
+	   1. Ссылку в скрытой галерее тема проставляет уже после нашей инициализации,
+	      и единственный заход syncVideo() приходился на момент, когда там ещё
+	      стояла заглушка javascript:void(0) — кнопка пряталась и больше не
+	      показывалась. Теперь зовём её и по готовности галереи (см. наблюдатель
+	      за .img_wrapper ниже).
+	   2. В свойстве лежит адрес СТРАНИЦЫ Rutube, а не плеера. Fancybox грузит
+	      её во фрейм, Rutube показ страницы во фрейме запрещает — выходило пустое
+	      окно. Переводим на /play/embed/, ровно как это уже сделано для карточек
+	      списка (js/newdesign-catalog.js, updateVideo). */
+	function ndVideoEmbed(url) {
+		var rutube = /rutube\.ru\/(?:video|play\/embed)\/([0-9a-f]+)/i.exec(url);
+
+		return rutube ? 'https://rutube.ru/play/embed/' + rutube[1] : url;
+	}
+
 	function syncVideo() {
 		var btn = $('.nd-pd__video', photo);
 		if (!btn) return;
 		/* адрес ролика тема держит в скрытой галерее — у активного оффера */
 		var src = $('.img_wrapper .rut-video.active a') || $('.img_wrapper .rut-video a');
 		var href = src && src.getAttribute('href');
-		if (href && href !== 'javascript:void(0)') {
-			btn.setAttribute('href', href);
-			btn.hidden = false;
-		} else {
+
+		if (!href || !/^https?:\/\//i.test(href)) {
 			btn.hidden = true;
+			return;
 		}
+
+		var url = ndVideoEmbed(href);
+		btn.setAttribute('href', url);
+		/* YouTube и Vimeo fancybox разбирает сам, остальное открываем фреймом. */
+		btn.setAttribute('data-type', /youtu|vimeo/i.test(url) ? '' : 'iframe');
+		btn.hidden = false;
 	}
 
 	/* --- переносы узлов темы --- */
@@ -1313,6 +1338,23 @@
 			}).observe(info, { childList: true, subtree: true, characterData: true });
 		}
 
+		/* Скрытая галерея темы: адрес ролика она проставляет уже после нашей
+		   инициализации, и без наблюдателя кнопка видео так и оставалась
+		   спрятанной (Ирина, 3 сентября 2026). Смотрим за тем же узлом, где
+		   лежит .rut-video, и пересобираем кнопку, когда ссылка появится или
+		   сменится вместе с предложением.
+		   Зацикливания нет: syncVideo трогает кнопку над фото, а она лежит вне
+		   .img_wrapper, за которым мы следим. */
+		var imgWrap = $('.item_main_info .img_wrapper');
+		if (imgWrap) {
+			new MutationObserver(syncVideo).observe(imgWrap, {
+				childList: true,
+				subtree: true,
+				attributes: true,
+				attributeFilter: ['href', 'class']
+			});
+		}
+
 		/* Заголовок тема тоже переписывает целиком (вместе с нашим артикулом) —
 		   возвращаем копию, как только она пропала. */
 		var h1 = $('.catalog_detail.element_newdesign > h1');
@@ -1327,7 +1369,7 @@
 		/* patchScrollToBlock ещё раз на load: если js/main.js в сборке окажется
 		   ниже нашего файла, к моменту init() глобальной scrollToBlock ещё нет. */
 		window.addEventListener('load', function () {
-			syncArticle(); syncTitle(); syncBarArticle(); tagCalcButton(); patchScrollToBlock(); fixMoneyAll(); syncLogistic();
+			syncArticle(); syncTitle(); syncBarArticle(); tagCalcButton(); patchScrollToBlock(); fixMoneyAll(); syncLogistic(); syncVideo();
 		});
 		/* Те же таймеры, что на easydecking: часть строк цены ядро дописывает
 		   позже, уже после первого прохода observer'а. */
