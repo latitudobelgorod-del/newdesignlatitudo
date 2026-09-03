@@ -1,0 +1,13 @@
+# API коротких ссылок. Секретов здесь нет — токен лежит в config.php,
+# который наружу закрыт и в Git не попадает.
+
+# Все запросы к папке — на index.php (чтобы работал и /local/short-link/,
+# и /local/short-link без слеша).
+DirectoryIndex index.php
+
+<Files "config.php">
+    Require all denied
+</Files>
+<Files "config.sample.php">
+    Require all denied
+</Files>
