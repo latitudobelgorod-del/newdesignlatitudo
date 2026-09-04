@@ -125,7 +125,10 @@ class LatitudoSchema
         if (!is_array($file)) {
             $file = CFile::GetFileArray($file);
         }
-        if (empty($file['SRC'])) {
+        /* ID обязателен: у галереи товара без снимков вместо картинки лежит
+           заглушка «нет фото» из шаблона — у неё есть SRC, но записи в базе
+           файлов нет, и в разметке ей делать нечего. */
+        if (empty($file['SRC']) || empty($file['ID'])) {
             return array();
         }
 
@@ -215,19 +218,38 @@ class LatitudoSchema
                     continue;
                 }
 
-                $value = $prop['VALUE'];
-                if (is_array($value)) {
-                    $value = isset($value['TEXT']) ? $value['TEXT'] : '';
+                foreach (self::editorImagesFromValue($prop['VALUE']) as $image) {
+                    if (!isset($found[$image['ID']])) {
+                        $found[$image['ID']] = $image;
+                    }
                 }
-
-                $data = json_decode((string) $value, true);
-                if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
-                    continue;
-                }
-
-                self::walkEditorImages($data, $found);
             }
         }
+
+        return array_values($found);
+    }
+
+    /**
+     * Картинки из уже прочитанного значения свойства редактора.
+     *
+     * Отдельно от editorImages: карта изображений читает свойства всех
+     * элементов инфоблока одним проходом и в базу за каждым не ходит.
+     *
+     * @return array список array('ID' => int, 'DESC' => string)
+     */
+    public static function editorImagesFromValue($value)
+    {
+        if (is_array($value)) {
+            $value = isset($value['TEXT']) ? $value['TEXT'] : '';
+        }
+
+        $data = json_decode((string) $value, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
+            return array();
+        }
+
+        $found = array();
+        self::walkEditorImages($data, $found);
 
         return array_values($found);
     }
