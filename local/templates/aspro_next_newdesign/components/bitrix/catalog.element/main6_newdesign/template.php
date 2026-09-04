@@ -607,18 +607,17 @@ if ($ndProfileVal) {
 					<div class="offers_img wof">
 						<?$alt=$arFirstPhoto["ALT"];
 						$title=$arFirstPhoto["TITLE"];?>
-						<link href="<?=($arFirstPhoto["BIG"]["src"] ? $arFirstPhoto["BIG"]["src"] : $arFirstPhoto["SRC"]);?>" itemprop="image"/>
-						<meta itemprop="image" content="https://<?=$_SERVER['HTTP_HOST']?><?=($arFirstPhoto["BIG"]["src"] ? $arFirstPhoto["BIG"]["src"] : $arFirstPhoto["SRC"]);?>" />
-						
+						<?// Первый кадр отсюда убран: он и все остальные фотографии товара
+						   // печатаются полным списком выше, полными адресами и без повторов.?>
 
 						<?if($arFirstPhoto["BIG"]["src"]){?>
 							<?/*a href="<?=($viewImgType=="POPUP" ? $arFirstPhoto["BIG"]["src"] : "javascript:void(0)");?>" class="<?=($viewImgType=="POPUP" ? "popup_link" : "line_link");?>" title="<?=$title;?>">*/?>
-								<img class="lazy" id="<? echo $arItemIDs["ALL_ITEM_IDS"]['PICT']; ?>" src="<?=$arFirstPhoto['SMALL']['src']; ?>"  alt="<?=$alt;?>" title="<?=$title;?>" itemprop="image">
+								<img class="lazy" id="<? echo $arItemIDs["ALL_ITEM_IDS"]['PICT']; ?>" src="<?=$arFirstPhoto['SMALL']['src']; ?>"  alt="<?=$alt;?>" title="<?=$title;?>">
 
 							<?/*</a>*/?>
 						<?}else{?>
 							<?/*a href="javascript:void(0)" class="" title="<?=$title;?>"*/?>
-								<img class="lazy" id="<? echo $arItemIDs["ALL_ITEM_IDS"]['PICT']; ?>" src="<?=$arFirstPhoto['SRC']; ?>" alt="<?=$alt;?>" title="<?=$title;?>" itemprop="image">
+								<img class="lazy" id="<? echo $arItemIDs["ALL_ITEM_IDS"]['PICT']; ?>" src="<?=$arFirstPhoto['SRC']; ?>" alt="<?=$alt;?>" title="<?=$title;?>">
 
 							<?/*</a>*/?>
 						<?}?>
@@ -637,13 +636,8 @@ if ($ndProfileVal) {
 								$title=$arImage["TITLE"];
 								?>
 								<li id="photo-<?=$i?>" <?=(!$i ? 'class="current"' : 'style="display: none;"')?>>
-								<?if(!$i):?>
-										<link href="<?=(!$isEmpty ? $arImage["BIG"]["src"] : $arImage["SRC"]);?>" itemprop="image"/>
-									<?endif;?>
-									
 									<?if(!$isEmpty){?>
 										<?/*<a href="<?=($viewImgType=="POPUP" ? $arImage["BIG"]["src"] : "javascript:void(0)");?>" <?=($bIsOneImage ? '' : 'data-fancybox-group="item_slider"')?> class="<?=($viewImgType=="POPUP" ? "popup_link fancy" : "line_link");?>" title="<?=$title;?>">*/?>
-											<link href="<?=(!$isEmpty ? $arImage["BIG"]["src"] : $arImage["SRC"]);?>" itemprop="image"/>
 											<meta property="og:image" content="<?=(!$isEmpty ? $arImage["BIG"]["src"] : $arImage["SRC"]);?>">
 						
 											
@@ -651,7 +645,7 @@ if ($ndProfileVal) {
 											     (css/newdesign-element.css), но её картинки всё равно грузились —
 											     шесть файлов по 220 КБ на страницу. Ленивые за экраном не
 											     запрашиваются, а если галерею когда-то покажут — подгрузятся. */?>
-											<img  src="<?=$arImage["SMALL"]["src"]?>"  alt="<?=$alt;?>" title="<?=$title;?>"<?=(!$i ? ' itemprop="image"' : '')?> loading="lazy"/>
+											<img  src="<?=$arImage["SMALL"]["src"]?>"  alt="<?=$alt;?>" title="<?=$title;?>" loading="lazy"/>
 
 										<?/*</a>*/?>
 									<?}else{?>
