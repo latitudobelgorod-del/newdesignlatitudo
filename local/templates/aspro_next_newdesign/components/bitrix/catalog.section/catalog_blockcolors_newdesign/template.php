@@ -8,6 +8,42 @@
 <?$ldItemsOnly = (($arParams['LD_ITEMS_ONLY'] ?? '') === 'Y');?>
 
 
+<?/* Микроразметка списка товаров (ItemList).
+
+   Раздел каталога — «страница-перечень» в терминах Google: сами товары
+   размечены на своих карточках, а списку достаточно перечислить их адреса по
+   порядку. Раньше на листинге не было ничего, кроме хлебных крошек, и
+   поисковик не понимал, что перед ним список товаров (проверка микроразметки,
+   4 сентября 2026).
+
+   При догрузке карточек (LD_ITEMS_ONLY) блок не печатаем: на странице он уже
+   есть, а второй такой же сбил бы нумерацию. */?>
+<?if(!$ldItemsOnly && ($arParams['ND_SECTION_LISTING'] ?? '') === 'Y' && !empty($arResult['ITEMS'])):?>
+	<?
+	$ndListHost = 'https://'.$_SERVER['HTTP_HOST'];
+	$ndListElements = array();
+	$ndListPos = 0;
+	foreach($arResult['ITEMS'] as $ndListItem){
+		if(empty($ndListItem['DETAIL_PAGE_URL']))
+			continue;
+		$ndListElements[] = array(
+			'@type' => 'ListItem',
+			'position' => ++$ndListPos,
+			'url' => $ndListHost.$ndListItem['DETAIL_PAGE_URL'],
+		);
+	}
+	unset($ndListItem);
+	?>
+	<?if($ndListElements):?>
+		<script type="application/ld+json"><?=\Bitrix\Main\Web\Json::encode(array(
+			'@context' => 'https://schema.org',
+			'@type' => 'ItemList',
+			'itemListElement' => $ndListElements,
+		))?></script>
+	<?endif;?>
+<?endif;?>
+
+
 <?/* Страница бренда: где кончается один раздел и начинается следующий.
    Считаем сразу — заголовок первого раздела печатается ещё до сетки, а
    result_modifier к этому моменту уже разложил товары по разделам и

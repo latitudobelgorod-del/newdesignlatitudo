@@ -383,8 +383,39 @@ if($arSection["PLACE"]){
 	   все свои активные подразделы, независимо от UF_PLACE_SECT (Ирина,
 	   2026-08-03). Старый дизайн так же, как и раньше, делит их на верхний
 	   и нижний блоки через arSectionDopRazdel / arSectionBottomPlace. */
+	/* Какой раздел показывать плитками.
+
+	   По умолчанию — подразделы текущего. Но у листа дерева детей нет, и ряд
+	   получался пустым: провалившись в «Черные садовые диваны», посетитель
+	   терял навигацию по цветам (Ирина, 4 сентября 2026). В этом случае берём
+	   РОДИТЕЛЬСКИЙ раздел — тогда видны соседи, тот же ряд, что и уровнем выше.
+
+	   SECTION_CODE при этом обязательно пустой: он сильнее SECTION_ID, и
+	   компонент вернулся бы к текущему разделу. */
+	$ndSubsecSectionId = $arResult["VARIABLES"]["SECTION_ID"];
+	$ndSubsecSectionCode = $arResult["VARIABLES"]["SECTION_CODE"];
+	$ndSubsecCount = $iSectionsCount;
+
+	if (!$ndSubsecCount && !empty($arSection["IBLOCK_SECTION_ID"])) {
+		$ndSubsecSectionId = (int) $arSection["IBLOCK_SECTION_ID"];
+		$ndSubsecSectionCode = '';
+		/* Фильтр отдельной переменной обязательно: makeSectionFilterInRegion()
+		   принимает его ПО ССЫЛКЕ, и на литерале PHP 8 падает с фатальной
+		   ошибкой (поймано на проде 4 сентября 2026). */
+		$ndSubsecFilter = array(
+			"SECTION_ID" => $ndSubsecSectionId,
+			"IBLOCK_ID" => $arParams['IBLOCK_ID'],
+			"ACTIVE" => "Y",
+			"GLOBAL_ACTIVE" => "Y",
+		);
+		$ndSubsecCount = CNextCache::CIBlockSection_GetCount(
+			array('CACHE' => array("TAG" => CNextCache::GetIBlockCacheTag($arParams["IBLOCK_ID"]))),
+			CNext::makeSectionFilterInRegion($ndSubsecFilter)
+		);
+	}
+
 	$ndSubsecHtml = '';
-	if ($iSectionsCount && !IsSeoDisrupting($arParams)) {
+	if ($ndSubsecCount && !IsSeoDisrupting($arParams)) {
 		ob_start();
 		$APPLICATION->IncludeComponent(
 			"bitrix:catalog.section.list",
@@ -392,15 +423,20 @@ if($arSection["PLACE"]){
 			array(
 				"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
 				"IBLOCK_ID" => $arParams["IBLOCK_ID"],
-				"SECTION_ID" => $arResult["VARIABLES"]["SECTION_ID"],
-				"SECTION_CODE" => $arResult["VARIABLES"]["SECTION_CODE"],
+				"SECTION_ID" => $ndSubsecSectionId,
+				"SECTION_CODE" => $ndSubsecSectionCode,
 				"DISPLAY_PANEL" => $arParams["DISPLAY_PANEL"],
 				"CACHE_TYPE" => "A",
 				"CACHE_TIME" => "172800",
 				"CACHE_GROUPS" => $arParams["CACHE_GROUPS"],
 				"SECTION_URL" => $arResult["FOLDER"] . $arResult["URL_TEMPLATES"]["section"],
 				"COUNT_ELEMENTS" => "N",
-				"ADD_SECTIONS_CHAIN" => ((!$iSectionsCount || $arParams['INCLUDE_SUBSECTIONS'] !== "N") ? 'N' : 'Y'),
+				/* Когда показываем СОСЕДЕЙ (список родителя), в хлебные крошки этот
+				   компонент ничего добавлять не должен — иначе в цепочке окажется
+				   чужой раздел. В обычном случае поведение прежнее. */
+				"ADD_SECTIONS_CHAIN" => ($ndSubsecSectionId != $arResult["VARIABLES"]["SECTION_ID"])
+					? 'N'
+					: ((!$iSectionsCount || $arParams['INCLUDE_SUBSECTIONS'] !== "N") ? 'N' : 'Y'),
 				"SHOW_SECTION_LIST_PICTURES" => $arParams["SHOW_SECTION_PICTURES"],
 				"TOP_DEPTH" => "1",
 			),
@@ -624,6 +660,12 @@ $ar_res = $res->GetNext();
 					$listElementsTemplate,
 					Array(
 						"USE_REGION" => ($arRegion ? "Y" : "N"),
+						/* Это список товаров РАЗДЕЛА, а не подборка внутри другой
+						   страницы: только здесь шаблон печатает разметку ItemList.
+						   На детальной тем же шаблоном рисуются аксессуары, и список
+						   аксессуаров в разметке выдавал бы карточку товара за
+						   страницу-перечень (Ирина, 4 сентября 2026). */
+						"ND_SECTION_LISTING" => "Y",
 						"STORES" => $arParams['STORES'],
 						"SHOW_UNABLE_SKU_PROPS"=>$arParams["SHOW_UNABLE_SKU_PROPS"],
 						"ALT_TITLE_GET" => $arParams["ALT_TITLE_GET"],
@@ -1255,35 +1297,7 @@ if($arTheme["HIDE_SITE_NAME_TITLE"]["VALUE"] == "N" && ($bBitrixAjax || $isAjaxF
 
 <?	
 	
-// Формируем JSON-LD
-    $jsonLd = '<script type="application/ld+json">
-{
-    "@context":"https://schema.org",
-    "@type":"QAPage",
-    "mainEntity": {
-        "@type": "Question",
-        "dateCreated": "' . date('c') . '",
-        "name": "' . CUtil::JSEscape($values_seo['SECTION_META_TITLE']) . '",
-        "text": "' . CUtil::JSEscape($values_seo['SECTION_META_DESCRIPTION']) . '",
-        "author": {
-            "@type": "Person",
-            "name": "Ирина Кулыгина"
-        },
-        "acceptedAnswer": {
-            "@type": "Answer",
-            "author": {
-                "@type": "Organization",
-                "name": "Латитудо"
-            },
-            "text": "&#9989 Широкий ассортимент &#128293 От производителя &#128077 Доставка"
-        },
-        "answerCount": 1
-    }
-}
-</script>';
-    
-    // Добавляем в head
-    $APPLICATION->AddHeadString($jsonLd);			
+/* Разметку QAPage убрали 4 сентября 2026: вопрос-ответ был выдуман (вопрос — заголовок страницы, ответ — рекламная строка), Google допускает QAPage только на страницах с настоящими вопросами посетителей. Пользы никакой — Q&A-сниппеты отключены с 2023 года, а Яндекс на неё ругался: «невозможно определить принадлежность полей». */
 				
 		?>		
 			
