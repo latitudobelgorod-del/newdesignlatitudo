@@ -357,6 +357,40 @@ $APPLICATION->AddHeadString('<meta property="price:currency" content="' . htmlsp
 		<meta itemprop="name" content="<?=$arResult["BRAND_ITEM"]["NAME"]?>" />
 	</div>
 <link itemprop="url" href="<?=$detail_URL?>" />
+
+<?// Все фотографии товара — в разметку.
+   //
+   // В image у товара попадал только первый снимок (и тот дважды — link с
+   // относительным адресом и meta с абсолютным), остальные кадры галереи и
+   // все фотографии из описания поисковик к товару не относил. Для
+   // Яндекс.Картинок это и есть привязка снимка к странице.
+   //
+   // Печатаем ссылками: адрес нужен абсолютный, а <link itemprop> ничего не
+   // рисует и в вёрстку не вмешивается. Повторы отбрасываем.?>
+<?
+$ndProdImages = LatitudoSchema::mergeImages(
+	/* Берём исходный файл, а не уменьшенную копию из галереи: крупный кадр
+	   Яндекс.Картинкам полезнее, а слишком большие помощник сам ужмёт. */
+	LatitudoSchema::imagesFromGallery(
+		array_map(
+			function ($photo) {
+				return array(
+					'DETAIL' => $photo,
+					'TITLE' => (isset($photo['TITLE']) ? $photo['TITLE'] : ''),
+					'ALT' => (isset($photo['ALT']) ? $photo['ALT'] : ''),
+				);
+			},
+			(array) $arResult['MORE_PHOTO']
+		),
+		$arResult['NAME'],
+		$detail_URL
+	),
+	LatitudoSchema::imagesFromEditor($arResult['IBLOCK_ID'], $arResult['ID'], array('EDITOR1'), $arResult['NAME'], $detail_URL)
+);
+foreach ($ndProdImages as $ndProdImage) {
+	echo '<link itemprop="image" href="'.htmlspecialcharsbx($ndProdImage['contentUrl']).'" />';
+}
+?>
 <div class="item_main_info type_clothes <?=(!$showCustomOffer ? "noffer" : "");?> <?=($arParams["SHOW_UNABLE_SKU_PROPS"] != "N" ? "show_un_props" : "unshow_un_props");?>" id="<?=$arItemIDs["strMainID"];?>">
 
 <?/*картинка на детальной*/?>

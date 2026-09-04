@@ -172,6 +172,16 @@ function ndSyncBrandWeight(&$arFields)
    маленький и без побочных эффектов, на каждый хит это ничего не стоит. */
 require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_banner.php';
 
+/**
+ * Микроразметка страниц марок, портфолио и «Материалов».
+ *
+ * Класс зовут шаблоны компонентов — там require делать неоткуда, поэтому
+ * подключаем сразу. Файл без побочных эффектов: одни статические методы.
+ *
+ * Логика в local/php_interface/include/latitudo_schema.php.
+ */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_schema.php';
+
 AddEventHandler('iblock', 'OnBeforeIBlockElementAdd', 'ndBannerSingleRecordGuard');
 
 function ndBannerSingleRecordGuard(&$arFields)

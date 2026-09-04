@@ -74,8 +74,43 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 
 
 
-<div class="col-md-8 col-md-offset-2" itemscope itemtype="https://schema.org/Article"><?//col-md-8 col-md-offset-2?>
-<link itemprop="url" href="<?=$arResult['DETAIL_PAGE_URL']?>" />
+<?// Разметка проекта — граф JSON-LD (LatitudoSchema, local/php_interface/include).
+   // Прежде здесь висели микроданные Article: itemscope на колонке, url и
+   // headline. Кроме заголовка поисковик из них ничего не получал — ни даты,
+   // ни автора, ни привязки фотографий, — а два описания одной сущности на
+   // странице держать незачем, поэтому микроданные сняты.
+   //
+   // Фотографии собираем все: верхний слайдер (GALLERY), ленту «Галерея»
+   // (GALLERY_BIG) и снимки из редактора блоков (EDITOR1, EDITOR2). Повторы
+   // склеиваются по адресу файла.?>
+<?
+$ndProjName = $arResult['NAME'];
+$ndProjUrl = $arResult['DETAIL_PAGE_URL'];
+/* Заголовок тот же, что печатает <h1> ниже; там он собирается уже внутри
+   вёрстки, а разметке нужен раньше. */
+$ndProjTitle = ($arResult['IPROPERTY_VALUES']['ELEMENT_PAGE_TITLE'] ?? '') ?: $ndProjName;
+
+$ndProjImages = LatitudoSchema::mergeImages(
+	LatitudoSchema::imagesFromGallery($arResult['GALLERY'] ?? array(), $ndProjName, $ndProjUrl),
+	LatitudoSchema::imagesFromGallery($arResult['GALLERY_BIG'] ?? array(), $ndProjName, $ndProjUrl),
+	LatitudoSchema::imagesFromEditor($arResult['IBLOCK_ID'], $arResult['ID'], array('EDITOR1', 'EDITOR2'), $ndProjName, $ndProjUrl)
+);
+
+LatitudoSchema::printGraph(LatitudoSchema::articleGraph(array(
+	'URL' => $ndProjUrl,
+	'NAME' => $ndProjName,
+	'HEADLINE' => $ndProjTitle,
+	'DESCRIPTION' => ($arResult['IPROPERTY_VALUES']['ELEMENT_META_DESCRIPTION'] ?? '')
+		?: (($arResult['PROPERTIES']['TASK_PROJECT']['VALUE'] ?? '') ?: ($arResult['PREVIEW_TEXT'] ?? '')),
+	'IMAGES' => $ndProjImages,
+	'DATE_PUBLISHED' => ($arResult['ACTIVE_FROM'] ?? '') ?: ($arResult['DATE_CREATE'] ?? ''),
+	'DATE_MODIFIED' => $arResult['TIMESTAMP_X'] ?? '',
+	'SECTION' => $arResult['SECTION']['NAME'] ?? '',
+	'IBLOCK_ID' => $arResult['IBLOCK_ID'],
+	'ID' => $arResult['ID'],
+)));
+?>
+<div class="col-md-8 col-md-offset-2"><?//col-md-8 col-md-offset-2?>
 
 
 <div class="inner">
@@ -87,7 +122,7 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 		}
 		?>
 
-		<h1 id="pagetitle" itemprop="headline"><?=$goy?></h1>
+		<h1 id="pagetitle"><?=$goy?></h1>
 
 		<?// Под заголовком — метки проекта и производитель (Figma, фрейм «Проект»
 		   // 20524:98253, ряд 20545:101484): слева плашки 28px «Проект / Видео /
@@ -117,13 +152,21 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 			<div class="flexslider color-controls dark show-nav-controls bigs top_slider" data-slice="Y" data-plugin-options='{"animation": "slide", "directionNav": true, "controlNav" :true, "animationLoop": true, "slideshow": false, "counts": [1, 1, 1]}'>
 				<ul class="slides items">
 					<?$countAll = count($arResult['GALLERY']);?>
+					<?$ndUsedAlts = array();?>
 					<?foreach($arResult['GALLERY'] as $i => $arPhoto):?>
+						<?// Повторяющиеся подписи нумеруем: у большинства снимков своей
+						   // подписи нет, и на всю галерею уходит один и тот же alt —
+						   // название проекта. Для Яндекс.Картинок это слабый признак:
+						   // полтора десятка разных фотографий подписаны одинаково.
+						   // Видимый title не трогаем — «— фото 7» в подсказке ни к чему.?>
+						<?$ndPhotoAlt = (isset($ndUsedAlts[$arPhoto['ALT']]) ? $arPhoto['ALT'].' — фото '.($i + 1) : $arPhoto['ALT']);?>
+						<?$ndUsedAlts[$arPhoto['ALT']] = true;?>
 						<li itemscope itemtype="https://schema.org/ImageObject" class="item" data-slice-block="Y" data-slice-params='{"lineheight": -3}'>
 							<!--<a href="<?=$arPhoto['DETAIL']['SRC']?>" target="_blank" title="<?=$arPhoto['TITLE']?>" class="fancy" data-fancybox-group="gallery">-->
 							<meta itemprop="name" content="<?=$arPhoto['TITLE']?>" />
 							<link itemprop="url" href="<?=$page_url_itemprop?>" />
 							<meta itemprop="author" content="Латитудо" />
-							<img itemprop="contentUrl" src="<?=$address_image_itemprop?><?=$arPhoto['PREVIEW']['src']?>" style="width:100%;" class="img-responsive inline" title="<?=$arPhoto['TITLE']?>" alt="<?=$arPhoto['ALT']?>" itemprop="image" />
+							<img itemprop="contentUrl" src="<?=$address_image_itemprop?><?=$arPhoto['PREVIEW']['src']?>" style="width:100%;" class="img-responsive inline" title="<?=$arPhoto['TITLE']?>" alt="<?=$ndPhotoAlt?>" />
 							
 							<!--<span class="zoom"></span>-->
 							<!--</a>-->
@@ -261,13 +304,16 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 
 		<div class="nd-gal__box">
 			<div class="nd-gal__strip" data-nd-gal-strip itemscope itemtype="https://schema.org/ImageGallery">
+				<?$ndUsedGalAlts = array();?>
 				<?foreach($arResult['GALLERY_BIG'] as $i => $arPhoto):?>
+					<?$ndGalAlt = (isset($ndUsedGalAlts[$arPhoto['ALT']]) ? $arPhoto['ALT'].' — фото '.($i + 1) : $arPhoto['ALT']);?>
+					<?$ndUsedGalAlts[$arPhoto['ALT']] = true;?>
 					<a class="nd-gal__slide" href="<?=$arPhoto['DETAIL']['SRC']?>" data-fancybox="nd-gallery"
 					   data-nd-gal-slide="<?=$i?>" title="<?=htmlspecialcharsbx($arPhoto['TITLE'])?>"
 					   itemscope itemtype="https://schema.org/ImageObject">
-						<meta itemprop="name" content="<?=htmlspecialcharsbx($arPhoto['TITLE'])?>" />
+						<meta itemprop="name" content="<?=htmlspecialcharsbx($ndGalAlt)?>" />
 						<img itemprop="contentUrl" src="<?=$arPhoto['PREVIEW']['src']?>" loading="lazy"
-							 alt="<?=htmlspecialcharsbx($arPhoto['ALT'])?>" title="<?=htmlspecialcharsbx($arPhoto['TITLE'])?>" />
+							 alt="<?=htmlspecialcharsbx($ndGalAlt)?>" title="<?=htmlspecialcharsbx($arPhoto['TITLE'])?>" />
 					</a>
 				<?endforeach;?>
 			</div>

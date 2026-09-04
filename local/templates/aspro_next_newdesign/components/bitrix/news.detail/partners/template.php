@@ -32,11 +32,28 @@ $goy=$arResult['NAME'];
 }
 ?>
 
-<div itemprop="brand" itemscope itemtype="https://schema.org/Brand">
-<meta itemprop="name" content="<?=$arResult['NAME']?>" />
-<link itemprop="url" href="<?=$arResult["DETAIL_PAGE_URL"]?>" />
-<link itemprop="logo" src="<?=$arResult["PREVIEW_PICTURE"]["SRC"]?>" alt="<?=$arResult['NAME']?>" />
-</div>
+<?// Разметка марки — граф JSON-LD (LatitudoSchema, local/php_interface/include).
+   //
+   // Прежде здесь стоял блок микроданных с itemprop="brand", но без внешнего
+   // itemscope: свойство висело в пустоте и ни к чему не относилось, а
+   // валидатор Яндекса такой itemprop просто выбрасывает. Заодно у логотипа
+   // стоял <link src>, хотя у link адрес задаётся атрибутом href.
+   //
+   // Марку описываем как Brand, а саму страницу — как CollectionPage: на ней
+   // перечислены товары этой марки. Организация в графе одна на весь сайт —
+   // «Латитудо», продавец; производитель марки ей не равен.?>
+<?
+$ndBrandName = $arResult['NAME'];
+$ndBrandLogo = ($arPhoto ?? null) ?: (($arResult['PREVIEW_PICTURE'] ?? null) ?: ($arResult['DETAIL_PICTURE'] ?? null));
+
+LatitudoSchema::printGraph(LatitudoSchema::brandGraph(array(
+	'URL' => $arResult['DETAIL_PAGE_URL'],
+	'NAME' => $ndBrandName,
+	'DESCRIPTION' => ($arResult['IPROPERTY_VALUES']['ELEMENT_META_DESCRIPTION'] ?? '')
+		?: ($arResult['PREVIEW_TEXT'] ?? ''),
+	'LOGO' => $ndBrandLogo,
+)));
+?>
 	
 	
 

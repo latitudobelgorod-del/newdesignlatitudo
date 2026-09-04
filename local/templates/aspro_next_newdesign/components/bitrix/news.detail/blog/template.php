@@ -10,6 +10,37 @@
 <?endif;*/?>
 <?// shot top banners end?>
 
+<?// Разметка статьи — граф JSON-LD (LatitudoSchema, local/php_interface/include).
+   //
+   // У страниц «Материалов» разметки не было вовсе: поисковик видел только
+   // хлебные крошки и набор ImageObject от редактора блоков, не связанных ни с
+   // текстом, ни между собой (проверка микроразметки, Ирина, сентябрь 2026).
+   //
+   // Фотографии берём детальную и все снимки из редактора блоков (EDITOR1) —
+   // тем самым они привязаны к статье, а не висят сами по себе.?>
+<?
+$ndArtName = $arResult['NAME'];
+$ndArtUrl = $arResult['DETAIL_PAGE_URL'];
+$ndArtImages = LatitudoSchema::mergeImages(
+	(($arResult['DETAIL_PICTURE']['ID'] ?? 0) ? array(LatitudoSchema::image($arResult['DETAIL_PICTURE'], $ndArtName, $ndArtUrl)) : array()),
+	LatitudoSchema::imagesFromEditor($arResult['IBLOCK_ID'], $arResult['ID'], array('EDITOR1'), $ndArtName, $ndArtUrl)
+);
+
+LatitudoSchema::printGraph(LatitudoSchema::articleGraph(array(
+	'URL' => $ndArtUrl,
+	'NAME' => $ndArtName,
+	'HEADLINE' => ($arResult['IPROPERTY_VALUES']['ELEMENT_PAGE_TITLE'] ?? '') ?: $ndArtName,
+	'DESCRIPTION' => ($arResult['IPROPERTY_VALUES']['ELEMENT_META_DESCRIPTION'] ?? '')
+		?: ($arResult['PREVIEW_TEXT'] ?? ''),
+	'IMAGES' => $ndArtImages,
+	'DATE_PUBLISHED' => ($arResult['ACTIVE_FROM'] ?? '') ?: ($arResult['DATE_CREATE'] ?? ''),
+	'DATE_MODIFIED' => $arResult['TIMESTAMP_X'] ?? '',
+	'SECTION' => $arResult['SECTION']['NAME'] ?? '',
+	'IBLOCK_ID' => $arResult['IBLOCK_ID'],
+	'ID' => $arResult['ID'],
+)));
+?>
+
 <?// element name?>
 <?if($arParams['DISPLAY_NAME'] != 'N' && strlen($arResult['NAME'])):?>
 	<h2><?=$arResult['NAME']?></h2>
