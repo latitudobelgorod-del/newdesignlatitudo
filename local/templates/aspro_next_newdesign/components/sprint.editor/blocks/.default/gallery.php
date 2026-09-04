@@ -16,11 +16,11 @@ $page_url_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST']. $_SER
 <div class="sp-gallery j">
     <ul class="sp-gallery-items">
         <?foreach ($images as $image):?>
-        <li class="sp-gallery-item" itemprop="hasPart" itemscope itemtype="https://schema.org/ImageObject">
+        <li class="sp-gallery-item" itemscope itemtype="https://schema.org/ImageObject">
             <a itemprop="contentUrl" data-fancybox="gallery" data-caption="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>"  class="sp-gallery-item-img-wrapper fancy fancybox" rel="media-gallery" 
 			href="<?=$address_image_itemprop?><?=$image['DETAIL_SRC']?>">
   <meta itemprop="name" content="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" />
-   <meta itemprop="url" content="<?=$page_url_itemprop?>" />
+   <link itemprop="url" href="<?=$page_url_itemprop?>" />
   <img src="<?=$image['SRC']?>" title="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" alt="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" >
                 <div class="sp-gallery-item-text">
                     <div class="sp-gallery-item-text-content"><?=$image['DESCRIPTION']?></div>

@@ -87,10 +87,10 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 				<ul class="slides items">
 					<?$countAll = count($arResult['GALLERY']);?>
 					<?foreach($arResult['GALLERY'] as $i => $arPhoto):?>
-						<li itemprop="hasPart" itemscope itemtype="https://schema.org/ImageObject" class="item" data-slice-block="Y" data-slice-params='{"lineheight": -3}'>
+						<li itemscope itemtype="https://schema.org/ImageObject" class="item" data-slice-block="Y" data-slice-params='{"lineheight": -3}'>
 							<!--<a href="<?=$arPhoto['DETAIL']['SRC']?>" target="_blank" title="<?=$arPhoto['TITLE']?>" class="fancy" data-fancybox-group="gallery">-->
 							<meta itemprop="name" content="<?=$arPhoto['TITLE']?>" />
-							<meta itemprop="url" content="<?=$page_url_itemprop?>" />
+							<link itemprop="url" href="<?=$page_url_itemprop?>" />
 							<meta itemprop="author" content="Латитудо" />
 							<img itemprop="contentUrl" src="<?=$address_image_itemprop?><?=$arPhoto['PREVIEW']['src']?>" style="width:100%;" class="img-responsive inline" title="<?=$arPhoto['TITLE']?>" alt="<?=$arPhoto['ALT']?>" itemprop="image" />
 							
@@ -230,7 +230,7 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 						<div itemscope itemtype="https://schema.org/ImageGallery" class="flexslider dark bigs big_slider color-controls" id="slider" data-plugin-options='{"animation": "slide", "useCSS": true, "directionNav": true, "controlNav" :true, "animationLoop": true, "slideshow": false, "sync": ".gallery-wrapper .small-gallery", "counts": [1, 1, 1]}'>
 							<ul class="slides items">
 								<?foreach($arResult['GALLERY_BIG'] as $i => $arPhoto):?>
-									<li class="col-md-12 item" itemprop="hasPart" itemscope itemtype="https://schema.org/ImageObject">
+									<li class="col-md-12 item" itemscope itemtype="https://schema.org/ImageObject">
 										<a itemprop="contentUrl" href="<?=$arPhoto['DETAIL']['SRC']?>" class="fancy" data-fancybox="gallery" rel="gallery" target="_blank" title="<?=$arResult['NAME']?>">
 											<meta itemprop="name" content="<?=$arPhoto['TITLE']?>" />
 											

@@ -266,10 +266,10 @@ $ndFirst = key($ndTabs);
 
 	<? /* Вкладки: активная красная, вторая серая — по макету во всю ширину,
 	      пополам. Переключение — js/newdesign-ui.js. */ ?>
-	<div class="nd-interest__tabs" role="tablist">
+	<div class="nd-interest__tabs">
 		<? foreach ($ndTabs as $ndKey => $ndTab): ?>
 			<button class="nd-interest__tab<?= $ndKey === $ndFirst ? ' is-active' : '' ?>"
-				type="button" role="tab" data-nd-interest-tab="<?= $ndKey ?>"
+				type="button" data-nd-interest-tab="<?= $ndKey ?>"
 				aria-selected="<?= $ndKey === $ndFirst ? 'true' : 'false' ?>">
 				<? if ($ndKey === 'sale'): ?>
 					<?// Иконки рисуем обводкой в currentColor: на активной вкладке

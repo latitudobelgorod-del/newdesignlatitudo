@@ -15,9 +15,9 @@ $page_url_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST']. $_SER
 
 
 <? if ($image): ?>
-    <div class="111 sp-image" style="text-align: center" itemprop="hasPart" itemscope itemtype="https://schema.org/ImageObject">
+    <div class="111 sp-image" style="text-align: center" itemscope itemtype="https://schema.org/ImageObject">
         <meta itemprop="name" content="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" />
-		<meta itemprop="url" content="<?=$page_url_itemprop?>" />
+		<link itemprop="url" href="<?=$page_url_itemprop?>" />
 		<img itemprop="contentUrl" src="<?=$address_image_itemprop?><?=$image['SRC'] ?>" class="img-responsive" alt="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" title="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>">
     </div>
 <? endif; ?>

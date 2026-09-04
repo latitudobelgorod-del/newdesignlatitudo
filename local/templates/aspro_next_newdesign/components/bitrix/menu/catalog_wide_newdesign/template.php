@@ -473,7 +473,13 @@ $ndSectionBrands = function($sectionId) {
 <div class="nd-cat">
 
 	<!-- Слева: разделы -->
-	<div class="nd-cat__aside" role="tablist">
+	<?// Ролей tablist/tab здесь нет намеренно. Раньше стояли, но набор был
+	   // неполный: ни role="tabpanel", ни aria-selected, ни управления стрелками.
+	   // Читалке экрана такой набор мешает — она объявляет ссылку «вкладка N из 11»
+	   // и ждёт поведения вкладок, которого нет. Валидатор Яндекса на эти атрибуты
+	   // тоже ругался: «невозможно определить принадлежность данных полей»
+	   // (Ирина, 4 сентября 2026).?>
+	<div class="nd-cat__aside">
 		<?foreach($arSections as $i => $arSection):?>
 			<?
 			// Порядок источников: поле раздела UF_ND_ICON → вырезка из макета
@@ -499,8 +505,7 @@ $ndSectionBrands = function($sectionId) {
 			?>
 			<a class="nd-cat__chip<?=($i === 0 ? ' is-active' : '')?>"
 			   href="<?=htmlspecialcharsbx($arSection['LINK'])?>"
-			   data-nd-cat-target="<?=htmlspecialcharsbx($arSection['LINK'])?>"
-			   role="tab">
+			   data-nd-cat-target="<?=htmlspecialcharsbx($arSection['LINK'])?>">
 				<span class="nd-cat__chip-img">
 					<?// Картинки грузим не сразу: панели скрыты, и штатный loading="lazy"
 					// в скрытом блоке браузер откладывает до показа — из-за этого при

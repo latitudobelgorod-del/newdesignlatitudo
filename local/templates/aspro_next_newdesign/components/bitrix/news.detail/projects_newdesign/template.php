@@ -118,10 +118,10 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 				<ul class="slides items">
 					<?$countAll = count($arResult['GALLERY']);?>
 					<?foreach($arResult['GALLERY'] as $i => $arPhoto):?>
-						<li itemprop="hasPart" itemscope itemtype="https://schema.org/ImageObject" class="item" data-slice-block="Y" data-slice-params='{"lineheight": -3}'>
+						<li itemscope itemtype="https://schema.org/ImageObject" class="item" data-slice-block="Y" data-slice-params='{"lineheight": -3}'>
 							<!--<a href="<?=$arPhoto['DETAIL']['SRC']?>" target="_blank" title="<?=$arPhoto['TITLE']?>" class="fancy" data-fancybox-group="gallery">-->
 							<meta itemprop="name" content="<?=$arPhoto['TITLE']?>" />
-							<meta itemprop="url" content="<?=$page_url_itemprop?>" />
+							<link itemprop="url" href="<?=$page_url_itemprop?>" />
 							<meta itemprop="author" content="Латитудо" />
 							<img itemprop="contentUrl" src="<?=$address_image_itemprop?><?=$arPhoto['PREVIEW']['src']?>" style="width:100%;" class="img-responsive inline" title="<?=$arPhoto['TITLE']?>" alt="<?=$arPhoto['ALT']?>" itemprop="image" />
 							
@@ -264,7 +264,7 @@ $address_image_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST'] :
 				<?foreach($arResult['GALLERY_BIG'] as $i => $arPhoto):?>
 					<a class="nd-gal__slide" href="<?=$arPhoto['DETAIL']['SRC']?>" data-fancybox="nd-gallery"
 					   data-nd-gal-slide="<?=$i?>" title="<?=htmlspecialcharsbx($arPhoto['TITLE'])?>"
-					   itemprop="hasPart" itemscope itemtype="https://schema.org/ImageObject">
+					   itemscope itemtype="https://schema.org/ImageObject">
 						<meta itemprop="name" content="<?=htmlspecialcharsbx($arPhoto['TITLE'])?>" />
 						<img itemprop="contentUrl" src="<?=$arPhoto['PREVIEW']['src']?>" loading="lazy"
 							 alt="<?=htmlspecialcharsbx($arPhoto['ALT'])?>" title="<?=htmlspecialcharsbx($arPhoto['TITLE'])?>" />

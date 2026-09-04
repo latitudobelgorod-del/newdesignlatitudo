@@ -2413,35 +2413,7 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 		
 	<?php
 if ($arResult['ID']) {
-    // Формируем JSON-LD
-    $jsonLd = '<script type="application/ld+json">
-{
-    "@context":"https://schema.org",
-    "@type":"QAPage",
-    "mainEntity": {
-        "@type": "Question",
-        "dateCreated": "' . date('c') . '",
-        "name": "' . CUtil::JSEscape($goy) . '",
-        "text": "' . CUtil::JSEscape($description_meta) . '",
-        "author": {
-            "@type": "Person",
-            "name": "Ирина Кулыгина"
-        },
-        "acceptedAnswer": {
-            "@type": "Answer",
-            "author": {
-                "@type": "Organization",
-                "name": "Латитудо"
-            },
-            "text": "&#9989 Широкий ассортимент &#128293 От производителя &#128077 Доставка"
-        },
-        "answerCount": 1
-    }
-}
-</script>';
-    
-    // Добавляем в head
-    $APPLICATION->AddHeadString($jsonLd);
+/* Разметку QAPage убрали 4 сентября 2026: вопрос-ответ был выдуман (вопрос — заголовок страницы, ответ — рекламная строка), Google допускает QAPage только на страницах с настоящими вопросами посетителей. Пользы никакой — Q&A-сниппеты отключены с 2023 года, а Яндекс на неё ругался: «невозможно определить принадлежность полей». */
 }
 ?>	
 		
