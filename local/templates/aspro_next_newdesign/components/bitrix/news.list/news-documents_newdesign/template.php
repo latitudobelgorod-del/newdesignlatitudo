@@ -44,11 +44,18 @@ if (!defined('ND_UI_JS')) {
 					continue;
 				$type = strtoupper($arFile['TYPE']);
 				?>
-				<a class="nd-docs__item" href="<?=$arFile["SRC"];?>" target="_blank"
-				   itemprop="additionalProperty" itemscope itemtype="http://schema.org/PropertyValue">
-					<meta itemprop="name" content="<?=htmlspecialcharsbx($arItem["NAME"])?>">
-					<link itemprop="url" href="<?=$arFile["SRC"];?>">
-
+				<?// Без микроразметки.
+				   //
+				   // Здесь стояло itemprop="additionalProperty" с PropertyValue. Блок
+				   // выводится не только в карточке товара, но и на странице марки, а
+				   // там никакого itemscope вокруг нет: свойство не к чему прикрепить,
+				   // и валидатор Яндекса отвечал ошибкой «невозможно определить
+				   // принадлежность данных полей» (проверка, Ирина, 4 сентября 2026).
+				   //
+				   // Возвращать её незачем и в карточке: PDF-паспорт — не свойство
+				   // товара, у PropertyValue вместо значения стояла ссылка, и
+				   // поисковик из такой записи ничего не берёт.?>
+				<a class="nd-docs__item" href="<?=$arFile["SRC"];?>" target="_blank">
 					<?// Иконка по макету: контурный лист с загнутым уголком.
 					   // Инлайном, чтобы красилась currentColor вместе с текстом.?>
 					<svg class="nd-docs__ico" width="32" height="40" viewBox="0 0 32 40" fill="none" aria-hidden="true" focusable="false">
