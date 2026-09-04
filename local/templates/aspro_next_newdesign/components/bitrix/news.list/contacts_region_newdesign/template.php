@@ -93,7 +93,7 @@ $ndMailPodmena = (ndIsUtmVisit() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_
 	     это названием компании. Адрес разложен на PostalAddress, координаты и
 	     режим работы отданы отдельно — так требуют Google и Яндекс от карточки
 	     организации (проверка микроразметки, 4 сентября 2026). */?>
-	<div class="nd-region" id="<?= $this->GetEditAreaId($arItem['ID']) ?>" itemscope itemtype="https://schema.org/Organization">
+	<div class="nd-region" id="<?= $this->GetEditAreaId($arItem['ID']) ?>" itemscope itemtype="https://schema.org/LocalBusiness">
 		<h1 id="pagetitle" class="nd-region__h1"><?= $ndTitle ?></h1>
 		<meta itemprop="name" content="Латитудо">
 		<meta itemprop="description" content="<?= htmlspecialcharsbx($ndTitle) ?>">

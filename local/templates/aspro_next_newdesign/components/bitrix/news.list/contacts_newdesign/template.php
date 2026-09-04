@@ -69,7 +69,7 @@ $ndTel = static function ($phone) {
 		<?/* Микроразметка филиала: имя компании, адрес разложен на PostalAddress,
 		     координаты из свойства MAP, режим работы в машинном виде. */?>
 		<? $ndGeo = preg_match('/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/', trim((string) ($arItem['PROPERTIES']['MAP']['VALUE'] ?? '')), $m) ? [$m[1], $m[2]] : []; ?>
-		<div class="nd-contacts__item" id="<?= $this->GetEditAreaId($arItem['ID']) ?>" itemscope itemtype="https://schema.org/Organization">
+		<div class="nd-contacts__item" id="<?= $this->GetEditAreaId($arItem['ID']) ?>" itemscope itemtype="https://schema.org/LocalBusiness">
 			<meta itemprop="name" content="Латитудо">
 			<meta itemprop="description" content="<?= htmlspecialcharsbx($arItem['NAME']) ?>">
 			<? if ($ndGeo): ?>

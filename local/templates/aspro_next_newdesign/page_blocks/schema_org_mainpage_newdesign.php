@@ -75,9 +75,18 @@ if ($address = $ndSchemaRegion('REGION_TAG_ADDRESSMY')) {
 }
 
 /* Режим работы приводит к машинному виду ndSchemaOpeningHours (local/init.php):
-   не разобрал фразу — свойства просто не будет. */
+   не разобрал фразу — свойства просто не будет.
+
+   openingHours спецификацией определён не у Organization, а у LocalBusiness
+   (валидатор Яндекса на это ругается предупреждением). LocalBusiness —
+   потомок Organization, поэтому ссылка publisher у WebSite остаётся верной,
+   а часы работы становятся законным полем. Тип повышаем только вместе с
+   адресом: LocalBusiness без адреса поисковику бесполезен. */
 if ($hours = ndSchemaOpeningHours($ndSchemaRegion('REGION_TAG_TIME'))) {
-	$ndSchemaOrg['openingHours'] = $hours;
+	if (isset($ndSchemaOrg['address'])) {
+		$ndSchemaOrg['@type'] = 'LocalBusiness';
+		$ndSchemaOrg['openingHours'] = $hours;
+	}
 }
 
 $ndSchemaGraph = array(
