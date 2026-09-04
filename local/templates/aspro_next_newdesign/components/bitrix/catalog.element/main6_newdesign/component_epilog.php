@@ -8,6 +8,20 @@ use Bitrix\Main\ModuleManager;
 global $arTheme, $arRegion;
 ?>
 
+<?/* Канонический адрес карточки. У товара один адрес, но открыть его можно
+     по-разному: ?pid= у торговых предложений, короткие ссылки, utm-метки,
+     привязка к нескольким разделам. Без canonical поисковик выбирает главную
+     версию сам (проверка микроразметки, 4 сентября 2026).
+
+     Хост берём текущий: у региональных поддоменов канониклом должна быть их
+     собственная страница, иначе регионы выпадут из индекса.
+
+     DETAIL_PAGE_URL кладёт в результат result_modifier, в блоке с пометкой
+     canonical. */?>
+<? if ($arResult['DETAIL_PAGE_URL']): ?>
+	<? $APPLICATION->AddHeadString('<link href="https://'.$_SERVER['HTTP_HOST'].$arResult['DETAIL_PAGE_URL'].'" rel="canonical" />', true); ?>
+<? endif; ?>
+
 <?if($arResult["ID"]):?>
 	<?
 	// cross sales for product

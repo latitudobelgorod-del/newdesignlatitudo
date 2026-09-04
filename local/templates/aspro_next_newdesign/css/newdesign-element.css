@@ -189,6 +189,46 @@
     object-fit: contain;
 }
 
+/* Ссылка «Информация о производителе». Тема печатает её внутри колонки
+   документов; js/newdesign-element.js (moveDocs) переносит сюда, под
+   «Доставку», чтобы она была видна и у товаров без документов. Оформление —
+   как у прочих ссылок карточки («Рассчитать вместе с менеджером»). */
+.nd-pd__brandlink {
+    margin-top: 12px;
+}
+/* Селектор со страницей: у ссылки остаётся класс темы .detail_text, а он
+   красит её в серый #555 — без этого веса цвет темы перебивал наш. */
+.catalog_detail.element_newdesign .nd-pd__brandlink a,
+.catalog_detail.element_newdesign .nd-pd__brandlink a.detail_text {
+    display: inline-block;
+    border: 0;
+    color: #c60000;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    text-decoration: none;
+}
+.catalog_detail.element_newdesign .nd-pd__brandlink a:hover,
+.catalog_detail.element_newdesign .nd-pd__brandlink a.detail_text:hover {
+    color: #a80000;
+    text-decoration: underline;
+}
+
+/* Товар без фотографий. Заглушка нарисована 160×160 — растянутая на всю
+   рамку она превратилась бы в мыло, поэтому показываем её в натуральную
+   величину по центру светлой плашки. */
+.nd-pd__photo--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(82, 82, 100, .05);
+}
+.nd-pd__photo--empty .nd-pd__img {
+    width: 160px;
+    height: 160px;
+    object-fit: none;
+}
+
 /* плашки товара поверх фото — переносит сюда newdesign-element.js */
 /* Плашки («Хиты месяца», «Бесплатная доставка») тема печатает внутри своей
    галереи, а js/newdesign-element.js (moveNodes) переносит их поверх нашего
@@ -781,6 +821,70 @@
     color: inherit !important;
 }
 
+/* Образцы цвета в штатном списке предложений (.bx_scu).
+   Он показывается там, где у товара не заведены «Вариации цветов», — например
+   у крепежа. Общие правила чипов выше рассчитаны на текст («3000мм»): 87×36 с
+   рамкой. Внутри же лежит квадратная плитка .cnt_item 54×54 — она вылезала за
+   рамку, и блок выглядел сломанным (Ирина, 4 сентября 2026, товар «Винт
+   самонарез. ПС по дереву EasyDecking … Чёрное дерево»).
+
+   Приводим к тем же круглым образцам 48×48 с красным кольцом у выбранного,
+   что и «Вариации цветов» выше по странице.
+
+   Сначала — страховка для браузеров без :has(): там плитка просто ужимается
+   до размера чипа и ничего не разъезжается. Ниже — полный вид для остальных.
+   Условие по .cnt_item обязательно: в этом же списке у другого товара могут
+   оказаться текстовые значения, их в круг 48px загонять нельзя. */
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li .cnt1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* У выбранного образца тема заливает эту обёртку фирменным красным — под
+       круглой картинкой оставался красный квадрат (Ирина, 4 сентября 2026).
+       Выбор показываем кольцом на самом чипе, заливка тут не нужна. */
+    background: none !important;
+    border-radius: 50%;
+}
+/* Маркер-точку из темы («●» в ::before) в образцах не показываем: она сдвигала
+   картинку и в макете её нет. */
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li:before {
+    content: none !important;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li .cnt_item {
+    width: 26px !important;
+    height: 26px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 3px !important;
+    background-size: cover !important;
+    background-position: center !important;
+}
+
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li:has(.cnt_item) {
+    min-width: 0;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    overflow: visible;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li:has(.cnt_item).active,
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li:has(.cnt_item).bx_active {
+    border: 0 !important;
+    background: none !important;
+    box-shadow: 0 0 0 2px rgba(198, 0, 0, .3);
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li:has(.cnt_item) .cnt1 {
+    width: 100%;
+    height: 100%;
+}
+.catalog_detail.element_newdesign .right_info .info_item .sku_props .bx_scu li:has(.cnt_item) .cnt_item {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+}
+
 /* Единицы измерения — группа справа от длины, активная чёрная.
    Кегль тот же, что у чипов длины (макет 18/25.2): это один компонент
    Alt_RadioButton, и в макете обе группы стоят в одну строку одинаковыми. */
@@ -1049,6 +1153,35 @@
        оказывались набраны разными гарнитурами. */
     font-family: inherit;
 }
+/* На вводе поле показываем полем. В покое число и единица стоят единой
+   надписью по центру плитки — это из макета; но кликнуть и править «вслепую»
+   неудобно: не видно ни границ поля, ни того, что оно вообще редактируемое.
+   Тот же приём уже сделан в списке (css/newdesign-catalog.css): на фокусе
+   белая заливка, тонкая внутренняя рамка и небольшой запас по ширине.
+
+   Рамку рисуем внутренней тенью, а не border: border добавил бы 2px и дёрнул
+   бы содержимое плитки в момент фокуса (Ирина, 4 сентября 2026). */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .measure-field:focus,
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_block input.text:focus,
+#nd-pd-buybar .measure-field:focus,
+#nd-pd-buybar .counter_block input.text:focus {
+    min-width: 3.6em;
+    padding: 0 6px;
+    background: #fff !important;
+    border-radius: 3px !important;
+    /* !important нужен: тема гасит тень у полей в фокусе своим правилом */
+    box-shadow: inset 0 0 0 1px rgba(82, 82, 100, .35) !important;
+    outline: none !important;
+    text-align: center;
+}
+
+/* Подпись единицы переводит фокус в поле (js/newdesign-element.js) — значит и
+   курсор над ней текстовый. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .nd-pd-qty-unit,
+#nd-pd-buybar .nd-pd-qty-unit {
+    cursor: text;
+}
+
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .nd-pd-qty-unit {
     flex: 1 1 0;
     min-width: 0;
@@ -1561,6 +1694,20 @@
 }
 .element_newdesign .nd-pd__desc.is-collapsed .nd-pd__desc-more-ico {
     transform: none;
+}
+
+/* Сворачиваем описание только на телефоне: на десктопе оно показывается
+   целиком, шторки «Показать все» нет (Ирина, 4 сентября 2026). Класс на
+   широком экране не ставит скрипт; правило — страховка на случай, если он
+   успел повесить его до пересчёта по resize. */
+@media (min-width: 768px) {
+    .element_newdesign .nd-pd__desc.is-collapsed {
+        max-height: none;
+        overflow: visible;
+    }
+    .element_newdesign .nd-pd__desc-more {
+        display: none;
+    }
 }
 
 /* ===================== панель мобильной карточки =====================

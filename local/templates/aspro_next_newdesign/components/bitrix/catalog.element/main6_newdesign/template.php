@@ -407,7 +407,18 @@ foreach ((array) $arResult['MORE_PHOTO'] as $arImage) {
 		'title' => htmlspecialcharsbx($arImage['TITLE']),
 	];
 }
+/* Товар совсем без фотографий: в ленту заглушку не берём (выше), но в самой
+   рамке фото что-то показать надо — иначе в вёрстке оставался <img src="">,
+   то есть битая картинка на пол-экрана (Ирина, 4 сентября 2026, «Винт
+   самонарез. ПС по дереву EasyDecking … Чёрное дерево»).
+
+   Ставим ту же заглушку «НЕТ ФОТО», что и в списке товаров. Узел <img>
+   оставляем на месте, а не подменяем блоком: на него смотрит галерея в
+   js/newdesign-element.js (rebuild при смене предложения), и без него
+   фотография не появилась бы даже у предложения, где она есть. */
+$ndNoPhoto = SITE_TEMPLATE_PATH.'/images/no_photo_medium.png';
 $ndFirst = $ndSlides ? $ndSlides[0] : ['small' => '', 'big' => '', 'thumb' => '', 'alt' => '', 'title' => ''];
+$ndHasPhoto = ($ndFirst['small'] !== '');
 
 /* Эмблема гарантии в углу фото. В макете это картинка (Figma 21408:71117,
    62×62), и она же уже выведена в карточке списка — тот же svg из папки
@@ -461,8 +472,8 @@ if ($ndProfileVal) {
 			</div>
 		<? endif; ?>
 
-		<div class="nd-pd__photo">
-			<img class="nd-pd__img" src="<?= $ndFirst['small'] ?>" alt="<?= $ndFirst['alt'] ?>" title="<?= $ndFirst['title'] ?>" fetchpriority="high">
+		<div class="nd-pd__photo<?= $ndHasPhoto ? '' : ' nd-pd__photo--empty' ?>">
+			<img class="nd-pd__img" src="<?= $ndHasPhoto ? $ndFirst['small'] : $ndNoPhoto ?>" alt="<?= $ndHasPhoto ? $ndFirst['alt'] : 'Фото пока нет' ?>" title="<?= $ndFirst['title'] ?>" fetchpriority="high">
 
 			<? if ($ndWarrantySrc): ?>
 				<img class="nd-pd__warranty" src="<?= $ndWarrantySrc ?>" alt="Гарантия <?= $ndWarrantyYears ?> лет" width="62" height="62" loading="lazy">
@@ -491,7 +502,7 @@ if ($ndProfileVal) {
 			      там лента превью скрыта, и листать фото больше нечем. Разметку
 			      наполняет js/newdesign-element.js — число точек зависит от
 			      торгового предложения и меняется вместе с галереей. */ ?>
-			<div class="nd-pd__dots" role="tablist" aria-label="Фотографии товара"></div>
+			<div class="nd-pd__dots" aria-label="Фотографии товара"></div>
 		</div>
 	</div>
 
@@ -982,7 +993,24 @@ BX.ready(function() {
 
 
 <!-- Привязанные товары с их цветами или картинками анонса -->
-<?if (!empty($arResult["ASSOCIATED_WITH_COLORS"])):?>
+<?
+/* Показываем только те варианты, у которых есть чем нарисовать образец:
+   картинка цвета из справочника, а если её нет — картинка анонса товара
+   (это решает result_modifier.php). Без отбора вариант без образца выводился
+   пустым кружком-обводкой: «Вариации цветов» у товара заполнены, а «Цвет
+   основного элемента» — нет, и рисовать нечего (Ирина, 4 сентября 2026,
+   винты EasyDecking).
+
+   Если образца нет ни у одного варианта, не печатаем и заголовок «Цвет:» —
+   иначе над пустотой висела бы подпись без значения. */
+$ndColorItems = array_values(array_filter(
+	(array) $arResult["ASSOCIATED_WITH_COLORS"],
+	static function ($item) {
+		return !empty($item["COLOR"]["FILE_PATH"]);
+	}
+));
+?>
+<?if ($ndColorItems):?>
     <div class="catalog-detail-sku__title">Цвет:
 	  <?if (!empty($arResult["MAIN_COLOR"]["NAME"])):?>
             <span class="catalog-detail-sku__current-color">
@@ -993,17 +1021,17 @@ BX.ready(function() {
 		</div>
     <div class="catalog-detail-sku__list">
         <div class="sku-list">	
-            <?foreach ($arResult["ASSOCIATED_WITH_COLORS"] as $item):?>
+            <?foreach ($ndColorItems as $item):?>
                 <div class="sku-list__item sku-list-item <?=(($item['ID'] == $arResult["ID"]) ? 'active' : '')?>">
                     <div class="sku-list-item__inner">  
-                        <?if (!empty($item["COLOR"])):?>
+                        
                             <a href="<?=$item["DETAIL_PAGE_URL"];?>" title="<?=$item["COLOR"]["NAME"]?>" alt="<?=$item["COLOR"]["NAME"]?>">
                                 <img src="<?=$item["COLOR"]["FILE_PATH"]?>" 
                                      alt="<?=$item["COLOR"]["NAME"]?>"
                                      title="<?=$item["COLOR"]["NAME"]?>"
                                      width="50">
                             </a>
-                        <?endif;?>
+                        
                     </div>
                 </div>
             <?endforeach;?>
@@ -1209,6 +1237,7 @@ BX.ready(function() {
 								<meta itemprop="price" content="<?=($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE'])?>" />
 								<meta itemprop="priceCurrency" content="<?=$arResult['MIN_PRICE']['CURRENCY']?>" />
 								<link itemprop="availability" href="http://schema.org/<?=($arResult['PRICE_MATRIX']['AVAILABLE'] == 'Y' ? 'InStock' : 'OutOfStock')?>" />
+								<meta itemprop="itemCondition" content="https://schema.org/NewCondition" />
 								<?
 								if($arDiscount["ACTIVE_TO"]){?>
 									<meta itemprop="priceValidUntil" content="<?=date("Y-m-d", MakeTimeStamp($arDiscount["ACTIVE_TO"]))?>" />
@@ -1588,6 +1617,14 @@ BX.ready(function() {
 					<meta itemprop="price" content="<?=($arOffer['MIN_PRICE']['DISCOUNT_VALUE']) ? $arOffer['MIN_PRICE']['DISCOUNT_VALUE'] : $arOffer['MIN_PRICE']['VALUE']?>" />
 					<meta itemprop="priceCurrency" content="<?=$arOffer['MIN_PRICE']['CURRENCY']?>" />
 					<link itemprop="availability" href="http://schema.org/<?=($arOffer['CAN_BUY'] ? 'InStock' : 'OutOfStock')?>" />
+					<?// Google ждёт у предложения срок действия цены и состояние товара:
+					   // без priceValidUntil и itemCondition карточка попадает в
+					   // отчёт «Товары» с предупреждениями. Скидка со сроком даёт
+					   // свою дату (ниже), обычная цена — год вперёд.?>
+					<meta itemprop="itemCondition" content="https://schema.org/NewCondition" />
+					<?if(!$arDiscount["ACTIVE_TO"]):?>
+						<meta itemprop="priceValidUntil" content="<?=date("Y-m-d", strtotime("+365 day"))?>" />
+					<?endif;?>
 					<?
 					if($arDiscount["ACTIVE_TO"]){?>
 						<meta itemprop="priceValidUntil" content="<?=date("Y-m-d", MakeTimeStamp($arDiscount["ACTIVE_TO"]))?>" />
@@ -1603,9 +1640,12 @@ BX.ready(function() {
 				<meta itemprop="price" content="<?=($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE'])?>" />
 				<meta itemprop="priceCurrency" content="<?=$arResult['MIN_PRICE']['CURRENCY']?>" />
 				<link itemprop="availability" href="http://schema.org/<?=($arResult['MIN_PRICE']['CAN_BUY'] ? 'InStock' : 'OutOfStock')?>" />
+				<meta itemprop="itemCondition" content="https://schema.org/NewCondition" />
 				<?
 				if($arDiscount["ACTIVE_TO"]){?>
 					<meta itemprop="priceValidUntil" content="<?=date("Y-m-d", MakeTimeStamp($arDiscount["ACTIVE_TO"]))?>" />
+				<?}else{?>
+					<meta itemprop="priceValidUntil" content="<?=date("Y-m-d", strtotime("+365 day"))?>" />
 				<?}?>
 				<link itemprop="url" href="<?=$arResult["DETAIL_PAGE_URL"]?>" />
 			</span>
@@ -2856,35 +2896,7 @@ if (CModule::IncludeModule('iblock')) {
 		
 	<?php
 if ($arResult['ID']) {
-    // Формируем JSON-LD
-    $jsonLd = '<script type="application/ld+json">
-{
-    "@context":"https://schema.org",
-    "@type":"QAPage",
-    "mainEntity": {
-        "@type": "Question",
-        "dateCreated": "' . date('c') . '",
-        "name": "' . CUtil::JSEscape($goy) . '",
-        "text": "' . CUtil::JSEscape($description_meta) . '",
-        "author": {
-            "@type": "Person",
-            "name": "Ирина Кулыгина"
-        },
-        "acceptedAnswer": {
-            "@type": "Answer",
-            "author": {
-                "@type": "Organization",
-                "name": "Латитудо"
-            },
-            "text": "&#9989 Широкий ассортимент &#128293 От производителя &#128077 Доставка"
-        },
-        "answerCount": 1
-    }
-}
-</script>';
-    
-    // Добавляем в head
-    $APPLICATION->AddHeadString($jsonLd);
+/* Разметку QAPage убрали 4 сентября 2026: вопрос-ответ был выдуман (вопрос — заголовок страницы, ответ — рекламная строка), Google допускает QAPage только на страницах с настоящими вопросами посетителей. Пользы никакой — Q&A-сниппеты отключены с 2023 года, а Яндекс на неё ругался: «невозможно определить принадлежность полей». */
 }
 ?>	
 		

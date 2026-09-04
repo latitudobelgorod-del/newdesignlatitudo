@@ -81,7 +81,7 @@
 		}
 		dots.innerHTML = slides.map(function (s, i) {
 			return '<button type="button" class="nd-pd__dot' + (i === current ? ' is-active' : '') +
-				'" data-index="' + i + '" role="tab" aria-label="Фото ' + (i + 1) + '"' +
+				'" data-index="' + i + '" aria-label="Фото ' + (i + 1) + '"' +
 				(i === current ? ' aria-selected="true"' : '') + '></button>';
 		}).join('');
 	}
@@ -423,8 +423,34 @@
 			if (el.tagName === 'H4') { el.remove(); return; }
 			body.appendChild(el);
 		});
+		/* Ссылку «Информация о производителе» тема кладёт в ту же колонку, что и
+		   документы. У товара без документов колонка целиком скрыта — вместе с
+		   ней пропадала и ссылка на бренд (Ирина, 4 сентября 2026, винты
+		   EasyDecking). Выносим её из документов в отдельную строку под
+		   «Доставкой»: она не про документы и должна быть у любого товара,
+		   у которого заполнен бренд. */
+		var brand = body.querySelector('a[href^="/brands/"]');
+		if (brand) {
+			var col = box.parentNode;
+			var holder = $('.nd-pd__brandlink', col);
+			if (!holder) {
+				holder = document.createElement('div');
+				holder.className = 'nd-pd__brandlink';
+				col.appendChild(holder);
+			}
+			/* Инлайновые стили темы (серый цвет и подчёркивание) снимаем —
+			   вид задаёт css/newdesign-element.css. */
+			brand.removeAttribute('style');
+			holder.appendChild(brand);
+			/* Пустую обёртку темы за собой убираем, иначе в блоке документов
+			   остаётся <div class="wraps"> с отступом. */
+			var wrap = body.querySelector('.wraps');
+			if (wrap && !wrap.children.length) wrap.remove();
+		}
+
 		/* Заголовок «Документы» показываем только при реальном списке: у части
-		   товаров в колонке лежит одна ссылка «Информация о производителе». */
+		   товаров в колонке лежала одна ссылка «Информация о производителе»,
+		   и заголовок над ней смотрелся бы враньём. */
 		if ($('.nd-docs, .files_block', body)) box.hidden = false;
 	}
 
@@ -533,7 +559,7 @@
 	/* Высота обрезки из макета: 280 на десктопе и 208 на телефоне (там в те же
 	   280 внешних входят поля блока). */
 	function descLimit() {
-		return window.matchMedia('(max-width: 767px)').matches ? 208 : 280;
+		return 208;   // сворачиваем только на телефоне, обрезка там 208
 	}
 
 	/* Сворачиваем не всё, что переросло обрезку: если описание длиннее её на
@@ -541,6 +567,18 @@
 	   самой шторки. */
 	function syncDesc() {
 		if (!descBox || !descMore) return;
+
+		/* Сворачиваем только на телефоне: на десктопе описание показываем
+		   целиком, шторки нет (Ирина, 4 сентября 2026). Проверка стоит первой,
+		   чтобы при переходе с узкого окна на широкое блок разворачивался
+		   даже там, где посетитель до этого нажимал «Показать все». */
+		if (!window.matchMedia('(max-width: 767px)').matches) {
+			descBox.classList.remove('is-collapsed');
+			descBox.removeAttribute('data-nd-open');
+			descMore.hidden = true;
+			return;
+		}
+
 		/* Раскрыл сам — больше не трогаем: пересчёт по загрузке картинок или
 		   повороту экрана иначе схлопнул бы блок под руками. */
 		if (descBox.getAttribute('data-nd-open') === '1') return;
@@ -707,6 +745,19 @@
 				unit.className = 'nd-pd-qty-unit';
 				input.parentNode.insertBefore(unit, input.nextSibling);
 			}
+			/* Клик по «п.м» ставит курсор в поле и выделяет число: подпись стоит
+			   вплотную к нему, и мимо поля попасть легко. Так же сделано в списке
+			   (js/newdesign-catalog.js). Вешаем один раз — syncQtyUnit зовётся
+			   на каждую перерисовку счётчика (Ирина, 4 сентября 2026). */
+			if (!unit.__ndFocusBound) {
+				unit.__ndFocusBound = 1;
+				unit.addEventListener('click', function () {
+					try {
+						input.focus();
+						input.select();
+					} catch (e) { }
+				});
+			}
 			setText(unit, name);
 		});
 	}
@@ -749,6 +800,28 @@
 				.replace(/Экономия/g, 'скидка');
 			if (t1 !== t0) tn.textContent = t1;
 		}
+	}
+
+	/* Единица измерения по умолчанию.
+
+	   Модуль единиц (maxyss:measure_unit) вешает класс measure-unit-active
+	   только на ту единицу, которую посетитель выбрал сам или которая задана
+	   товару как «показывать в этой». Если ни одной такой нет, на детальной не
+	   подсвечен ни один чип — хотя цена и счётчик уже считаются в базовой
+	   единице (Ирина, 4 сентября 2026: «260 ₽/уп.», а «уп.» не выделена).
+	   В списке товаров этого не видно — там модуль помечает базовую сам.
+
+	   Помечаем базовую: у неё коэффициент 1 (data-unit="1"), она же идёт
+	   первой. Класс ставим только когда активной нет вовсе, поэтому выбор
+	   посетителя не перебиваем, а зацикливания наблюдателя нет: повторный
+	   вызов уже ничего не меняет. */
+	function syncMeasureActive() {
+		if (!root) return;
+		Array.prototype.forEach.call(root.querySelectorAll('.measure-unit-block'), function (box) {
+			if (box.querySelector('.measure-unit-active')) return;
+			var base = box.querySelector('.measure-unit[data-unit="1"]') || box.querySelector('.measure-unit');
+			if (base) base.classList.add('measure-unit-active');
+		});
 	}
 
 	/* Состояние «В корзине». Тема сама переключает display у .to-cart/.in-cart,
@@ -1296,6 +1369,7 @@
 		initDesc();
 		initProfileView();
 		syncLogistic();
+		syncMeasureActive();
 		gallery = $('.nd-pd__gallery', root);
 		if (!gallery) return;
 		photo = $('.nd-pd__photo', gallery);
@@ -1338,6 +1412,7 @@
 				   Зацикливания нет: classList.toggle тем же значением
 				   атрибут не переписывает и новой записи наблюдателю не даёт. */
 				syncLogistic();
+				syncMeasureActive();
 			}).observe(info, { childList: true, subtree: true, characterData: true });
 		}
 
