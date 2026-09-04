@@ -154,7 +154,7 @@ $ndCoProIcon = static function ($key) {
 			'SORT_BY2' => 'ID',
 			'SORT_ORDER2' => 'ASC',
 			'FIELD_CODE' => array('NAME', 'ID', ''),
-			'PROPERTY_CODE' => array('ADDRESS', 'PHONE', 'EMAIL', 'SCHEDULE', 'ADDRESS_SKLAD', 'MORE_PHOTOS', 'VIDEO_OFFICE', 'LINK_CONTACT', 'LINK_REGION', ''),
+			'PROPERTY_CODE' => array('ADDRESS', 'PHONE', 'PHONE_PODMENA', 'EMAIL', 'SCHEDULE', 'ADDRESS_SKLAD', 'MORE_PHOTOS', 'VIDEO_OFFICE', 'LINK_CONTACT', 'LINK_REGION', ''),
 			'CHECK_DATES' => 'Y',
 			'DETAIL_URL' => '',
 			'AJAX_MODE' => 'N',
@@ -241,9 +241,41 @@ $ndCoProIcon = static function ($key) {
 				<div class="nd-co__way-title">Для заказа стандартного объекта</div>
 				<p class="nd-co__way-desc">Свяжитесь с нашим отделом продаж:</p>
 			</div>
+			<?
+			/* Контакты берём У ТЕКУЩЕГО РЕГИОНА — те же, что стоят в шапке.
+			   Раньше здесь были зашиты московские, и на belgorod.latitudo.ru
+			   отдел продаж отвечал московским номером, хотя в шапке уже стоял
+			   белгородский (Ирина, 4 сентября 2026).
+
+			   В тексте печатаем теги #REGION_TAG_*# — их заменяет обработчик из
+			   bitrix/php_interface/init.php, а в href кладём то же значение без
+			   пробелов и скобок: так сделано в шапке
+			   (page_blocks/header_newdesign.php).
+
+			   Подмена и телефона, и почты — при любой utm-метке (ndIsUtmVisit). */
+			global $arRegion;
+
+			$ndCoRegion = static function ($prop) use ($arRegion) {
+				return trim((string)($arRegion['PROPERTY_'.$prop.'_VALUE'] ?? ''));
+			};
+
+			$ndCoPhonePodmena = ndIsUtmVisit() && $ndCoRegion('REGION_TAG_PHONE_PODMENA');
+			$ndCoPhoneValue   = $ndCoPhonePodmena
+				? $ndCoRegion('REGION_TAG_PHONE_PODMENA')
+				: $ndCoRegion('REGION_TAG_PHONE');
+
+			$ndCoMailPodmena = ndIsUtmVisit() && $ndCoRegion('REGION_TAG_EMAIL_PODMENA');
+			$ndCoMailValue   = $ndCoMailPodmena
+				? $ndCoRegion('REGION_TAG_EMAIL_PODMENA')
+				: $ndCoRegion('REGION_TAG_MAIL');
+			?>
 			<div class="nd-co__way-links">
-				<a href="tel:+74951359305">+7 (495) 135-93-05</a>
-				<a href="mailto:m@latitudo.ru">m@latitudo.ru</a>
+				<?if($ndCoPhoneValue):?>
+					<a href="tel:<?=preg_replace('/[^0-9+]/', '', $ndCoPhoneValue)?>"><?=($ndCoPhonePodmena ? '#REGION_TAG_PHONE_PODMENA#' : '#REGION_TAG_PHONE#')?></a>
+				<?endif;?>
+				<?if($ndCoMailValue):?>
+					<a href="mailto:<?=htmlspecialcharsbx($ndCoMailValue)?>"><?=($ndCoMailPodmena ? '#REGION_TAG_EMAIL_PODMENA#' : '#REGION_TAG_MAIL#')?></a>
+				<?endif;?>
 			</div>
 		</div>
 		<div class="nd-co__way">

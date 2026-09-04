@@ -49,7 +49,7 @@ $ndTel = static function ($phone) {
 		$props = $arItem['DISPLAY_PROPERTIES'];
 
 		$phones = [];
-		if ($ndIsAdSource && !empty($props['PHONE_PODMENA']['VALUE'])) {
+		if (ndIsUtmVisit() && !empty($props['PHONE_PODMENA']['VALUE'])) {
 			$phones[] = $props['PHONE_PODMENA']['VALUE'];
 		} elseif (!empty($props['PHONE']['VALUE'])) {
 			$phones = (array) $props['PHONE']['VALUE'];
@@ -57,15 +57,27 @@ $ndTel = static function ($phone) {
 
 		$email = '';
 		if (!empty($props['EMAIL'])) {
-			$email = ($ndIsAdSource && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
+			/* И почту, и телефон подменяем при ЛЮБОЙ метке (правило Ирины
+			   от 4 сентября 2026). */
+			$email = (ndIsUtmVisit() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
 				? $ndEmailPodmena
 				: $props['EMAIL']['DISPLAY_VALUE'];
 		}
 
 		$video = $props['VIDEO_OFFICE']['VALUE'] ?? '';
 		?>
-		<div class="nd-contacts__item" id="<?= $this->GetEditAreaId($arItem['ID']) ?>" itemscope itemtype="http://schema.org/Organization">
-			<meta itemprop="name" content="<?= $arItem['NAME'] ?>">
+		<?/* Микроразметка филиала: имя компании, адрес разложен на PostalAddress,
+		     координаты из свойства MAP, режим работы в машинном виде. */?>
+		<? $ndGeo = preg_match('/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/', trim((string) ($arItem['PROPERTIES']['MAP']['VALUE'] ?? '')), $m) ? [$m[1], $m[2]] : []; ?>
+		<div class="nd-contacts__item" id="<?= $this->GetEditAreaId($arItem['ID']) ?>" itemscope itemtype="https://schema.org/Organization">
+			<meta itemprop="name" content="Латитудо">
+			<meta itemprop="description" content="<?= htmlspecialcharsbx($arItem['NAME']) ?>">
+			<? if ($ndGeo): ?>
+				<span itemprop="geo" itemscope itemtype="https://schema.org/GeoCoordinates">
+					<meta itemprop="latitude" content="<?= $ndGeo[0] ?>">
+					<meta itemprop="longitude" content="<?= $ndGeo[1] ?>">
+				</span>
+			<? endif; ?>
 			<? if ($arItem['ND_URL']): ?><link itemprop="url" href="<?= $arItem['ND_URL'] ?>"><? endif; ?>
 
 			<div class="nd-contacts__info">
@@ -80,7 +92,11 @@ $ndTel = static function ($phone) {
 				<? if (!empty($props['ADDRESS'])): ?>
 					<div class="nd-contacts__row nd-contacts__row--address">
 						<img class="nd-contacts__ico" src="<?= $ndIco ?>pin.svg" alt="" width="20" height="20">
-						<span itemprop="address"><?= html_entity_decode($arItem['PROPERTIES']['ADDRESS']['VALUE']) ?></span>
+						<span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
+							<meta itemprop="addressCountry" content="RU">
+							<? if ($arItem['ND_CITY']): ?><meta itemprop="addressLocality" content="<?= htmlspecialcharsbx($arItem['ND_CITY']) ?>"><? endif; ?>
+							<span itemprop="streetAddress"><?= html_entity_decode($arItem['PROPERTIES']['ADDRESS']['VALUE']) ?></span>
+						</span>
 					</div>
 				<? endif; ?>
 
@@ -104,6 +120,8 @@ $ndTel = static function ($phone) {
 				<? if (!empty($props['SCHEDULE'])): ?>
 					<div class="nd-contacts__row">
 						<img class="nd-contacts__ico" src="<?= $ndIco ?>clock.svg" alt="" width="20" height="20">
+						<? $ndHours = ndSchemaOpeningHours($props['SCHEDULE']['VALUE']['TEXT']); ?>
+						<? if ($ndHours): ?><meta itemprop="openingHours" content="<?= $ndHours ?>"><? endif; ?>
 						<span class="nd-contacts__schedule"><?= htmlspecialcharsBack($props['SCHEDULE']['VALUE']['TEXT']) ?></span>
 					</div>
 				<? endif; ?>

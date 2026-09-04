@@ -69,7 +69,8 @@ while ($ob = $res->GetNextElement()) {
 					<a class="nd-infochat__contact" rel="nofollow" href="tel:+<?= $ndPhoneDigits ?>"><?= $ndIconPhone ?><span>#REGION_TAG_PHONE#</span></a>
 				<?php endif; ?>
 
-				<?php if ($ndPodmena && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']): ?>
+				<?php /* Почта — при любой метке, телефон выше — по списку источников. */ ?>
+				<?php if (ndIsUtmVisit() && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']): ?>
 					<a class="nd-infochat__contact" href="mailto:#REGION_TAG_EMAIL_PODMENA#"><?= $ndIconMail ?><span>#REGION_TAG_EMAIL_PODMENA#</span></a>
 				<?php else: ?>
 					<a class="nd-infochat__contact" href="mailto:#REGION_TAG_MAIL#"><?= $ndIconMail ?><span>#REGION_TAG_MAIL#</span></a>

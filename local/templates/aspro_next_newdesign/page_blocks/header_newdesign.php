@@ -38,12 +38,9 @@ $REGION_TAG_LINKVIDEO       = "#REGION_TAG_LINKVIDEO#";
 
 // Подмена номера для платного трафика — как в боевой шапке header_8.php.
 $utm_source = (!empty($_SESSION['UTM']['utm_source']) ? $_SESSION['UTM']['utm_source'] : 'empty');
-$bPodmena = (
-	strpos($utm_source, 'ya') !== false ||
-	strpos($utm_source, 'tg') !== false ||
-	strpos($utm_source, 'vk') !== false ||
-	strpos($utm_source, 'maps') !== false
-);
+/* Подмена контактов — при любой utm-метке (ndIsUtmVisit из local/init.php).
+   Раньше здесь был список источников ya/tg/vk/maps. */
+$bPodmena = ndIsUtmVisit();
 
 // Регионы, у которых в шапке показываем шоурум и склад (списки из header_8.php).
 $arShowroomRegions = array(9277, 9278, 9568, 10039, 22018);
@@ -220,7 +217,10 @@ $basketCount = (int)$arBasketPrices['BASKET_COUNT'];
 					</a>
 				<?endif;?>
 
-				<?if($ndRegion('REGION_TAG_PHONESKLAD')):?>
+				<?/* При подмене показываем ТОЛЬКО подменный номер: второй (складской)
+				   рядом с ним сводил подмену на нет — звонили по настоящему, и звонок
+				   не засчитывался рекламному источнику (Ирина, 4 сентября 2026). */?>
+				<?if(!$bMainPodmena && $ndRegion('REGION_TAG_PHONESKLAD')):?>
 					<a class="nd-contact nd-contact--phone" rel="nofollow" href="<?=$ndTelHref($ndRegion('REGION_TAG_PHONESKLAD'))?>">
 						<img src="<?=$imgPath?>/phone.svg" alt="" width="16" height="16">
 						<span><?=$REGION_TAG_PHONESKLAD?></span>
@@ -228,7 +228,9 @@ $basketCount = (int)$arBasketPrices['BASKET_COUNT'];
 				<?endif;?>
 
 				<?
-				$bMailPodmena = ($bPodmena && $ndRegion('REGION_TAG_EMAIL_PODMENA'));
+				/* Почта — при любой метке (ndIsUtmVisit из local/init.php), телефон выше —
+				   только для источников колл-трекинга. Разные правила намеренно. */
+				$bMailPodmena = (ndIsUtmVisit() && $ndRegion('REGION_TAG_EMAIL_PODMENA'));
 				$mailValue = $bMailPodmena
 					? $ndRegion('REGION_TAG_EMAIL_PODMENA')
 					: $ndRegion('REGION_TAG_MAIL');

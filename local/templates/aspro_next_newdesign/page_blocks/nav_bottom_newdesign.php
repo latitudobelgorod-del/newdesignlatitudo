@@ -36,12 +36,9 @@ $REGION_TAG_EMAIL_PODMENA = "#REGION_TAG_EMAIL_PODMENA#";
 
 // Подмена номера и почты для платного трафика — как в шапке.
 $utm_source = (!empty($_SESSION['UTM']['utm_source']) ? $_SESSION['UTM']['utm_source'] : 'empty');
-$bPodmena = (
-	strpos($utm_source, 'ya') !== false ||
-	strpos($utm_source, 'tg') !== false ||
-	strpos($utm_source, 'vk') !== false ||
-	strpos($utm_source, 'maps') !== false
-);
+/* Подмена контактов — при любой utm-метке (ndIsUtmVisit из local/init.php).
+   Раньше здесь был список источников ya/tg/vk/maps. */
+$bPodmena = ndIsUtmVisit();
 
 $ndTelHref = function($value) {
 	$value = trim((string)$value);
@@ -246,7 +243,10 @@ include(__DIR__.'/header_drops_newdesign.php');
 				</a>
 			<?endif;?>
 
-			<?if($ndRegion('REGION_TAG_PHONESKLAD')):?>
+			<?/* При подмене показываем ТОЛЬКО подменный номер: второй (складской)
+			   рядом с ним сводил подмену на нет — звонили по настоящему, и звонок
+			   не засчитывался рекламному источнику (Ирина, 4 сентября 2026). */?>
+			<?if(!$bMainPodmena && $ndRegion('REGION_TAG_PHONESKLAD')):?>
 				<a class="nd-contacts__row" rel="nofollow" href="<?=$ndTelHref($ndRegion('REGION_TAG_PHONESKLAD'))?>">
 					<i class="nd-ico nd-contacts__ico" style="-webkit-mask-image:url('<?=$imgPath?>/phone24.svg');mask-image:url('<?=$imgPath?>/phone24.svg')"></i>
 					<span class="nd-contacts__body">
@@ -257,7 +257,8 @@ include(__DIR__.'/header_drops_newdesign.php');
 			<?endif;?>
 
 			<?
-			$bMailPodmena = ($bPodmena && $ndRegion('REGION_TAG_EMAIL_PODMENA'));
+			/* Почта — при любой метке, телефон выше — только по списку источников. */
+			$bMailPodmena = (ndIsUtmVisit() && $ndRegion('REGION_TAG_EMAIL_PODMENA'));
 			$mailValue = $bMailPodmena
 				? $ndRegion('REGION_TAG_EMAIL_PODMENA')
 				: $ndRegion('REGION_TAG_MAIL');

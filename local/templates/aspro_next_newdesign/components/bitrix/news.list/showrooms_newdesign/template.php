@@ -10,6 +10,13 @@
  *
  * Данные — инфоблок контактов (ID 10), тот же, что у раздела /contacts/.
  * Порядок городов задаётся списком ID в вызове компонента.
+ *
+ * Почта для платного трафика подменяется — как в шапке и на страницах
+ * контактов: печатаем тег #REGION_TAG_EMAIL_PODMENA#, его заменяет обработчик
+ * из bitrix/php_interface/init.php на подменный адрес РЕГИОНА. Без этого в
+ * блоке оставалась настоящая почта, хотя по всему сайту уже стояла подменная
+ * (Ирина, 4 сентября 2026). Телефоны здесь намеренно свои у каждого города —
+ * это витрина шоу-румов, а не контакты текущего региона.
  */
 if (!$arResult['ITEMS']) {
 	return;
@@ -19,6 +26,19 @@ $ndIco = SITE_TEMPLATE_PATH.'/images/newdesign/contacts/';
 $ndTel = static function ($phone) {
 	return 'tel:'.preg_replace('/[^0-9+]/', '', $phone);
 };
+
+global $arRegion;
+$ndUtmSource = !empty($_SESSION['UTM']['utm_source']) ? $_SESSION['UTM']['utm_source'] : 'empty';
+$ndIsAdSource = (
+	str_contains($ndUtmSource, 'ya') || str_contains($ndUtmSource, 'tg')
+	|| str_contains($ndUtmSource, 'vk') || str_contains($ndUtmSource, 'maps')
+);
+$ndMailPodmena = (ndIsUtmVisit() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
+	? '#REGION_TAG_EMAIL_PODMENA#'
+	: '';
+
+/* Телефон подменяем по тому же правилу, что и почту, — при любой метке. */
+$ndPhonePodmena = ndIsUtmVisit();
 $ndTotal = count($arResult['ITEMS']);
 ?>
 <section class="nd-co__sec nd-shr" data-nd-shr>
@@ -46,8 +66,17 @@ $ndTotal = count($arResult['ITEMS']);
 				$this->AddEditAction($arItem['ID'], $arItem['EDIT_LINK'], CIBlock::GetArrayByID($arItem['IBLOCK_ID'], 'ELEMENT_EDIT'));
 
 				$props = $arItem['PROPERTIES'];
-				$phones = array_filter((array) ($props['PHONE']['VALUE'] ?? array()));
-				$email = $props['EMAIL']['VALUE'] ?? '';
+
+				/* Телефон офиса. У рекламного трафика показываем ОДИН подменный
+				   номер этого же офиса (свойство PHONE_PODMENA инфоблока
+				   контактов): городские номера рядом с ним сводили подмену на
+				   нет — звонили по настоящему (Ирина, 4 сентября 2026).
+				   Правило то же, что в шапке: ndIsUtmVisit() из local/init.php. */
+				$ndOfficePodmena = trim((string) ($props['PHONE_PODMENA']['VALUE'] ?? ''));
+				$phones = ($ndPhonePodmena && $ndOfficePodmena)
+					? array($ndOfficePodmena)
+					: array_filter((array) ($props['PHONE']['VALUE'] ?? array()));
+				$email = $ndMailPodmena ?: ($props['EMAIL']['VALUE'] ?? '');
 				$address = $props['ADDRESS']['VALUE'] ?? '';
 				$schedule = $props['SCHEDULE']['VALUE']['TEXT'] ?? '';
 				$store = $props['ADDRESS_SKLAD']['VALUE'] ?? '';
