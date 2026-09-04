@@ -251,8 +251,24 @@ if (!is_dir($cacheDir)) {
 $cacheFile = $cacheDir . md5($host . '_' . $filename) . '.xml';
 $cacheLifetime = 86400; // 24 часа
 
-// Если есть свежий кеш — отдаём его и завершаем работу
-if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < $cacheLifetime)) {
+/* Кеш годен, только если он не старше суток И НЕ СТАРШЕ ИСХОДНОГО ФАЙЛА.
+
+   Вторая половина условия добавлена 4 сентября 2026. Без неё после ручной
+   пересборки карт в админке все домены сутки продолжали отдавать предыдущую
+   копию: исходные файлы обновились 4 сентября, а в кеше лежали слепки мартовских
+   — Яндекс.Вебмастер видел карту полугодовой давности с адресами удалённых
+   товаров и писал об ошибках в файлах Sitemap. Теперь пересборка подхватывается
+   первым же запросом.
+
+   Индекс sitemap.xml сверяем с ним же в корне: его правит та же генерация. */
+$sourceFile = $_SERVER['DOCUMENT_ROOT'] . '/' . $filename;
+$sourceTime = file_exists($sourceFile) ? filemtime($sourceFile) : 0;
+
+if (
+    file_exists($cacheFile)
+    && (time() - filemtime($cacheFile) < $cacheLifetime)
+    && filemtime($cacheFile) >= $sourceTime
+) {
     header('Content-Type: application/xml; charset=UTF-8');
     readfile($cacheFile);
     exit;
@@ -405,5 +421,19 @@ else {
 
 // ----- 8. Сохраняем сгенерированный контент в кеш -----
 $content = ob_get_clean(); // получаем вывод и очищаем буфер
-file_put_contents($cacheFile, $content);
+
+/* Пишем через временный файл с переименованием: file_put_contents() пишет не
+   атомарно, и параллельный запрос успевал прочитать кеш обрезанным — а такой
+   обрезок жил бы в кеше сутки и отдавался бы роботам как «битый XML».
+   Заодно не кешируем заведомо неполный ответ. */
+$looksComplete = strpos($content, '</urlset>') !== false
+    || strpos($content, '</sitemapindex>') !== false;
+
+if (strlen($content) > 100 && $looksComplete) {
+    $tmpFile = $cacheFile . '.' . getmypid() . '.tmp';
+    if (file_put_contents($tmpFile, $content) !== false) {
+        @rename($tmpFile, $cacheFile);
+    }
+}
+
 echo $content; // отдаём пользователю
