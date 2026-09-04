@@ -1,16 +1,31 @@
 <?php
 /**
- * API коротких ссылок на товары каталога.
+ * API коротких ссылок и данных товаров каталога.
  *
+ * Одиночный режим — один товар:
  *     GET /local/short-link/?id=27873
  *     GET /local/short-link/?xml_id=00000012345
  *     GET /local/short-link/?code=terrasnaya-doska-latitudo-neo-135kh21-venge
+ *     GET /local/short-link/?url=https://latitudo.ru/catalog/…/
+ *
+ * Режим списка — все товары раздела (с подразделами):
+ *     GET /local/short-link/?section=zabor-iz-dpk&limit=50&offset=0
+ *     GET /local/short-link/?section=512&limit=50&page=2
  *
  *     Заголовок: X-Api-Token: <токен из config.php>
  *
- * Ответ:
- *     {"id":27873,"name":"…","url":"https://latitudo.ru/catalog/…/",
- *      "short":"https://latitudo.ru/~a1b2c3"}
+ * Ответ одиночного режима:
+ *     {"id":27873,"name":"…","active":true,"active_from":null,"active_to":null,
+ *      "url":"https://latitudo.ru/catalog/…/","short":"https://latitudo.ru/~a1b2c3",
+ *      "sizes":{…},"brand":{…},"chars":[…],"offers":[…]}
+ *
+ * Ответ списка — та же структура товара, без изменений:
+ *     {"section":{"id":512,"code":"zabor-iz-dpk","name":"Заборы","url":"…"},
+ *      "total":61,"limit":50,"offset":0,"items":[{…},{…}]}
+ *
+ * Выключенный товар в ОДИНОЧНОМ режиме отдаётся так же, с "active":false, а не
+ * 404: приложению нужно отличать снятый с публикации товар от несуществующего.
+ * В СПИСКЕ неактивных нет вовсе — там нужен ассортимент, как на сайте.
  *
  * Как это устроено. Хранилище коротких ссылок — штатная таблица Битрикса
  * b_short_uri, её ведёт CBXShortUri: по одному и тому же адресу метод
@@ -28,6 +43,8 @@
  *
  * Регионы сознательно не учитываем: приложению нужен один постоянный адрес,
  * поэтому ссылка всегда собирается от ND_SHORT_LINK_HOST.
+ *
+ * Сборка самого товара — в product.php: у обоих режимов она общая.
  */
 
 define('NO_KEEP_STATISTIC', true);
@@ -72,13 +89,16 @@ if (!CModule::IncludeModule('iblock')) {
     nd_json(500, ['detail' => 'Module iblock is not installed']);
 }
 
-// --- поиск товара ---
+require __DIR__ . '/product.php';
+
+// --- параметры ---
 
 $request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
 $id = (int) $request->get('id');
 $xmlId = trim((string) $request->get('xml_id'));
 $code = trim((string) $request->get('code'));
 $url = trim((string) $request->get('url'));
+$section = trim((string) $request->get('section'));
 
 /**
  * Приложению удобнее оперировать адресом страницы товара, а не его ID, поэтому
@@ -100,7 +120,111 @@ if ($code === '' && $url !== '') {
     }
 }
 
-$filter = ['IBLOCK_ID' => ND_SHORT_LINK_IBLOCK, 'ACTIVE' => 'Y'];
+// =====================  режим списка товаров раздела  =====================
+
+if ($section !== '') {
+    /* Раздел ищем по символьному коду или по числовому ID — приложение может
+       знать любой из них (просьба команды приложения, 4 сентября 2026).
+       Числом считаем только строку целиком из цифр: у разделов бывают коды
+       вроде «3d», и превращать их в ID нельзя. */
+    $sectionFilter = ['IBLOCK_ID' => ND_SHORT_LINK_IBLOCK, 'ACTIVE' => 'Y'];
+    if (preg_match('/^\d+$/', $section)) {
+        $sectionFilter['ID'] = (int) $section;
+    } else {
+        $sectionFilter['=CODE'] = $section;
+    }
+
+    $sectionRow = CIBlockSection::GetList(
+        ['DEPTH_LEVEL' => 'ASC'],
+        $sectionFilter,
+        false,
+        ['ID', 'IBLOCK_ID', 'NAME', 'CODE', 'SECTION_PAGE_URL']
+    )->GetNext();
+
+    if (!$sectionRow) {
+        nd_json(404, ['detail' => 'Section not found']);
+    }
+
+    /* Постраничность. В разделе бывает 60+ товаров, и приложение забирает их
+       частями. Принимаем и offset, и page (1-based) — что удобнее вызывающему;
+       page считаем от limit. Верхнюю границу держим: на каждый товар идёт
+       разбор свойств и цен предложений, и сотня за раз — это уже секунды. */
+    $limit = (int) $request->get('limit');
+    if ($limit <= 0) {
+        $limit = 50;
+    }
+    $limit = min($limit, 100);
+
+    $offset = (int) $request->get('offset');
+    $page = (int) $request->get('page');
+    if ($offset <= 0 && $page > 1) {
+        $offset = ($page - 1) * $limit;
+    }
+    $offset = max($offset, 0);
+
+    /* Товары берём как на сайте: только активные и попадающие в срок показа.
+       INCLUDE_SUBSECTIONS — обязательно: у «Заборов» товары лежат в
+       подразделах («Штакетник», «Панели для забора»), и без этого список
+       пришёл бы почти пустым. */
+    $itemsFilter = [
+        'IBLOCK_ID' => ND_SHORT_LINK_IBLOCK,
+        'ACTIVE' => 'Y',
+        'ACTIVE_DATE' => 'Y',
+        'SECTION_ID' => (int) $sectionRow['ID'],
+        'INCLUDE_SUBSECTIONS' => 'Y',
+    ];
+
+    // Отдельным запросом только количество: с ним приложение знает, сколько
+    // страниц забирать, и не гадает по длине последней порции.
+    $total = (int) CIBlockElement::GetList([], $itemsFilter, []);
+
+    /* Смещение отрабатываем сами, а не параметрами навигации: у
+       CIBlockElement::GetList нет nOffset (проверено — постранично он ходит
+       только через iNumPage, а это не даёт произвольный offset). Просим
+       offset+limit строк и первые offset пропускаем: лишние строки стоят
+       дёшево — тяжёлую сборку делаем только для тех, что отдаём. */
+    $res = CIBlockElement::GetList(
+        ['SORT' => 'ASC', 'ID' => 'ASC'],
+        $itemsFilter,
+        false,
+        ['nTopCount' => $offset + $limit],
+        nd_short_link_fields()
+    );
+
+    $items = [];
+    $skipped = 0;
+    while ($row = $res->GetNext()) {
+        if ($skipped < $offset) {
+            $skipped++;
+            continue;
+        }
+        $items[] = nd_short_link_product($row);
+        if (count($items) >= $limit) {
+            break;
+        }
+    }
+
+    nd_json(200, [
+        'section' => [
+            'id'   => (int) $sectionRow['ID'],
+            'code' => $sectionRow['~CODE'],
+            'name' => $sectionRow['~NAME'],
+            'url'  => $sectionRow['~SECTION_PAGE_URL'] ? ND_SHORT_LINK_HOST . $sectionRow['~SECTION_PAGE_URL'] : '',
+        ],
+        'total'  => $total,
+        'limit'  => $limit,
+        'offset' => $offset,
+        'items'  => $items,
+    ]);
+}
+
+// =========================  одиночный режим  =========================
+
+/* ACTIVE в фильтр НЕ кладём: приложению нужно отличать «товара нет» от
+   «товар снят с публикации», а под фильтром выключенный товар отдавал 404,
+   как несуществующий (просьба команды приложения, 4 сентября 2026).
+   Состояние отдаём полем active, а сроки — active_from / active_to. */
+$filter = ['IBLOCK_ID' => ND_SHORT_LINK_IBLOCK];
 if ($id > 0) {
     $filter['ID'] = $id;
 } elseif ($xmlId !== '') {
@@ -108,345 +232,24 @@ if ($id > 0) {
 } elseif ($code !== '') {
     $filter['=CODE'] = $code;
 } else {
-    nd_json(400, ['detail' => 'Pass one of: url, id, xml_id, code']);
+    nd_json(400, ['detail' => 'Pass one of: url, id, xml_id, code, section']);
 }
 
-$row = CIBlockElement::GetList(
-    [],
-    $filter,
-    false,
-    ['nTopCount' => 1],
-    ['ID', 'IBLOCK_ID', 'NAME', 'CODE', 'XML_ID', 'DETAIL_PAGE_URL']
-)->GetNext();
+$row = CIBlockElement::GetList([], $filter, false, ['nTopCount' => 1], nd_short_link_fields())->GetNext();
 
 if (!$row) {
     nd_json(404, ['detail' => 'Element not found']);
 }
 
 // GetNext() экранирует значения — для адреса нужен оригинал.
-$uri = $row['~DETAIL_PAGE_URL'];
-if ($uri === '' || $uri === null) {
+if ((string) $row['~DETAIL_PAGE_URL'] === '') {
     nd_json(500, ['detail' => 'Element has no detail page url']);
 }
 
-// --- короткая ссылка ---
+$product = nd_short_link_product($row);
 
-/**
- * Достаём код из уже сохранённого значения свойства: в нём лежит полная
- * ссылка, а для сверки с b_short_uri нужен только хвост после последнего «/».
- *
- * Тильда — ЧАСТЬ кода, а не разделитель: GenerateShortUri() собирает его как
- * "~" . randString(5), в колонке SHORT_URI лежит «~JH8uT», а GetShortUri()
- * возвращает уже готовый путь «/~JH8uT». Своей тильды дописывать не надо —
- * иначе выходит «/~~JH8uT» (поймано на первом же прогоне).
- */
-/* Сигнатура именно такая: GetProperty($iblock, $element, $by, $order, $filter).
-   Третий и четвёртый аргументы — сортировка, фильтр только пятый. Если сунуть
-   фильтр четвёртым, он молча игнорируется и метод отдаёт ПЕРВОЕ попавшееся
-   свойство элемента — самолечение при этом не срабатывает, а ошибки не видно:
-   ссылка каждый раз выглядит правильной, потому что GetShortUri() и сам
-   идемпотентен по адресу (поймано на переезде товара). */
-$saved = CIBlockElement::GetProperty(
-    ND_SHORT_LINK_IBLOCK,
-    (int) $row['ID'],
-    'sort',
-    'asc',
-    ['CODE' => ND_SHORT_LINK_PROP]
-)->Fetch();
-
-$shortCode = '';
-/* Разделитель регулярки — «#», а не «~»: тильда есть внутри шаблона, и с ней
-   в роли разделителя выражение просто не компилируется. */
-if ($saved && preg_match('#/(~[0-9a-zA-Z]+)$#', (string) $saved['VALUE'], $m)) {
-    $shortCode = $m[1];
+if ($product['short'] === '') {
+    nd_json(500, ['detail' => 'Cannot create short uri', 'errors' => CBXShortUri::GetErrors()]);
 }
 
-if ($shortCode !== '') {
-    // Ссылка уже выдавалась. Проверяем, туда ли она ведёт сейчас.
-    $exists = CBXShortUri::GetList([], ['SHORT_URI' => $shortCode])->Fetch();
-    if (!$exists) {
-        $shortCode = '';                       // строку удалили — заведём заново
-    } elseif ($exists['URI'] !== $uri) {
-        CBXShortUri::Update($exists['ID'], ['URI' => $uri, 'STATUS' => 301]);
-    }
-}
-
-if ($shortCode === '') {
-    $shortCode = ltrim((string) CBXShortUri::GetShortUri($uri), '/');
-    if ($shortCode === '') {
-        nd_json(500, ['detail' => 'Cannot create short uri', 'errors' => CBXShortUri::GetErrors()]);
-    }
-}
-
-$short = ND_SHORT_LINK_HOST . '/' . $shortCode;
-
-// Витрина в админке. Пишем только при изменении: SetPropertyValuesEx поднимает
-// события инфоблока, а лишние сохранения сбрасывают кеш каталога.
-if (!$saved || (string) $saved['VALUE'] !== $short) {
-    CIBlockElement::SetPropertyValuesEx(
-        (int) $row['ID'],
-        ND_SHORT_LINK_IBLOCK,
-        [ND_SHORT_LINK_PROP => $short]
-    );
-}
-
-// --- торговые предложения и цены по единицам измерения ---
-
-/**
- * Приложению мало ссылки: по тому же адресу оно хочет увидеть предложения
- * товара (длины, цвета) и цену каждого в тех же единицах, что показывает сайт.
- *
- * Как это устроено на сайте:
- * - предложения лежат в отдельном инфоблоке (20), связь — свойство, которое
- *   отдаёт CCatalogSKU::GetInfoByProductIBlock();
- * - базовая единица предложения — поле MEASURE карточки товара каталога
- *   (b_catalog_product), символ берём из справочника CCatalogMeasure;
- * - дополнительные единицы задаёт множественное свойство UNIT_KOEF модуля
- *   maxyss.measureunits: ЗНАЧЕНИЕ — коэффициент, ОПИСАНИЕ — id единицы из того
- *   же справочника. Так его читает и сам модуль (см. component.php: он получает
- *   свойство параметром MEASURE_RESULT и раскладывает VALUE/DESCRIPTION).
- *
- * Пересчёт: цена за единицу = базовая цена × коэффициент. Коэффициент — это
- * «сколько базовых единиц в одной такой»: у доски 3 м коэффициент п.м равен
- * 1/3, а м² — 2,33 (в квадратном метре 2,33 доски). Сверено с витриной:
- * 1575 ₽/шт × 2,38 = 3750 ₽/м², ровно как на странице товара.
- *
- * Цену берём как гость (группа 2) и с учётом скидок — GetOptimalPrice отдаёт
- * ровно то число, что видит посетитель.
- */
-$offers = [];
-$skuInfo = CModule::IncludeModule('catalog')
-    ? CCatalogSKU::GetInfoByProductIBlock(ND_SHORT_LINK_IBLOCK)
-    : false;
-
-if ($skuInfo) {
-    $offerRows = [];
-    $res = CIBlockElement::GetList(
-        ['SORT' => 'ASC', 'ID' => 'ASC'],
-        [
-            'IBLOCK_ID' => $skuInfo['IBLOCK_ID'],
-            'ACTIVE' => 'Y',
-            'PROPERTY_' . $skuInfo['SKU_PROPERTY_ID'] => (int) $row['ID'],
-        ],
-        false,
-        false,
-        ['ID', 'IBLOCK_ID', 'NAME', 'XML_ID']
-    );
-    while ($o = $res->GetNext()) {
-        $offerRows[(int) $o['ID']] = $o;
-    }
-
-    if ($offerRows) {
-        $ids = array_keys($offerRows);
-
-        /* Единицы читаем поэлементно. Пакетный GetPropertyValues тут не годится:
-           даже в расширенном режиме он отдаёт по UNIT_KOEF пусто, а нам нужны
-           ОБА поля — значение (коэффициент) и описание (id единицы). Проверено;
-           предложений у товара единицы, так что цикл дешёвый. */
-        $koef = [];
-        foreach ($ids as $offerId) {
-            $koef[$offerId] = [];
-            $propRes = CIBlockElement::GetProperty(
-                $skuInfo['IBLOCK_ID'],
-                $offerId,
-                'sort',
-                'asc',
-                ['CODE' => 'UNIT_KOEF']
-            );
-            while ($pv = $propRes->Fetch()) {
-                $ratio = (float) str_replace(',', '.', (string) $pv['VALUE']);
-                $measureId = (int) $pv['DESCRIPTION'];
-                if ($ratio > 0 && $measureId > 0) {
-                    $koef[$offerId][] = ['ratio' => $ratio, 'measure_id' => $measureId];
-                }
-            }
-        }
-
-        // Базовая единица и остаток — одним запросом на все предложения.
-        $product = [];
-        $prodRes = CCatalogProduct::GetList([], ['ID' => $ids], false, false, ['ID', 'MEASURE', 'QUANTITY']);
-        while ($pr = $prodRes->Fetch()) {
-            $product[(int) $pr['ID']] = $pr;
-        }
-
-        // Справочник единиц: тянем разом и держим в памяти.
-        $measures = [];
-        $mRes = CCatalogMeasure::GetList([], []);
-        while ($mm = $mRes->Fetch()) {
-            $measures[(int) $mm['ID']] = $mm['SYMBOL_RUS'] ?: $mm['MEASURE_TITLE'];
-        }
-
-        /* Длина предложения. Свойство списочное, поэтому берём не VALUE (там
-           id значения), а VALUE_ENUM — уже «3000». Приложению этот размер
-           нужен, чтобы не выкусывать его из названия товара. */
-        $offerLength = [];
-        foreach ($ids as $offerId) {
-            $lenRes = CIBlockElement::GetProperty($skuInfo['IBLOCK_ID'], $offerId, 'sort', 'asc', ['CODE' => 'DLINA']);
-            while ($lv = $lenRes->Fetch()) {
-                $len = trim((string) ($lv['VALUE_ENUM'] !== null && $lv['VALUE_ENUM'] !== '' ? $lv['VALUE_ENUM'] : $lv['VALUE']));
-                if ($len !== '') {
-                    $offerLength[$offerId] = is_numeric($len) ? (float) $len : $len;
-                    break;
-                }
-            }
-        }
-
-        foreach ($offerRows as $offerId => $o) {
-            $optimal = CCatalogProduct::GetOptimalPrice($offerId, 1, [2], 'N');
-            /* Отдаём ОБЕ цены: базовую и со скидкой. Раньше была только вторая,
-               и приложение не могло решить, что печатать, когда акция кончится
-               (замечание от команды приложения, 3 сентября 2026). Сегодня они
-               часто равны — это значит, что скидки на товар просто нет. */
-            $base = $optimal ? (float) $optimal['RESULT_PRICE']['DISCOUNT_PRICE'] : 0.0;
-            $basePrice = $optimal ? (float) $optimal['RESULT_PRICE']['BASE_PRICE'] : 0.0;
-            $currency = $optimal ? (string) $optimal['RESULT_PRICE']['CURRENCY'] : '';
-
-            $baseMeasureId = (int) ($product[$offerId]['MEASURE'] ?? 0);
-            $baseUnit = $measures[$baseMeasureId] ?? '';
-
-            $prices = [];
-            if ($base > 0) {
-                // Первой идёт базовая единица — та, в которой товар кладут в корзину.
-                $prices[] = [
-                    'unit' => $baseUnit,
-                    'measure_id' => $baseMeasureId ?: null,
-                    'ratio' => 1,
-                    'value' => round($base, 2),
-                    'base' => round($basePrice, 2),
-                ];
-                foreach ($koef[$offerId] as $u) {
-                    $prices[] = [
-                        'unit' => $measures[$u['measure_id']] ?? '',
-                        'measure_id' => $u['measure_id'],
-                        'ratio' => $u['ratio'],
-                        'value' => round($base * $u['ratio'], 2),
-                        'base' => round($basePrice * $u['ratio'], 2),
-                    ];
-                }
-            }
-
-            $offers[] = [
-                'id' => $offerId,
-                'name' => $o['~NAME'],
-                'xml_id' => $o['~XML_ID'],
-                'length_mm' => $offerLength[$offerId] ?? null,
-                'quantity' => isset($product[$offerId]) ? (float) $product[$offerId]['QUANTITY'] : null,
-                'available' => isset($product[$offerId]) && (float) $product[$offerId]['QUANTITY'] > 0,
-                'currency' => $currency,
-                'has_discount' => $basePrice > 0 && $base > 0 && $basePrice > $base,
-                'prices' => $prices,
-            ];
-        }
-    }
-}
-
-/**
- * Характеристики товара — те же свойства, что сайт печатает в блоке
- * «Характеристики»: профиль, ширина, толщина, длины, расход, вес, гарантия и
- * прочее. Приложению они нужны, чтобы собрать подпись вида «146×23 мм | 3 и 4 м»
- * и не выкусывать числа из названия («146х23х3010») — замечание команды
- * приложения, 3 сентября 2026.
- *
- * Отдаём ВСЕ заполненные пользовательские свойства, а не список кодов из
- * шаблона: там он свой для каждого раздела (в карточке доски это условие по
- * SECTION_ID 98/510), и повторять его здесь значило бы ломаться на любом другом
- * разделе. Пусть приложение берёт нужные по коду.
- *
- * Служебное отсекаем: файлы, привязки к элементам и разделам, обменные поля 1С
- * и наши собственные (короткая ссылка, коэффициенты единиц — они уже отданы
- * отдельно, в prices).
- *
- * Читаем одним запросом без фильтра: фильтр GetProperty по CODE принимает
- * только одну строку, массив кодов роняет запрос («real_escape_string():
- * Argument #1 must be of type string, array given»).
- */
-$skipCodes = [
-    ND_SHORT_LINK_PROP => true,   // короткая ссылка — она уже в поле short
-    'UNIT_KOEF' => true,          // коэффициенты единиц — уже посчитаны в prices
-    'BASE_KOEF' => true,
-    'MINIMUM_PRICE' => true,      // цены отдаём предложениями, а не строкой
-    'MAXIMUM_PRICE' => true,
-    'LIST_PRISE' => true,         // «назначение фида» — внутренняя разметка выгрузок
-    'COLOR_MAIN_EL' => true,      // технический код цвета для подбора
-    'ND_BRAND_WEIGHT' => true,    // наш вес марки для сортировки выдачи
-];
-
-$chars = [];
-$sizes = [
-    'width_mm' => null,
-    'thickness_mm' => null,
-    'lengths_mm' => [],
-];
-
-$propRes = CIBlockElement::GetProperty(ND_SHORT_LINK_IBLOCK, (int) $row['ID'], 'sort', 'asc', ['ACTIVE' => 'Y']);
-
-while ($sp = $propRes->Fetch()) {
-    $code = (string) $sp['CODE'];
-
-    // Служебное и обменное наружу не отдаём.
-    if (isset($skipCodes[$code]) || strncmp($code, 'CML2_', 5) === 0) {
-        continue;
-    }
-    /* EDITOR1/EDITOR2/… — содержимое редактора блоков sprint.editor: там лежит
-       json со всей вёрсткой описания, характеристикой это не является и весит
-       десятки килобайт (Ирина, 3 сентября 2026). */
-    if (preg_match('/^EDITOR\d*$/', $code)) {
-        continue;
-    }
-    // Файлы и привязки — не характеристики.
-    if (in_array($sp['PROPERTY_TYPE'], ['F', 'E', 'G'], true)) {
-        continue;
-    }
-
-    // У списочных свойств VALUE — это id значения, подпись лежит в VALUE_ENUM.
-    $raw = $sp['VALUE_ENUM'] !== null && $sp['VALUE_ENUM'] !== '' ? $sp['VALUE_ENUM'] : $sp['VALUE'];
-    if (is_array($raw)) {
-        continue;
-    }
-    $raw = trim((string) $raw);
-    if ($raw === '') {
-        continue;
-    }
-    /* Страховка на случай, если вёрстка редактора приедет под другим кодом:
-       характеристика — это короткое значение, а не json на килобайты. */
-    if (strlen($raw) > 300 || strncmp($raw, '{"version"', 10) === 0) {
-        continue;
-    }
-
-    $value = is_numeric($raw) ? (float) $raw : $raw;
-
-    // Множественные свойства приходят несколькими строками — копим массивом.
-    if (isset($chars[$code])) {
-        $chars[$code]['value'] = array_merge((array) $chars[$code]['value'], [$value]);
-    } else {
-        $chars[$code] = [
-            'code' => $code,
-            'name' => (string) $sp['NAME'],
-            'value' => $sp['MULTIPLE'] === 'Y' ? [$value] : $value,
-        ];
-    }
-
-    // Размеры дублируем отдельно — они нужны почти всегда, а искать их по коду
-    // в общем списке приложению неудобно.
-    if ($code === 'IT_8') {
-        $sizes['width_mm'] = $value;
-    } elseif ($code === 'IT_6') {
-        $sizes['thickness_mm'] = $value;
-    } elseif ($code === 'DLINA_DOSKA_DPK') {
-        $sizes['lengths_mm'][] = $value;
-    }
-}
-
-sort($sizes['lengths_mm']);
-$chars = array_values($chars);
-
-nd_json(200, [
-    'id'     => (int) $row['ID'],
-    'name'   => $row['~NAME'],
-    'xml_id' => $row['~XML_ID'],
-    'url'    => ND_SHORT_LINK_HOST . $uri,
-    'short'  => $short,
-    'sizes'  => $sizes,
-    'chars'  => $chars,
-    'offers' => $offers,
-]);
+nd_json(200, $product);
