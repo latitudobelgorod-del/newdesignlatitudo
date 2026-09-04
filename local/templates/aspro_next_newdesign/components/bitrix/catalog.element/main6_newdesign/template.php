@@ -2014,7 +2014,7 @@ $ndColorItems = array_values(array_filter(
 														<div class="props_item"><span><?=$arProp["NAME"]?></span></div>
 														</td>
 														<td class="char_value" > 
-															<meta itemprop="value" content="<?=$arProp["DISPLAY_VALUE"];?>"/>
+															<meta itemprop="value" content="<?=htmlspecialcharsbx(strip_tags(is_array($arProp["DISPLAY_VALUE"]) ? implode(", ", $arProp["DISPLAY_VALUE"]) : $arProp["DISPLAY_VALUE"]));?>"/>
 																<?if(is_array($arProp["DISPLAY_VALUE"]) && count($arProp["DISPLAY_VALUE"]) > 1):?>
 																	<?=implode(', ', $arProp["DISPLAY_VALUE"]);?>
 																<?else:?>
