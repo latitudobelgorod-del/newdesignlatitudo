@@ -876,6 +876,32 @@
     white-space: nowrap;
 }
 
+/* На вводе поле расширяем. Ширина «ровно под значение» хороша, пока число
+   просто показывают, но кликнуть и править в поле шириной в четыре символа
+   неудобно (Ирина, 4 сентября 2026).
+
+   min-width сильнее inline-ширины, которую ставит fitQtyInput, поэтому JS
+   трогать не нужно: на blur поле само вернётся к прежнему виду. Задаём в em,
+   чтобы на мобильном (кегль 14px) поле не распирало узкую плитку. Рамку
+   рисуем внутренней тенью, а не border — border добавил бы 2px и дёрнул бы
+   раскладку плитки в момент фокуса. */
+.nd-catlist .catalog_item_wrapp .counter_wrapp .measure-field:focus,
+.nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block input.text:focus {
+    min-width: 3.6em !important;
+    padding: 0 4px !important;
+    background: #fff !important;
+    border-radius: 3px !important;
+    box-shadow: inset 0 0 0 1px rgba(82, 82, 100, .35) !important;
+    outline: none !important;
+    text-align: center !important;
+}
+
+/* Подпись единицы кликабельна — она переводит фокус в поле (см.
+   js/newdesign-catalog.js), поэтому и курсор показываем текстовый. */
+.nd-catlist .catalog_item_wrapp .counter_wrapp .nd-qty-unit {
+    cursor: text;
+}
+
 /* Центровка пары «число + единица». Плитка — flex, по краям кнопки; свободное
    место целиком забирают автоотступы кнопок и делят его поровну, поэтому
    надпись встаёт ровно по середине плитки. Делить плитку пополам между полем

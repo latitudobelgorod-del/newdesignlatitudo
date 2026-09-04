@@ -421,6 +421,19 @@
                     unit.className = 'nd-qty-unit';
                     input.parentNode.insertBefore(unit, input.nextSibling);
                 }
+                /* Клик по «м²» ставит курсор в поле: само поле шириной ровно
+                   под значение, и попасть в него мимо подписи легко. Вешаем
+                   один раз на span — syncQtyUnit зовётся на каждый тик
+                   наблюдателя. */
+                if (!unit.__ndFocusBound) {
+                    unit.__ndFocusBound = 1;
+                    unit.addEventListener('click', function () {
+                        try {
+                            input.focus();
+                            input.select();
+                        } catch (e) { }
+                    });
+                }
                 /* только при реальном изменении: правка текста будит
                    MutationObserver карточки, а он зовёт syncState обратно */
                 if (unit.textContent !== name) unit.textContent = name;
@@ -449,25 +462,49 @@
                 ic = card.querySelector('.in-cart'),
                 tc = card.querySelector('.to-cart');
 
-            if (cw && ic) {
-                /* Баг Аспро: при смене длины состояние «в корзине» не восстанавливается.
-                   Запоминаем офферы, для которых оно хоть раз показывалось. */
-                window.__ndBasket = window.__ndBasket || {};
-                window.__ndT0 = window.__ndT0 || Date.now();
-                var offerId = (tc && tc.getAttribute('data-item')) || ic.getAttribute('data-item');
-                var icShown = getComputedStyle(ic).display !== 'none';
-                if (icShown && offerId && (Date.now() - window.__ndT0 < 2000)) window.__ndBasket[offerId] = 1;
-
-                var forced = false;
-                if (!icShown && offerId && window.__ndBasket[offerId]) {
-                    ic.style.display = '';
-                    if (tc) tc.style.display = 'none';
-                    forced = true;
-                }
-                var added = icShown || forced;
-                cw.classList.toggle('nd-incart', added);
+            if (cw && (ic || tc)) {
+                cw.classList.toggle('nd-incart', isInBasket(currentItemId(card, tc, ic)));
             }
         } catch (e) { }
+    }
+
+    /* ---------------------------------------------------------------------
+       «В корзине»: чей это оффер и лежит ли он в корзине
+
+       Состояние определяем ПО ДАННЫМ КОРЗИНЫ, а не по тому, что сейчас видно.
+       Раньше смотрели на вычисленный display у .in-cart — и состояние
+       защёлкивалось навсегда: класс .nd-incart сам показывает эту кнопку
+       правилом с !important, поэтому следующая же проверка снова видела её
+       «показанной». Добавив в корзину одну длину, вернуться к кнопке
+       «в корзину» на других длинах было нельзя (Ирина, 4 сентября 2026).
+       На детальной странице этого не было: там .nd-incart display не трогает.
+
+       Истина — карта arBasketAspro.BASKET: тема наполняет её на сервере при
+       загрузке страницы и обновляет ответом ajax после каждого добавления.
+       Ключи — ID торговых предложений, поэтому и спрашиваем про ID текущего
+       оффера карточки.
+       ------------------------------------------------------------------ */
+    function currentItemId(card, tc, ic) {
+        var ob = findCardObject(card);
+        if (ob && ob.offers && ob.offers[ob.offerNum] && ob.offers[ob.offerNum].ID) {
+            return String(ob.offers[ob.offerNum].ID);
+        }
+        /* Товар без офферов: у него ID стоит на самой кнопке. */
+        var el = tc || ic;
+        return el ? String(el.getAttribute('data-item') || '') : '';
+    }
+
+    function isInBasket(id) {
+        if (!id) return false;
+        try {
+            var map = window.arBasketAspro && window.arBasketAspro.BASKET;
+            if (map && typeof map === 'object' && map[id] !== undefined) return true;
+        } catch (e) { }
+        /* Между кликом и ответом ajax карта ещё старая, а кнопку тема уже
+           перерисовала — держим состояние сами, но недолго: если добавление
+           не прошло, метка протухнет и карточка вернётся в исходный вид. */
+        var t = window.__ndBasket && window.__ndBasket[id];
+        return !!t && (Date.now() - t < 10000);
     }
 
     /* Кнопка «видео». Ссылку на ролик Аспро проставляет только при выборе
@@ -783,12 +820,13 @@
         if (!window.__ndClickBound) {
             window.__ndClickBound = 1;
             window.__ndBasket = window.__ndBasket || {};
-            window.__ndT0 = window.__ndT0 || Date.now();
+            /* Время клика, а не просто флаг: метка нужна лишь до обновления
+               arBasketAspro.BASKET, дальше решает она (см. isInBasket). */
             document.addEventListener('click', function (e) {
                 var t = e.target && e.target.closest && e.target.closest('.to-cart');
                 if (!t) return;
                 var id = t.getAttribute('data-item');
-                if (id) window.__ndBasket[id] = 1;
+                if (id) window.__ndBasket[id] = Date.now();
             }, true);
         }
 

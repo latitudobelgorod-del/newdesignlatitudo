@@ -538,6 +538,31 @@
     text-align: center;
     color: #101014;
 }
+/* На вводе поле показываем полем. В покое число и единица стоят одной
+   надписью по центру плашки — это из макета; но кликнуть и править «вслепую»
+   неудобно, не видно даже границ поля. Тот же приём уже сделан в списке
+   (css/newdesign-catalog.css) и на детальной (css/newdesign-element.css):
+   белая заливка, тонкая внутренняя рамка, запас по ширине.
+
+   Всё через !important: базовое правило выше гасит у этого поля и фон, и тень,
+   и рамку (Ирина, 4 сентября 2026). Рамку рисуем тенью, а не border — border
+   добавил бы 2px и дёрнул бы плашку в момент фокуса. */
+#basket-root .basket-item-amount-filed:focus {
+    min-width: 3.6em;
+    padding: 0 6px !important;
+    background: #fff !important;
+    border-radius: 3px !important;
+    box-shadow: inset 0 0 0 1px rgba(82, 82, 100, .35) !important;
+    outline: none !important;
+    text-align: center !important;
+}
+
+/* Подпись единицы переводит фокус в поле (скрипт в шаблоне корзины) — значит и
+   курсор над ней текстовый. */
+#basket-root .basket-item-amount-unit {
+    cursor: text;
+}
+
 /* Подпись «шт» под счётчиком. На десктопе её сменяет единица внутри плашки
    (см. ниже), на планшете и телефоне она остаётся. */
 #basket-root .basket-item-amount-field-description {

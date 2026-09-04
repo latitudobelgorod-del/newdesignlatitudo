@@ -141,6 +141,29 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 	?>
 	<link href="<?=SITE_TEMPLATE_PATH?>/css/newdesign-basket.css?<?=(file_exists($ndBasketCss) ? filemtime($ndBasketCss) : '')?>" rel="stylesheet">
 
+	<?/* Клик по единице («шт», «м²») ставит курсор в поле количества и выделяет
+	   число: подпись стоит вплотную к полю, и мимо попасть легко. Так же сделано
+	   в списке и на детальной (Ирина, 4 сентября 2026).
+
+	   Слушаем на документе: карточки корзины перерисовывает компонент, и
+	   обработчик, повешенный на сам span, пропал бы после первого же пересчёта. */?>
+	<script>
+	(function () {
+		if (window.__ndBasketUnitFocus) return;
+		window.__ndBasketUnitFocus = 1;
+		document.addEventListener('click', function (e) {
+			var unit = e.target && e.target.closest && e.target.closest('#basket-root .basket-item-amount-unit');
+			if (!unit || !unit.parentElement) return;
+			var input = unit.parentElement.querySelector('.basket-item-amount-filed');
+			if (!input || input.disabled) return;
+			try {
+				input.focus();
+				input.select();
+			} catch (err) { }
+		});
+	})();
+	</script>
+
 	<?/* Заголовок и «Очистить корзину» одной строкой, как в макете. H1 печатаем
 	   здесь, а не на странице: basket/index.php общий со старым дизайном, там
 	   свой заголовок «Ваша корзина» остаётся нетронутым.

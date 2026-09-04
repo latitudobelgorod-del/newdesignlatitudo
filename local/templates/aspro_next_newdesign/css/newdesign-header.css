@@ -654,12 +654,57 @@ div.title-search-result::-webkit-scrollbar-thumb {
     color: #c60000;
     text-decoration: none;
 }
-/* accent — пункт, помеченный в меню через PARAMS['CLASS'] = 'accent'
-   (в макете так выделены «Акции»); is-active ставит сам компонент меню
-   на пункте текущего раздела. */
-.nd-menu-link--accent,
+/* is-active ставит сам компонент меню на пункте текущего раздела. */
 .nd-menu-link.is-active {
     color: #c60000;
+}
+
+/* accent — пункт, помеченный в меню через PARAMS['CLASS'] = 'accent'
+   («Акции и скидки»). Красного текста в ряду одинаковых заголовков оказалось
+   мало — пункт терялся (Ирина, 4 сентября 2026). Обводим пилюлей и ставим
+   точку: заметно, но шапка остаётся спокойной, без заливки.
+
+   Высоту пилюли НЕ гасим отрицательными margin: так она упиралась в нижний
+   край шапки (Ирина, 4 сентября 2026) — у .nd-header__inner снизу всего 8px
+   поля, и 6px из них съедал вынос. Пусть строка меню становится выше на
+   высоту пилюли: реальную высоту шапки JS всё равно пересчитывает в
+   --nd-header-h, от неё считаются отступ страницы и выпадающие панели.
+
+   Радиус 4px — как у остальных кнопок шапки (.nd-btn). Фон белый, а рамка
+   2px — как у обводочных кнопок макета («Сбросить фильтры», Figma
+   20517:160798): одинарная линия на светлом фоне читалась слабее соседних
+   кнопок (Ирина, 4 сентября 2026).
+
+   Вертикальные поля 4px, а не 5: лишний пиксель рамки сверху и снизу иначе
+   поднял бы строку меню ещё на 2px. */
+.nd-menu-link--accent {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    color: #c60000;
+    background: #fff;
+    border: 2px solid #c60000;
+    border-radius: 4px;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+/* Точка — отдельный элемент, а не символ шрифта: так она одинакова во всех
+   браузерах и не зависит от начертания. Цвет берём currentColor, поэтому на
+   наведении она сама становится белой вместе с текстом. */
+.nd-menu-link--accent::after {
+    content: "";
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.nd-menu-link--accent:hover,
+.nd-menu-link--accent:focus {
+    background: #c60000;
+    color: #fff;
 }
 
 /* ============================== каталог ================================= */
@@ -1208,6 +1253,10 @@ div.title-search-result::-webkit-scrollbar-thumb {
     }
     .nd-menu-link {
         font-size: 13px;
+    }
+    .nd-menu-link--accent {
+        gap: 6px;
+        padding: 4px 9px;
     }
     .nd-cat__cols {
         column-count: 2;
