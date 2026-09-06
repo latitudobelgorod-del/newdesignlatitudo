@@ -69,8 +69,28 @@ if(in_array($sViewElementTemplate, $arWidePage))
 <?endif;?>
 
 <?$isWideBlock = (isset($arParams["DIR_PARAMS"]["HIDE_LEFT_BLOCK"]) ? $arParams["DIR_PARAMS"]["HIDE_LEFT_BLOCK"] : "");?>
-<div class="catalog_detail detail<?=($isWideBlock == "Y" ? " fixed_wrapper" : "");?> <?=$sViewElementTemplate;?>" itemscope itemtype="http://schema.org/Product">
-    <?@include_once('page_blocks/'.$sViewElementTemplate.'.php');?>
+<?/* Разметку Product вешаем, только если внутри есть предложение с ценой.
+   Google считает недействительным Product без offers («Задайте значение для
+   одного из следующих элементов данных: offers, review или aggregateRating»),
+   а товары без цены у нас есть — цену им просто не завели, и такая карточка
+   уходила в отчёт «Товары» с ошибкой. Смотрим на уже отрисованный блок, чтобы
+   не считать цену второй раз: шаблон карточки печатает offers ровно тогда,
+   когда цена есть.
+
+   Уровень буферов запоминаем: внутри блока свои SetViewTarget, и если какой-то
+   из них останется незакрытым, забираем всё до нашего уровня — иначе часть
+   разметки страницы потерялась бы. */
+$ndBufferLevel = ob_get_level();
+ob_start();
+@include_once('page_blocks/'.$sViewElementTemplate.'.php');
+$ndDetailParts = array();
+while(ob_get_level() > $ndBufferLevel)
+	array_unshift($ndDetailParts, ob_get_clean());
+$ndDetailHtml = implode('', $ndDetailParts);
+$ndDetailHasOffers = (strpos($ndDetailHtml, 'itemprop="offers"') !== false);
+?>
+<div class="catalog_detail detail<?=($isWideBlock == "Y" ? " fixed_wrapper" : "");?> <?=$sViewElementTemplate;?>"<?if($ndDetailHasOffers):?> itemscope itemtype="http://schema.org/Product"<?endif;?>>
+    <?=$ndDetailHtml?>
 </div>
 
 <?CNext::checkBreadcrumbsChain($arParams, $arSection, $arElement);?>

@@ -1261,8 +1261,12 @@ $ndColorItems = array_values(array_filter(
 									$arCurPriceType = current($arResult['PRICE_MATRIX']['COLS']);
 									$arCurPrice = current($arResult['PRICE_MATRIX']['MATRIX'][$arCurPriceType['ID']]);
 									$min_price_id = $arCurPriceType['ID'];?>
+							<?/* Здесь та же проверка, что и ниже: без цены разметка предложения
+							   пустая, а пустое предложение — ошибка. */
+							$ndMatrixPrice = ($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE']);?>
+							<?if($ndMatrixPrice > 0 && $arResult['MIN_PRICE']['CURRENCY']):?>
 							<div class="" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-								<meta itemprop="price" content="<?=($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE'])?>" />
+								<meta itemprop="price" content="<?=$ndMatrixPrice?>" />
 								<meta itemprop="priceCurrency" content="<?=$arResult['MIN_PRICE']['CURRENCY']?>" />
 								<link itemprop="availability" href="http://schema.org/<?=($arResult['PRICE_MATRIX']['AVAILABLE'] == 'Y' ? 'InStock' : 'OutOfStock')?>" />
 								<meta itemprop="itemCondition" content="https://schema.org/NewCondition" />
@@ -1272,6 +1276,7 @@ $ndColorItems = array_values(array_filter(
 								<?}?>
 								
 							</div>
+							<?endif;?>
 							
 							
 							
@@ -1608,13 +1613,31 @@ $ndColorItems = array_values(array_filter(
 		$ndHighPrice = $ndOfferPrices
 			? max($ndOfferPrices)
 			: ($arResult['MAX_PRICE']['DISCOUNT_VALUE'] ? $arResult['MAX_PRICE']['DISCOUNT_VALUE'] : $arResult['MAX_PRICE']['VALUE']);
+
+		/* В разметку берём только предложения с ценой: Offer без price и
+		   priceCurrency Google считает недействительным, а вместе с ним и
+		   всю карточку. Валюту берём у товара, а если её там нет — у первого
+		   предложения с ценой. */
+		$ndSchemaOffers = array();
+		foreach($arResult['OFFERS'] as $arOffer)
+		{
+			$ndPrice = ($arOffer['MIN_PRICE']['DISCOUNT_VALUE'] ? $arOffer['MIN_PRICE']['DISCOUNT_VALUE'] : $arOffer['MIN_PRICE']['VALUE']);
+			if($ndPrice > 0 && $arOffer['MIN_PRICE']['CURRENCY'])
+				$ndSchemaOffers[] = $arOffer;
+		}
+		unset($arOffer, $ndPrice);
+
+		$ndCurrency = $arResult['MIN_PRICE']['CURRENCY'];
+		if(!$ndCurrency && $ndSchemaOffers)
+			$ndCurrency = $ndSchemaOffers[0]['MIN_PRICE']['CURRENCY'];
 		?>
+		<?if($ndSchemaOffers && $ndLowPrice > 0 && $ndCurrency):?>
 		<span itemprop="offers" itemscope itemtype="http://schema.org/AggregateOffer" style="display:none;">
-			<meta itemprop="offerCount" content="<?=count($arResult['OFFERS'])?>" />
+			<meta itemprop="offerCount" content="<?=count($ndSchemaOffers)?>" />
 			<meta itemprop="lowPrice" content="<?=$ndLowPrice?>" />
 			<meta itemprop="highPrice" content="<?=$ndHighPrice?>" />
-			<meta itemprop="priceCurrency" content="<?=$arResult['MIN_PRICE']['CURRENCY']?>" />
-			<?foreach($arResult['OFFERS'] as $arOffer):?>
+			<meta itemprop="priceCurrency" content="<?=$ndCurrency?>" />
+			<?foreach($ndSchemaOffers as $arOffer):?>
 				<?$currentOffersList = array();?>
 				<?foreach($arOffer['TREE'] as $propName => $skuId):?>
 					<?$propId = (int)substr($propName, 5);?>
@@ -1662,10 +1685,17 @@ $ndColorItems = array_values(array_filter(
 			<?endforeach;?>
 		</span>
 		<?unset($arOffer, $currentOffersList);?>
+		<?endif;?>
 	<?else:?>
 		<?if(!$bPriceCount):?>
+		<?/* Пустые price и priceCurrency Google считает ошибкой разметки, а не
+		   отсутствием цены: товар, которому цену просто не завели, попадал в
+		   отчёт «Товары» как недействительный — «Укажите price», «Отсутствует
+		   поле priceCurrency». Нет цены — предложение не печатаем вовсе. */
+		$ndDetailPrice = ($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE']);?>
+		<?if($ndDetailPrice > 0 && $arResult['MIN_PRICE']['CURRENCY']):?>
 		<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-				<meta itemprop="price" content="<?=($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE'])?>" />
+				<meta itemprop="price" content="<?=$ndDetailPrice?>" />
 				<meta itemprop="priceCurrency" content="<?=$arResult['MIN_PRICE']['CURRENCY']?>" />
 				<link itemprop="availability" href="http://schema.org/<?=($arResult['MIN_PRICE']['CAN_BUY'] ? 'InStock' : 'OutOfStock')?>" />
 				<meta itemprop="itemCondition" content="https://schema.org/NewCondition" />
@@ -1677,6 +1707,7 @@ $ndColorItems = array_values(array_filter(
 				<?}?>
 				<link itemprop="url" href="<?=$arResult["DETAIL_PAGE_URL"]?>" />
 			</span>
+		<?endif;?>
 			
 			<?/*	
 			<span itemscope itemtype="http://schema.org/Product">
