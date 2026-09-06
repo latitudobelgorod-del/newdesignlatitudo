@@ -1,5 +1,14 @@
 <?php
 // /local/php_interface/include/sitemap_handler.php
+
+/* Из cron $_SERVER['DOCUMENT_ROOT'] приходит пустым, и запуск «php -f ... ALL»
+   молча падал на этой же строке: корень сайта надо вычислить самим. Файл лежит
+   в /local/php_interface/include/, отсюда три уровня вверх. Так же это сделано
+   в local/tools/sitemap_generate.php. */
+if (empty($_SERVER['DOCUMENT_ROOT'])) {
+    $_SERVER['DOCUMENT_ROOT'] = realpath(__DIR__ . '/../../..');
+}
+
 require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php');
 
 use Bitrix\Main\Context;
@@ -99,6 +108,128 @@ $regionMap = [
     'abkhazia.latitudo.ru'           => 27604,
 ];
 
+/* ----- Помощники: не выпускать наружу битый XML -----
+
+   Яндекс и Google писали об ошибке «дополнительное содержимое после
+   закрывающего корневого тега» в sitemap-iblock-15.xml и -18.xml. Так выглядит
+   файл, поверх которого записали текст короче прежнего: file_put_contents()
+   обрезает файл в момент открытия, и два одновременных писателя — ночной
+   прогон ALL по расписанию и обычный запрос робота, у которого истёк кеш, —
+   оставляют от длинной прежней копии хвост за </urlset>. Такой обрезок потом
+   сутки лежит в кеше и отдаётся роботам.
+
+   Поэтому: пишем только целиком, через временный файл с переименованием, и
+   отрезаем всё за корневым тегом у любого XML, прочитанного с диска, — и у
+   исходной карты в корне сайта, и у кеша, оставшегося от прежней записи. */
+
+/* Позиция сразу за первым закрывающим корневым тегом; 0 — тега нет.
+   Именно за первым: дальше в повреждённом файле идёт мусор, в котором может
+   встретиться и второй такой тег. */
+function ndSitemapRootEnd($content)
+{
+    $end = 0;
+
+    foreach (array('</urlset>', '</sitemapindex>') as $tag) {
+        $pos = strpos($content, $tag);
+
+        if ($pos !== false && ($end === 0 || $pos + strlen($tag) < $end)) {
+            $end = $pos + strlen($tag);
+        }
+    }
+
+    return $end;
+}
+
+function ndSitemapCutAfterRoot($content)
+{
+    $end = ndSitemapRootEnd($content);
+
+    if ($end === 0 || rtrim(substr($content, $end)) === '') {
+        return $content;
+    }
+
+    return substr($content, 0, $end);
+}
+
+/* Содержимое кеша, пригодное к отдаче, либо false. Разбираем файл целиком, а
+   не хвост: при наложении короткой записи поверх длинной остаток прежней копии
+   тоже заканчивается на </urlset>, и по одному хвосту такой файл неотличим от
+   целого. Карты бывают по несколько мегабайт, но запрашивают их роботы, а не
+   посетители, — раз в сутки на карту. */
+function ndSitemapReadCache($cacheFile)
+{
+    $content = @file_get_contents($cacheFile);
+
+    if ($content === false || strlen($content) <= 100) {
+        return false;
+    }
+
+    $content = ndSitemapCutAfterRoot($content);
+
+    return ndSitemapRootEnd($content) === 0 ? false : $content;
+}
+
+/* Единственное место, где пишется кеш: заведомо неполное не сохраняем, а
+   готовое кладём через временный файл — rename() атомарен, и параллельный
+   запрос увидит либо прежнюю копию, либо новую целиком. */
+function ndSitemapWriteCache($cacheFile, $content)
+{
+    if (strlen($content) <= 100 || ndSitemapRootEnd($content) === 0) {
+        return false;
+    }
+
+    $tmpFile = $cacheFile . '.' . getmypid() . '.' . mt_rand() . '.tmp';
+
+    if (file_put_contents($tmpFile, $content) === false) {
+        return false;
+    }
+
+    if (!@rename($tmpFile, $cacheFile)) {
+        @unlink($tmpFile);
+
+        return false;
+    }
+
+    return true;
+}
+
+/* Чтение исходной карты из корня сайта с подстановкой домена. Пока идёт ночная
+   пересборка, файл в корне бывает без закрывающего тега — тогда false, чтобы
+   недописанная карта не разъехалась по всем доменам на сутки. */
+function ndSitemapReadSource($path, $host)
+{
+    $content = @file_get_contents($path);
+
+    if ($content === false) {
+        return false;
+    }
+
+    $content = ndSitemapCutAfterRoot(replaceDomainInXml($content, $host));
+
+    return ndSitemapRootEnd($content) === 0 ? false : $content;
+}
+
+/* Исходный файл сейчас непригоден (идёт пересборка). Лучше отдать вчерашнюю
+   карту, чем битый XML: 503 робот перечитает, а битую карту запомнит. */
+function ndSitemapServeStaleOrFail($cacheFile)
+{
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+
+    $cached = ndSitemapReadCache($cacheFile);
+
+    if ($cached !== false) {
+        header('Content-Type: application/xml; charset=UTF-8');
+        echo $cached;
+        exit;
+    }
+
+    header('HTTP/1.1 503 Service Unavailable');
+    header('Retry-After: 3600');
+    exit;
+}
+
 // ----- НОВАЯ ФУНКЦИЯ ДЛЯ МАССОВОЙ ГЕНЕРАЦИИ -----
 // Если передан параметр ALL — генерируем для всех доменов из карты
 if (php_sapi_name() === 'cli' && isset($argv[1]) && $argv[1] === 'ALL') {
@@ -119,25 +250,37 @@ if (php_sapi_name() === 'cli' && isset($argv[1]) && $argv[1] === 'ALL') {
         // Генерация индекса
         $originalIndexPath = $_SERVER['DOCUMENT_ROOT'] . '/sitemap.xml';
         if (file_exists($originalIndexPath)) {
-            $originalIndex = file_get_contents($originalIndexPath);
-            $xml = simplexml_load_string($originalIndex);
+            $originalIndex = ndSitemapReadSource($originalIndexPath, $domain);
+            $xml = $originalIndex === false ? false : simplexml_load_string($originalIndex);
             $newIndex = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>');
             
-            foreach ($xml->sitemap as $sitemap) {
-                $loc = (string)$sitemap->loc;
-                $uri = new Uri($loc);
-                $newLoc = 'https://' . $domain . $uri->getPath();
-                $sitemapNode = $newIndex->addChild('sitemap');
-                $sitemapNode->addChild('loc', htmlspecialchars($newLoc));
-                $sitemapNode->addChild('lastmod', date('c'));
+            if ($xml === false) {
+                /* Индекс в корне сейчас неполон — идёт пересборка. Прежний кеш
+                   не трогаем: он лучше пустого индекса. */
+                echo "  - Индекс sitemap.xml пропущен: исходный файл неполон\n";
+            } else {
+                foreach ($xml->sitemap as $sitemap) {
+                    $loc = (string)$sitemap->loc;
+                    $uri = new Uri($loc);
+                    $newLoc = 'https://' . $domain . $uri->getPath();
+                    $sitemapNode = $newIndex->addChild('sitemap');
+                    $sitemapNode->addChild('loc', htmlspecialchars($newLoc));
+                    $sitemapNode->addChild('lastmod', date('c'));
+                }
+                ndSitemapWriteCache($cacheFile, $newIndex->asXML());
+                echo "  - Индекс sitemap.xml сохранён\n";
             }
-            file_put_contents($cacheFile, $newIndex->asXML());
-            echo "  - Индекс sitemap.xml сохранён\n";
         }
         
         // Генерируем карты для всех инфоблоков из индекса
-        $indexContent = file_get_contents($originalIndexPath);
-        $indexXml = simplexml_load_string($indexContent);
+        $indexContent = ndSitemapReadSource($originalIndexPath, $domain);
+        $indexXml = $indexContent === false ? false : simplexml_load_string($indexContent);
+
+        if ($indexXml === false) {
+            echo "Индекс sitemap.xml не разобран, домен $domain пропущен\n";
+            continue;
+        }
+
         foreach ($indexXml->sitemap as $sitemap) {
             $loc = (string)$sitemap->loc;
             $path = parse_url($loc, PHP_URL_PATH);
@@ -209,16 +352,21 @@ if (php_sapi_name() === 'cli' && isset($argv[1]) && $argv[1] === 'ALL') {
                         $urlNode->addChild('changefreq', $url['changefreq']);
                         $urlNode->addChild('priority', $url['priority']);
                     }
-                    file_put_contents($cacheFile, $urlset->asXML());
+                    ndSitemapWriteCache($cacheFile, $urlset->asXML());
                     echo "  - $iblockFilename (с фильтром) сохранён\n";
                 } else {
                     // Для остальных инфоблоков копируем оригинал с заменой домена
                     $originalFilePath = $_SERVER['DOCUMENT_ROOT'] . '/' . $iblockFilename;
                     if (file_exists($originalFilePath)) {
-                        $content = file_get_contents($originalFilePath);
-                        $content = preg_replace('/(https?:\/\/)latitudo\.ru/', '$1' . $domain, $content);
-                        file_put_contents($cacheFile, $content);
-                        echo "  - $iblockFilename (без фильтра) сохранён\n";
+                        $content = ndSitemapReadSource($originalFilePath, $domain);
+
+                        if ($content === false) {
+                            echo "  - $iblockFilename пропущен: исходный файл неполон\n";
+                        } elseif (ndSitemapWriteCache($cacheFile, $content)) {
+                            echo "  - $iblockFilename (без фильтра) сохранён\n";
+                        } else {
+                            echo "  - $iblockFilename не сохранён: ошибка записи кеша\n";
+                        }
                     }
                 }
             }
@@ -260,7 +408,11 @@ $cacheLifetime = 86400; // 24 часа
    товаров и писал об ошибках в файлах Sitemap. Теперь пересборка подхватывается
    первым же запросом.
 
-   Индекс sitemap.xml сверяем с ним же в корне: его правит та же генерация. */
+   Индекс sitemap.xml сверяем с ним же в корне: его правит та же генерация.
+
+   Отдельно про целостность: файл без закрывающего корневого тега или с мусором
+   после него роботам не отдаём, а пересобираем — такие остались от прежней,
+   неатомарной записи кеша. */
 $sourceFile = $_SERVER['DOCUMENT_ROOT'] . '/' . $filename;
 $sourceTime = file_exists($sourceFile) ? filemtime($sourceFile) : 0;
 
@@ -269,9 +421,21 @@ if (
     && (time() - filemtime($cacheFile) < $cacheLifetime)
     && filemtime($cacheFile) >= $sourceTime
 ) {
-    header('Content-Type: application/xml; charset=UTF-8');
-    readfile($cacheFile);
-    exit;
+    $cached = ndSitemapReadCache($cacheFile);
+
+    if ($cached !== false) {
+        /* Отдаём уже без мусора за корневым тегом. Если файл им и правда
+           зарос — перезаписываем, чтобы не срезать на каждом запросе. */
+        if (strlen($cached) !== filesize($cacheFile)) {
+            ndSitemapWriteCache($cacheFile, $cached);
+        }
+
+        header('Content-Type: application/xml; charset=UTF-8');
+        echo $cached;
+        exit;
+    }
+
+    // Кеш ни на что не годен — молча собираем заново, ниже он перезапишется.
 }
 
 // ----- 5. Вспомогательная функция для замены домена в XML-строке -----
@@ -353,7 +517,14 @@ if ($filename === 'sitemap.xml') {
     $originalIndex = file_get_contents($originalIndexPath);
 
     // Парсим и создаём новый индекс с заменой домена
-    $xml = simplexml_load_string($originalIndex);
+    $xml = simplexml_load_string(ndSitemapCutAfterRoot($originalIndex));
+
+    /* Не разобрался — идёт пересборка либо исходник повреждён. Пустой индекс
+       роботу хуже, чем вчерашний: он значит «карт у сайта нет». */
+    if ($xml === false) {
+        ndSitemapServeStaleOrFail($cacheFile);
+    }
+
     $newIndex = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>');
 
     foreach ($xml->sitemap as $sitemap) {
@@ -393,9 +564,13 @@ elseif (preg_match('/^sitemap-iblock-(\d+)\.xml$/', $filename, $matches)) {
     else {
         $originalFilePath = $_SERVER['DOCUMENT_ROOT'] . '/' . $filename;
         if (file_exists($originalFilePath)) {
-            $content = file_get_contents($originalFilePath);
-            // Заменяем домен на текущий (на случай, если в файле есть абсолютные ссылки)
-            $content = replaceDomainInXml($content, $host);
+            // Домен заменяем на текущий, хвост за </urlset> отрезаем
+            $content = ndSitemapReadSource($originalFilePath, $host);
+
+            if ($content === false) {
+                ndSitemapServeStaleOrFail($cacheFile);
+            }
+
             echo $content;
         } else {
             header('HTTP/1.0 404 Not Found');
@@ -408,9 +583,12 @@ elseif (preg_match('/^sitemap-iblock-(\d+)\.xml$/', $filename, $matches)) {
 else {
     $originalFilePath = $_SERVER['DOCUMENT_ROOT'] . '/' . $filename;
     if (file_exists($originalFilePath)) {
-        $content = file_get_contents($originalFilePath);
-        // Заменяем домен на текущий
-        $content = replaceDomainInXml($content, $host);
+        $content = ndSitemapReadSource($originalFilePath, $host);
+
+        if ($content === false) {
+            ndSitemapServeStaleOrFail($cacheFile);
+        }
+
         echo $content;
     } else {
         header('HTTP/1.0 404 Not Found');
@@ -422,18 +600,8 @@ else {
 // ----- 8. Сохраняем сгенерированный контент в кеш -----
 $content = ob_get_clean(); // получаем вывод и очищаем буфер
 
-/* Пишем через временный файл с переименованием: file_put_contents() пишет не
-   атомарно, и параллельный запрос успевал прочитать кеш обрезанным — а такой
-   обрезок жил бы в кеше сутки и отдавался бы роботам как «битый XML».
-   Заодно не кешируем заведомо неполный ответ. */
-$looksComplete = strpos($content, '</urlset>') !== false
-    || strpos($content, '</sitemapindex>') !== false;
-
-if (strlen($content) > 100 && $looksComplete) {
-    $tmpFile = $cacheFile . '.' . getmypid() . '.tmp';
-    if (file_put_contents($tmpFile, $content) !== false) {
-        @rename($tmpFile, $cacheFile);
-    }
-}
+/* Пишем через временный файл с переименованием, заведомо неполное не кешируем
+   — см. ndSitemapWriteCache. */
+ndSitemapWriteCache($cacheFile, $content);
 
 echo $content; // отдаём пользователю
