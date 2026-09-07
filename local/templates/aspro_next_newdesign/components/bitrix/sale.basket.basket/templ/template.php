@@ -201,14 +201,49 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 	}
 	?>
 	<script>
+	/* «Очистить корзину» удаляет позиции ПО ОДНОЙ и ждёт ответа на каждую.
+
+	   Раньше кликались разом все [data-entity="basket-item-delete"], а их у
+	   позиции ДВЕ — отдельно для мобильной и для десктопной раскладки. На товар
+	   уходило по два запроса, второй приходил на уже удалённую позицию, ответы
+	   гонялись наперегонки, и панель итогов пересобиралась без конца: блок
+	   мигал, а сумма оставалась старой (Ирина, 7 сентября 2026). */
 	(function () {
+		function pendingRows() {
+			return Array.prototype.filter.call(
+				document.querySelectorAll('#basket-item-table [data-entity="basket-item"]'),
+				function (row) {
+					// у удалённой позиции вместо товара — предложение восстановить
+					return !row.querySelector('[data-entity="basket-item-restore-button"]');
+				}
+			);
+		}
+
+		function removeNext() {
+			var rows = pendingRows();
+			if (!rows.length) return;
+
+			var btn = rows[0].querySelector('[data-entity="basket-item-delete"]');
+			if (!btn) return;
+
+			var left = rows.length;
+			btn.click();
+
+			// ждём, пока корзина перерисуется, но не дольше 10 секунд —
+			// иначе при молчании сервера получился бы вечный опрос
+			(function wait(tries) {
+				if (pendingRows().length < left) { removeNext(); return; }
+				if (tries <= 0) return;
+				setTimeout(function () { wait(tries - 1); }, 200);
+			})(50);
+		}
+
 		document.addEventListener('click', function (e) {
 			var btn = e.target.closest('[data-nd-basket-clear]');
 			if (!btn) return;
-			var items = document.querySelectorAll('#basket-item-table [data-entity="basket-item-delete"]');
-			if (!items.length) return;
+			if (!pendingRows().length) return;
 			if (!confirm('Удалить все товары из корзины?')) return;
-			Array.prototype.forEach.call(items, function (node) { node.click(); });
+			removeNext();
 		});
 	})();
 	</script>
