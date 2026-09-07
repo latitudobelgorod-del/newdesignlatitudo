@@ -820,7 +820,57 @@ if ($ndProfileVal) {
 
 
 <?/*Производитель*/?>
-<?if($templateData['BRAND_ITEM']["ID"] == '23345'):?>
+<?
+/* Приписка про московский склад. Раньше её видели только товары СМ Декинг
+   (бренд 23345), теперь ещё и раздел «МПК» (418) вместе с вложенными
+   (Ирина, 7 сентября 2026).
+
+   Раздел проверяем по границам дерева, а не по IBLOCK_SECTION_ID: у товара
+   привязок бывает несколько, и лежать он может в любом подразделе.
+   Запрос выполняется один раз на карточку и уезжает в кеш компонента. */
+$ndStoreNoteRoot = 418;
+$ndShowStoreNote = ($templateData['BRAND_ITEM']['ID'] == '23345');
+
+if(!$ndShowStoreNote && CModule::IncludeModule('iblock'))
+{
+	$arRoot = CIBlockSection::GetList(
+		array(),
+		array('IBLOCK_ID' => $arResult['IBLOCK_ID'], 'ID' => $ndStoreNoteRoot),
+		false,
+		array('ID', 'LEFT_MARGIN', 'RIGHT_MARGIN')
+	)->Fetch();
+
+	if($arRoot)
+	{
+		$arNoteSections = array();
+		$rsSections = CIBlockSection::GetList(
+			array(),
+			array(
+				'IBLOCK_ID' => $arResult['IBLOCK_ID'],
+				'>=LEFT_MARGIN' => $arRoot['LEFT_MARGIN'],
+				'<=RIGHT_MARGIN' => $arRoot['RIGHT_MARGIN'],
+			),
+			false,
+			array('ID')
+		);
+
+		while($arSect = $rsSections->Fetch())
+			$arNoteSections[(int)$arSect['ID']] = true;
+
+		$rsGroups = CIBlockElement::GetElementGroups($arResult['ID'], true, array('ID'));
+
+		while($arGroup = $rsGroups->Fetch())
+		{
+			if(isset($arNoteSections[(int)$arGroup['ID']]))
+			{
+				$ndShowStoreNote = true;
+				break;
+			}
+		}
+	}
+}
+?>
+<?if($ndShowStoreNote):?>
 <div class="uf_comment_price_cm"><div class="uf_comment_price">
 Цена указана для отгрузки со склада в Москве.<br>
 Цены с других складов уточняйте у наших менедежров.
