@@ -664,7 +664,11 @@ $ndSectionBrands = function($sectionId) {
 
 						<?if($ndMenuImg):?>
 							<a class="nd-cat__solo" href="<?=htmlspecialcharsbx($arSection['LINK'])?>">
-								<img data-nd-src="<?=htmlspecialcharsbx($ndMenuImg)?>" alt="<?=htmlspecialcharsbx($arSection['TEXT'])?>">
+								<?/* Адрес ставим сразу, а не через data-nd-src: подстановку делает скрипт
+								     меню при открытии, и картинка зависела бы от него. Таких
+								     картинок на сайте три штуки — грузим их обычным образом,
+								     браузер и так отложит их до показа. */?>
+								<img src="<?=htmlspecialcharsbx($ndMenuImg)?>" alt="<?=htmlspecialcharsbx($arSection['TEXT'])?>" loading="lazy">
 							</a>
 						<?endif;?>
 
