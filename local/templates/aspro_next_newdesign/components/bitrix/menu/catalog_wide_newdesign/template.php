@@ -79,6 +79,19 @@ if($cache->initCache(3600, $cacheKey, $cacheDir))
 }
 
 $cache->startDataCache();
+
+/* Кеш помечаем тегом инфоблока каталога: иначе смена картинки или названия
+   раздела доезжала до меню только по истечении часа — ключ считается по
+   дереву меню, а оно от полей раздела не меняется (Ирина, 7 сентября 2026). */
+$ndCatalogIblockId = (int)CNextCache::$arIBlocks[SITE_ID]['aspro_next_catalog']['aspro_next_catalog'][0];
+$ndTagCache = ($ndCatalogIblockId > 0 && isset($GLOBALS['CACHE_MANAGER'])) ? $GLOBALS['CACHE_MANAGER'] : null;
+
+if($ndTagCache)
+{
+	$ndTagCache->StartTagCache($cacheDir);
+	$ndTagCache->RegisterTag('iblock_id_'.$ndCatalogIblockId);
+}
+
 ob_start();
 
 /**
@@ -248,7 +261,11 @@ $ndSectionMenuImage = function($link) {
 			$file = SITE_TEMPLATE_PATH.'/images/newdesign/menu/'.$code.'.'.$ext;
 
 			if(is_file($_SERVER['DOCUMENT_ROOT'].$file))
-				return $file;
+			{
+				/* Метка времени файла: имя у картинки постоянное, и без неё
+				   браузер показывал бы прежнюю после замены. */
+				return $file.'?'.filemtime($_SERVER['DOCUMENT_ROOT'].$file);
+			}
 		}
 
 		return null;
@@ -730,6 +747,10 @@ $ndSectionBrands = function($sectionId) {
 </div>
 <?
 $html = ob_get_clean();
+
+if($ndTagCache)
+	$ndTagCache->EndTagCache();
+
 $cache->endDataCache(array('HTML' => $html));
 echo $html;
 ?>
