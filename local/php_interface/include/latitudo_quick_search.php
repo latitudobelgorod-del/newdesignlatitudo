@@ -476,7 +476,75 @@ class LatitudoQuickSearch
 			.'WHERE IBLOCK_ID IN ('.self::IBLOCK_PRODUCTS.', '.self::IBLOCK_OFFERS.')'
 		)->Fetch();
 
-		return $row ? $row['C'].'@'.$row['T'] : '0@';
+		/* В версию входит и список слов по разделам: поправили его —
+		   индекс пересоберётся сам, а не через сутки. */
+		$words = md5(serialize(self::sectionWords()));
+
+		return ($row ? $row['C'].'@'.$row['T'] : '0@').'@'.$words;
+	}
+
+	/**
+	 * Разделы, товары которых должны находиться и по словам, которых нет
+	 * ни в названии, ни в артикуле (Ирина, 7 сентября 2026).
+	 *
+	 * Реечные фасадные панели ищут по слову «рейка», а в названиях стоит
+	 * «реечная» — для поиска это разные слова, и по «рейке» не находилось
+	 * ничего. Слова приписываются в сеновал поиска, на самих страницах
+	 * ничего не меняется.
+	 *
+	 * Раздел берётся вместе с подразделами, поэтому новые товары
+	 * подхватятся сами. Чтобы добавить слова другому разделу, достаточно
+	 * дописать строку — индекс пересоберётся сам.
+	 */
+	public static function sectionWords()
+	{
+		return array(
+			array(
+				'SECTION_CODE' => 'reechnye-fasadnye-paneli',
+				'WORDS' => 'рейка рейки реечная реечные панель панели',
+			),
+		);
+	}
+
+	/** ID товаров раздела вместе с подразделами. */
+	private static function sectionElementIds($code)
+	{
+		global $DB;
+
+		$code = preg_replace('/[^a-z0-9_-]/i', '', (string)$code);
+
+		if ($code === '') {
+			return array();
+		}
+
+		$root = $DB->Query(
+			'SELECT LEFT_MARGIN, RIGHT_MARGIN FROM b_iblock_section '
+			.'WHERE IBLOCK_ID = '.self::IBLOCK_PRODUCTS." AND CODE = '".$DB->ForSql($code)."'"
+		)->Fetch();
+
+		if (!$root) {
+			return array();
+		}
+
+		/* ADDITIONAL_PROPERTY_ID IS NULL — берём только настоящую привязку
+		   к разделу, а не служебные строки по свойствам. */
+		$rs = $DB->Query(
+			'SELECT DISTINCT se.IBLOCK_ELEMENT_ID AS ID '
+			.'FROM b_iblock_section_element se '
+			.'INNER JOIN b_iblock_section s ON s.ID = se.IBLOCK_SECTION_ID '
+			.'WHERE se.ADDITIONAL_PROPERTY_ID IS NULL '
+				.'AND s.IBLOCK_ID = '.self::IBLOCK_PRODUCTS.' '
+				.'AND s.LEFT_MARGIN >= '.(int)$root['LEFT_MARGIN'].' '
+				.'AND s.RIGHT_MARGIN <= '.(int)$root['RIGHT_MARGIN']
+		);
+
+		$ids = array();
+
+		while ($row = $rs->Fetch()) {
+			$ids[] = (int)$row['ID'];
+		}
+
+		return $ids;
 	}
 
 	private static function buildIndex()
@@ -535,6 +603,17 @@ class LatitudoQuickSearch
 				$raw[$id]['art'] .= ' '.$row['ARTICLE'];
 			}
 			self::addArticle($articles, $row['ARTICLE'], $id, (int)$row['OFFER_ID']);
+		}
+
+		// Слова, приписанные разделу — см. sectionWords().
+		foreach (self::sectionWords() as $rule) {
+			$extra = ' '.self::plainText($rule['WORDS']);
+
+			foreach (self::sectionElementIds($rule['SECTION_CODE']) as $id) {
+				if (isset($raw[$id])) {
+					$raw[$id]['hay'] .= $extra;
+				}
+			}
 		}
 
 		$index = array();
