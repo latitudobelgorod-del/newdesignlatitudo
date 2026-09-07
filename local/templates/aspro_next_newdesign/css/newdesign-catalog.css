@@ -2555,3 +2555,30 @@ body .nd-brandhead #pagetitle {
 .nd-filter--horizontal .nd-filter__panel {
     min-width: 240px;
 }
+
+/* Плашки, не влезшие в строку, и кнопка «…» — см. newdesign-catalog.js. */
+.nd-filter--horizontal .nd-filter-hidden {
+    display: none !important;
+}
+
+.nd-filter__more {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    min-width: 40px;
+    padding: 0 10px;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .05);
+    color: #101014;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+}
+
+.nd-filter__more:hover {
+    background: rgba(82, 82, 100, .1);
+}

@@ -1309,3 +1309,92 @@
 	init();
 	document.addEventListener('DOMContentLoaded', init);
 })();
+
+/* ---------------------------------------------------------------------------
+   Ряд фильтров на поиске держим в одну строку: что не влезло — под «…»
+   (Ирина, 7 сентября 2026, «должно быть типа этого» — как чипы тегов в
+   каталоге). Плашку с выбранным значением не прячем никогда: иначе не видно,
+   какой фильтр стоит.
+   ------------------------------------------------------------------------ */
+(function () {
+	'use strict';
+
+	function collapseFilter() {
+		var box = document.querySelector('.nd-filter--horizontal');
+
+		if (!box || box.getAttribute('data-nd-opened') === 'Y') {
+			return;
+		}
+
+		var pills = Array.prototype.filter.call(box.children, function (el) {
+			return el.classList && el.classList.contains('nd-filter__drop');
+		});
+
+		if (!pills.length) {
+			return;
+		}
+
+		var reset = box.querySelector('.nd-filter__reset');
+		var more = box.querySelector('.nd-filter__more');
+
+		if (!more) {
+			more = document.createElement('span');
+			more.className = 'nd-filter__more';
+			more.textContent = '…';
+			more.title = 'Показать все фильтры';
+			more.addEventListener('click', function () {
+				box.setAttribute('data-nd-opened', 'Y');
+				pills.forEach(function (p) { p.classList.remove('nd-filter-hidden'); });
+				more.remove();
+			});
+		}
+
+		if (more.parentNode !== box) {
+			box.insertBefore(more, reset || null);
+		}
+
+		pills.forEach(function (p) { p.classList.remove('nd-filter-hidden'); });
+		more.hidden = true;
+
+		var rowH = pills[0].getBoundingClientRect().height;
+
+		/* Ряд уложился сам — «…» не нужна. */
+		if (box.getBoundingClientRect().height <= rowH + 6) {
+			more.remove();
+			return;
+		}
+
+		more.hidden = false;
+
+		/* Прячем с конца, пока ряд не станет одной строкой. */
+		for (var i = pills.length - 1; i >= 0; i--) {
+			if (box.getBoundingClientRect().height <= rowH + 6) {
+				break;
+			}
+
+			if (!pills[i].classList.contains('is-selected')) {
+				pills[i].classList.add('nd-filter-hidden');
+			}
+		}
+
+		/* Ничего не спрятали — значит и кнопка ни к чему. */
+		if (!box.querySelector('.nd-filter-hidden')) {
+			more.remove();
+		}
+	}
+
+	var timer = 0;
+
+	function schedule() {
+		clearTimeout(timer);
+		timer = setTimeout(collapseFilter, 120);
+	}
+
+	if (document.readyState !== 'loading') {
+		collapseFilter();
+	}
+
+	document.addEventListener('DOMContentLoaded', collapseFilter);
+	document.addEventListener('nd:appended', schedule);
+	window.addEventListener('resize', schedule);
+})();
