@@ -51,6 +51,9 @@
 	// и по готовности документа
 	initFilter();
 	document.addEventListener('DOMContentLoaded', initFilter);
+	/* Список на поиске перерисовывается живьём (см. newdesign-catalog.js):
+	   форма фильтра после подмены новая, без обработчиков — вешаем заново. */
+	document.addEventListener('nd:appended', initFilter);
 
 
 	/* ---------------------- «Показать ещё» ---------------------- */

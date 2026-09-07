@@ -2509,3 +2509,11 @@ body .nd-brandhead #pagetitle {
     color: #c60000;
     text-decoration: none;
 }
+
+/* Пока подгружается живая выдача поиска — приглушаем список, чтобы было видно,
+   что идёт обновление (Ирина, 7 сентября 2026). */
+.middle.nd-search-loading {
+    opacity: .55;
+    transition: opacity .15s ease;
+    pointer-events: none;
+}

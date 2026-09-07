@@ -1176,3 +1176,136 @@
             });
     });
 })();
+
+/* ---------------------------------------------------------------------------
+   Живой поиск на странице /catalog/?q=
+
+   Ирина, 7 сентября 2026: «при вводе в строку поиска товары сразу показывались
+   ниже». Набрали — через паузу подгружаем ту же страницу с новым запросом и
+   подменяем содержимое .middle: там и счётчик «Найдено», и фильтр, и список,
+   и сообщение «Ничего не найдено». Сама строка поиска лежит ВЫШЕ .middle,
+   поэтому фокус и каретка не сбиваются.
+
+   Приём тот же, что у «Показать ещё» (newdesign-ui.js): fetch → DOMParser →
+   подмена узлов → событие nd:appended, по которому переинициализируются
+   фильтр и карточки.
+   ------------------------------------------------------------------------ */
+(function () {
+	'use strict';
+
+	var DELAY = 400;  // пауза после последнего нажатия
+	var MIN = 2;      // по одной букве не ищем — выдача бессмысленная
+
+	function init() {
+		var input = document.getElementById('nd-searchpage-input');
+		var middle = document.querySelector('.middle');
+
+		if (!input || !middle || input.getAttribute('data-nd-live') === 'Y') {
+			return;
+		}
+
+		input.setAttribute('data-nd-live', 'Y');
+
+		var timer = 0;
+		var ctrl = null;
+		var last = input.value.trim();
+
+		function apply(html, url) {
+			var doc = new DOMParser().parseFromString(html, 'text/html');
+			var fresh = doc.querySelector('.middle');
+
+			if (!fresh) {
+				return false;
+			}
+
+			middle.innerHTML = fresh.innerHTML;
+
+			/* Заголовок «Результаты поиска: «…»» живёт выше и меняется вместе
+			   с запросом. */
+			var title = document.getElementById('pagetitle');
+			var freshTitle = doc.getElementById('pagetitle');
+
+			if (title && freshTitle) {
+				title.innerHTML = freshTitle.innerHTML;
+			}
+
+			if (doc.title) {
+				document.title = doc.title;
+			}
+
+			document.dispatchEvent(new CustomEvent('nd:appended'));
+			window.dispatchEvent(new Event('resize'));
+
+			if (window.history && window.history.replaceState) {
+				window.history.replaceState(null, '', url);
+			}
+
+			return true;
+		}
+
+		function run() {
+			var q = input.value.trim();
+
+			if (q === last) {
+				return;
+			}
+
+			last = q;
+
+			if (q.length < MIN) {
+				return;
+			}
+
+			var url = window.location.pathname + '?q=' + encodeURIComponent(q);
+
+			/* Печатают быстро — предыдущий ответ уже не нужен. */
+			if (ctrl) {
+				ctrl.abort();
+			}
+
+			ctrl = window.AbortController ? new AbortController() : null;
+			middle.classList.add('nd-search-loading');
+
+			fetch(url, {
+				credentials: 'same-origin',
+				signal: ctrl ? ctrl.signal : undefined
+			})
+				.then(function (r) {
+					if (!r.ok) {
+						throw new Error('HTTP ' + r.status);
+					}
+					return r.text();
+				})
+				.then(function (html) {
+					if (!apply(html, url)) {
+						throw new Error('в ответе нет .middle');
+					}
+					middle.classList.remove('nd-search-loading');
+				})
+				.catch(function (e) {
+					middle.classList.remove('nd-search-loading');
+					/* Отменённый запрос — обычное дело при быстром наборе,
+					   на него не реагируем. Всё остальное отдаём обычному
+					   переходу: лучше перезагрузка, чем застывший список. */
+					if (!e || e.name !== 'AbortError') {
+						window.location.href = url;
+					}
+				});
+		}
+
+		input.addEventListener('input', function () {
+			clearTimeout(timer);
+			timer = setTimeout(run, DELAY);
+		});
+
+		/* Enter — обычная отправка формы, отложенный запрос тогда не нужен. */
+		if (input.form) {
+			input.form.addEventListener('submit', function () {
+				clearTimeout(timer);
+			});
+		}
+	}
+
+	init();
+	document.addEventListener('DOMContentLoaded', init);
+})();
