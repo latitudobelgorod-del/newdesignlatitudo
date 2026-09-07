@@ -85,47 +85,12 @@ if (!defined('ND_CATALOG_ASSETS')) {
    в буфере рвут его — грабля из шаблона услуг). */
 $ndSearchIcon = SITE_TEMPLATE_PATH.'/images/newdesign/header/search.svg';
 
-/* Подсказки к этой строке — те же, что в шапке (Ирина, 2026-08-17): товары
-   должны показываться сразу при наборе, а не только после отправки формы.
-   Разметку поля печатаем здесь, а запуск JCTitleSearch2 даёт отдельный
-   шаблон search.title/newdesign_page — своей разметки у него нет.
-
-   Компонент подключаем ДО bitrix:catalog.search: на ajax-запрос подсказок он
-   отвечает и обрывает страницу (RestartBuffer + die), и тяжёлый список
-   товаров в этот момент считать незачем. Параметры — как у поиска в шапке.
-
-   Вывод компонента ловим в буфер и кладём в ту же отложенную область: сам он
-   печатается здесь, внутри правой колонки, а тег <script> должен стоять
-   рядом с полем — иначе он ищет узлы, которых ещё нет. */
-ob_start();
-$APPLICATION->IncludeComponent(
-	"bitrix:search.title",
-	"newdesign_page",
-	array(
-		"NUM_CATEGORIES" => "1",
-		"TOP_COUNT" => "5",
-		"ORDER" => "rank",
-		"USE_LANGUAGE_GUESS" => "N",
-		"CHECK_DATES" => "Y",
-		"SHOW_OTHERS" => "N",
-		"PAGE" => CNext::GetFrontParametrValue("CATALOG_PAGE_URL"),
-		"CATEGORY_0_TITLE" => "ALL",
-		"CATEGORY_OTHERS_TITLE" => "OTHER",
-		"CATEGORY_0_iblock_aspro_next_catalog" => array(19, 20),
-		"SHOW_INPUT" => "Y",
-		"INPUT_ID" => "nd-searchpage-input",
-		"CONTAINER_ID" => "nd-searchpage",
-		"PREVIEW_TRUNCATE_LEN" => "",
-		"SHOW_PREVIEW" => "Y",
-		"PRICE_CODE" => array("BASE", "OPT"),
-		"CONVERT_CURRENCY" => "Y",
-		"CURRENCY_ID" => "RUB",
-		"PREVIEW_WIDTH" => "25",
-		"PREVIEW_HEIGHT" => "25",
-	),
-	false, array("HIDE_ICONS" => "Y")
-);
-$ndSearchSuggest = ob_get_clean();
+/* Подсказок под строкой поиска здесь нет намеренно (Ирина, 7 сентября
+   2026). Выдача под строкой обновляется прямо при вводе — см. живой
+   поиск в js/newdesign-catalog.js, — и всплывающее окно с теми же
+   товарами только перекрывало список. Компонент bitrix:search.title
+   с этой страницы убран целиком, вместе с его запросами подсказок;
+   в шапке сайта он остался. */
 
 $APPLICATION->AddViewContent('nd_page_head',
 	$ndSearchAssets
@@ -139,7 +104,6 @@ $APPLICATION->AddViewContent('nd_page_head',
 			.'</button>'
 		.'</form>'
 	.'</div>'
-	.$ndSearchSuggest
 	.'<div class="nd-searchpage__sep"></div>'
 );
 
