@@ -2475,3 +2475,37 @@ body .nd-brandhead #pagetitle {
     color: #8a8a94;
     font-size: 12px;
 }
+
+/* Плашка с выбранным значением подсвечивается — сразу видно, где стоит фильтр
+   (Ирина, 7 сентября 2026, «как на маркетплейсах»). Крестик снимает только
+   эту группу, остальные условия и поисковый запрос остаются. */
+.nd-filter--horizontal .nd-filter__drop.is-selected > .nd-filter__head {
+    background: #fdecec;
+    color: #c60000;
+    box-shadow: inset 0 0 0 1px #f0c2c2;
+}
+
+.nd-filter--horizontal .nd-filter__drop.is-selected > .nd-filter__head > svg {
+    color: #c60000;
+}
+
+.nd-filter__clear {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    margin-left: auto;
+    border-radius: 50%;
+    color: #c60000;
+    font-size: 18px;
+    line-height: 19px;
+    text-align: center;
+    text-decoration: none;
+    transition: background .15s ease;
+}
+
+.nd-filter__clear:hover,
+.nd-filter__clear:focus {
+    background: rgba(198, 0, 0, .12);
+    color: #c60000;
+    text-decoration: none;
+}

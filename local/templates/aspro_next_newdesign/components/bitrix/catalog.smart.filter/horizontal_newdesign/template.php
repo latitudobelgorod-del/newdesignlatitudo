@@ -56,6 +56,7 @@ foreach ($arResult['ITEMS'] as $arItem)
 
 		$ndGroups[] = array(
 			'TYPE' => 'RANGE',
+			'FIELDS' => array($min['CONTROL_NAME'], $max['CONTROL_NAME']),
 			'CODE' => $arItem['CODE'],
 			'NAME' => $arItem['NAME'],
 			'MIN' => $min,
@@ -89,13 +90,38 @@ foreach ($arResult['ITEMS'] as $arItem)
 	if (!$values)
 		continue;
 
+	$ndFields = array();
+
+	foreach ($values as $ar)
+		$ndFields[] = $ar['CONTROL_NAME'];
+
 	$ndGroups[] = array(
 		'TYPE' => 'LIST',
+		'FIELDS' => $ndFields,
 		'CODE' => $arItem['CODE'],
 		'NAME' => $arItem['NAME'],
 		'VALUES' => $values,
 		'SELECTED' => $selected,
 	);
+}
+
+/* Адрес «снять только эту группу»: текущий запрос без её полей. Так же
+   устроено на маркетплейсах — крестик на подсвеченной плашке (Ирина,
+   7 сентября 2026). Строим на сервере, чтобы работало без скрипта. */
+foreach ($ndGroups as $i => $ndGroup)
+{
+	if (!$ndGroup['SELECTED'])
+		continue;
+
+	$ndQuery = $_GET;
+
+	foreach ($ndGroup['FIELDS'] as $ndField)
+		unset($ndQuery[$ndField]);
+
+	unset($ndQuery['del_filter']);
+	$ndQuery['set_filter'] = 'Y';
+
+	$ndGroups[$i]['CLEAR_URL'] = $APPLICATION->GetCurPage(false).'?'.http_build_query($ndQuery);
 }
 
 if (!$ndGroups)
@@ -111,9 +137,16 @@ if (!$ndGroups)
 	<?endforeach;?>
 
 	<?foreach($ndGroups as $ndGroup):?>
-		<details class="nd-filter__drop" data-nd-code="<?=htmlspecialcharsbx($ndGroup['CODE'])?>">
+		<details class="nd-filter__drop<?=$ndGroup['SELECTED'] ? ' is-selected' : ''?>" data-nd-code="<?=htmlspecialcharsbx($ndGroup['CODE'])?>">
 			<summary class="nd-filter__head">
 				<?=$ndChevron?><span><?=htmlspecialcharsbx($ndGroup['NAME'])?><?=$ndGroup['SELECTED'] ? ' ('.$ndGroup['SELECTED'].')' : ''?></span>
+				<?if(!empty($ndGroup['CLEAR_URL'])):?>
+					<?/* Останавливаем всплытие: иначе клик по крестику заодно
+					     раскрывал бы список — событие дошло бы до summary. */?>
+					<a class="nd-filter__clear" href="<?=htmlspecialcharsbx($ndGroup['CLEAR_URL'])?>"
+					   title="Снять этот фильтр" aria-label="Снять фильтр «<?=htmlspecialcharsbx($ndGroup['NAME'])?>»"
+					   onclick="event.stopPropagation();">&times;</a>
+				<?endif;?>
 			</summary>
 			<div class="nd-filter__panel">
 				<?if($ndGroup['TYPE'] === 'RANGE'):?>
