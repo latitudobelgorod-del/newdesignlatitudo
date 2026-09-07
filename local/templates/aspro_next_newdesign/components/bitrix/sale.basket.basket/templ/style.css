@@ -2354,3 +2354,12 @@ h2.basket-item-info-name {
 }
 
 /*endregion*/
+/* Пока идёт «Очистить корзину», блок не проявляется заново на каждой
+   перерисовке: позиции удаляются по одной, и тема мигала блоком столько раз,
+   сколько товаров в корзине (Ирина, 7 сентября 2026). */
+body.nd-basket-clearing #basket-root,
+body.nd-basket-clearing .bx-basket {
+    opacity: 1 !important;
+    transition: none !important;
+    animation: none !important;
+}

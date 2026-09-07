@@ -221,7 +221,7 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 
 		function removeNext() {
 			var rows = pendingRows();
-			if (!rows.length) return;
+			if (!rows.length) { document.body.classList.remove('nd-basket-clearing'); return; }
 
 			var btn = rows[0].querySelector('[data-entity="basket-item-delete"]');
 			if (!btn) return;
@@ -233,7 +233,7 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 			// иначе при молчании сервера получился бы вечный опрос
 			(function wait(tries) {
 				if (pendingRows().length < left) { removeNext(); return; }
-				if (tries <= 0) return;
+				if (tries <= 0) { document.body.classList.remove('nd-basket-clearing'); return; }
 				setTimeout(function () { wait(tries - 1); }, 200);
 			})(50);
 		}
@@ -243,6 +243,10 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 			if (!btn) return;
 			if (!pendingRows().length) return;
 			if (!confirm('Удалить все товары из корзины?')) return;
+			/* Позиции удаляются по одной, и на каждой перерисовке тема заново
+			   проявляет блок корзины (bx-step-opacity) — выходило мигание по
+			   числу товаров. На время очистки проявление гасим стилями. */
+			document.body.classList.add('nd-basket-clearing');
 			removeNext();
 		});
 	})();

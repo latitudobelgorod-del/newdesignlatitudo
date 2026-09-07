@@ -56,7 +56,12 @@ use Bitrix\Main\Localization\Loc;
 					</div>
 				{{/VOLUME_FORMATED}}
 
-				<?// Со скидкой в строке «Товары» стоит сумма до скидки, без неё — итоговая.?>
+				<?/* Со скидкой в строке «Товары» стоит сумма до скидки, без неё —
+				   итоговая. Пустую корзину строка пропускает целиком: сервер в этом
+				   случае присылает пустой COUNT_ITEMS, но прежнюю сумму до скидки —
+				   рядом с «Итого 0 руб» висело «Товары () 12 130 руб»
+				   (Ирина, 7 сентября 2026). */?>
+				{{#COUNT_ITEMS}}
 				<div class="nd-total__row">
 					<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_ITEMS')?> ({{COUNT_ITEMS}})</span>
 					<span class="nd-total__row-value">
@@ -64,6 +69,7 @@ use Bitrix\Main\Localization\Loc;
 						{{^DISCOUNT_PRICE_FORMATED}}{{{PRICE_FORMATED}}}{{/DISCOUNT_PRICE_FORMATED}}
 					</span>
 				</div>
+				{{/COUNT_ITEMS}}
 
 				{{#DISCOUNT_PRICE_FORMATED}}
 					<div class="nd-total__row nd-total__row--discount">
