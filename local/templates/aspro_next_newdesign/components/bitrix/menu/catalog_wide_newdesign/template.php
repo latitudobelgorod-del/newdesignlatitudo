@@ -228,7 +228,31 @@ $ndSectionMenuImage = function($link) {
 	$key = rtrim((string)$link, '/').'/';
 
 	if(empty($arMap[$key]))
+	{
+		/* Пункт не из каталога — поля у него нет вовсе («Перголы» ведут на
+		   статью в «Материалах»). Для таких берём картинку из шаблона по
+		   символьному коду адреса — тем же приёмом, что и запасные иконки
+		   разделов. Чтобы завести картинку новому пункту, достаточно
+		   положить файл images/newdesign/menu/<код>.jpg. */
+		$path = parse_url((string)$link, PHP_URL_PATH);
+		$code = basename(rtrim((string)$path, '/'));
+
+		if($code !== '' && mb_strpos($code, 'pergola') !== false)
+			$code = 'pergola';
+
+		if($code === '' || !preg_match('/^[a-z0-9_-]+$/i', $code))
+			return null;
+
+		foreach(array('jpg', 'png') as $ext)
+		{
+			$file = SITE_TEMPLATE_PATH.'/images/newdesign/menu/'.$code.'.'.$ext;
+
+			if(is_file($_SERVER['DOCUMENT_ROOT'].$file))
+				return $file;
+		}
+
 		return null;
+	}
 
 	/* Картинка идёт во всю ширину панели (около 950 px), поэтому потолок с
 	   запасом под плотные экраны; кадрировать нельзя — вписываем по большей
