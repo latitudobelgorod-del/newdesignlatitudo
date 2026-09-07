@@ -182,6 +182,62 @@ $ndSectionImg = function($arItem, $size) {
 };
 
 /**
+ * Картинка раздела для выпадающего меню — поле раздела UF_IMAGE_MENU.
+ *
+ * Нужна там, где подразделов нет вовсе: у «Садового паркета», «Ступеней»
+ * и «Заборной доски» правая половина меню оставалась почти пустой — одни
+ * логотипы производителей (Ирина, 7 сентября 2026). Картинка ведёт на сам
+ * раздел.
+ *
+ * Карту «адрес раздела → файл» строим один раз: в параметрах пункта меню
+ * пользовательских полей нет. Поля может не быть вовсе (на локальной копии
+ * базы оно появится только после переливки) — тогда молча пропускаем.
+ */
+$ndSectionMenuImage = function($link) {
+	static $arMap;
+
+	if(!isset($arMap))
+	{
+		$arMap = array();
+		$catalogId = (int)CNextCache::$arIBlocks[SITE_ID]['aspro_next_catalog']['aspro_next_catalog'][0];
+
+		global $USER_FIELD_MANAGER;
+		$arFields = $catalogId > 0 && $USER_FIELD_MANAGER
+			? $USER_FIELD_MANAGER->GetUserFields('IBLOCK_'.$catalogId.'_SECTION')
+			: array();
+
+		if(isset($arFields['UF_IMAGE_MENU']))
+		{
+			$res = CIBlockSection::GetList(
+				array('LEFT_MARGIN' => 'ASC'),
+				array('IBLOCK_ID' => $catalogId, 'ACTIVE' => 'Y', 'GLOBAL_ACTIVE' => 'Y', '!UF_IMAGE_MENU' => false),
+				false,
+				array('ID', 'SECTION_PAGE_URL', 'UF_IMAGE_MENU')
+			);
+
+			while($arSect = $res->GetNext())
+			{
+				$fileId = (int)$arSect['UF_IMAGE_MENU'];
+
+				if($fileId > 0)
+					$arMap[rtrim($arSect['SECTION_PAGE_URL'], '/').'/'] = $fileId;
+			}
+		}
+	}
+
+	$key = rtrim((string)$link, '/').'/';
+
+	if(empty($arMap[$key]))
+		return null;
+
+	/* Панель широкая, но картинку кадрировать нельзя — вписываем по большей
+	   стороне. Качество 82, как у баннеров акций. */
+	$arImg = CFile::ResizeImageGet($arMap[$key], array('width' => 900, 'height' => 520), BX_RESIZE_IMAGE_PROPORTIONAL, true, false, false, 82);
+
+	return ($arImg && !empty($arImg['src'])) ? $arImg['src'] : null;
+};
+
+/**
  * Картинки посадочных страниц каталога (ИБ 21) — для ссылок из UF_MENULINK_TOP.
  * У такой ссылки нет раздела, поэтому берём анонс посадочной: сначала по
  * названию (текст ссылки пишут по нему, это надёжнее), потом по URL из
@@ -583,7 +639,10 @@ $ndSectionBrands = function($sectionId) {
 				$arPromo = $ndSectionId ? $ndSectionPromo($ndSectionId) : null;
 				$arBrands = $ndSectionId ? $ndSectionBrands($ndSectionId) : array();
 				?>
-				<?if($arCards || $arPromo):?>
+				<?/* Подразделов нет — вместо пустой панели показываем картинку
+				     раздела (поле UF_IMAGE_MENU) ссылкой на сам раздел. */?>
+				<?$ndMenuImg = $arCards ? null : $ndSectionMenuImage($arSection['LINK']);?>
+				<?if($arCards || $arPromo || $ndMenuImg):?>
 					<div class="nd-cat__body">
 						<?if($arCards):?>
 							<div class="nd-cat__grid">
@@ -600,6 +659,12 @@ $ndSectionBrands = function($sectionId) {
 									</a>
 								<?endforeach;?>
 							</div>
+						<?endif;?>
+
+						<?if($ndMenuImg):?>
+							<a class="nd-cat__solo" href="<?=htmlspecialcharsbx($arSection['LINK'])?>">
+								<img data-nd-src="<?=htmlspecialcharsbx($ndMenuImg)?>" alt="<?=htmlspecialcharsbx($arSection['TEXT'])?>">
+							</a>
 						<?endif;?>
 
 						<?if($arPromo):?>

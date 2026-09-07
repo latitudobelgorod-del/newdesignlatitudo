@@ -1294,3 +1294,21 @@ a.nd-cat__panel-title:focus {
         display: none;
     }
 }
+
+/* Раздел без подразделов: вместо пустой панели — картинка раздела из поля
+   UF_IMAGE_MENU, ссылкой на сам раздел (Ирина, 7 сентября 2026). */
+.nd-cat__solo {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 640px;
+    border-radius: 6px;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.nd-cat__solo img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
