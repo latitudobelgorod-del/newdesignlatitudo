@@ -124,6 +124,14 @@ foreach ($ndGroups as $i => $ndGroup)
 	$ndGroups[$i]['CLEAR_URL'] = $APPLICATION->GetCurPage(false).'?'.http_build_query($ndQuery);
 }
 
+/* Сколько условий выбрано всего — по этому числу решаем, показывать ли
+   «Сбросить фильтры»: пустая кнопка рядом с плашками только мешала
+   (Ирина, 7 сентября 2026). */
+$ndSelectedTotal = 0;
+
+foreach ($ndGroups as $ndGroup)
+	$ndSelectedTotal += $ndGroup['SELECTED'];
+
 if (!$ndGroups)
 	return;
 ?>
@@ -182,7 +190,10 @@ if (!$ndGroups)
 		</details>
 	<?endforeach;?>
 
-	<?/* Сброс — обычная кнопка отправки: компонент понимает del_filter в
-	     запросе, а скрытые поля сохраняют поисковый запрос. */?>
-	<button type="submit" name="del_filter" value="Y" class="nd-filter__reset">Сбросить фильтры</button>
+	<?/* Сброс показываем, только когда есть что сбрасывать. Это обычная
+	     кнопка отправки: компонент понимает del_filter в запросе, а скрытые
+	     поля сохраняют поисковый запрос. */?>
+	<?if($ndSelectedTotal):?>
+		<button type="submit" name="del_filter" value="Y" class="nd-filter__reset">Сбросить фильтры</button>
+	<?endif;?>
 </form>
