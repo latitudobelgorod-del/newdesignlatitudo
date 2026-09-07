@@ -195,6 +195,58 @@ $ndSectionImg = function($arItem, $size) {
 };
 
 /**
+ * Фото, сохранённое в PNG, весит в разы больше того же кадра в JPEG:
+ * у «Садового паркета» — 1,5 МБ вместо 150 КБ. Ресайз тут не спасает —
+ * Битрикс отдаёт исходник как есть, когда тот меньше запрошенного потолка
+ * (1163x567 против 1200x700), и 7 сентября 2026 эта картинка висела на
+ * каждой странице сайта, потому что меню сквозное.
+ *
+ * Поэтому непрозрачные PNG тяжелее 300 КБ разово перегоняем в JPEG и
+ * держим результат в /upload/nd-menu/. Любая осечка (нет GD, не создалась
+ * папка, палитра или альфа-канал) — молча возвращаем исходник.
+ */
+$ndPicWithoutFatPng = function($src) {
+	if(!$src || mb_strtolower(mb_substr($src, -4)) !== '.png')
+		return $src;
+
+	$file = $_SERVER['DOCUMENT_ROOT'].$src;
+
+	if(!is_file($file) || filesize($file) < 300000)
+		return $src;
+
+	/* Тип цвета лежит в 26-м байте PNG: 0 — оттенки серого, 2 — RGB, и
+	   только их можно переводить в JPEG без потери прозрачности. */
+	$head = (string)file_get_contents($file, false, null, 0, 26);
+
+	if(strlen($head) < 26 || !in_array(ord($head[25]), array(0, 2), true))
+		return $src;
+
+	$dir = '/upload/nd-menu';
+	$jpeg = $dir.'/'.md5($src.'|'.filemtime($file)).'.jpg';
+	$jpegFile = $_SERVER['DOCUMENT_ROOT'].$jpeg;
+
+	if(is_file($jpegFile))
+		return $jpeg;
+
+	if(!is_dir($_SERVER['DOCUMENT_ROOT'].$dir))
+		@mkdir($_SERVER['DOCUMENT_ROOT'].$dir, BX_DIR_PERMISSIONS, true);
+
+	if(!function_exists('imagecreatefrompng'))
+		return $src;
+
+	$img = @imagecreatefrompng($file);
+
+	if(!$img)
+		return $src;
+
+	/* Качество 82, как у остальных картинок меню. */
+	$ok = @imagejpeg($img, $jpegFile, 82);
+	imagedestroy($img);
+
+	return $ok ? $jpeg : $src;
+};
+
+/**
  * Картинка раздела для выпадающего меню — поле раздела UF_IMAGE_MENU.
  *
  * Нужна там, где подразделов нет вовсе: у «Садового паркета», «Ступеней»
@@ -206,7 +258,7 @@ $ndSectionImg = function($arItem, $size) {
  * пользовательских полей нет. Поля может не быть вовсе (на локальной копии
  * базы оно появится только после переливки) — тогда молча пропускаем.
  */
-$ndSectionMenuImage = function($link) {
+$ndSectionMenuImage = function($link) use ($ndPicWithoutFatPng) {
 	static $arMap;
 
 	if(!isset($arMap))
@@ -276,7 +328,7 @@ $ndSectionMenuImage = function($link) {
 	   стороне. Качество 82, как у баннеров акций. */
 	$arImg = CFile::ResizeImageGet($arMap[$key], array('width' => 1200, 'height' => 700), BX_RESIZE_IMAGE_PROPORTIONAL, true, false, false, 82);
 
-	return ($arImg && !empty($arImg['src'])) ? $arImg['src'] : null;
+	return ($arImg && !empty($arImg['src'])) ? $ndPicWithoutFatPng($arImg['src']) : null;
 };
 
 /**
