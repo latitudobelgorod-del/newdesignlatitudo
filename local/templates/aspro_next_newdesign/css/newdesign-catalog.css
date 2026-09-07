@@ -2390,3 +2390,15 @@ body .nd-brandhead #pagetitle {
     color: #101014 !important;
     text-decoration: none;
 }
+
+/* Фильтр: списки значений раскрыты целиком, без внутренней прокрутки.
+   Тема ограничивает высоту длинного блока (.limited_block) и вешает на него
+   свой скролл — в узкой колонке он попадался под курсор и вместо страницы
+   прокручивался список (Ирина, 7 сентября 2026). Мобильный фильтр это уже
+   отменял у себя, см. newdesign-filter-mobile.css. */
+.bx_filter_block.limited_block,
+.bx_filter_parameters_box_container.limited_block {
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+}

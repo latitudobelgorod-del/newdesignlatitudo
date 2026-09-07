@@ -884,6 +884,20 @@ div.title-search-result::-webkit-scrollbar-thumb {
     line-height: 39.6px;
     color: #101014;
 }
+
+/* Заголовок панели — ссылка на раздел (7 сентября 2026). Раньше это был div,
+   поэтому держим прежний вид: без подчёркивания и с тем же цветом, а на
+   наведении подсвечиваем красным, как плитки подразделов рядом. */
+a.nd-cat__panel-title {
+    display: block;
+    color: #101014;
+    text-decoration: none;
+}
+a.nd-cat__panel-title:hover,
+a.nd-cat__panel-title:focus {
+    color: #c60000;
+    text-decoration: none;
+}
 .nd-cat__all {
     flex: 0 0 auto;
     padding: 8px 12px;

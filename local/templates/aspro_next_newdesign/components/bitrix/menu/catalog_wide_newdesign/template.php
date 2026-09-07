@@ -534,7 +534,9 @@ $ndSectionBrands = function($sectionId) {
 			     data-nd-cat-panel="<?=htmlspecialcharsbx($arSection['LINK'])?>">
 
 				<div class="nd-cat__panel-head">
-					<div class="nd-cat__panel-title"><?=htmlspecialcharsbx($arSection['TEXT'])?></div>
+					<? /* Заголовок — такая же ссылка на раздел, как и «Смотреть все»
+					      рядом: по нему всё равно кликают (Ирина, 7 сентября 2026). */ ?>
+					<a class="nd-cat__panel-title" href="<?=htmlspecialcharsbx($arSection['LINK'])?>"><?=htmlspecialcharsbx($arSection['TEXT'])?></a>
 					<a class="nd-cat__all" href="<?=htmlspecialcharsbx($arSection['LINK'])?>">Смотреть все</a>
 				</div>
 
