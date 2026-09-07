@@ -20,6 +20,18 @@ use Bitrix\Main\Localization\Loc;
  * Ирина, 7 сентября 2026.
  */
 
+/* Группы, которых на поиске быть не должно (Ирина, 7 сентября 2026).
+   По коду свойства — надёжнее названия; «Наши предложения» кода не имеет,
+   это виртуальный блок темы, поэтому он в списке названий.
+   Код каждой группы виден в разметке в data-nd-code — так проще добавить
+   сюда следующую, не залезая в базу. */
+$ndSkipCodes = array(
+	'USAGE_DOSKA_DPK',    // Применение
+	'MATERIAL_DOSKA_DPK', // Материал ДПК
+	'VID',                // Виды террасной доски из ДПК
+);
+$ndSkipNames = array('Наши предложения');
+
 $ndChevron = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
 	.'<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>';
 
@@ -30,6 +42,9 @@ $ndGroups = array();
 
 foreach ($arResult['ITEMS'] as $arItem)
 {
+	if (in_array($arItem['CODE'], $ndSkipCodes, true) || in_array($arItem['NAME'], $ndSkipNames, true))
+		continue;
+
 	if (isset($arItem['VALUES']['MIN']) && isset($arItem['VALUES']['MAX']))
 	{
 		$min = $arItem['VALUES']['MIN'];
@@ -41,6 +56,7 @@ foreach ($arResult['ITEMS'] as $arItem)
 
 		$ndGroups[] = array(
 			'TYPE' => 'RANGE',
+			'CODE' => $arItem['CODE'],
 			'NAME' => $arItem['NAME'],
 			'MIN' => $min,
 			'MAX' => $max,
@@ -75,6 +91,7 @@ foreach ($arResult['ITEMS'] as $arItem)
 
 	$ndGroups[] = array(
 		'TYPE' => 'LIST',
+		'CODE' => $arItem['CODE'],
 		'NAME' => $arItem['NAME'],
 		'VALUES' => $values,
 		'SELECTED' => $selected,
@@ -94,7 +111,7 @@ if (!$ndGroups)
 	<?endforeach;?>
 
 	<?foreach($ndGroups as $ndGroup):?>
-		<details class="nd-filter__drop">
+		<details class="nd-filter__drop" data-nd-code="<?=htmlspecialcharsbx($ndGroup['CODE'])?>">
 			<summary class="nd-filter__head">
 				<?=$ndChevron?><span><?=htmlspecialcharsbx($ndGroup['NAME'])?><?=$ndGroup['SELECTED'] ? ' ('.$ndGroup['SELECTED'].')' : ''?></span>
 			</summary>
