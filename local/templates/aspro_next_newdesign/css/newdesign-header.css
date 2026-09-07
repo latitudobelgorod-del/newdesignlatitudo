@@ -1299,9 +1299,9 @@ a.nd-cat__panel-title:focus {
    UF_IMAGE_MENU, ссылкой на сам раздел (Ирина, 7 сентября 2026). */
 .nd-cat__solo {
     display: block;
-    flex: 1 1 auto;
+    flex: 1 1 100%;
+    width: 100%;
     min-width: 0;
-    max-width: 640px;
     border-radius: 6px;
     overflow: hidden;
     text-decoration: none;

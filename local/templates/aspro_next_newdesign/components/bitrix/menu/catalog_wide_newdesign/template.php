@@ -230,9 +230,10 @@ $ndSectionMenuImage = function($link) {
 	if(empty($arMap[$key]))
 		return null;
 
-	/* Панель широкая, но картинку кадрировать нельзя — вписываем по большей
+	/* Картинка идёт во всю ширину панели (около 950 px), поэтому потолок с
+	   запасом под плотные экраны; кадрировать нельзя — вписываем по большей
 	   стороне. Качество 82, как у баннеров акций. */
-	$arImg = CFile::ResizeImageGet($arMap[$key], array('width' => 900, 'height' => 520), BX_RESIZE_IMAGE_PROPORTIONAL, true, false, false, 82);
+	$arImg = CFile::ResizeImageGet($arMap[$key], array('width' => 1200, 'height' => 700), BX_RESIZE_IMAGE_PROPORTIONAL, true, false, false, 82);
 
 	return ($arImg && !empty($arImg['src'])) ? $arImg['src'] : null;
 };
