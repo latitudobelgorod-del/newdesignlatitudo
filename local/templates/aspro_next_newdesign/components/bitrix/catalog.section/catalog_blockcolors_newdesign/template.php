@@ -554,7 +554,21 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
                             <?/* плашка гарантии выведена выше, над ссылкой — в макете она
                                  лежит в углу картинки, а не внутри миниатюры */?>
                             <?if( !empty($arItem["PREVIEW_PICTURE"]) ):?>
-                                <img  src="<?=$arItem["PREVIEW_PICTURE"]["SRC"]?>"  alt="<?=$a_alt;?>" title="<?=$a_title;?>" loading="lazy" />
+                                <?/* Уменьшаем под вывод: снимки грузят в картинку анонса как
+                                     есть, и на странице раздела набегало 1,95 МБ — по 78–153 КБ
+                                     на карточку. В списке фото показывается квадратом примерно
+                                     250 px, поэтому 480×480 — почти двойная плотность и в 3,5
+                                     раза легче (153 КБ → 41 КБ, проверено на проде).
+
+                                     Почему не 500: снимки в анонсе как раз 500×500, и по
+                                     такому размеру Битрикс вернул бы исходный файл — ресайз
+                                     срабатывает, только когда цель МЕНЬШЕ оригинала.
+
+                                     Ресайзы кешируются в /upload/resize_cache, считаются один
+                                     раз. Файл меньше цели — вернётся он сам, src не изменится
+                                     (Ирина, 7 сентября 2026). */?>
+                                <?$ndListPic = CFile::ResizeImageGet($arItem["PREVIEW_PICTURE"]["ID"], array("width" => 480, "height" => 480), BX_RESIZE_IMAGE_PROPORTIONAL, true, false, false, 82);?>
+                                <img  src="<?=($ndListPic["src"] ? $ndListPic["src"] : $arItem["PREVIEW_PICTURE"]["SRC"])?>"  alt="<?=$a_alt;?>" title="<?=$a_title;?>" loading="lazy" />
                             <?elseif( !empty($arItem["DETAIL_PICTURE"])):?>
                                 <?$img = CFile::ResizeImageGet($arItem["DETAIL_PICTURE"], array( "width" => 170, "height" => 170 ), BX_RESIZE_IMAGE_PROPORTIONAL,true );?>
                                 <img   src="<?=$img["src"]?>" alt="<?=$a_alt;?>" title="<?=$a_title;?>" loading="lazy" />
