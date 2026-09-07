@@ -947,18 +947,39 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 			};
 		}
 
+		/* Пересчёт просим НЕ БОЛЬШЕ двух раз подряд.
+
+		   Без этого предела «Очистить корзину» уводило страницу в вечный
+		   круг: после удаления всех позиций сервер честно отвечает «корзина
+		   пуста», признака удаления в этом ответе уже нет, ответ снова
+		   отбрасывался — и так каждые 200 мс. Панель итогов при каждом
+		   запросе гасла и зажигалась (мигание), а суммы оставались от
+		   удалённых товаров, потому что пустой результат так и не применялся
+		   (Ирина, 7 сентября 2026).
+
+		   Смысл заплатки сохранён: разовый противоречивый ответ пропускаем и
+		   переспрашиваем, но если сервер повторяет своё — верим ему. */
+		var MAX_RETRY = 2;
+
 		var orig = bc.applyBasketResult;
 		bc.applyBasketResult = function (data) {
 			var rows = data && data.GRID && data.GRID.ROWS ? data.GRID.ROWS : null;
 			var empty = data && data.EMPTY_BASKET && (!rows || !Object.keys(rows).length);
 			var known = this.items ? Object.keys(this.items).length : 0;
+			var retries = this.__ndEmptyRetries || 0;
 
-			if (empty && known && !this.__ndLastDeleted) {
+			if (empty && known && !this.__ndLastDeleted && retries < MAX_RETRY) {
+				this.__ndEmptyRetries = retries + 1;
 				setTimeout(BX.delegate(function () {
 					this.sendRequest('refreshAjax', {});
 				}, this), 200);
 				return;
 			}
+
+			this.__ndEmptyRetries = 0;
+			/* Признак удаления живёт до следующего ответа: иначе он остаётся
+			   от прошлого удаления и заплатка молча выключается навсегда. */
+			this.__ndLastDeleted = 0;
 
 			return orig.apply(this, arguments);
 		};
