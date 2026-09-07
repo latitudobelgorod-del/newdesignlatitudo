@@ -132,6 +132,20 @@ $ndSelectedTotal = 0;
 foreach ($ndGroups as $ndGroup)
 	$ndSelectedTotal += $ndGroup['SELECTED'];
 
+/* Полный сброс — обычная ссылка: кнопкой отправки его сделать нельзя,
+   в форме уже лежит скрытый set_filter, и запрос ушёл бы с обоими
+   признаками сразу. */
+$ndResetQuery = $_GET;
+
+foreach ($ndGroups as $ndGroup)
+{
+	foreach ($ndGroup['FIELDS'] as $ndField)
+		unset($ndResetQuery[$ndField]);
+}
+
+unset($ndResetQuery['set_filter'], $ndResetQuery['del_filter']);
+$ndResetUrl = $APPLICATION->GetCurPage(false).($ndResetQuery ? '?'.http_build_query($ndResetQuery) : '');
+
 if (!$ndGroups)
 	return;
 ?>
@@ -139,6 +153,13 @@ if (!$ndGroups)
       name="<?=$arResult["FILTER_NAME"]."_form"?>"
       action="<?=$arResult["FORM_ACTION"]?>"
       method="get">
+
+	<?/* set_filter обязателен скрытым полем: скрипт newdesign-ui.js
+	     отправляет форму методом form.submit(), а он НЕ передаёт значение
+	     кнопки. Без этого поля компонент считал, что фильтр не применяли:
+	     выдача не менялась, плашка не подсвечивалась, сброс не появлялся
+	     (Ирина, 7 сентября 2026). */?>
+	<input type="hidden" name="set_filter" value="Y" />
 
 	<?foreach($arResult["HIDDEN"] as $arHidden):?>
 		<input type="hidden" name="<?=$arHidden["CONTROL_NAME"]?>" value="<?=$arHidden["HTML_VALUE"]?>" />
@@ -185,7 +206,7 @@ if (!$ndGroups)
 						</label>
 					<?endforeach;?>
 				<?endif;?>
-				<button type="submit" name="set_filter" value="Y" class="nd-filter__apply">Показать</button>
+				<button type="submit" class="nd-filter__apply">Показать</button>
 			</div>
 		</details>
 	<?endforeach;?>
@@ -194,6 +215,6 @@ if (!$ndGroups)
 	     кнопка отправки: компонент понимает del_filter в запросе, а скрытые
 	     поля сохраняют поисковый запрос. */?>
 	<?if($ndSelectedTotal):?>
-		<button type="submit" name="del_filter" value="Y" class="nd-filter__reset">Сбросить фильтры</button>
+		<a class="nd-filter__reset" href="<?=htmlspecialcharsbx($ndResetUrl)?>">Сбросить фильтры</a>
 	<?endif;?>
 </form>
