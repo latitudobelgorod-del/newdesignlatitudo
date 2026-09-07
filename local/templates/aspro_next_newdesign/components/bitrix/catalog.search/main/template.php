@@ -110,6 +110,9 @@ if (is_array($arElements) && !empty($arElements)) {
 	   отложенную область `nd_search_count`, а заглушку под неё выводим здесь
 	   (ShowViewContent отложенный, порядок в документе роли не играет). */
 	$GLOBALS['ND_SEARCH_COUNT'] = true;
+	/* Кнопку сортировки на поиске не показываем: порядок выдачи задаёт
+	   собственный поиск по релевантности (Ирина, 7 сентября 2026). */
+	$GLOBALS['ND_HIDE_SORT'] = true;
 	?>
 	<div class="catalog nd-search-wide">
 		<?/* Обёртку .right_block печатает header.php задолго до нас, поэтому

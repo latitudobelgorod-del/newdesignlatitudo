@@ -87,6 +87,11 @@ $ndTagsHtml = isset($GLOBALS['ND_CATALOG_TAGS_HTML']) ? trim($GLOBALS['ND_CATALO
 	   жмём штатный триггер темы (.filter_opener), он открывает ту же шторку. */?>
 	<span class="nd-catlist-sort__filter" data-nd-filter-opener>Фильтры</span>
 
+	<?/* На поиске сортировки нет (Ирина, 7 сентября 2026): выдачу там строит
+	   свой поиск по релевантности, и «сначала дешёвые» ломало бы этот
+	   порядок. Флаг ставит шаблон catalog.search/main; сами переменные
+	   сортировки ниже считаются как обычно — список без них не соберётся. */?>
+	<?if(empty($GLOBALS['ND_HIDE_SORT'])):?>
 	<div class="nd-catlist-sort__select">
 		<span class="nd-catlist-sort__current"><?=$ndCurrentSortTitle?></span>
 		<div class="nd-catlist-sort__list">
@@ -97,6 +102,7 @@ $ndTagsHtml = isset($GLOBALS['ND_CATALOG_TAGS_HTML']) ? trim($GLOBALS['ND_CATALO
 			<?endforeach;?>
 		</div>
 	</div>
+	<?endif;?>
 </div>
 <?
 if($sort == "PRICE"){
