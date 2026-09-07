@@ -209,6 +209,38 @@ function ndSitemapReadSource($path, $host)
     return ndSitemapRootEnd($content) === 0 ? false : $content;
 }
 
+/* Главная не попадает в sitemap-files.xml: модуль seo обходит сайт по
+   логической структуре, а корневой index.php в ней не значится как файл
+   (проверено на проде 7 сентября 2026: в корне модуль видит только
+   404.php и index.html). Дописываем её сами — тогда главная есть в карте
+   каждого домена и правка переживает ночную пересборку. */
+function ndSitemapAddHomepage($content, $host)
+{
+    $home = 'https://' . $host . '/';
+
+    if (strpos($content, '<loc>' . $home . '</loc>') !== false) {
+        return $content;
+    }
+
+    $openTag = strpos($content, '<urlset');
+
+    if ($openTag === false) {
+        return $content;
+    }
+
+    $openEnd = strpos($content, '>', $openTag);
+
+    if ($openEnd === false) {
+        return $content;
+    }
+
+    $index = $_SERVER['DOCUMENT_ROOT'] . '/index.php';
+    $lastmod = date('c', file_exists($index) ? filemtime($index) : time());
+    $url = '<url><loc>' . $home . '</loc><lastmod>' . $lastmod . '</lastmod></url>';
+
+    return substr($content, 0, $openEnd + 1) . $url . substr($content, $openEnd + 1);
+}
+
 /* Исходный файл сейчас непригоден (идёт пересборка). Лучше отдать вчерашнюю
    карту, чем битый XML: 503 робот перечитает, а битую карту запомнит. */
 function ndSitemapServeStaleOrFail($cacheFile)
@@ -587,6 +619,10 @@ else {
 
         if ($content === false) {
             ndSitemapServeStaleOrFail($cacheFile);
+        }
+
+        if ($filename === 'sitemap-files.xml') {
+            $content = ndSitemapAddHomepage($content, $host);
         }
 
         echo $content;
