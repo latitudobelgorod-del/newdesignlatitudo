@@ -414,7 +414,11 @@
 /* Поля обнуляем: у темы у контейнера по 10px слева и справа, из-за них плашка
    выходила 523 вместо 543 и её левый край стоял на 10px правее, чем ряд складов
    и остальная правая колонка. В макете все левые края в одну линию (x 12945). */
-.catalog_detail.element_newdesign .right_info .info_item .uf_comment_price_container {
+/* Обе приписки — и о цене, и о складе — выравниваем по левому краю колонки:
+   у темы на контейнерах свои поля по 10px, из-за них вторая плашка стояла
+   уже и со сдвигом (Ирина, 7 сентября 2026). */
+.catalog_detail.element_newdesign .right_info .info_item .uf_comment_price_container,
+.catalog_detail.element_newdesign .right_info .info_item .uf_comment_price_cm {
     margin: 0 0 20px;
     padding: 0;
 }
