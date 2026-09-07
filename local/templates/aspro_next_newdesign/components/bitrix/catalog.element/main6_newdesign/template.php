@@ -542,7 +542,11 @@ if ($ndProfileVal) {
 
 	<? if ($ndProfileSrc): ?>
 		<div class="nd-pd__profile">
-			<span class="nd-pd__profile-label">Профиль доски</span>
+			<? /* Подпись короткая — «Профиль»: рядом уже стоит сам чертёж, и
+			      слово «доски» ничего не добавляло (Ирина, 7 сентября 2026).
+			      В alt и title оставлено полное название — они не на виду, а
+			      картинку описывают точнее. */ ?>
+			<span class="nd-pd__profile-label">Профиль</span>
 			<? /* Открываем не через fancybox темы, а своим окном (см.
 			      js/newdesign-element.js, initProfileView): чертежи — очень
 			      широкие PNG (3186×551), и во весь экран fancybox растягивал их
