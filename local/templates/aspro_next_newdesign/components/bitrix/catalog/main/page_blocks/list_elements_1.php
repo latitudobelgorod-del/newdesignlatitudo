@@ -522,7 +522,7 @@ $ar_res = $res->GetNext();
 				<?//UF_COMMENT_PRICE (Комментарий о цене) - вывод пользовательского свойства раздела / заполнено в Террасной доске / Фасадах / Заборах?>
 			<?if($arSection["UF_COMMENT_PRICE"]):?>
 			 <div class="uf_comment_price nd-catlist-note">
-				<span class="nd-catlist-note__icon">!</span>
+				<span class="nd-catlist-note__icon" aria-hidden="true">i</span>
 				<span class="nd-catlist-note__text"><?= $arSection["UF_COMMENT_PRICE"] ?></span>
 			 </div>
 			<?endif;?>
