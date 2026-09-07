@@ -10,6 +10,10 @@ if(!($bMap = in_array('MAP', $arParams['LIST_PROPERTY_CODE']))){
 else{
 	// get items & coordinates
 	$arItems = CNextCache::CIBlockElement_GetList(array('CACHE' => array('TAG' => CNextCache::GetIBlockCacheTag($arParams['IBLOCK_ID']), 'URL_TEMPLATE' => $arResult['FOLDER'].$arResult['URL_TEMPLATES']['detail'])), $arItemsFilter, false, false, array('ID', 'NAME', 'DETAIL_PAGE_URL', 'PREVIEW_TEXT', 'PROPERTY_ADDRESS', 'PROPERTY_PHONE', 'PROPERTY_EMAIL', 'PROPERTY_SCHEDULE', 'PROPERTY_METRO', 'PROPERTY_MAP'));
+	/* Выборка возвращает false, когда магазинов под региональный фильтр нет
+	   (так на московском домене): в PHP 8 count(false) — фатальная ошибка,
+	   из-за неё /contacts/stores/ отдавала 500. */
+	if(!is_array($arItems)) $arItems = array();
 	$itemsCnt = count($arItems);
 }
 // print_r($arItems);
