@@ -1443,3 +1443,21 @@
         padding-bottom: 116px;
     }
 }
+
+/* Блок «Уточните наличие и условия доставки» не должен прилипать к экрану:
+   на телефоне он выглядел прибитым — скрипт темы вешает липкость на блоки
+   .infochat, как в левой колонке каталога (Ирина, 7 сентября 2026).
+   Гасим и позицию, и инлайновые смещения, которые ставит скрипт. */
+@media (max-width: 991px) {
+    #basket-root .nd-basket-infochat,
+    #basket-root .nd-basket-infochat .infochat,
+    #basket-root .nd-basket-infochat > div {
+        position: static !important;
+        top: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: auto !important;
+        width: auto !important;
+        transform: none !important;
+    }
+}
