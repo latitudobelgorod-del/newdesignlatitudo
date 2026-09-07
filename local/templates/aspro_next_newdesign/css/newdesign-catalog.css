@@ -2582,3 +2582,11 @@ body .nd-brandhead #pagetitle {
 .nd-filter__more:hover {
     background: rgba(82, 82, 100, .1);
 }
+
+/* Перенос строки внутри ряда фильтров: раскрытые плашки уходят под кнопку. */
+.nd-filter__break {
+    flex: 0 0 100%;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}

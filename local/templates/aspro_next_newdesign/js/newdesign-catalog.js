@@ -1344,7 +1344,26 @@
 			more.title = 'Показать все фильтры';
 			more.addEventListener('click', function () {
 				box.setAttribute('data-nd-opened', 'Y');
-				pills.forEach(function (p) { p.classList.remove('nd-filter-hidden'); });
+
+				/* Раскрытые плашки уводим на новую строку, а не вклиниваем в
+				   первую: иначе они сдвигали кнопку «Сбросить фильтры»
+				   (Ирина, 7 сентября 2026). Перенос делает пустой блок во всю
+				   ширину, сами плашки переставляем в конец — после кнопки. */
+				var hidden = pills.filter(function (p) {
+					return p.classList.contains('nd-filter-hidden');
+				});
+
+				if (hidden.length) {
+					var brk = document.createElement('span');
+					brk.className = 'nd-filter__break';
+					box.appendChild(brk);
+				}
+
+				hidden.forEach(function (p) {
+					p.classList.remove('nd-filter-hidden');
+					box.appendChild(p);
+				});
+
 				more.remove();
 			});
 		}
