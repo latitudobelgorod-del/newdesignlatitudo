@@ -1684,3 +1684,56 @@
 		else document.addEventListener('DOMContentLoaded', start);
 	}
 })();
+
+/* ---------------------------------------------------------------------------
+   Мгновенный отклик на «В корзину» (Ирина, 7 сентября 2026: «кнопка тормознуто
+   меняется»).
+
+   Тема переключает кнопку на «В корзине» только после ответа сервера — до
+   этого она выглядела застывшей, и по ней успевали нажать второй раз. Сразу
+   по клику приглушаем её и запрещаем повторные нажатия, а как только
+   появилась «В корзине» — снимаем. Ответа ждём не дольше пяти секунд: если
+   что-то пошло не так, кнопка должна ожить.
+   ------------------------------------------------------------------------ */
+(function () {
+	'use strict';
+
+	if (window.__ndCartPending) {
+		return;
+	}
+
+	window.__ndCartPending = true;
+
+	function inCartShown(box) {
+		var btn = box.querySelector('.button_block .in-cart');
+
+		return !!btn && getComputedStyle(btn).display !== 'none';
+	}
+
+	document.addEventListener('click', function (e) {
+		var btn = e.target && e.target.closest ? e.target.closest('.buy_block .button_block .to-cart') : null;
+
+		if (!btn) {
+			return;
+		}
+
+		var box = btn.closest('.counter_wrapp') || btn.closest('.buy_block');
+
+		if (!box || box.classList.contains('nd-cart-pending')) {
+			return;
+		}
+
+		box.classList.add('nd-cart-pending');
+
+		var tries = 25;
+
+		(function wait() {
+			if (inCartShown(box) || tries-- <= 0) {
+				box.classList.remove('nd-cart-pending');
+				return;
+			}
+
+			setTimeout(wait, 200);
+		})();
+	}, true);
+})();

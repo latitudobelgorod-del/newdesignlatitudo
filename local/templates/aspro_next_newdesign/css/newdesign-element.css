@@ -3207,3 +3207,11 @@ a.nd-pd__installment:focus {
         max-width: none !important;
     }
 }
+
+/* Ожидание ответа сервера после нажатия «В корзину»: кнопка приглушена и не
+   принимает повторные нажатия (см. newdesign-element.js). */
+.nd-cart-pending .button_block .to-cart {
+    opacity: .55;
+    pointer-events: none;
+    transition: opacity .12s ease;
+}

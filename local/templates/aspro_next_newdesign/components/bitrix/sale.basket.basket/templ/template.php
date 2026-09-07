@@ -418,6 +418,46 @@ if (empty($arResult['ERROR_MESSAGE']))
 							false
 						);?>
 					</div>
+					<?/* На телефоне блок уводим в самый низ страницы и снимаем с него
+					     липкость: класс .infochat — тот же, что у блока в левой колонке
+					     каталога, и скрипт темы прибивает его к экрану. В корзине это
+					     мешает (Ирина, 7 сентября 2026). На десктопе возвращаем как было. */?>
+					<script>
+					(function () {
+						if (window.__ndBasketInfochat) return;
+						window.__ndBasketInfochat = 1;
+
+						var home = null;
+
+						function place() {
+							var box = document.querySelector('.nd-basket-infochat');
+							var host = document.getElementById('basket-root');
+							if (!box || !host) return;
+
+							if (!home) home = { parent: box.parentNode, next: box.nextSibling };
+
+							var mobile = window.matchMedia('(max-width: 991px)').matches;
+
+							if (mobile) {
+								box.classList.remove('infochat');
+								box.style.setProperty('position', 'static', 'important');
+								['top', 'bottom', 'left', 'right', 'width', 'transform'].forEach(function (p) {
+									box.style.removeProperty(p);
+								});
+								if (box.parentNode !== host || box.nextSibling) host.appendChild(box);
+							} else if (home.parent && box.parentNode === host) {
+								box.classList.add('infochat');
+								box.style.removeProperty('position');
+								home.parent.insertBefore(box, home.next);
+							}
+						}
+
+						place();
+						document.addEventListener('DOMContentLoaded', place);
+						window.addEventListener('resize', place);
+						setTimeout(place, 800);
+					})();
+					</script>
 
 					<?/* Блок «Доставка» — последним в правой колонке, как в макете. */?>
 					<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/page_blocks/basket_delivery_newdesign.php';?>
