@@ -159,7 +159,12 @@ $GLOBALS['ND_CRUMBS_REPLACE'] = array(
    .right_block header.php к этому моменту вывел (там значение приходит из
    /catalog/.section.php, и оно как раз «N»). Сам фильтр собирает шаблон
    catalog.search/main — только он знает, что нашлось по запросу. */
-$APPLICATION->SetPageProperty('HIDE_LEFT_BLOCK', 'N');
+/* 7 сентября 2026: фильтр переехал НАД список (ряд плашек, как в
+   портфолио), поэтому левая колонка на поиске больше не нужна — «Y».
+   Ширину самой колонки с контентом добирает CSS: обёртку .right_block
+   header.php печатает раньше нас, серверной правкой её уже не достать
+   (см. .nd-search-wide в css/newdesign-catalog.css). */
+$APPLICATION->SetPageProperty('HIDE_LEFT_BLOCK', 'Y');
 ?>
 
 

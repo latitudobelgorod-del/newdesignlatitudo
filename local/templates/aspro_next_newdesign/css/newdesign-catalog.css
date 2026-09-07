@@ -2402,3 +2402,76 @@ body .nd-brandhead #pagetitle {
     height: auto !important;
     overflow: visible !important;
 }
+
+/* ---------------------------------------------------------------------------
+   Поиск: фильтр рядом плашек над списком, товары по пять в строке
+   (Ирина, 7 сентября 2026)
+
+   Левой колонки на поиске больше нет — она отключена свойством страницы, а
+   ширину обёртки добираем здесь: .right_block печатает header.php раньше
+   шаблона поиска, серверной правкой её класс уже не изменить.
+   ------------------------------------------------------------------------ */
+.right_block.nd-search-wide-col {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 0 !important;
+    float: none !important;
+}
+
+.nd-search-wide .nd-catlist .catalog_block {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+/* Ниже — те же ступени, что у раздела: своё правило специфичнее, и без них
+   на планшете так и осталось бы пять колонок. */
+@media (max-width: 1500px) {
+    .nd-search-wide .nd-catlist .catalog_block {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1199px) {
+    .nd-search-wide .nd-catlist .catalog_block {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-search-wide .nd-catlist .catalog_block {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Ряд фильтров на поиске тянем во всю ширину: в портфолио он ограничен 1336,
+   а здесь под ним список во весь экран — иначе плашки висели бы уже списка. */
+.nd-search-wide .nd-filter--horizontal {
+    max-width: none;
+    margin: 0 0 24px;
+}
+
+/* Поля «от» и «до» у числовых групп (цена, длина) — в одну строку. */
+.nd-filter__range {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 12px;
+}
+
+.nd-filter__num {
+    width: 100%;
+    min-width: 0;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #e0e0e4;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #101014;
+    background: #fff;
+}
+
+/* Число товаров у значения — приглушённое, у правого края строки. */
+.nd-filter__opt-count {
+    margin-left: auto;
+    padding-left: 8px;
+    color: #8a8a94;
+    font-size: 12px;
+}

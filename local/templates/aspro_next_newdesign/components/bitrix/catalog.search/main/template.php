@@ -60,13 +60,18 @@ if (is_array($arElements) && !empty($arElements)) {
 	   Разметку отдаём в отложенную область `left_menu` — её печатает левая
 	   колонка (page_blocks/left_block_newdesign.php из footer.php). Тот же
 	   приём у раздела: catalog/main/page_blocks/list_elements_1.php. */
+	/* Разметку фильтра держим в переменной и печатаем над списком: сам
+	   компонент обязан отработать РАНЬШЕ списка — он дописывает выбранные
+	   значения в $searchFilter, откуда их забирает catalog.section. */
+	$ndFilterHtml = '';
+
 	if ($arParams["USE_FILTER"] === "Y") {
 		$GLOBALS['ndSearchPreFilter'] = $searchFilter;
 
 		ob_start();
 		$APPLICATION->IncludeComponent(
 			"bitrix:catalog.smart.filter",
-			"main_newdesign",
+			"horizontal_newdesign",
 			array(
 				"IBLOCK_TYPE" => $arParams["IBLOCK_TYPE"],
 				"IBLOCK_ID" => $arParams["IBLOCK_ID"],
@@ -95,7 +100,7 @@ if (is_array($arElements) && !empty($arElements)) {
 			$component,
 			array("HIDE_ICONS" => "Y")
 		);
-		$APPLICATION->AddViewContent('left_menu', ob_get_clean());
+		$ndFilterHtml = ob_get_clean();
 	}
 
 	/* «Найдено N» — число по всем страницам и уже с учётом фильтра. Считать
@@ -106,7 +111,14 @@ if (is_array($arElements) && !empty($arElements)) {
 	   (ShowViewContent отложенный, порядок в документе роли не играет). */
 	$GLOBALS['ND_SEARCH_COUNT'] = true;
 	?>
-	<div class="catalog">
+	<div class="catalog nd-search-wide">
+		<?/* Обёртку .right_block печатает header.php задолго до нас, поэтому
+		     класс для полной ширины вешаем скриптом. Он выполняется прямо при
+		     разборе документа, до отрисовки блока, — перестроения не видно. */?>
+		<script>(function(s){var b=s&&s.parentNode&&s.parentNode.closest?s.parentNode.closest(".right_block"):null;if(b)b.classList.add("nd-search-wide-col");})(document.currentScript);</script>
+		<?/* Фильтр рядом плашек над списком — как в портфолио. Левой колонки
+		     на поиске нет, список идёт во всю ширину (Ирина, 7 сентября 2026). */?>
+		<?=$ndFilterHtml?>
 		<?/* Панель над списком — та же, что на странице раздела (Ирина,
 		   2026-08-12): выпадающий список сортировки вместо прежних ссылок
 		   «По возрастанию цены / По убыванию цены».
