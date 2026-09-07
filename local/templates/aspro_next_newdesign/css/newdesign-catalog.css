@@ -2524,3 +2524,34 @@ body .nd-brandhead #pagetitle {
     transition: opacity .15s ease;
     pointer-events: none;
 }
+
+/* Ряд фильтров на поиске держим в одну строку вместе с «Сбросить фильтры»
+   (Ирина, 7 сентября 2026): плашек семь, и кнопка не влезала на десяток
+   пикселей — переносилась на вторую строку. Сжимаем зазор и поля, плашкам
+   разрешаем ужиматься по содержимому, кнопке — не тянуться. */
+.nd-filter--horizontal {
+    gap: 12px;
+}
+
+.nd-filter--horizontal > .nd-filter__drop {
+    flex: 0 1 auto;
+    max-width: none;
+}
+
+.nd-filter--horizontal > .nd-filter__reset {
+    flex: 0 0 auto;
+    max-width: none;
+    padding: 0 16px;
+    white-space: nowrap;
+}
+
+.nd-filter--horizontal .nd-filter__head {
+    gap: 6px;
+    padding: 0 10px;
+    font-size: 15px;
+}
+
+/* Выпадающий список не должен ужиматься вместе с плашкой: значения длинные. */
+.nd-filter--horizontal .nd-filter__panel {
+    min-width: 240px;
+}
