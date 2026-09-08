@@ -10,7 +10,7 @@
    ========================================================================= */
 
 .catalog_detail.element_newdesign {
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     color: #101014;
 }
 

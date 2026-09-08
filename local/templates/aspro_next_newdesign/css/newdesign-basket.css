@@ -93,7 +93,7 @@
 .nd-basket-head__title {
     margin: 0;
     padding: 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 800;
     font-size: 52px;
     line-height: 58px;
@@ -109,7 +109,7 @@
     border: 0;
     border-radius: 4px;
     background: none;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 700;
     font-size: 16px;
     line-height: 24px;
@@ -250,7 +250,7 @@
 #basket-root h2.basket-item-info-name {
     margin: 0;
     padding: 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 500;
     font-size: 16px;
     line-height: 20.8px;
@@ -277,7 +277,7 @@
     gap: 4px 8px;
     margin: 0;
     padding: 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 500;
     font-size: 14px;
     line-height: 19.6px;
@@ -288,7 +288,7 @@
     gap: 4px;
     margin: 0;
     padding: 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 500;
     font-size: 14px;
     line-height: 19.6px;
@@ -322,7 +322,7 @@
     padding: 0;
     border: 0;
     background: none;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 700;
     font-size: 12px;
     line-height: 16px;
@@ -377,7 +377,7 @@
 }
 /* Общая сумма — крупная, ею открывается колонка. */
 #basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) .basket-item-price-current-text {
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 800;
     font-size: 20px;
     line-height: 24px;
@@ -401,7 +401,7 @@
     gap: 4px;
 }
 #basket-root .basket-items-list-item-price-for-one .basket-item-price-current-text {
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 500;
     font-size: 16px;
     line-height: 24px;
@@ -439,7 +439,7 @@
 /* Цена за штуку под суммой: «4 560 руб за шт.» одной строкой. */
 #basket-root .nd-price-unit {
     margin: 2px 0 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     line-height: 24px;
     white-space: nowrap;
 }
@@ -456,7 +456,7 @@
    «СКИДКА N ₽» красным капсом. Процент (.differ-per) в макете не выводится. */
 #basket-root .basket-item-price-difference {
     margin: 2px 0 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 400;
     font-size: 10px;
     line-height: 13px;
@@ -531,7 +531,7 @@
     border: 0 !important;
     background: none !important;
     box-shadow: none !important;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 500;
     font-size: 16px;
     line-height: 44px;
@@ -567,7 +567,7 @@
    (см. ниже), на планшете и телефоне она остаётся. */
 #basket-root .basket-item-amount-field-description {
     margin: 4px 0 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 14px;
     line-height: 19.6px;
     text-align: center;
@@ -606,7 +606,7 @@
         flex: 1 1 0;
         min-width: 0;
         padding-left: 4px;
-        font-family: 'Nunito Sans', Arial, sans-serif;
+        font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
         font-weight: 500;
         font-size: 16px;
         line-height: 44px;
@@ -654,7 +654,7 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 12px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 500;
     font-size: 16px;
     line-height: 24px;
@@ -682,14 +682,14 @@
     border-bottom: 1px solid rgba(82, 82, 100, .15);
 }
 #basket-root .nd-total__sum-title {
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 500;
     font-size: 28px;
     line-height: 36px;
     color: #101014;
 }
 #basket-root .nd-total__sum-value {
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 800;
     font-size: 28px;
     line-height: 36px;
@@ -714,7 +714,7 @@
     border: 0;
     border-radius: 2px;
     background: #c60000;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 700;
     font-size: 16px;
     line-height: 20px;
@@ -745,7 +745,7 @@
     align-items: center;
     gap: 12px;
     margin: 16px 0 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-weight: 500;
     font-size: 16px;
     line-height: 24px;
@@ -1296,7 +1296,7 @@
    ------------------------------------------------------------------------ */
 #basket-root .nd-basket-delivery {
     margin-top: 24px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 #basket-root .nd-basket-delivery__title {
     margin-bottom: 8px;
@@ -1409,7 +1409,7 @@
         border-radius: 4px;
         background: #c60000;
         color: #fff;
-        font-family: 'Nunito Sans', Arial, sans-serif;
+        font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
         font-weight: 700;
         font-size: 16px;
         line-height: 56px;
@@ -1426,7 +1426,7 @@
         justify-content: space-between;
         gap: 12px;
         margin-top: 8px;
-        font-family: 'Nunito Sans', Arial, sans-serif;
+        font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
         font-size: 14px;
         line-height: 20px;
     }

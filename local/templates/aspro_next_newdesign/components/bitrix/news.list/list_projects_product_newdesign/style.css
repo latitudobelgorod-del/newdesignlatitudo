@@ -3,7 +3,7 @@
    плашка типа в левом нижнем углу, название под картинкой. */
 .nd-relprojects {
     margin: 48px 0 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-relprojects__head {
     display: flex;

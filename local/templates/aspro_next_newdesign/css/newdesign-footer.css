@@ -13,7 +13,7 @@
 
 	background: var(--nd-f-bg);
 	color: #fff;
-	font-family: "Nunito Sans", Arial, sans-serif;
+	font-family: "Nunito Sans", "Nunito Fallback", Arial, sans-serif;
 }
 
 /* Тема красит ссылки и текст внутри #footer по-своему и дорисовывает пунктам

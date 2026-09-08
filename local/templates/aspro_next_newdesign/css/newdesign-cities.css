@@ -91,7 +91,7 @@ div.city_chooser_frame.popup.jqmWindow {
 /* Шрифт макета. Окно рисует тема, и без своего font-family оно
    наследовало её PT Sans, а в макете весь блок на Nunito Sans. */
 .nd-cities {
-    font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
+    font-family: "Nunito Sans", "Nunito Fallback", Arial, Helvetica, sans-serif;
 }
 
 /* ============================== шапка =================================== */

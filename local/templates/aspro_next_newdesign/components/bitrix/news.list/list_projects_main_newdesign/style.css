@@ -13,7 +13,7 @@
 .nd-mprojects {
     padding: 80px 0;
     background: linear-gradient(180deg, #31313c 0%, #101014 100%);
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     color: #fff;
 }
 /* Контейнер как у остальных блоков главной (акции, бренды, статьи, отзывы):

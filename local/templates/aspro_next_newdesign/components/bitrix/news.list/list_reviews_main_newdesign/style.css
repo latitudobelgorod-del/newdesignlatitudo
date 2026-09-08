@@ -18,7 +18,7 @@
     margin: 0 auto;
     padding: 52px;
     background: #fff;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     color: #101014;
 }
 .nd-mreviews__titles {

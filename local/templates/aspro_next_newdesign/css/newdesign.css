@@ -137,7 +137,51 @@ button,
 input,
 select,
 textarea {
-    font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
+    font-family: "Nunito Sans", "Nunito Fallback", Arial, Helvetica, sans-serif;
+}
+
+/* ============================================================================
+   Подменный шрифт на время загрузки Nunito Sans.
+
+   font-display: swap означает, что до прихода woff2 текст рисуется системным
+   шрифтом. Сам woff2 браузер обнаруживает только после разбора всей сборки
+   стилей (~290 КБ gzip), так что на боевом сервере подмена случается примерно
+   на 2.5-й секунде — заголовки успевают побыть чужими и потом прыгают.
+
+   Хуже всего было с весом 800: у Arial такого начертания нет, Chrome «толстит»
+   Bold сам, и строка выходила на 14% шире Nunito Sans — h1 на 52px заметно
+   менял размер. Поэтому фейсы объявлены диапазонами весов: 551-900 берёт
+   настоящий Arial Bold (Arial-BoldMT), синтетика не включается.
+
+   size-adjust подогнан замером ширины строки в Chrome, ascent/descent-override
+   повторяют метрики Nunito Sans (101/35 от em) и поделены на size-adjust —
+   он масштабирует и overrides тоже. Итог: расхождение ширины по всем весам
+   в пределах 0.2%, прыжка при подмене нет.
+
+   Фолбэк ставится в стек ПОСЛЕ 'Nunito Sans' и ДО Arial — если ни одного
+   local() в системе не нашлось (Android), фейс просто пропускается и всё
+   работает как раньше.
+   ========================================================================= */
+@font-face {
+    font-family: 'Nunito Fallback';
+    font-style: normal;
+    font-weight: 100 550;
+    src: local('Arial'), local('Helvetica'), local('Liberation Sans'), local('Roboto');
+    size-adjust: 97.6%;
+    ascent-override: 103.5%;
+    descent-override: 35.9%;
+    line-gap-override: 0%;
+}
+@font-face {
+    font-family: 'Nunito Fallback';
+    font-style: normal;
+    font-weight: 551 900;
+    src: local('Arial-BoldMT'), local('Arial Bold'), local('Helvetica Bold'),
+         local('Liberation Sans Bold'), local('Roboto Bold');
+    size-adjust: 99.5%;
+    ascent-override: 101.5%;
+    descent-override: 35.2%;
+    line-gap-override: 0%;
 }
 
 /* ============================================================================
@@ -798,7 +842,7 @@ textarea {
     width: 100%;
     max-width: 1336px;
     margin: 0 auto 32px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     color: #101014;
 }
 /* Только на десктопе: на узком экране равные доли схлопывают плашки до
@@ -1055,7 +1099,7 @@ textarea {
     width: 100%;
     max-width: 1336px;
     margin: 0 auto 24px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 34px;
     line-height: 42px;
     font-weight: 700;
@@ -1079,7 +1123,7 @@ textarea {
     padding: 24px 16px;
     border-radius: 16px;
     background: #f4f4f6;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     color: #101014;
     text-align: center;
 }
@@ -1312,7 +1356,7 @@ textarea {
     max-width: 1336px;
     margin-left: auto;
     margin-right: auto;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     color: #101014;
 }
 .nd-sale__h1 {
@@ -1500,7 +1544,7 @@ a.nd-sale__tab:focus {
     border-radius: 6px !important;
     background: #c60000 !important;
     color: #fff !important;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 16px !important;
     line-height: 24px !important;
     font-weight: 600 !important;
@@ -1519,7 +1563,7 @@ a.nd-sale__tab:focus {
     margin: 16px auto 0;
     padding-bottom: 24px;
     border-bottom: 1px solid rgba(82, 82, 100, .15);
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 16px;
     line-height: 24px;
     color: #101014;
@@ -1535,7 +1579,7 @@ a.nd-sale__tab:focus {
     width: 100%;
     max-width: 1336px;
     margin: 32px auto 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-sectiles__item {
     display: flex;
@@ -1615,7 +1659,7 @@ a.nd-sale__tab:focus {
     width: 100%;
     max-width: 1336px;
     margin: 0 auto 32px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-sections__item {
     display: inline-flex;
@@ -1645,7 +1689,7 @@ a.nd-sections__item:focus {
     width: 100%;
     max-width: 1336px;
     margin: 0 auto 32px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 16px;
     line-height: 24px;
     color: #101014;
@@ -1710,7 +1754,7 @@ a.nd-sections__item:focus {
     max-width: 1336px;
     margin: 0 auto;
     padding: 16px 0 24px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 52px;
     line-height: 57px;
     font-weight: 800;
@@ -1723,7 +1767,7 @@ a.nd-sections__item:focus {
     width: 100%;
     max-width: 1336px;
     margin: 0 auto;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 /* min-width:0 у карточки и у названия — иначе длинное имя раздела не даёт
    колонке сжаться и карточка вылезает за экран на мобильном. */
@@ -1847,7 +1891,7 @@ a.nd-sections__item:focus {
     margin: 0 auto;
     padding-bottom: 40px;
     border-bottom: 2px solid rgba(82, 82, 100, .15);
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-brandspage__h1 {
     margin: 0 0 16px;
@@ -1871,7 +1915,7 @@ a.nd-sections__item:focus {
     width: 100%;
     max-width: 1336px;
     margin: 40px auto 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-brandlist__item {
     display: flex;
@@ -1964,7 +2008,7 @@ a.nd-sections__item:focus {
 .nd-services__h1 {
     margin: 0;
     padding: 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 52px;
     line-height: 57px;
     font-weight: 800;
@@ -1977,7 +2021,7 @@ a.nd-sections__item:focus {
     /* Шапка с линией вынесена над колонками (см. .nd-page-head-wrap),
        поэтому сверху сетка начинается без отступа. */
     margin-top: 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-services__item {
     display: flex;
@@ -2053,7 +2097,7 @@ a.nd-sections__item:focus {
     overflow: hidden;
     border-radius: 6px;
     list-style: none;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .left_block .left_menu > li.item {
     margin: 0;
@@ -2162,7 +2206,7 @@ body .maxwidth-theme .maxwidth-theme {
     flex-wrap: wrap;
     align-items: center;
     gap: 4px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 12px;
     line-height: 16px;
     font-weight: 500;
@@ -2231,7 +2275,7 @@ body .maxwidth-theme .maxwidth-theme {
     width: 100%;
     max-width: 1336px;
     margin: 0 auto;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-contacts__item {
     display: grid;
@@ -2376,7 +2420,7 @@ body .maxwidth-theme .maxwidth-theme {
     max-width: 1336px;
     margin: 0 auto 24px;
     padding: 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 52px;
     line-height: 57px;
     font-weight: 800;
@@ -2469,7 +2513,7 @@ body .maxwidth-theme .maxwidth-theme {
     flex-direction: column;
     padding-bottom: 20px;
     border-bottom: 2px solid rgba(82, 82, 100, .15);
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 
 /* Стрелку-маркер браузера убираем — рисуем свою. */
@@ -2820,7 +2864,7 @@ body .nd-cat-head {
 body .nd-cat-head #pagetitle {
     margin: 0;
     padding: 0;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 52px;
     line-height: 57.2px;
     font-weight: 800;
@@ -2833,7 +2877,7 @@ body .nd-cat-head #pagetitle {
     margin: 0 0 40px;
     padding-bottom: 40px;
     border-bottom: 2px solid rgba(82, 82, 100, .15);
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-subsec-row__grid {
     flex: 1 1 auto;
@@ -3053,7 +3097,7 @@ body .nd-cat-head #pagetitle {
    вместо кнопки «Показать». Селекторы с запасом: у темы свои правила
    для .bx_filter в styles.css и media.css. */
 .nd-filter {
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-filter__title {
     padding: 0 0 20px;
@@ -3328,7 +3372,7 @@ body .nd-filter #set_filter.bx_filter_search_button {
     border-radius: 6px;
     background: #c60000 !important;
     color: #fff !important;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 16px;
     line-height: 20px;
     font-weight: 700;
@@ -3476,7 +3520,7 @@ body .nd-filter .bx_filter_block .values_expander {
     max-width: 1440px;
     margin: 0 auto 52px;
     padding: 0 52px;
-    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, Helvetica, sans-serif;
 }
 .nd-interest__title h2,
 .nd-interest__title p {
@@ -4516,7 +4560,7 @@ body .nd-filter .bx_filter_block .values_expander {
 .sp-block-table table th li,
 .sp-block-table table td span,
 .sp-block-table table th span {
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .sp-block-table table td p,
 .sp-block-table table th p,
@@ -4646,7 +4690,7 @@ ul.c-lists > li:last-child {
 }
 .nd-sale-date {
     flex: 0 0 auto;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 14px;
     line-height: 20px;
     color: #525264;
@@ -4677,7 +4721,7 @@ ul.c-lists > li:last-child {
     border-radius: 4px;
     background: #eeeeef;
     color: #525264;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 14px;
     line-height: 20px;
     font-weight: 500;
@@ -5056,7 +5100,7 @@ body .nd-topbanner {
     max-width: 1440px;
     margin: 0 auto;
     padding: 72px 52px 96px;
-    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, Helvetica, sans-serif;
 }
 /* Цифра — крупная подложка, а не картинка: масштабируется без файлов и не
    мешает тексту (в старой версии svg на 554px наезжал на колонку). */

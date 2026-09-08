@@ -8,7 +8,7 @@
     width: 100%;
     max-width: 1336px;
     margin: 0 auto;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     color: #101014;
 }
 .nd-projects__list {

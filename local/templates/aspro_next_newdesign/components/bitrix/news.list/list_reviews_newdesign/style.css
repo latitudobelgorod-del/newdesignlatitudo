@@ -23,7 +23,7 @@
     width: 100%;
     max-width: 1336px;
     margin: 0 auto;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     color: var(--nd-ink);
 }
 
@@ -248,7 +248,7 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-modal__overlay {
     position: absolute;

@@ -11,7 +11,7 @@
     width: 100%;
     max-width: 1336px;
     margin: 0 auto;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     color: #101014;
 }
 
@@ -26,7 +26,7 @@
     margin: 0 auto 40px;
     padding: 0 0 40px;
     border-bottom: 2px solid rgba(82, 82, 100, .15);
-    font-family: "Nunito Sans", Arial, sans-serif;
+    font-family: "Nunito Sans", "Nunito Fallback", Arial, sans-serif;
     font-size: 52px;
     line-height: 57px;
     font-weight: 800;

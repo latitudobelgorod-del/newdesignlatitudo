@@ -25,7 +25,7 @@
     z-index: 1000;
     background: #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
+    font-family: "Nunito Sans", "Nunito Fallback", Arial, Helvetica, sans-serif;
     color: #101014;
 }
 .nd-header__inner {
@@ -782,7 +782,7 @@ div.title-search-result::-webkit-scrollbar-thumb {
     max-width: 1440px;
     margin: 0 auto;
     padding: 40px 52px;
-    font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
+    font-family: "Nunito Sans", "Nunito Fallback", Arial, Helvetica, sans-serif;
 }
 
 /* ---- слева: разделы (чипы 377×64, шаг 12) ---- */
@@ -1092,7 +1092,7 @@ a.nd-cat__panel-title:focus {
     margin: 0 auto;
     padding: 40px 52px;
     border-bottom: 1px solid rgba(82, 82, 100, 0.25);
-    font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
+    font-family: "Nunito Sans", "Nunito Fallback", Arial, Helvetica, sans-serif;
 }
 
 .nd-drop__title {

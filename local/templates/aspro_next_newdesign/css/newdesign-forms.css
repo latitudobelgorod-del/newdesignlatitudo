@@ -35,7 +35,7 @@
     justify-content: center !important;
     box-sizing: border-box;
     padding: 16px !important;
-    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, Helvetica, sans-serif;
 }
 
 /* Карточка. Крестик лежит рядом с .form, поэтому точка отсчёта — обёртка.

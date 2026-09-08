@@ -46,7 +46,7 @@
         margin: 0 !important;
         padding: 0 !important;
         background: #fff;
-        font-family: 'Nunito Sans', Arial, sans-serif;
+        font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     }
 
     /* штатная «крестик»-кнопка шторки не нужна — она есть в нашей шапке */

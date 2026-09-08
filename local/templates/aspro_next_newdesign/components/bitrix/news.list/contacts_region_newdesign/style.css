@@ -5,7 +5,7 @@
     width: 100%;
     max-width: 1336px;
     margin: 0 auto;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 /* Заголовок региона — 52/57, как на остальных внутренних страницах */
 .nd-region__h1 {

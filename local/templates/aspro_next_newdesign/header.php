@@ -17,6 +17,20 @@ $imya_sayta = $_SERVER['SERVER_NAME'];
 	<?else:?>
 	<title><?$APPLICATION->ShowTitle()?></title>
 	<?endif;?>
+	<?// Шрифты нового дизайна забираем заранее.
+	// @font-face лежит в newdesign.css, а тот попадает в самый конец сборки
+	// стилей шаблона (~290 КБ gzip). Пока браузер её не скачает и не разберёт,
+	// про woff2 он не знает — на боевом сервере запрос за шрифтом стартовал
+	// только на ~2-й секунде, и до этого заголовки рисовались системным шрифтом.
+	// preload запускает загрузку сразу вместе с CSS.
+	// Веса: 400 — текст и меню, 700 — кнопки и заголовки блоков, 800 — h1.
+	// Кириллица: латинские подмножества (цифры, телефон) мельче и терпят,
+	// а метрики им подгоняет фолбэк 'Nunito Fallback' из newdesign.css.
+	// href без «css/..»: браузер схлопывает точечные сегменты при разборе URL,
+	// так что путь совпадает с тем, что подставляет в сборку Битрикс.
+	foreach(array('400', '700', '800') as $ndFontWeight):?>
+	<link rel="preload" as="font" type="font/woff2" crossorigin href="<?=SITE_TEMPLATE_PATH?>/fonts/newdesign/nunito-sans-<?=$ndFontWeight?>-cyrillic.woff2">
+	<?endforeach;?>
 	<?$APPLICATION->ShowMeta("viewport");?>
 	<?$APPLICATION->ShowMeta("HandheldFriendly");?>
 <?$APPLICATION->ShowMeta("apple-mobile-web-app-capable", "yes");?>

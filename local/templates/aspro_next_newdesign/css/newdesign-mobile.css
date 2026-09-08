@@ -43,7 +43,7 @@
 .nd-navbar,
 .nd-sheet,
 .nd-msub {
-    font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
+    font-family: "Nunito Sans", "Nunito Fallback", Arial, Helvetica, sans-serif;
 }
 
 /* ============================== шапка =================================== */

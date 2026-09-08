@@ -22,7 +22,7 @@
 
 .nd-catlist,
 .nd-catlist .catalog_item_wrapp {
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 
 /* ---------------------------------------------------------------------------
@@ -1310,7 +1310,7 @@
     border: 1px solid #e5e5ea;
     border-radius: 6px;
     color: #101014;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 15px;
     line-height: 22px;
 }
@@ -1335,7 +1335,7 @@
     justify-content: space-between;
     gap: 16px;
     margin: 0 0 16px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 
 .nd-catlist-sort__tags {
@@ -1707,7 +1707,7 @@
     /* Разделительная полоса под блоком — по макету. */
     padding-bottom: 40px;
     border-bottom: 1px solid rgba(82, 82, 100, .15);
-    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, Helvetica, sans-serif;
 }
 .nd-related__head {
     display: flex;
@@ -1890,7 +1890,7 @@
     border-radius: 4px;
     background: rgba(82, 82, 100, .1);
     color: #101014;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 16px;
     line-height: 24px;
     /* тема подчёркивает ссылки в контенте и рамкой, и text-decoration */
@@ -1934,7 +1934,7 @@ body .nd-catlist .nd-brandsect__title {
     padding-top: 40px;
     border-top: 2px solid rgba(82, 82, 100, .15);
     color: #101014;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 42px;
     line-height: 46.2px;
     font-weight: 800;
@@ -1967,7 +1967,7 @@ body .nd-catlist .nd-brandsect__title {
     border-radius: 4px;
     background: #c60000;
     color: #fff;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 16px;
     line-height: 24px;
     font-weight: 700;
@@ -2026,7 +2026,7 @@ body .nd-brandhead #pagetitle {
     margin: 0;
     padding: 0;
     color: #101014;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 52px;
     line-height: 57.2px;
     font-weight: 800;
@@ -2056,7 +2056,7 @@ body .nd-brandhead #pagetitle {
 .nd-brandhead__text {
     margin: 0 0 16px;
     color: #101014;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 16px;
     line-height: 24px;
 }
@@ -2252,7 +2252,7 @@ body .nd-brandhead #pagetitle {
     border-radius: 0 !important;
     background: none !important;
     box-shadow: none !important;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 16px;
     line-height: 32px;
     font-weight: 600;
@@ -2312,7 +2312,7 @@ body .nd-brandhead #pagetitle {
    текст с парой <br> в языковом файле, теперь — блок с отступами страницы. */
 .nd-search-empty {
     padding: 8px 0 40px;
-    font-family: 'Nunito Sans', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 16px;
     line-height: 24px;
     color: #101014;
@@ -2378,7 +2378,7 @@ body .nd-brandhead #pagetitle {
     border-radius: 6px;
     background: #fff;
     color: #101014;
-    font-family: 'Nunito Sans', Arial, Helvetica, sans-serif;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, Helvetica, sans-serif;
     font-size: 16px;
     line-height: 20px;
     font-weight: 700;
