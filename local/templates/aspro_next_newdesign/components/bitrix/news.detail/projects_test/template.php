@@ -89,9 +89,9 @@ $goy=$arResult['NAME'];
 </div>
 				
 <div class="playvideo">  
-	<a  title="Подпишитесь на наш канал" target="_blank" class="personal-link dark-color"href="https://www.youtube.com/channel/UCRgn9WlVgrp3W2hRxEw6AwQ?sub_confirmation=1" >
+	<a  title="Подпишитесь на наш канал" target="_blank" class="personal-link dark-color" href="https://rutube.ru/channel/41631334/" >
 	<div class="text">Подпишитесь на наш канал</div>
-	<img src="/images/yt_video.png">
+	<img src="<?=SITE_TEMPLATE_PATH?>/images/rutube_video.svg" alt="" width="32" height="22">
 	</a>
 </div>
 				
