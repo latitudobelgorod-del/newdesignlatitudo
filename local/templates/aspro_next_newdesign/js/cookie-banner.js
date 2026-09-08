@@ -1,9 +1,15 @@
 /**
- * Cookie Consent Banner + Блокировка трекеров до согласия
+ * Cookie Consent Banner
  * Путь: /local/templates/aspro_next/js/cookie-banner.js
  *
- * Управляет загрузкой: Top.Mail.Ru, Яндекс.Метрика, Envybox
- * Трекеры подключаются через этот файл — из header.php их нужно убрать.
+ * Баннер — уведомление: любая из двух кнопок прячет его на 30 дней.
+ * Загрузку трекеров он не решает — так попросили 8 сентября 2026 года.
+ *
+ * Яндекс.Метрику вставляет в каждую страницу модуль yandex.metrika,
+ * Envybox прибит в footer.php шаблона. Прежде этот файл подключал их
+ * второй раз после «Принять» — счётчик задваивался (замер в браузере:
+ * до нажатия 1, после 2). Поэтому здесь остался только Top.Mail.Ru —
+ * его больше нигде на странице нет.
  */
 
 (function () {
@@ -11,9 +17,7 @@
   var COOKIE_DAYS  = 30;
 
   // ─── Конфиг трекеров ────────────────────────────────────────────────────────
-  var METRIKA_ID   = '62259859';
   var TOPMAIL_ID   = '3477275';
-  var ENVYBOX_CODE = 'e4de92bacc448ee6b674c4cb61afd66e';
   // ────────────────────────────────────────────────────────────────────────────
 
   function getCookie(name) {
@@ -41,45 +45,17 @@
   // ─── Загрузка трекеров ──────────────────────────────────────────────────────
   function loadTrackers() {
 
-    // 1. Top.Mail.Ru
+    // Top.Mail.Ru
     var _tmr = window._tmr || (window._tmr = []);
     _tmr.push({ id: TOPMAIL_ID, type: 'pageView', start: (new Date()).getTime() });
     loadScript('https://top-fwz1.mail.ru/js/code.js', 'tmr-code');
-
-    // 2. Яндекс.Метрика
-    loadScript('https://mc.yandex.ru/metrika/tag.js?id=' + METRIKA_ID, 'ym-tag', function () {
-      (function (m, i) {
-        m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments); };
-        m[i].l = 1 * new Date();
-      })(window, 'ym');
-      window.ym(METRIKA_ID, 'init', {
-        ssr: true,
-        webvisor: true,
-        clickmap: true,
-        ecommerce: 'dataLayer',
-        accurateTrackBounce: true,
-        trackLinks: true
-      });
-    });
-
-    // 3. Envybox
-    if (!document.getElementById('envybox-css')) {
-      var link = document.createElement('link');
-      link.id   = 'envybox-css';
-      link.rel  = 'stylesheet';
-      link.href = 'https://cdn.envybox.io/widget/cbk.css';
-      document.head.appendChild(link);
-    }
-    loadScript(
-      'https://cdn.envybox.io/widget/cbk.js?wcb_code=' + ENVYBOX_CODE,
-      'envybox-cbk'
-    );
   }
 
-  // ─── Если уже согласились — грузим сразу ────────────────────────────────────
-  var consent = getCookie(COOKIE_NAME);
-  if (consent === 'accepted') { loadTrackers(); return; }
-  if (consent === 'declined') { return; }
+  // ─── Трекеры грузим всегда, не дожидаясь кнопки ─────────────────────────────
+  loadTrackers();
+
+  // Кнопку уже нажимали — баннер больше не показываем.
+  if (getCookie(COOKIE_NAME)) { return; }
 
   // ─── Стили баннера ──────────────────────────────────────────────────────────
   var style = document.createElement('style');
@@ -129,7 +105,6 @@
 
   function dismiss(accepted) {
     setCookie(COOKIE_NAME, accepted ? 'accepted' : 'declined', COOKIE_DAYS);
-    if (accepted) loadTrackers();
     wrap.classList.add('cb-hide');
     setTimeout(function () { wrap.parentNode && wrap.parentNode.removeChild(wrap); }, 320);
   }
