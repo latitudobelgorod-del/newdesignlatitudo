@@ -933,3 +933,57 @@ function ndOpenGraphFallback(&$content)
 ", $add)."
 ".substr($content, $pos);
 }
+
+/**
+ * Обязательное согласие на обработку персональных данных в веб-формах.
+ *
+ * Сам чекбокс в форме уже есть: шаблон form.result.new/popup печатает
+ * `licenses_popup` с атрибутом required, текст берётся из включаемой области
+ * include/licenses_text.php со ссылкой на политику. Но required — это только
+ * браузер: POST без галки (выключенный JS, свой запрос, автозаполнение чужой
+ * программой) модуль форм принимал, сохранял результат и отправлял письмо.
+ *
+ * Точка входа выбрана штатная — событие form/onBeforeResultAdd. Если бросить
+ * из него исключение, модуль форм не вставляет запись в b_form_result и
+ * подставляет текст в FORM_ERRORS_TEXT, а его шаблон уже рисует своим блоком
+ * ошибок. То есть ни ajax, ни формат ответа, ни письма, ни существующая
+ * валидация не меняются: до отправки письма дело просто не доходит.
+ *
+ * Проверяем только настоящую отправку публичной формы:
+ *  - админку не трогаем: там результаты добавляют руками, чекбокса нет;
+ *  - маркер web_form_submit/web_form_apply печатает шаблон формы, по нему
+ *    отличаем отправку от программного CFormResult::Add;
+ *  - выключённая в теме настройка SHOW_LICENCE убирает чекбокс из формы —
+ *    тогда и проверять нечего, иначе форма перестала бы отправляться совсем.
+ */
+AddEventHandler('form', 'onBeforeResultAdd', 'ndRequirePersonalDataConsent');
+
+function ndRequirePersonalDataConsent($webFormId, &$arFields, &$arrVALUES)
+{
+    global $APPLICATION;
+
+    if (defined('ADMIN_SECTION') && ADMIN_SECTION === true) {
+        return;
+    }
+
+    if (empty($_POST['web_form_submit']) && empty($_POST['web_form_apply'])) {
+        return;
+    }
+
+    if (!\Bitrix\Main\Loader::includeModule('aspro.next')
+        || CNext::GetFrontParametrValue('SHOW_LICENCE') !== 'Y'
+    ) {
+        return;
+    }
+
+    /* Имён у галки в шаблонах темы два: сейчас печатается licenses_popup,
+       рядом лежит закомментированная ветка с licenses_popup_OCB. Принимаем
+       оба, чтобы возврат к той ветке не заблокировал формы молча. */
+    foreach (array('licenses_popup', 'licenses_popup_OCB') as $ndConsentField) {
+        if (isset($_POST[$ndConsentField]) && $_POST[$ndConsentField] === 'Y') {
+            return;
+        }
+    }
+
+    $APPLICATION->ThrowException('Подтвердите согласие на обработку персональных данных.');
+}

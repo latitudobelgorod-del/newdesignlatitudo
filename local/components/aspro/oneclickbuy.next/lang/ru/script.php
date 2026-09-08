@@ -24,6 +24,7 @@ $MESS['NO_PROPER_DATA'] = 'Недостаточно данных';
 $MESS['FAST_ORDER_COMMENT'] = 'Быстрый заказ';
 $MESS['BAD_EMAIL_FORMAT'] = 'Неверный формат email адреса';
 $MESS['CAPTCHA_ERROR_CODE'] = 'Неверный код проверки';
+$MESS['LICENSE_ERROR_CODE'] = 'Подтвердите согласие на обработку персональных данных.';
 $MESS['CANT_INCLUDE_MODULE'] = 'Не подключены необходимые модули';
 $MESS['CAPTCHA_LABEL'] = 'Введите текст с картинки';
 $MESS['INFO_REQ'] = 'Вы запросили ваши регистрационные данные.';

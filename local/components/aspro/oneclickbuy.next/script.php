@@ -146,6 +146,20 @@ else
 		die(getJson(GetMessage('CAPTCHA_ERROR_CODE')));
 	}
 
+	/* Согласие на обработку персональных данных. Чекбокс licenses_popup_OCB
+	   шаблон формы печатает с атрибутом required, но это только браузер:
+	   POST без галки приходил, и заказ создавался. Проверка стоит рядом с
+	   проверкой капчи — до любой работы с корзиной, заказом и письмами — и
+	   отвечает тем же getJson, что и остальные ошибки, поэтому ни формат
+	   ответа, ни обработчик на клиенте не меняются.
+	   Условие повторяет шаблон: чекбокс показывает настройка SHOW_LICENCE,
+	   при выключенной проверять нечего. */
+	if(Loader::includeModule('aspro.next') && Solution::GetFrontParametrValue('SHOW_LICENCE') == 'Y'
+		&& (!isset($_POST['licenses_popup_OCB']) || $_POST['licenses_popup_OCB'] !== 'Y'))
+	{
+		die(getJson(GetMessage('LICENSE_ERROR_CODE')));
+	}
+
 	global $APPLICATION, $USER;
 	$user_registered = $user_exists = false;
 	$bAllBasketBuy = $_POST['BUY_TYPE'] == 'ALL';
