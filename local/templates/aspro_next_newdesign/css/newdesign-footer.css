@@ -419,6 +419,25 @@
 	gap: 8px;
 }
 
+/* Юридическая оговорка под нижней строкой: мелко и приглушённо, чтобы не
+   спорить с копирайтом. Отбита волосяной чертой — иначе слипается с
+   логотипами платёжных систем. */
+.nd-fnote {
+	margin-top: 28px;
+	padding-top: 20px;
+	border-top: 1px solid rgba(255, 255, 255, .08);
+	font-size: 12px;
+	line-height: 18px;
+	color: var(--nd-f-dim);
+}
+#footer .nd-fnote a {
+	color: var(--nd-f-dim);
+	text-decoration: underline;
+}
+#footer .nd-fnote a:hover {
+	color: #fff;
+}
+
 .nd-fpay {
 	display: inline-flex;
 	align-items: center;
@@ -643,6 +662,11 @@
 	}
 	.nd-fpay--text {
 		font-size: 15px;
+	}
+	.nd-fnote {
+		margin-top: 32px;
+		font-size: 11px;
+		line-height: 16px;
 	}
 }
 
