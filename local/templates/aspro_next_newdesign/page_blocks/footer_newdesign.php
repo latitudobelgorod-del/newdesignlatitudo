@@ -294,6 +294,7 @@ if(!function_exists('ndFooterMenuColumn'))
 					<div class="nd-fbot__links">
 						<a href="/karta-sayta/">Карта сайта</a>
 						<a href="/info/licenses_detail/">Политика конфиденциальности</a>
+						<a href="/include/offer_detail.php">Публичная оферта</a>
 					</div>
 				</div>
 				<div class="nd-fbot__pay">
