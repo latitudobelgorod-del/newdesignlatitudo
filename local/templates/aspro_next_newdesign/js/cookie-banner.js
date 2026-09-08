@@ -78,13 +78,9 @@
     'padding:9px 22px;font-size:14px;font-weight:600;cursor:pointer;',
     'white-space:nowrap;transition:opacity .15s;}',
     '#cb-accept:hover{opacity:.85;}',
-    '#cb-decline{background:transparent;color:#888;border:1px solid #444;',
-    'border-radius:8px;padding:9px 16px;font-size:14px;cursor:pointer;',
-    'white-space:nowrap;transition:border-color .15s,color .15s;}',
-    '#cb-decline:hover{border-color:#888;color:#ccc;}',
     '@media(max-width:600px){#cb-wrap{flex-direction:column;align-items:flex-start;',
     'bottom:12px;width:calc(100% - 24px);padding:16px 18px;}',
-    '#cb-actions{width:100%;}#cb-accept,#cb-decline{flex:1;text-align:center;}}'
+    '#cb-actions{width:100%;}#cb-accept{flex:1;text-align:center;}}'
   ].join('');
   document.head.appendChild(style);
 
@@ -99,22 +95,23 @@
     'на обработку данных согласно ' +
     '<a href="/info/licenses_detail/" target="_blank" rel="noopener">Политике конфиденциальности</a>.</p>' +
     '<div id="cb-actions">' +
-      '<button id="cb-decline">Отклонить</button>' +
       '<button id="cb-accept">Принять</button>' +
     '</div>';
 
-  function dismiss(accepted) {
-    setCookie(COOKIE_NAME, accepted ? 'accepted' : 'declined', COOKIE_DAYS);
+  /* Кнопка одна, отклонять нечего — пишем всегда accepted. Прежнее
+     значение declined у тех, кто нажимал «Отклонить» раньше, баннер
+     тоже прячет: показ решает наличие куки, а не её значение. */
+  function dismiss() {
+    setCookie(COOKIE_NAME, 'accepted', COOKIE_DAYS);
     wrap.classList.add('cb-hide');
     setTimeout(function () { wrap.parentNode && wrap.parentNode.removeChild(wrap); }, 320);
   }
 
   function mountBanner() {
     document.body.appendChild(wrap);
-    document.getElementById('cb-accept').addEventListener('click', function () { dismiss(true); });
-    document.getElementById('cb-decline').addEventListener('click', function () { dismiss(false); });
+    document.getElementById('cb-accept').addEventListener('click', function () { dismiss(); });
     document.addEventListener('keydown', function esc(e) {
-      if (e.key === 'Escape') { dismiss(false); document.removeEventListener('keydown', esc); }
+      if (e.key === 'Escape') { dismiss(); document.removeEventListener('keydown', esc); }
     });
   }
 
