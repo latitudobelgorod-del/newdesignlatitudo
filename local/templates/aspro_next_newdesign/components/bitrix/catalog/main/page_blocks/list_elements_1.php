@@ -373,6 +373,33 @@ if($arSection["PLACE"]){
 <?/*20 - где выводить раздел top - сверху*, '' - не установлено*/?>
 <?$GLOBALS['arSectionDopRazdel'] = array('UF_PLACE_SECT' => array('20',''));?>
 	 
+<?
+/* Ссылки на посадочные страницы из UF_MENULINK_TOP раздела — в том же ряду
+   плиток. Разделами они не являются, но в выпадающем каталоге шапки стоят
+   наравне с подразделами, и посетитель ждёт их и здесь (Ирина, 9 сентября
+   2026): у «Ступеней из ДПК» и «Заборной доски из ДПК» своих подразделов
+   нет, ряд оставался пустым. Разбор и картинки — include/parts/section_menulinks.php.
+
+   Берём поле ТЕКУЩЕГО раздела, а не $ndSubsecSectionId: при подстановке
+   родителя (лист дерева показывает соседей) ссылки родителя здесь не к месту. */
+$ndMenuLinkCards = '';
+if (!IsSeoDisrupting($arParams)) {
+	require_once $_SERVER['DOCUMENT_ROOT'] . SITE_TEMPLATE_PATH . '/include/parts/section_menulinks.php';
+	foreach (ndSectionMenuLinks($arSection, $arParams['IBLOCK_ID']) as $ndCard) {
+		$ndCardImg = $ndCard['PIC_ID']
+			? CFile::ResizeImageGet($ndCard['PIC_ID'], array("width" => 240, "height" => 160), BX_RESIZE_IMAGE_PROPORTIONAL, true)
+			: false;
+		$ndCardName = htmlspecialcharsbx($ndCard['TEXT']);
+		$ndMenuLinkCards .= '<a class="nd-subsec__item' . ($ndCardImg ? '' : ' nd-subsec__item--noimg') . '"'
+			. ' href="' . htmlspecialcharsbx($ndCard['LINK']) . '">'
+			. ($ndCardImg
+				? '<span class="nd-subsec__pic"><img src="' . $ndCardImg['src'] . '" alt="' . $ndCardName . '" title="' . $ndCardName . '" loading="lazy" /></span>'
+				: '')
+			. '<span class="nd-subsec__name">' . $ndCardName . '</span></a>';
+	}
+}
+
+?>
 <? if (!substr_count($_SERVER['REQUEST_URI'], '/filter/')) : ?>
 	<?
 	/* Плитки подразделов — тоже в буфер: ниже сетка и баннер акции
@@ -445,31 +472,6 @@ if($arSection["PLACE"]){
 		$ndSubsecHtml = trim(ob_get_clean());
 	}
 
-	/* Ссылки на посадочные страницы из UF_MENULINK_TOP раздела — в том же ряду
-	   плиток. Разделами они не являются, но в выпадающем каталоге шапки стоят
-	   наравне с подразделами, и посетитель ждёт их и здесь (Ирина, 9 сентября
-	   2026): у «Ступеней из ДПК» и «Заборной доски из ДПК» своих подразделов
-	   нет, ряд оставался пустым. Разбор и картинки — include/parts/section_menulinks.php.
-
-	   Берём поле ТЕКУЩЕГО раздела, а не $ndSubsecSectionId: при подстановке
-	   родителя (лист дерева показывает соседей) ссылки родителя здесь не к месту. */
-	$ndMenuLinkCards = '';
-	if (!IsSeoDisrupting($arParams)) {
-		require_once $_SERVER['DOCUMENT_ROOT'] . SITE_TEMPLATE_PATH . '/include/parts/section_menulinks.php';
-		foreach (ndSectionMenuLinks($arSection, $arParams['IBLOCK_ID']) as $ndCard) {
-			$ndCardImg = $ndCard['PIC_ID']
-				? CFile::ResizeImageGet($ndCard['PIC_ID'], array("width" => 240, "height" => 160), BX_RESIZE_IMAGE_PROPORTIONAL, true)
-				: false;
-			$ndCardName = htmlspecialcharsbx($ndCard['TEXT']);
-			$ndMenuLinkCards .= '<a class="nd-subsec__item' . ($ndCardImg ? '' : ' nd-subsec__item--noimg') . '"'
-				. ' href="' . htmlspecialcharsbx($ndCard['LINK']) . '">'
-				. ($ndCardImg
-					? '<span class="nd-subsec__pic"><img src="' . $ndCardImg['src'] . '" alt="' . $ndCardName . '" title="' . $ndCardName . '" loading="lazy" /></span>'
-					: '')
-				. '<span class="nd-subsec__name">' . $ndCardName . '</span></a>';
-		}
-	}
-
 	if ($ndMenuLinkCards !== '') {
 		if ($ndSubsecHtml !== '') {
 			/* Кладём карточки внутрь сетки компонента, перед её закрывающим тегом,
@@ -505,8 +507,20 @@ if($arSection["PLACE"]){
 		</div>
 	<? endif; ?>
  <? endif; ?>
- 
- 
+
+<?// Посадочные страницы каталога («Штакетник из ДПК», «Полнотелые ступени»)
+   // внутри — страницы умного фильтра, их адрес содержит /filter/, поэтому
+   // ряд выше на них не собирается. Но посетитель, перейдя по плитке из
+   // раздела, терял навигацию по соседним посадочным (Ирина, 9 сентября
+   // 2026). Показываем тот же ряд: подразделов тут нет и быть не может,
+   // только ссылки из UF_MENULINK_TOP раздела.
+if ($ndRowHtml === '' && $ndMenuLinkCards !== '') {
+	$ndRowHtml = '<div class="section_block nd-subsec-row nd-subsec-row--nobanner">'
+		. '<div class="nd-subsec-row__grid"><div class="nd-subsec">' . $ndMenuLinkCards . '</div></div>'
+		. '</div>';
+}
+?>
+
 <?
 $res = CIBlockSection::GetByID($arSection['ID']);
 $ar_res = $res->GetNext();
