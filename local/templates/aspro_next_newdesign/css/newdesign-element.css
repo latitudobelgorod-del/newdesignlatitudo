@@ -3215,3 +3215,36 @@ a.nd-pd__installment:focus {
     pointer-events: none;
     transition: opacity .12s ease;
 }
+
+/* Планшет: переключатель единиц в фиксированной панели покупки.
+   Тема (styles.css) для ширин 576-767 и 768-991 давит `.measure-unit`
+   до `font-size: 10px !important`, а панельное правило выше задаёт 17px
+   без !important — и на планшете единицы выходили втрое мельче, чем такие
+   же плашки в карточках списка прямо над панелью (Ирина, 9 сентября 2026).
+   Берём метрики из списка (.nd-catlist .catalog_item_wrapp .measure-unit,
+   newdesign-catalog.css): 14/20 в боксе 26 с полями 2/6, min-width 30.
+   !important обязателен — иначе правило темы снова перебьёт. */
+@media (min-width: 576px) and (max-width: 767px) {
+    #nd-pd-buybar .measure-unit-block .measure-unit {
+        height: auto;
+        min-width: 30px;
+        padding: 2px 6px !important;
+        font-size: 14px !important;
+        line-height: 20px;
+    }
+}
+
+/* Планшет 768-991: переключатель единиц в правой колонке карточки.
+   Та же болячка, что и у панели покупки ниже: тема (styles.css) давит
+   `.measure-unit` до `font-size: 10px !important`, а правило блока выше
+   задаёт 18px без !important. На десктопе плашки 18/20 в боксе 36, а на
+   планшете схлопывались втрое (Ирина, 9 сентября 2026). Возвращаем
+   десктопные метрики — на этих ширинах раскладка колонки та же.
+   Панели покупки правило не касается: она живёт только до 767. */
+@media (min-width: 768px) and (max-width: 991px) {
+    .catalog_detail.element_newdesign .right_info .info_item .measure-unit-block .measure-unit {
+        padding: 5px 10px !important;
+        font-size: 18px !important;
+        line-height: 20px;
+    }
+}
