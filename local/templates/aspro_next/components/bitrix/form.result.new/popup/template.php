@@ -205,10 +205,31 @@ $arResult["QUESTIONS"]['UTM']['STRUCTURE'][0]['VALUE'] = $utm;
 
 	
 <script type="text/javascript">
-var urlform = window.location.href;domenurl = window.location.host;b = $('h2').text();
+var urlform = window.location.href;domenurl = window.location.host;
 var device = '<?php echo $device_t;?>';
 $(document).ready(function(){
-$('div.<?=$rand?> form input[data-sid="NAMEFORM"]').val(b);
+/* Заголовок формы для письма (поле NAMEFORM) — подпись кнопки, по которой
+   открыли окно. Её же тема ставит заголовком окна: h2.formnameru,
+   обработчик onLoadjqm в js/main.js.
+
+   Раньше здесь стояло b = $('h2').text(). Селектор берёт ВСЕ заголовки
+   страницы, а .text() для набора элементов склеивает их тексты подряд без
+   разделителей — и в тему письма уезжали все h2 лендинга (Ирина, 9 сентября
+   2026, страницы /services/*, там по 8-9 заголовков). Мусор попадал не в
+   каждую заявку: этот скрипт и onLoadjqm выполняются в неопределённом
+   порядке, чьё значение записалось последним, то и уходило.
+
+   Теперь берём заголовок только внутри своего окна и повторяем это при
+   отправке: к моменту клика по «Отправить» тема заголовок уже подставила,
+   так что в письмо уходит именно подпись кнопки. */
+	var ndFormWin = $('div.<?=$rand?>').closest('.popup');
+	if(!ndFormWin.length) ndFormWin = $('div.<?=$rand?>');
+	var ndSetFormName = function(){
+		var ndTitle = $.trim(ndFormWin.find('h2.formnameru').first().text());
+		if(ndTitle) $('div.<?=$rand?> form input[data-sid="NAMEFORM"]').val(ndTitle);
+	};
+	ndSetFormName();
+	ndFormWin.on('click', 'input[type="submit"], button[type="submit"]', ndSetFormName);
 	if($('div.<?=$rand?> form input[data-sid="DOMENURL"]').length)
 				$('div.<?=$rand?> form input[data-sid="DOMENURL"]').val(domenurl);
 			if($('div.<?=$rand?> form input[data-sid="URLFORM"]').length)
