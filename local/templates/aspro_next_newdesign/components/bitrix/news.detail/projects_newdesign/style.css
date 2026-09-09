@@ -357,14 +357,20 @@
    Печатается родительским шаблоном news/projects_newdesign после «Оказанных
    услуг» — по макету Figma «Проект» 20524:98253, фрейм 20545:102225: полоса
    на всю ширину контейнера 1336 с тремя карточками по 429 и зазором 24.
-   Отбивка и заголовок — как у блока услуг (.nd-workserv). */
+   Отбивка и заголовок — как у блока услуг (.nd-workserv).
+   Заголовок ловим h2/h3/h4: в блоке редактора его уровень выбирают руками,
+   и у проектов он разный — h2 у 39 элементов, h4 у 20, h3 у 3. Пока правило
+   било только по h2, на двух десятках проектов заголовок оставался мелким
+   рядом с крупными «Оказанными услугами» (Ирина, 9 сентября 2026). */
 .nd-projinterest {
     margin: 0 0 52px;
     padding-top: 52px;
     border-top: 1px solid rgba(82, 82, 100, .25);
 }
 
-.nd-projinterest .editor h2 {
+.nd-projinterest .editor h2,
+.nd-projinterest .editor h3,
+.nd-projinterest .editor h4 {
     margin: 0 0 36px;
     padding: 0;
     font-size: 34px;
@@ -381,7 +387,9 @@
 }
 
 @media (max-width: 1199px) {
-    .nd-projinterest .editor h2 {
+    .nd-projinterest .editor h2,
+    .nd-projinterest .editor h3,
+    .nd-projinterest .editor h4 {
         font-size: 28px;
         line-height: 32px;
     }
@@ -392,7 +400,9 @@
         margin: 0 0 32px;
         padding-top: 32px;
     }
-    .nd-projinterest .editor h2 {
+    .nd-projinterest .editor h2,
+    .nd-projinterest .editor h3,
+    .nd-projinterest .editor h4 {
         margin-bottom: 24px;
         font-size: 22px;
         line-height: 26px;
