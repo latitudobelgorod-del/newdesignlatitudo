@@ -1,3 +1,34 @@
+<?
+// Блок «Также вас может заинтересовать» — это область редактора EDITOR2.
+// По макету (Figma «Проект» 20524:98253, фрейм 20545:102225) он стоит
+// ниже «Оказанных услуг» и во всю ширину контейнера (1336, три
+// карточки по 429), а не в текстовой колонке 878, где его рисует
+// шаблон news.detail. Поэтому печатаем его отсюда, после услуг.
+//
+// Переносим только тогда, когда в EDITOR2 лежит именно список проектов
+// (блоки iblock_elements плюс заголовок htag). У девяти старых проектов
+// в той же области лежат текст и фотогалерея — это часть статьи,
+// её место остаётся в колонке.
+$ndEditor2Below = false;
+// Берём «сырое» значение (~PROPERTY_…): в отображаемом кавычки уже
+// превращены в &quot; и json_decode на нём падает.
+$ndEd2Raw = $arElement['~PROPERTY_EDITOR2_VALUE'];
+if(strlen($ndEd2Raw))
+{
+	$ndEd2 = json_decode($ndEd2Raw, true);
+	$ndEd2Names = array();
+	if(is_array($ndEd2) && isset($ndEd2['blocks']) && is_array($ndEd2['blocks']))
+	{
+		foreach($ndEd2['blocks'] as $ndEd2Block)
+		{
+			if(is_array($ndEd2Block) && isset($ndEd2Block['name']))
+				$ndEd2Names[$ndEd2Block['name']] = true;
+		}
+	}
+	$ndEditor2Below = isset($ndEd2Names['iblock_elements'])
+		&& !array_diff(array_keys($ndEd2Names), array('iblock_elements', 'htag'));
+}
+?>
 	<?$APPLICATION->IncludeComponent(
 	"bitrix:news.detail",
 	"projects_newdesign",
@@ -56,6 +87,8 @@
 		"SHARE_SHORTEN_URL_LOGIN"	=> $arParams["SHARE_SHORTEN_URL_LOGIN"],
 		"SHARE_SHORTEN_URL_KEY" => $arParams["SHARE_SHORTEN_URL_KEY"],
 		"GALLERY_TYPE" => $arParams["GALLERY_TYPE"],
+		// Сам блок EDITOR2 печатаем ниже, шаблону его рисовать не надо.
+		"ND_EDITOR2_BELOW" => ($ndEditor2Below ? "Y" : "N"),
 	),
 	$component
 );?>
@@ -172,6 +205,31 @@
 			),
 		false, array("HIDE_ICONS" => "Y")
 		);?>
+	</div>
+<?endif;?>
+
+<?// «Также вас может заинтересовать» — область редактора EDITOR2, поднятая
+   // сюда из шаблона news.detail: по макету блок идёт после услуг и во всю
+   // ширину контейнера. Сетка карточек (news.list/list_projects_newdesign)
+   // сама раскладывается по три в ряд, как в макете.?>
+<?if($ndEditor2Below):?>
+	<div class="nd-projinterest">
+		<div class="editor">
+		<?$APPLICATION->IncludeComponent(
+			"sprint.editor:blocks",
+			".default",
+			array(
+				"ELEMENT_ID" => $arElement["ID"],
+				"IBLOCK_ID" => $arParams["IBLOCK_ID"],
+				"PROPERTY_CODE" => "EDITOR2",
+				"NEWS_NAME" => $arElement["NAME"],
+				"USE_JQUERY" => "N",
+				"USE_FANCYBOX" => "N",
+			),
+			false,
+			array("HIDE_ICONS" => "Y")
+		);?>
+		</div>
 	</div>
 <?endif;?>
 

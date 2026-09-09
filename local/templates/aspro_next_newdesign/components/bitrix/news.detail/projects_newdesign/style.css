@@ -336,3 +336,65 @@
         line-height: 22.4px;
     }
 }
+
+/* Ширина текстовой колонки по макету.
+   Figma «Проект» 20524:98253 (фрейм 1440): контейнер 1336 (x=52), внутри него
+   текстовый блок, галерея и кнопки стоят одной колонкой 878 на x=281 —
+   поля 229 слева и справа.
+   На деле совпадала только галерея: она лежит прямо в .detail, а текст и
+   кнопки — внутри обёртки .item.projects-blocks, которой тема даёт боковые
+   паддинги 30px. Отрицательные margin у .row отыгрывают лишь 15 из них,
+   поэтому колонка ужималась до 831 и уезжала на 20px правее галереи.
+   Гасим паддинги там, где работает сетка bootstrap (>= 992). */
+@media (min-width: 992px) {
+    .detail.projects_newdesign > .item.projects-blocks {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
+/* Блок «Также вас может заинтересовать» (область редактора EDITOR2).
+   Печатается родительским шаблоном news/projects_newdesign после «Оказанных
+   услуг» — по макету Figma «Проект» 20524:98253, фрейм 20545:102225: полоса
+   на всю ширину контейнера 1336 с тремя карточками по 429 и зазором 24.
+   Отбивка и заголовок — как у блока услуг (.nd-workserv). */
+.nd-projinterest {
+    margin: 0 0 52px;
+    padding-top: 52px;
+    border-top: 1px solid rgba(82, 82, 100, .25);
+}
+
+.nd-projinterest .editor h2 {
+    margin: 0 0 36px;
+    padding: 0;
+    font-size: 34px;
+    line-height: 42px;
+    font-weight: 800;
+    color: #101014;
+}
+
+/* Сетка карточек прижата к левому краю контейнера, а не отцентрована
+   по своей макетной ширине. */
+.nd-projinterest .nd-projects {
+    max-width: none;
+    margin: 0;
+}
+
+@media (max-width: 1199px) {
+    .nd-projinterest .editor h2 {
+        font-size: 28px;
+        line-height: 32px;
+    }
+}
+
+@media (max-width: 767px) {
+    .nd-projinterest {
+        margin: 0 0 32px;
+        padding-top: 32px;
+    }
+    .nd-projinterest .editor h2 {
+        margin-bottom: 24px;
+        font-size: 22px;
+        line-height: 26px;
+    }
+}

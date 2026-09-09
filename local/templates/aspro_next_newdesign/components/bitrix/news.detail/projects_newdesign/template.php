@@ -359,6 +359,12 @@ LatitudoSchema::printGraph(LatitudoSchema::articleGraph(array(
 		   // шаблонам проектов.?>
 		<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/infochat_projects.php';?>
 		</div>
+		<?// Область редактора EDITOR2. Когда в ней лежит только «Также вас
+		   // может заинтересовать» (список проектов), её печатает родительский
+		   // шаблон news/projects_newdesign — по макету блок идёт ниже
+		   // «Оказанных услуг» и во всю ширину контейнера, а не в этой
+		   // колонке 878. Флаг приходит оттуда же.?>
+		<?if($arParams['ND_EDITOR2_BELOW'] !== 'Y'):?>
 		<div class="editor">
             	<?$APPLICATION->IncludeComponent(
                     "sprint.editor:blocks",
@@ -377,6 +383,7 @@ LatitudoSchema::printGraph(LatitudoSchema::articleGraph(array(
                     )
                 );?>
         </div>
+		<?endif;?>
 
 	</div>		
 		<div class="col-md-12">

@@ -132,6 +132,9 @@ a.nd-workserv__item:focus .nd-workserv__name {
     }
 }
 
+/* Телефон: по макету карточка складывается в столбик — картинка во всю
+   ширину (335×204 в мобильном фрейме 375), под ней название и описание.
+   Боковая раскладка на такой ширине сжимала текст в узкую колонку. */
 @media (max-width: 767px) {
     .nd-workserv {
         margin: 0 0 32px;
@@ -144,10 +147,19 @@ a.nd-workserv__item:focus .nd-workserv__name {
     }
     .nd-workserv__list {
         grid-template-columns: minmax(0, 1fr);
-        gap: 20px;
+        gap: 24px;
+    }
+    .nd-workserv__item,
+    .nd-workserv__item:hover,
+    .nd-workserv__item:focus {
+        display: block;
     }
     .nd-workserv__pic {
-        flex-basis: 40%;
+        flex-basis: auto;
+        max-width: none;
+        width: 100%;
+        margin-bottom: 12px;
+        aspect-ratio: 335 / 204;
     }
     .nd-workserv__body {
         padding: 0;
