@@ -1784,6 +1784,31 @@
     scroll-snap-align: start;
 }
 
+/* Верхнюю линию рамки рисует сама лента (border-top у .catalog_block), и она
+   всегда во всю ширину. Когда товаров меньше, чем помещается в ряд, линия
+   уходила вправо в пустоту (Ирина, 10 сентября 2026) — то же было у «Товаров
+   по акции» (newdesign.css, .goods-block). Лента на десктопе и планшете —
+   всегда один ряд, так что линию можно просто держать на карточках: ниже
+   никого нет, удвоений между рядами не будет, и она обрывается на последней.
+   На телефоне лента превращается в сетку 2×2 — там переносим линию только
+   при одном товаре, иначе на втором ряду линии бы удвоились. */
+@media (min-width: 768px) {
+    .nd-related .nd-catlist .catalog_block {
+        border-top-width: 0;
+    }
+    .nd-related .nd-catlist .catalog_block .item_block {
+        border-top: 1px solid rgba(82, 82, 100, .15);
+    }
+}
+@media (max-width: 767px) {
+    .nd-related .nd-catlist .catalog_block:not(:has(.item_block:nth-child(2))) {
+        border-top-width: 0;
+    }
+    .nd-related .nd-catlist .catalog_block:not(:has(.item_block:nth-child(2))) .item_block {
+        border-top: 1px solid rgba(82, 82, 100, .15);
+    }
+}
+
 /* Постраничка и заголовок шаблона списка в этом блоке не нужны. */
 .nd-related .nd-catlist__nav,
 .nd-related .nd-catlist > hr,
