@@ -1007,10 +1007,12 @@ function ndRequirePersonalDataConsent($webFormId, &$arFields, &$arrVALUES)
         return;
     }
 
-    /* Имён у галки в шаблонах темы два: сейчас печатается licenses_popup,
-       рядом лежит закомментированная ветка с licenses_popup_OCB. Принимаем
-       оба, чтобы возврат к той ветке не заблокировал формы молча. */
-    foreach (array('licenses_popup', 'licenses_popup_OCB') as $ndConsentField) {
+    /* Имён у галки в шаблонах темы три: всплывающие формы печатают
+       licenses_popup (рядом закомментированная ветка с licenses_popup_OCB),
+       встроенные в страницу (form.result.new/inline, inline2) —
+       licenses_inline. Принимаем все, иначе встроенная форма не отправилась
+       бы и с отмеченной галкой (найдено при проверке 10 сентября 2026). */
+    foreach (array('licenses_popup', 'licenses_popup_OCB', 'licenses_inline') as $ndConsentField) {
         if (isset($_POST[$ndConsentField]) && $_POST[$ndConsentField] === 'Y') {
             return;
         }
