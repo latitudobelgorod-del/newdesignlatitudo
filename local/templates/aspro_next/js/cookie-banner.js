@@ -35,7 +35,7 @@
     var base = name + '=' + encodeURIComponent(value) +
       '; expires=' + exp + '; path=/; SameSite=Lax';
     var parts = location.hostname.split('.');
-    for (var i = parts.length - 2; i > 0; i--) {
+    for (var i = parts.length - 2; i >= 0; i--) {
       document.cookie = base + '; domain=.' + parts.slice(i).join('.');
       if (getCookie(name) === value) return;
     }
