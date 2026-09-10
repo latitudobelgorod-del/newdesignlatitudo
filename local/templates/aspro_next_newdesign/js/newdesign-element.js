@@ -1343,12 +1343,23 @@
 				nextBtn.classList.toggle('is-up', !atEnd && track.scrollTop + track.clientHeight >= track.scrollHeight - 2);
 			});
 		}
+		function openZoom() {
+			var links = photo.querySelectorAll('.nd-pd__links a');
+			if (links[current]) links[current].click();
+			else if (links[0]) links[0].click();
+		}
 		var zoom = $('.nd-pd__zoom', photo);
 		if (zoom) {
-			zoom.addEventListener('click', function () {
-				var links = photo.querySelectorAll('.nd-pd__links a');
-				if (links[current]) links[current].click();
-				else if (links[0]) links[0].click();
+			zoom.addEventListener('click', openZoom);
+		}
+		/* Увеличение и по клику на само фото, а не только по кнопке с лупой
+		   (Ирина, 10 сентября 2026). Клики по своим кнопкам поверх фото
+		   («Смотреть видео», лупа, плашки со ссылками) не перехватываем. */
+		if (photo && !photo.classList.contains('nd-pd__photo--empty')) {
+			photo.classList.add('nd-pd__photo--zoomable');
+			photo.addEventListener('click', function (e) {
+				if (e.target.closest('a, button, .nd-pd__video, .nd-pd__zoom, .stickers')) return;
+				openZoom();
 			});
 		}
 		if (dots) {
