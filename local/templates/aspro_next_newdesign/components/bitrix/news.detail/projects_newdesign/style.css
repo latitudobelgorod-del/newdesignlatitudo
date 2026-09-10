@@ -18,9 +18,23 @@
 
 /* От заголовка до ряда меток по макету 16 (автолэйаут 20545:101484), а
    тема даёт #pagetitle поле 25 и отступ 18 — ряд уезжал вниз на 43. */
+/* Кегль заголовка — из макета: десктоп 36/39.6 800 (Block_Web/H1 в
+   20545:101490), телефон 26/28.6 800 (мобильный фрейм «Проект»
+   20545:103118). У темы было 32/44.8 700 (Ирина, 10 сентября 2026). */
 .detail.projects_newdesign h1#pagetitle {
     margin-bottom: 0;
     padding-bottom: 0;
+    font-size: 36px;
+    line-height: 39.6px;
+    font-weight: 800;
+    color: #101014;
+}
+
+@media (max-width: 767px) {
+    .detail.projects_newdesign h1#pagetitle {
+        font-size: 26px;
+        line-height: 28.6px;
+    }
 }
 
 .nd-projhead__tags {
