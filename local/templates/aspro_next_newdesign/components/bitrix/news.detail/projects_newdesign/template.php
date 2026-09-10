@@ -144,7 +144,37 @@ LatitudoSchema::printGraph(LatitudoSchema::articleGraph(array(
 				<?if($ndHasReview):?><span class="nd-projhead__tag nd-projhead__tag--review">Отзыв</span><?endif;?>
 			</div>
 			<?if(!empty($ndBrand['VALUE'])):?>
-				<div class="nd-projhead__brand nd-projhead__brand--<?=htmlspecialcharsbx($ndBrand['VALUE_XML_ID'])?>"><?=htmlspecialcharsbx($ndBrand['VALUE'])?></div>
+				<?
+				// Марка по макету — логотип целиком (EasyDecking 159×28), а не
+				// подпись мелким текстом. Ищем по коду значения без «brand_»
+				// в images/newdesign/brands/: сначала полный логотип
+				// <код>-logo.svg, иначе квадратный значок <код>.png — те же, что
+				// в фильтре каталога, — и название рядом (так у Латитудо,
+				// Ирина, 10 сентября 2026). Нет ни того, ни другого — только
+				// название.
+				$ndBrandCode = preg_replace('/^brand_/', '', (string)$ndBrand['VALUE_XML_ID']);
+				$ndBrandDir = SITE_TEMPLATE_PATH.'/images/newdesign/brands/';
+				$ndBrandLogo = ($ndBrandCode !== '' && file_exists($_SERVER['DOCUMENT_ROOT'].$ndBrandDir.$ndBrandCode.'-logo.svg')) ? $ndBrandDir.$ndBrandCode.'-logo.svg' : '';
+				$ndBrandIco = '';
+				if(!$ndBrandLogo && $ndBrandCode !== ''){
+					foreach(array('svg', 'png') as $ndExt){
+						if(file_exists($_SERVER['DOCUMENT_ROOT'].$ndBrandDir.$ndBrandCode.'.'.$ndExt)){
+							$ndBrandIco = $ndBrandDir.$ndBrandCode.'.'.$ndExt;
+							break;
+						}
+					}
+				}
+				?>
+				<div class="nd-projhead__brand nd-projhead__brand--<?=htmlspecialcharsbx($ndBrandCode)?>">
+					<?if($ndBrandLogo):?>
+						<img class="nd-projhead__brand-logo" src="<?=$ndBrandLogo?>" width="159" height="29" alt="<?=htmlspecialcharsbx($ndBrand['VALUE'])?>">
+					<?else:?>
+						<?if($ndBrandIco):?>
+							<img class="nd-projhead__brand-ico" src="<?=$ndBrandIco?>" width="28" height="28" alt="">
+						<?endif;?>
+						<span class="nd-projhead__brand-name"><?=htmlspecialcharsbx($ndBrand['VALUE'])?></span>
+					<?endif;?>
+				</div>
 			<?endif;?>
 		</div>
 

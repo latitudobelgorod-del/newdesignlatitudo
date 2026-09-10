@@ -13,7 +13,14 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin: 16px 0 24px;
+    margin: 16px 0 40px;
+}
+
+/* От заголовка до ряда меток по макету 16 (автолэйаут 20545:101484), а
+   тема даёт #pagetitle поле 25 и отступ 18 — ряд уезжал вниз на 43. */
+.detail.projects_newdesign h1#pagetitle {
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .nd-projhead__tags {
@@ -56,38 +63,69 @@
     color: #ff4130;
 }
 
-/* Ярлык производителя — тот же, что на карточках портфолио: белая плашка
-   с логотипом бренда и названием. */
+/* Марка производителя (Frame 1839 в макете): белая плашка 70 в высоту с
+   полями 15, внутри логотип 159×28 — у EasyDecking полный логотип из макета
+   (images/newdesign/brands/easydecking-logo.svg). У марок без полного
+   логотипа — значок 28 из фильтра каталога и название жирным, в рост
+   логотипа (так у Латитудо). */
 .nd-projhead__brand {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    height: 40px;
-    padding: 0 14px;
-    border-radius: 4px;
+    height: 70px;
+    padding: 0 15px;
+    border-radius: 7.5px;
     background: #fff;
     color: #101014;
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 600;
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 800;
     white-space: nowrap;
 }
 
-.nd-projhead__brand--brand_easydecking::before {
-    content: '';
-    flex: 0 0 auto;
-    width: 20px;
-    height: 20px;
-    background: url(/images/logo_brand_easy.png) no-repeat center / contain;
+.nd-projhead__brand-logo {
+    display: block;
+    width: 159px;
+    height: auto;
+}
+
+.nd-projhead__brand-ico {
+    display: block;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+/* В логотипе и в фильтре каталога марка пишется прописными — LATITUDO,
+   а значение в инфоблоке «Latitudo». */
+.nd-projhead__brand--latitudo .nd-projhead__brand-name {
+    text-transform: uppercase;
 }
 
 @media (max-width: 575px) {
     .nd-projhead {
-        margin: 12px 0 20px;
+        margin: 12px 0 24px;
     }
     .nd-projhead__tag {
         height: 24px;
         font-size: 11px;
+    }
+    /* На телефоне плашка без полей и пониже — иначе марка не влезает в
+       ряд с метками и уходит отдельной строкой с большой дырой. */
+    .nd-projhead__brand {
+        height: auto;
+        padding: 0;
+        font-size: 18px;
+        line-height: 22px;
+    }
+    .nd-projhead__brand-logo {
+        width: 125px;
+    }
+    .nd-projhead__brand-ico {
+        flex-basis: 22px;
+        width: 22px;
+        height: 22px;
     }
 }
 
