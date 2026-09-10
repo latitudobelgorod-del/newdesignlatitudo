@@ -363,9 +363,29 @@
    било только по h2, на двух десятках проектов заголовок оставался мелким
    рядом с крупными «Оказанными услугами» (Ирина, 9 сентября 2026). */
 .nd-projinterest {
+    position: relative;
     margin: 0 0 52px;
     padding-top: 52px;
-    border-top: 1px solid rgba(82, 82, 100, .25);
+}
+/* Черта во всю ширину экрана — тот же приём, что у «Оказанных услуг»
+   (news.list/items-services_newdesign/style.css). В макете черта одна — под
+   текстом проекта; между услугами и этим блоком её нет (Ирина, 10 сентября
+   2026). Поэтому рисуем её, только когда услуг на странице нет и этот блок
+   идёт первым. Услуги лежат в .wraps; проверяем, что внутри действительно
+   есть список — при пустой выборке обёртка печатается пустой. */
+.nd-projinterest::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #d3d3d8;
+    box-shadow: 0 0 0 100vmax #d3d3d8;
+    clip-path: inset(0 -100vmax);
+}
+.wraps:has(.nd-workserv) + .nd-projinterest::before {
+    content: none;
 }
 
 .nd-projinterest .editor h2,
