@@ -130,7 +130,7 @@ if (!function_exists('ndVacAddVideoBtn')) {
 											// движения мыши, а над видео (iframe) движение до
 											// страницы не доходит — крестик пропадал бы совсем.
 											ob_start();
-											?><button class="nd-vac__btn nd-vac__btn--outline nd-vac__video-btn" type="button"
+											?><button class="nd-vac__btn nd-vac__btn--red nd-vac__video-btn" type="button"
 												data-fancybox="nd-vac-video-<?=$arItem['ID']?>" data-type="iframe"
 												data-src="<?=htmlspecialcharsbx($sNdVacVideoSrc)?>"
 												data-options='{"slideClass":"nd-vac-video","idleTime":false,"iframe":{"preload":false,"attr":{"scrolling":"no","allow":"autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write"}}}'>

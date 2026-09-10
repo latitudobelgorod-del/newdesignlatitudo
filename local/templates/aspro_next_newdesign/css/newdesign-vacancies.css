@@ -617,8 +617,8 @@
     font-weight: 700;
 }
 /* Ряд из двух кнопок у вакансий с галочкой «видео-презентация»: слева
-   «Отправить резюме», справа видео, поровну ширины. Кнопка видео — контурная
-   красная, чтобы главной оставалась отправка резюме. */
+   «Отправить резюме», справа видео, поровну ширины. Обе сплошные красные,
+   значок пуска у видео белый — рисуется currentColor (Ирина, 2026-09-10). */
 .nd-vac__editor .nd-vac__btns {
     display: flex;
     gap: 24px;
@@ -634,25 +634,18 @@
     min-height: 48px;
     padding: 8px 16px;
 }
+/* Ховер — тот же оттенок, что у кнопки резюме (newdesign.css), а не общий
+   #a30000 кнопок страницы: рядом разница заметна. */
+.nd-vac__btns .nd-vac__video-btn:hover,
+.nd-vac__btns .nd-vac__video-btn:focus {
+    background: #a80000;
+}
 /* Если подпись видео на узкой колонке уйдёт в две строки, кнопка резюме
    тянется за ней по высоте, а не остаётся 48. !important — высоту ей задают
    правила темы с большей специфичностью. */
 .nd-vac__editor .nd-vac__btns .nd-editor-btn {
     height: auto !important;
     min-height: 48px;
-}
-.nd-vac__btn--outline,
-.editor .nd-vac__btn--outline {
-    border-color: #c60000;
-    background: transparent;
-    color: #c60000;
-}
-.nd-vac__btn--outline:hover,
-.nd-vac__btn--outline:focus,
-.editor .nd-vac__btn--outline:hover,
-.editor .nd-vac__btn--outline:focus {
-    background: #c60000;
-    color: #fff;
 }
 
 /* Окно с видео (fancybox, slideClass nd-vac-video). Окно вешается на body,
