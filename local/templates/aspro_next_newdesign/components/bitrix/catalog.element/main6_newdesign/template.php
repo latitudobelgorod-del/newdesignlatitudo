@@ -1727,6 +1727,22 @@ $ndColorItems = array_values(array_filter(
 		$ndCurrency = $arResult['MIN_PRICE']['CURRENCY'];
 		if(!$ndCurrency && $ndSchemaOffers)
 			$ndCurrency = $ndSchemaOffers[0]['MIN_PRICE']['CURRENCY'];
+
+		/* Яндекс требует availability у самого AggregateOffer, а не только у
+		   вложенных Offer: без него товары с предложениями (все доски, уголки,
+		   столбы) шли в отчёт о семантической разметке с ошибкой — проверка
+		   прода, 10 сентября 2026, 16 карточек из 60. В наличии, если купить
+		   можно хотя бы одно предложение из разметки. */
+		$ndAggInStock = false;
+		foreach($ndSchemaOffers as $arOffer)
+		{
+			if($arOffer['CAN_BUY'])
+			{
+				$ndAggInStock = true;
+				break;
+			}
+		}
+		unset($arOffer);
 		?>
 		<?if($ndSchemaOffers && $ndLowPrice > 0 && $ndCurrency):?>
 		<span itemprop="offers" itemscope itemtype="http://schema.org/AggregateOffer" style="display:none;">
@@ -1734,6 +1750,7 @@ $ndColorItems = array_values(array_filter(
 			<meta itemprop="lowPrice" content="<?=$ndLowPrice?>" />
 			<meta itemprop="highPrice" content="<?=$ndHighPrice?>" />
 			<meta itemprop="priceCurrency" content="<?=$ndCurrency?>" />
+			<link itemprop="availability" href="http://schema.org/<?=($ndAggInStock ? 'InStock' : 'OutOfStock')?>" />
 			<?foreach($ndSchemaOffers as $arOffer):?>
 				<?$currentOffersList = array();?>
 				<?foreach($arOffer['TREE'] as $propName => $skuId):?>
