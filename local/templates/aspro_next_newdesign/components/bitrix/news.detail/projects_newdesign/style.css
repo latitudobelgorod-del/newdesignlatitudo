@@ -30,10 +30,12 @@
     color: #101014;
 }
 
+/* !important у межстрочного — тема на телефоне ставит всем заголовкам
+   `body h1 { line-height: 30px !important }`. */
 @media (max-width: 767px) {
     .detail.projects_newdesign h1#pagetitle {
         font-size: 26px;
-        line-height: 28.6px;
+        line-height: 28.6px !important;
     }
 }
 
