@@ -182,6 +182,26 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_ba
  */
 require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_schema.php';
 
+/**
+ * «Полный товарный фид <город>» в модуле «Маркет для продавцов»: цена в
+ * основной единице (м², п.м), как на карточке, а не за штуку.
+ *
+ * Событие модуля yandex.market перед записью предложения в файл. Касается
+ * только прайс-листов с названием «Полный товарный фид…» — дилерские и
+ * «для вебмастера» не трогает. Выгрузку модуль гоняет агентами из cron,
+ * на обычных хитах обработчик не срабатывает — файл подключаем лениво.
+ *
+ * Логика в local/php_interface/include/latitudo_market_feed.php.
+ */
+\Bitrix\Main\EventManager::getInstance()->addEventHandler(
+    'yandex.market',
+    'onExportOfferExtendData',
+    function (\Bitrix\Main\Event $event) {
+        require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_market_feed.php';
+        LatitudoMarketFeed::onOfferExtendData($event);
+    }
+);
+
 AddEventHandler('iblock', 'OnBeforeIBlockElementAdd', 'ndBannerSingleRecordGuard');
 
 function ndBannerSingleRecordGuard(&$arFields)
