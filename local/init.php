@@ -201,6 +201,17 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_sc
         LatitudoMarketFeed::onOfferExtendData($event);
     }
 );
+/* Там же — наполнение карточки: доп. фото, видео, характеристики, описание.
+   Событие записи: узел <offer> уже собран, дописываем в него (модуль сам
+   выводит только теги из настроек прайс-листа). */
+\Bitrix\Main\EventManager::getInstance()->addEventHandler(
+    'yandex.market',
+    'onExportOfferWriteData',
+    function (\Bitrix\Main\Event $event) {
+        require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_market_feed.php';
+        LatitudoMarketFeed::onOfferWriteData($event);
+    }
+);
 
 AddEventHandler('iblock', 'OnBeforeIBlockElementAdd', 'ndBannerSingleRecordGuard');
 
