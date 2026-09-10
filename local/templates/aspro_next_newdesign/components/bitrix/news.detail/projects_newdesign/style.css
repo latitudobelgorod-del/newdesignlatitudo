@@ -511,9 +511,10 @@
     }
 }
 
-.nd-projinterest .editor h2,
-.nd-projinterest .editor h3,
-.nd-projinterest .editor h4 {
+/* Заголовок печатает element_newdesign.php — одинаковый у всех проектов
+   (заголовки из редактора он вырезает). Размер — как у «Материалов» и
+   «Оказанных услуг». */
+.detail.projects_newdesign .nd-projinterest__title {
     margin: 0 0 36px;
     padding: 0;
     font-size: 34px;
@@ -529,12 +530,30 @@
     margin: 0;
 }
 
+/* Карточки — по макету (компонент карточки 20545:102286, мобильный
+   20545:104040): фото 429×296, под ним поле 12 и название 18/21.6 жирным,
+   снизу у подписи ещё 12 — поэтому от названия до фото следующего ряда
+   36, а между колонками 24 (Ирина, 10 сентября 2026). Шаблон карточек
+   общий со страницей /projects/, там сетка своя — правим только здесь. */
+.nd-projinterest .nd-projects__list {
+    gap: 36px 24px;
+}
+.nd-projinterest .nd-projects__pic {
+    aspect-ratio: 429 / 296;
+}
+.nd-projinterest .nd-projects__name {
+    font-size: 18px;
+    line-height: 21.6px;
+    font-weight: 700;
+}
+
 @media (max-width: 1199px) {
-    .nd-projinterest .editor h2,
-    .nd-projinterest .editor h3,
-    .nd-projinterest .editor h4 {
+    .detail.projects_newdesign .nd-projinterest__title {
         font-size: 28px;
         line-height: 32px;
+    }
+    .nd-projinterest .nd-projects__list {
+        gap: 36px 16px;
     }
 }
 
@@ -543,11 +562,44 @@
         margin: 0 0 36px;
         padding-top: 36px;
     }
-    .nd-projinterest .editor h2,
-    .nd-projinterest .editor h3,
-    .nd-projinterest .editor h4 {
+    .detail.projects_newdesign .nd-projinterest__title {
         margin-bottom: 28px;
         font-size: 22px;
         line-height: 26px;
+    }
+    .nd-projinterest .nd-projects__list {
+        gap: 36px;
+    }
+    .nd-projinterest .nd-projects__name {
+        font-size: 17px;
+        line-height: 20.4px;
+    }
+}
+
+/* «Описание» (свойство TASK_PROJECT) — отдельный блок с заголовком того же
+   размера, что «Фотогалерея» и «Отзыв клиента»: 22/26.4 жирным, на
+   телефоне 20/24 (Ирина, 10 сентября 2026). Отступы — как у отзыва. Текст
+   остаётся прежним (18/27 темы); тем же размером теперь и описания в
+   «Оказанных услугах». */
+.nd-projdesc {
+    margin: 40px 0;
+}
+
+.detail.projects_newdesign .nd-projdesc__title {
+    margin: 0 0 16px;
+    padding: 0;
+    font-size: 22px;
+    line-height: 26.4px;
+    font-weight: 700;
+    color: #101014;
+}
+
+@media (max-width: 767px) {
+    .nd-projdesc {
+        margin: 28px 0;
+    }
+    .detail.projects_newdesign .nd-projdesc__title {
+        font-size: 20px;
+        line-height: 24px;
     }
 }

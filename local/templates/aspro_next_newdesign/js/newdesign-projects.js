@@ -72,4 +72,19 @@
 
 	if (document.readyState !== 'loading') run();
 	else document.addEventListener('DOMContentLoaded', run);
+
+	/* Верхний слайдер (flexslider): кадры со второго печатаются с
+	   loading="lazy", чтобы не мешать первому экрану. Но лежат они за первым
+	   кадром, и браузер начинает их грузить только в момент перелистывания —
+	   кадр въезжал бы пустым. Поэтому, как только страница загрузилась,
+	   снимаем lazy: оставшиеся кадры догружаются в фоне. Касается и копий
+	   кадров, которые flexslider создаёт для бесконечной прокрутки. */
+	function eagerTopSlider() {
+		[].forEach.call(document.querySelectorAll('.top_slider img[loading="lazy"]'), function (img) {
+			img.loading = 'eager';
+		});
+	}
+
+	if (document.readyState === 'complete') eagerTopSlider();
+	else window.addEventListener('load', eagerTopSlider);
 })();

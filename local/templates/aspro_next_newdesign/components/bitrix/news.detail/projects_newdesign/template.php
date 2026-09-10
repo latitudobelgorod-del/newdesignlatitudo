@@ -196,7 +196,11 @@ LatitudoSchema::printGraph(LatitudoSchema::articleGraph(array(
 							<meta itemprop="name" content="<?=$arPhoto['TITLE']?>" />
 							<link itemprop="url" href="<?=$page_url_itemprop?>" />
 							<meta itemprop="author" content="Латитудо" />
-							<img itemprop="contentUrl" src="<?=$address_image_itemprop?><?=$arPhoto['PREVIEW']['src']?>" style="width:100%;" class="img-responsive inline" title="<?=$arPhoto['TITLE']?>" alt="<?=$ndPhotoAlt?>" />
+							<?// Первый кадр — главная картинка страницы, грузим сразу и с
+							   // повышенным приоритетом. Остальные кадры скрыты за первым —
+							   // lazy; после загрузки страницы js/newdesign-projects.js
+							   // снимает с них lazy, чтобы при перелистывании кадр был готов.?>
+							<img itemprop="contentUrl" src="<?=$address_image_itemprop?><?=$arPhoto['PREVIEW']['src']?>" style="width:100%;" class="img-responsive inline" title="<?=$arPhoto['TITLE']?>" alt="<?=$ndPhotoAlt?>"<?=($i ? ' loading="lazy"' : ' fetchpriority="high"')?> decoding="async" />
 							
 							<!--<span class="zoom"></span>-->
 							<!--</a>-->
@@ -221,12 +225,33 @@ LatitudoSchema::printGraph(LatitudoSchema::articleGraph(array(
 
 
 <div class="info">
-					<?if($arResult['PROPERTIES']['TASK_PROJECT']['VALUE']):?>
-					
-					<div class="hh">
-							<div class="title_grey_small" style=" font-weight: bold; margin-bottom: 10px;  margin-top: 20px;"><?=$arResult['PROPERTIES']['TASK_PROJECT']['NAME'];?></div>
-							<div class="text" ><?=$arResult['PROPERTIES']['TASK_PROJECT']['VALUE']['TEXT'];?></div>
-						</div>
+					<?
+					// Свойства типа «HTML/текст» (TASK_PROJECT «Описание», REVIEW
+					// «Отзыв») Битрикс отдаёт в VALUE уже экранированными — поэтому
+					// в тексте проступали теги <b> и <br> как буквы. Берём «сырое»
+					// ~VALUE: HTML выводим как есть, простой текст экранируем сами
+					// и сохраняем переносы строк. Текст пишет контент-менеджер из
+					// админки. Если в «текстовом» значении всё же есть теги, их
+					// тоже считаем разметкой — так его и задумывали.
+					$ndPropHtml = function($arProp) {
+						$v = isset($arProp['~VALUE']) ? $arProp['~VALUE'] : ($arProp['VALUE'] ?? '');
+						$text = is_array($v) ? (string)($v['TEXT'] ?? '') : (string)$v;
+						$type = is_array($v) ? strtoupper((string)($v['TYPE'] ?? '')) : 'TEXT';
+						if ($type !== 'HTML' && strip_tags($text) === $text) {
+							$text = nl2br(htmlspecialcharsbx($text));
+						}
+						return $text;
+					};
+					$ndTaskText = $ndPropHtml($arResult['PROPERTIES']['TASK_PROJECT']);
+					?>
+					<?// «Описание» — заголовок того же размера, что «Фотогалерея» и
+					   // «Отзыв клиента» (Ирина, 10 сентября 2026); раньше был мелкой
+					   // подписью 16px. Стили — .nd-projdesc в style.css шаблона.?>
+					<?if(trim(strip_tags($ndTaskText)) !== ''):?>
+						<section class="hh nd-projdesc">
+							<h2 class="nd-projdesc__title"><?=htmlspecialcharsbx($arResult['PROPERTIES']['TASK_PROJECT']['NAME'])?></h2>
+							<div class="text"><?=$ndTaskText?></div>
+						</section>
 					<?endif;?>
 					
 					
@@ -240,9 +265,7 @@ LatitudoSchema::printGraph(LatitudoSchema::articleGraph(array(
 					   // у проектов нет и заводить его не планируется (решение от
 					   // 18 августа 2026).?>
 					<?
-					$ndRevText = is_array($arResult['PROPERTIES']['REVIEW']['VALUE'])
-						? (string)$arResult['PROPERTIES']['REVIEW']['VALUE']['TEXT']
-						: (string)$arResult['PROPERTIES']['REVIEW']['VALUE'];
+					$ndRevText = $ndPropHtml($arResult['PROPERTIES']['REVIEW']);
 					$ndRevAuthor = trim((string)$arResult['PROPERTIES']['AUTHOR']['VALUE']);
 					?>
 					<?if(trim(strip_tags($ndRevText)) !== ''):?>

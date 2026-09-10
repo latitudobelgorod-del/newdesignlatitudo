@@ -115,16 +115,20 @@
     padding: 12px 0;
 }
 
+/* Название услуги — того же размера, что заголовки «Описание»,
+   «Фотогалерея» и «Отзыв клиента» на этой странице (22/26.4 жирным), а
+   описание — как текст «Описания» проекта (18/27). В макете 18 и 14, но
+   рядом с текстом проекта они смотрелись мелко (Ирина, 10 сентября 2026). */
 .nd-workserv__name {
-    font-size: 18px;
-    line-height: 21.6px;
+    font-size: 22px;
+    line-height: 26.4px;
     font-weight: 700;
     color: #101014;
 }
 
 .nd-workserv__text {
-    font-size: 14px;
-    line-height: 19.6px;
+    font-size: 18px;
+    line-height: 27px;
     font-weight: 400;
     color: #101014;
 }
@@ -184,5 +188,15 @@ a.nd-workserv__item:focus .nd-workserv__name {
     }
     .nd-workserv__body {
         padding: 0;
+    }
+    /* На телефоне заголовки блоков страницы 20/24, а текст «Описания»
+       15/24 — держим карточку услуги вровень с ними. */
+    .nd-workserv__name {
+        font-size: 20px;
+        line-height: 24px;
+    }
+    .nd-workserv__text {
+        font-size: 15px;
+        line-height: 24px;
     }
 }

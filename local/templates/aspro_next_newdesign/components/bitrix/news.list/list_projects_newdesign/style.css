@@ -67,12 +67,23 @@
     white-space: nowrap;
 }
 /* логотип бренда — тем же файлом, что и в старом дизайне */
-.nd-projects__brand--brand_easydecking::before {
+.nd-projects__brand--brand_easydecking::before,
+.nd-projects__brand--brand_latitudo::before {
     content: '';
     flex: 0 0 auto;
     width: 20px;
     height: 20px;
     background: url(/images/logo_brand_easy.png) no-repeat center / contain;
+}
+/* У Латитудо — значок из фильтра каталога (images/newdesign/brands/), и
+   марка прописными, как в фильтре и на детальной проекта (Ирина,
+   10 сентября 2026). Путь от корня: стиль компонента уезжает в общую
+   сборку CSS, относительный адрес там не сработает. */
+.nd-projects__brand--brand_latitudo::before {
+    background-image: url(/local/templates/aspro_next_newdesign/images/newdesign/brands/latitudo.png);
+}
+.nd-projects__brand--brand_latitudo {
+    text-transform: uppercase;
 }
 
 /* --- плашки снизу слева --- */

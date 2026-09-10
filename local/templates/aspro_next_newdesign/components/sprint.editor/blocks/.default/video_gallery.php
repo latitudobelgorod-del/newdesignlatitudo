@@ -22,9 +22,9 @@ $items = Sprint\Editor\Blocks\VideoGallery::getItems($block, array(
     <div class="sp-video-gallery">
     <?foreach ($items as $item): ?>
         <?if (!empty($item['YOUTUBE_CODE'])):?>
-        <div data-type="youtube" data-src="<?=$item['YOUTUBE_CODE']?>"><img src="<?=$item['SRC']?>" alt="<?=$item['DESCRIPTION']?>"></div>
+        <div data-type="youtube" data-src="<?=$item['YOUTUBE_CODE']?>"><img loading="lazy" decoding="async" src="<?=$item['SRC']?>" alt="<?=$item['DESCRIPTION']?>"></div>
         <?else:?>
-        <div data-type="image" data-src="<?=$item['DETAIL_SRC']?>"><img src="<?=$item['SRC']?>" alt="<?=$item['DESCRIPTION']?>"></div>
+        <div data-type="image" data-src="<?=$item['DETAIL_SRC']?>"><img loading="lazy" decoding="async" src="<?=$item['SRC']?>" alt="<?=$item['DESCRIPTION']?>"></div>
         <?endif?>
     <?endforeach;?>
     </div>

@@ -34,7 +34,7 @@ $page_url_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST']. $_SER
 			href="<?=$address_image_itemprop?><?=$image['DETAIL_SRC']?>">
   <meta itemprop="name" content="<?=$ndImgAlt?>" />
    <link itemprop="url" href="<?=$page_url_itemprop?>" />
-  <img src="<?=$image['SRC']?>" title="<?=$ndImgTitle?>" alt="<?=$ndImgAlt?>" >
+  <img loading="lazy" decoding="async" src="<?=$image['SRC']?>" title="<?=$ndImgTitle?>" alt="<?=$ndImgAlt?>" >
                 <div class="sp-gallery-item-text">
                     <div class="sp-gallery-item-text-content"><?=$image['DESCRIPTION']?></div>
                 </div>

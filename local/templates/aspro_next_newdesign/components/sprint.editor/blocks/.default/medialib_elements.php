@@ -14,7 +14,7 @@ $images = Sprint\Editor\Blocks\MedialibElements::getImages($block, array(
         <?foreach ($images as $image):?>
             <li class="sp-gallery-item">
                 <a data-fancybox="gallery" class="sp-gallery-item-img-wrapper fancy" rel="media-gallery" href="<?=$image['DETAIL_SRC']?>">
-                    <img alt="<?=$image['DESCRIPTION']?>" src="<?=$image['SRC']?>"  class="img-responsive">
+                    <img loading="lazy" decoding="async" alt="<?=$image['DESCRIPTION']?>" src="<?=$image['SRC']?>"  class="img-responsive">
                     <div class="sp-gallery-item-text">
                         <div class="sp-gallery-item-text-content"><?=$image['DESCRIPTION']?></div>
                     </div>
