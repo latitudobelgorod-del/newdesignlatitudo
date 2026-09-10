@@ -25,10 +25,21 @@
     return m ? decodeURIComponent(m[1]) : null;
   }
 
+  /* Города — поддомены (tula.latitudo.ru и т.п.), выбор города уводит с
+     latitudo.ru на поддомен. Кука без domain жила только на одном адресе,
+     и на следующем баннер всплывал снова. Ставим её на весь домен сайта:
+     пробуем от latitudo.ru вниз, браузер сам отклонит недопустимый уровень.
+     На локали (домен из одного слова) — обычная кука. */
   function setCookie(name, value, days) {
     var exp = new Date(Date.now() + days * 864e5).toUTCString();
-    document.cookie = name + '=' + encodeURIComponent(value) +
+    var base = name + '=' + encodeURIComponent(value) +
       '; expires=' + exp + '; path=/; SameSite=Lax';
+    var parts = location.hostname.split('.');
+    for (var i = parts.length - 2; i > 0; i--) {
+      document.cookie = base + '; domain=.' + parts.slice(i).join('.');
+      if (getCookie(name) === value) return;
+    }
+    document.cookie = base;
   }
 
   function loadScript(src, id, onload) {

@@ -122,7 +122,7 @@ $(document).ready(function() {
 		
 		
 		
-<script src="/local/templates/aspro_next/js/cookie-banner.js"></script>
+<script src="/local/templates/aspro_next/js/cookie-banner.js?v=20260910"></script>
 <link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css">
 <script type="text/javascript" src="https://cdn.envybox.io/widget/cbk.js?wcb_code=e4de92bacc448ee6b674c4cb61afd66e" charset="UTF-8" async></script>
 </body>
