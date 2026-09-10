@@ -275,10 +275,15 @@ class LatitudoMarketFeed
         }
 
         // --- характеристики --------------------------------------------------
-        $names = [];
+        // Характеристики, настроенные в самом прайс-листе, убираем: у
+        // московского, с которого копировались остальные, их выводил модуль —
+        // «Характеристики» четыре раза без названий и единицы в названии
+        // («Расход на 1 кв. м, пог.м»), и наши ложились рядом почти дублями.
+        // Полный набор с нормальными названиями собирается ниже.
         foreach ($offer->getChild('param') as $p) {
-            $names[mb_strtolower((string)$p->getAttribute('name'))] = true;
+            $offer->removeChild($p);
         }
+        $names = [];
         $add = function (string $name, $value, string $unit = '') use ($offer, &$names) {
             $value = trim(is_array($value) ? implode(', ', array_filter(array_map('trim', $value))) : (string)$value);
             // В «Характеристиках» из 1С бывают названия с двоеточием: «Ротанг:».
