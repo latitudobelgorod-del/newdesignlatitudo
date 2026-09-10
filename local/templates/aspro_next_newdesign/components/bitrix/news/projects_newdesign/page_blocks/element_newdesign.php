@@ -117,14 +117,20 @@ if(strlen($ndEd2Raw))
 	$ndGoodsIblock = (int)\Bitrix\Main\Config\Option::get('aspro.next', 'CATALOG_IBLOCK_ID', 19);
 	$ndGoodsCount = (int)CIBlockElement::GetList(array(), array_merge($ndGoodsFilter, array('IBLOCK_ID' => $ndGoodsIblock)), array());
 	?>
+	<?// Блок оформлен так же, как «Оказанные услуги» ниже: во всю ширину, с
+	   // крупным заголовком и первым после текста проекта, под чертой (Ирина,
+	   // 10 сентября 2026). Заголовок печатаем сами — у шаблона каталога он
+	   // мелкий, с <hr> над ним (h5 из параметра TITLE). Стили — .nd-projgoods
+	   // в news.detail/projects_newdesign/style.css.?>
 	<?if($ndGoodsCount):?>
-		<div class="wraps goods-block with-padding">
+		<div class="wraps goods-block with-padding nd-projgoods">
+			<h2 class="nd-projgoods__title">Материалы</h2>
 			<?
 			$ldBrand = array(
 				'MODE' => 'flat',
 				'FILTER' => $ndGoodsFilter,
 				'PER_SECTION' => $ndGoodsCount,
-				'TITLE' => 'Материалы',
+				'TITLE' => '',
 			);
 			include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_products.php';
 			?>

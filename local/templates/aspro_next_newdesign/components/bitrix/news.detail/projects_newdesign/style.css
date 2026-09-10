@@ -442,6 +442,75 @@
     content: none;
 }
 
+/* Блок «Материалы» (товары из LINK_GOODS) — первым после текста проекта,
+   над «Оказанными услугами», и оформлен как они: во всю ширину, заголовок
+   34/42 800, отступы 52 (Ирина, 10 сентября 2026). Печатает его
+   news/projects_newdesign/page_blocks/element_newdesign.php.
+   Черта под текстом проекта одна, поэтому, когда «Материалы» есть, черта
+   у услуг и у «Также вас может заинтересовать» убирается. Все три блока —
+   соседи в одном родителе (.detail). */
+.nd-projgoods {
+    position: relative;
+    margin: 0 0 52px;
+    padding-top: 52px;
+}
+
+.nd-projgoods::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #d3d3d8;
+    box-shadow: 0 0 0 100vmax #d3d3d8;
+    clip-path: inset(0 -100vmax);
+}
+
+/* Список выводится целиком (PER_SECTION = числу товаров), листать нечего,
+   но шаблон каталога всё равно печатает пустую обёртку навигации — 64 px
+   пустоты под сеткой. Прячем, только пока в ней ничего нет. */
+.nd-projgoods .nd-catlist__nav:not(:has(*)) {
+    display: none;
+}
+
+.nd-projgoods + .wraps .nd-workserv::before,
+.nd-projgoods ~ .nd-projinterest::before {
+    content: none;
+}
+
+.detail.projects_newdesign .nd-projgoods__title {
+    margin: 0 0 36px;
+    padding: 0;
+    font-size: 34px;
+    line-height: 42px;
+    font-weight: 800;
+    color: #101014;
+}
+
+@media (max-width: 1199px) {
+    .detail.projects_newdesign .nd-projgoods__title {
+        font-size: 28px;
+        line-height: 32px;
+    }
+}
+
+/* Телефон — отступы из мобильного макета «Проект» (20545:103118): поля
+   секции 36 сверху и снизу, от заголовка до карточек 28. Те же значения у
+   услуг (items-services_newdesign/style.css) и у «Также вас может
+   заинтересовать» ниже. */
+@media (max-width: 767px) {
+    .nd-projgoods {
+        margin: 0 0 36px;
+        padding-top: 36px;
+    }
+    .detail.projects_newdesign .nd-projgoods__title {
+        margin-bottom: 28px;
+        font-size: 22px;
+        line-height: 26px;
+    }
+}
+
 .nd-projinterest .editor h2,
 .nd-projinterest .editor h3,
 .nd-projinterest .editor h4 {
@@ -471,13 +540,13 @@
 
 @media (max-width: 767px) {
     .nd-projinterest {
-        margin: 0 0 32px;
-        padding-top: 32px;
+        margin: 0 0 36px;
+        padding-top: 36px;
     }
     .nd-projinterest .editor h2,
     .nd-projinterest .editor h3,
     .nd-projinterest .editor h4 {
-        margin-bottom: 24px;
+        margin-bottom: 28px;
         font-size: 22px;
         line-height: 26px;
     }

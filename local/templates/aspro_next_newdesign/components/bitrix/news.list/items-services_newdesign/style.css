@@ -150,21 +150,25 @@ a.nd-workserv__item:focus .nd-workserv__name {
 }
 
 /* Телефон: по макету карточка складывается в столбик — картинка во всю
-   ширину (335×204 в мобильном фрейме 375), под ней название и описание.
-   Боковая раскладка на такой ширине сжимала текст в узкую колонку. */
+   ширину, под ней название и описание. Боковая раскладка на такой ширине
+   сжимала текст в узкую колонку.
+   Отступы — из мобильного фрейма «Проект» 20545:103118 (Ирина, 10 сентября
+   2026): поля секции 36, от заголовка до карточек 28, картинка 328×226.
+   Между карточками в макете 24, но у текста карточки там ещё поле 12
+   снизу — на деле от описания до следующей картинки 36. */
 @media (max-width: 767px) {
     .nd-workserv {
-        margin: 0 0 32px;
-        padding-top: 32px;
+        margin: 0 0 36px;
+        padding-top: 36px;
     }
     .nd-workserv__title {
-        margin-bottom: 24px;
+        margin-bottom: 28px;
         font-size: 22px;
         line-height: 26px;
     }
     .nd-workserv__list {
         grid-template-columns: minmax(0, 1fr);
-        gap: 24px;
+        gap: 36px;
     }
     .nd-workserv__item,
     .nd-workserv__item:hover,
@@ -176,7 +180,7 @@ a.nd-workserv__item:focus .nd-workserv__name {
         max-width: none;
         width: 100%;
         margin-bottom: 12px;
-        aspect-ratio: 335 / 204;
+        aspect-ratio: 328 / 226;
     }
     .nd-workserv__body {
         padding: 0;
