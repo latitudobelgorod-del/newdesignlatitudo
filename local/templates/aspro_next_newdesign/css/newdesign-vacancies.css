@@ -616,6 +616,76 @@
     min-height: 56px;
     font-weight: 700;
 }
+/* Ряд из двух кнопок у вакансий с галочкой «видео-презентация»: слева
+   «Отправить резюме», справа видео, поровну ширины. Кнопка видео — контурная
+   красная, чтобы главной оставалась отправка резюме. */
+.nd-vac__editor .nd-vac__btns {
+    display: flex;
+    gap: 24px;
+}
+/* Основа — половина ряда, а не 0: при нулевой основе поровну делится только
+   свободное место, и кнопка с полями пошире (у видео 24 против 16) выходила
+   шире соседки. Высота — как у кнопки резюме (48, её задаёт newdesign.css). */
+.nd-vac__btns > * {
+    flex: 1 1 calc(50% - 12px);
+    min-width: 0;
+}
+.nd-vac__btns .nd-vac__video-btn {
+    min-height: 48px;
+    padding: 8px 16px;
+}
+/* Если подпись видео на узкой колонке уйдёт в две строки, кнопка резюме
+   тянется за ней по высоте, а не остаётся 48. !important — высоту ей задают
+   правила темы с большей специфичностью. */
+.nd-vac__editor .nd-vac__btns .nd-editor-btn {
+    height: auto !important;
+    min-height: 48px;
+}
+.nd-vac__btn--outline,
+.editor .nd-vac__btn--outline {
+    border-color: #c60000;
+    background: transparent;
+    color: #c60000;
+}
+.nd-vac__btn--outline:hover,
+.nd-vac__btn--outline:focus,
+.editor .nd-vac__btn--outline:hover,
+.editor .nd-vac__btn--outline:focus {
+    background: #c60000;
+    color: #fff;
+}
+
+/* Окно с видео (fancybox, slideClass nd-vac-video). Окно вешается на body,
+   но файл стилей на странице уже есть. Тема держит iframe в окне 80% экрана
+   с полями 50 по бокам (core.css) и отдельно подгоняет ролики Rutube
+   (custom.css), поэтому правила с двойным классом слайда — перебить обе.
+   Кадр 16:9 на всю ширину экрана, а если экран для этого низкий — на всю
+   высоту за вычетом полей 44 сверху и снизу (там кнопки fancybox). */
+.fancybox-slide.nd-vac-video {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 44px 0;
+}
+.fancybox-slide.nd-vac-video .fancybox-content {
+    display: block;
+    width: min(100%, calc((100vh - 88px) * 16 / 9));
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    padding: 0;
+    aspect-ratio: 16 / 9;
+    background: #000;
+}
+.fancybox-slide.nd-vac-video .fancybox-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    aspect-ratio: auto;
+}
 
 /* ---- колонка HR --------------------------------------------------------- */
 .nd-vac__aside {
@@ -964,6 +1034,14 @@
         gap: 12px;
     }
     .nd-vac__hero-btns > * {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+    .nd-vac__editor .nd-vac__btns {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .nd-vac__btns > * {
         flex: 0 0 auto;
         width: 100%;
     }

@@ -276,7 +276,8 @@ if (!defined('ND_VACANCIES_ASSETS')) {
 					'SORT_BY2' => 'ID',
 					'SORT_ORDER2' => 'ASC',
 					'FIELD_CODE' => array('ID', 'NAME', 'IBLOCK_SECTION_ID', ''),
-					'PROPERTY_CODE' => array('PAY', 'EDITOR1', ''),
+					// BUTTON_VIDEO — галочка «кнопка видео-презентации» (см. шаблон).
+					'PROPERTY_CODE' => array('PAY', 'EDITOR1', 'BUTTON_VIDEO', ''),
 					'CHECK_DATES' => 'Y',
 					'DETAIL_URL' => '',
 					'AJAX_MODE' => 'N',
