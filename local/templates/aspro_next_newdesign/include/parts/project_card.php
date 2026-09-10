@@ -41,11 +41,16 @@ if (!function_exists('ndProjectCard')) {
 		// REVIEW — текстовое свойство, у HTML-варианта значение приходит массивом
 		$review = $item['PROPERTIES']['REVIEW']['~VALUE'] ?? $item['PROPERTIES']['REVIEW']['VALUE'] ?? '';
 		$hasReview = is_array($review) ? (trim((string) $review['TEXT']) !== '') : (trim((string) $review) !== '');
+
+		// news.list отдаёт NAME уже экранированным, а сырое имя лежит в ~NAME.
+		// Экранировали NAME второй раз — кавычки в названии выходили буквами
+		// &quot; («&quot;Змей Горыныч&quot;»).
+		$name = htmlspecialcharsbx($item['~NAME'] ?? $item['NAME']);
 		?>
 		<a class="nd-projects__item" href="<?= $item['DETAIL_PAGE_URL'] ?>"<?= $editId ? ' id="'.$editId.'"' : '' ?>>
 			<span class="nd-projects__pic">
 				<? if ($src): ?>
-					<img src="<?= $src ?>" alt="<?= htmlspecialcharsbx($item['NAME']) ?>" loading="lazy">
+					<img src="<?= $src ?>" alt="<?= $name ?>" loading="lazy">
 				<? endif; ?>
 
 				<? if (!empty($brand['VALUE'])): ?>
@@ -61,7 +66,7 @@ if (!function_exists('ndProjectCard')) {
 				<? endif; ?>
 			</span>
 
-			<span class="nd-projects__name"><?= htmlspecialcharsbx($item['NAME']) ?></span>
+			<span class="nd-projects__name"><?= $name ?></span>
 		</a>
 		<?
 	}
