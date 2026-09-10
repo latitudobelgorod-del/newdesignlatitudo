@@ -101,6 +101,41 @@
 		thumbsWrap.classList.toggle('has-more', track.scrollHeight - track.clientHeight > 2);
 	}
 
+	var THUMB = 115, THUMB_GAP = 4;
+
+	/* Галерея целиком в высоту окна (Ирина, 10 сентября 2026) — стили в
+	   css/newdesign-element.css у .nd-pd__photo. Отсюда две вещи:
+	   1) --nd-pd-gal-top — где галерея начинается от верха страницы. Над ней
+	      шапка, крошки и заголовок, а заголовок бывает в одну и в две строки,
+	      поэтому число не зашито в CSS. Шапка прибита, страница начинается под
+	      ней, так что координата от начала документа — это и есть отступ от
+	      верха окна при открытии страницы.
+	   2) --nd-pd-thumb — размер превью. Если фото пришлось ужать по высоте,
+	      превью уменьшаем ровно настолько, чтобы в колонку вошло целое их
+	      число, — иначе нижнее обрезалось бы посередине. */
+	function fitGallery() {
+		if (!gallery || !photo) return;
+		var top = gallery.getBoundingClientRect().top + (window.pageYOffset || 0);
+		gallery.style.setProperty('--nd-pd-gal-top', Math.round(top) + 'px');
+
+		var size = THUMB;
+		var count = track ? track.querySelectorAll('.nd-pd__thumb').length : 0;
+		var box = photo.getBoundingClientRect();
+		var capped = box.height < box.width - 1;
+		if (capped && count && count * (THUMB + THUMB_GAP) - THUMB_GAP > box.height) {
+			var n = Math.ceil((box.height + THUMB_GAP) / (THUMB + THUMB_GAP));
+			size = Math.floor((box.height - THUMB_GAP * (n - 1)) / n);
+		}
+		gallery.style.setProperty('--nd-pd-thumb', size + 'px');
+		updateArrow();
+	}
+
+	var fitTimer = 0;
+	function scheduleFit() {
+		clearTimeout(fitTimer);
+		fitTimer = setTimeout(fitGallery, 100);
+	}
+
 	function show(index) {
 		if (!slides.length) return;
 		current = Math.max(0, Math.min(index, slides.length - 1));
@@ -1300,7 +1335,9 @@
 		}
 		if (nextBtn) {
 			nextBtn.addEventListener('click', function () {
-				var step = 119; /* превью 115 + зазор 4 */
+				/* превью + зазор; размер превью мог подогнать fitGallery() */
+				var first = track.querySelector('.nd-pd__thumb');
+				var step = (first ? first.getBoundingClientRect().height : THUMB) + THUMB_GAP;
 				var atEnd = track.scrollTop + track.clientHeight >= track.scrollHeight - 2;
 				track.scrollTop = atEnd ? 0 : track.scrollTop + step * 3;
 				nextBtn.classList.toggle('is-up', !atEnd && track.scrollTop + track.clientHeight >= track.scrollHeight - 2);
@@ -1322,6 +1359,10 @@
 		}
 		bindSwipe();
 		window.addEventListener('resize', updateArrow);
+		window.addEventListener('resize', scheduleFit);
+		/* Шрифты догружаются после разметки — заголовок может перенестись на
+		   вторую строку, и галерея съедет ниже. */
+		window.addEventListener('load', fitGallery);
 
 		/* Пересчёт «Общей стоимости» — от действий покупателя. Слушаем на root:
 		   мобильная панель покупки лежит внутри него, и переехавшие узлы
@@ -1396,6 +1437,7 @@
 		syncSkuTitles();
 		patchScrollToBlock();
 		bind();
+		fitGallery();
 
 		/* Карточку предложения тема перерисовывает после загрузки — следим за
 		   правой колонкой и подхватываем артикул и кнопку расчёта, когда появятся. */
