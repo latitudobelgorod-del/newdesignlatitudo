@@ -1,6 +1,51 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
 <?$this->setFrameMode(true);?>
 <?
+/* Цена для микроразметки — в ОСНОВНОЙ единице, как её видит покупатель
+   (Ирина, 10 сентября 2026). Цена в каталоге хранится за штуку, а карточка
+   показывает её в основной единице товара (свойство BASE_KOEF): доска
+   2265 ₽/шт показывается как 5000 ₽/м². В разметку раньше уходило 2265 —
+   и Яндекс, сверяя товарный фид (/upload/feed/full-feed-*.yml, там цена за
+   м²) со страницей, видел бы расхождение. На easydecking.ru из-за этого
+   30.07.2026 заблокировали источник. Формула та же, что в
+   local/feed/generate.php. Та же функция объявлена в старом шаблоне
+   aspro_next/.../main6 (его видит робот без куки нового дизайна) —
+   защита function_exists, держать обе копии одинаковыми. */
+if (!function_exists('ndShownPrice'))
+{
+	function ndShownPrice(array $item, array $fallback = array()): float
+	{
+		$price = (float)(!empty($item['MIN_PRICE']['DISCOUNT_VALUE'])
+			? $item['MIN_PRICE']['DISCOUNT_VALUE']
+			: ($item['MIN_PRICE']['VALUE'] ?? 0));
+		if ($price <= 0)
+			return $price;
+
+		$unitsOf = function(array $src) {
+			$props = $src['PROPERTIES'] ?? array();
+			$base = trim((string)($props['BASE_KOEF']['DESCRIPTION'] ?? ($src['DISPLAY_PROPERTIES']['BASE_KOEF']['DESCRIPTION'] ?? '')));
+			return array(
+				(int)$base,
+				(array)($props['UNIT_KOEF']['VALUE'] ?? array()),
+				(array)($props['UNIT_KOEF']['DESCRIPTION'] ?? array()),
+			);
+		};
+		list($baseUnit, $values, $units) = $unitsOf($item);
+		if (($baseUnit <= 0 || !$values) && $fallback)
+			list($baseUnit, $values, $units) = $unitsOf($fallback);
+		if ($baseUnit <= 0)
+			return $price;
+
+		foreach ($values as $i => $koef)
+		{
+			$koef = (float)str_replace(',', '.', (string)$koef);
+			if ((int)trim((string)($units[$i] ?? '')) === $baseUnit && $koef > 0)
+				return round($price * $koef, 2);
+		}
+		return $price;
+	}
+}
+
 /* Стили и скрипт нового дизайна детальной. Тегами прямо здесь: компонент рисуется,
    когда <head> уже отдан, SetAdditionalCSS/AddHeadScript туда не доедут. */
 if (!defined('ND_ELEMENT_ASSETS')) {
@@ -1317,7 +1362,7 @@ $ndColorItems = array_values(array_filter(
 									$min_price_id = $arCurPriceType['ID'];?>
 							<?/* Здесь та же проверка, что и ниже: без цены разметка предложения
 							   пустая, а пустое предложение — ошибка. */
-							$ndMatrixPrice = ($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE']);?>
+							$ndMatrixPrice = ndShownPrice($arResult); // в основной единице — см. начало шаблона?>
 							<?if($ndMatrixPrice > 0 && $arResult['MIN_PRICE']['CURRENCY']):?>
 							<div class="" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
 								<meta itemprop="price" content="<?=$ndMatrixPrice?>" />
@@ -1652,21 +1697,19 @@ $ndColorItems = array_values(array_filter(
 		   // микроразметки, 19 августа 2026). Если цен не оказалось вовсе,
 		   // возвращаемся к прежним значениям — пустой lowPrice хуже неточного.?>
 		<?
+		// Цены предложений — в основной единице (ndShownPrice), как на экране
+		// и в товарном фиде; по ним же нижняя и верхняя цена.
 		$ndOfferPrices = array();
 		foreach($arResult['OFFERS'] as $arOffer)
 		{
-			$ndPrice = ($arOffer['MIN_PRICE']['DISCOUNT_VALUE'] ? $arOffer['MIN_PRICE']['DISCOUNT_VALUE'] : $arOffer['MIN_PRICE']['VALUE']);
+			$ndPrice = ndShownPrice($arOffer, $arResult);
 			if($ndPrice > 0)
 				$ndOfferPrices[] = $ndPrice;
 		}
 		unset($arOffer, $ndPrice);
 
-		$ndLowPrice = $ndOfferPrices
-			? min($ndOfferPrices)
-			: ($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE']);
-		$ndHighPrice = $ndOfferPrices
-			? max($ndOfferPrices)
-			: ($arResult['MAX_PRICE']['DISCOUNT_VALUE'] ? $arResult['MAX_PRICE']['DISCOUNT_VALUE'] : $arResult['MAX_PRICE']['VALUE']);
+		$ndLowPrice = $ndOfferPrices ? min($ndOfferPrices) : ndShownPrice($arResult);
+		$ndHighPrice = $ndOfferPrices ? max($ndOfferPrices) : ndShownPrice($arResult);
 
 		/* В разметку берём только предложения с ценой: Offer без price и
 		   priceCurrency Google считает недействительным, а вместе с ним и
@@ -1719,7 +1762,7 @@ $ndColorItems = array_values(array_filter(
 					<?endif;?>
 					<meta itemprop="name" content="<?=$arOffer["NAME"] ?>" />
 					<link itemprop="url" href="<?=$arOffer['DETAIL_PAGE_URL']?>?pid=<?=$arOffer['ID']?>" />
-					<meta itemprop="price" content="<?=($arOffer['MIN_PRICE']['DISCOUNT_VALUE']) ? $arOffer['MIN_PRICE']['DISCOUNT_VALUE'] : $arOffer['MIN_PRICE']['VALUE']?>" />
+					<meta itemprop="price" content="<?=ndShownPrice($arOffer, $arResult)?>" />
 					<meta itemprop="priceCurrency" content="<?=$arOffer['MIN_PRICE']['CURRENCY']?>" />
 					<link itemprop="availability" href="http://schema.org/<?=($arOffer['CAN_BUY'] ? 'InStock' : 'OutOfStock')?>" />
 					<?// Google ждёт у предложения срок действия цены и состояние товара:
@@ -1746,7 +1789,7 @@ $ndColorItems = array_values(array_filter(
 		   отсутствием цены: товар, которому цену просто не завели, попадал в
 		   отчёт «Товары» как недействительный — «Укажите price», «Отсутствует
 		   поле priceCurrency». Нет цены — предложение не печатаем вовсе. */
-		$ndDetailPrice = ($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE']);?>
+		$ndDetailPrice = ndShownPrice($arResult); // в основной единице — см. начало шаблона?>
 		<?if($ndDetailPrice > 0 && $arResult['MIN_PRICE']['CURRENCY']):?>
 		<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
 				<meta itemprop="price" content="<?=$ndDetailPrice?>" />

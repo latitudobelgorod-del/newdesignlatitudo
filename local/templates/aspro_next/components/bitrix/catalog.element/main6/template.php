@@ -1,5 +1,53 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();?>
 <?$this->setFrameMode(true);?>
+<?
+/* Цена для микроразметки — в ОСНОВНОЙ единице, как её видит покупатель
+   (Ирина, 10 сентября 2026). Цена в каталоге хранится за штуку, а карточка
+   показывает её в основной единице товара (свойство BASE_KOEF): доска
+   2265 ₽/шт показывается как 5000 ₽/м². В разметку раньше уходило 2265 —
+   и Яндекс, сверяя товарный фид (/upload/feed/full-feed-*.yml, там цена за
+   м²) со страницей, видел бы расхождение. На easydecking.ru из-за этого
+   30.07.2026 заблокировали источник. Формула та же, что в
+   local/feed/generate.php: множитель основной единицы из UNIT_KOEF
+   (коэффициент в VALUE, ID единицы в DESCRIPTION). Нет основной единицы —
+   цена за штуку как есть. Коэффициенты берём у предложения, а если у него
+   не заведены — у товара ($fallback). Функция объявлена так же в шаблоне
+   нового дизайна (main6_newdesign) — защита function_exists. */
+if (!function_exists('ndShownPrice'))
+{
+	function ndShownPrice(array $item, array $fallback = array()): float
+	{
+		$price = (float)(!empty($item['MIN_PRICE']['DISCOUNT_VALUE'])
+			? $item['MIN_PRICE']['DISCOUNT_VALUE']
+			: ($item['MIN_PRICE']['VALUE'] ?? 0));
+		if ($price <= 0)
+			return $price;
+
+		$unitsOf = function(array $src) {
+			$props = $src['PROPERTIES'] ?? array();
+			$base = trim((string)($props['BASE_KOEF']['DESCRIPTION'] ?? ($src['DISPLAY_PROPERTIES']['BASE_KOEF']['DESCRIPTION'] ?? '')));
+			return array(
+				(int)$base,
+				(array)($props['UNIT_KOEF']['VALUE'] ?? array()),
+				(array)($props['UNIT_KOEF']['DESCRIPTION'] ?? array()),
+			);
+		};
+		list($baseUnit, $values, $units) = $unitsOf($item);
+		if (($baseUnit <= 0 || !$values) && $fallback)
+			list($baseUnit, $values, $units) = $unitsOf($fallback);
+		if ($baseUnit <= 0)
+			return $price;
+
+		foreach ($values as $i => $koef)
+		{
+			$koef = (float)str_replace(',', '.', (string)$koef);
+			if ((int)trim((string)($units[$i] ?? '')) === $baseUnit && $koef > 0)
+				return round($price * $koef, 2);
+		}
+		return $price;
+	}
+}
+?>
 <style>
 #stores.hidden {
     display: none;
@@ -999,7 +1047,8 @@ BX.ready(function() {
 									$arCurPrice = current($arResult['PRICE_MATRIX']['MATRIX'][$arCurPriceType['ID']]);
 									$min_price_id = $arCurPriceType['ID'];?>
 							<div class="" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-								<meta itemprop="price" content="<?=($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE'])?>" />
+								<?// цена в основной единице — см. ndShownPrice() в начале шаблона?>
+								<meta itemprop="price" content="<?=ndShownPrice($arResult)?>" />
 								<meta itemprop="priceCurrency" content="<?=$arResult['MIN_PRICE']['CURRENCY']?>" />
 								<link itemprop="availability" href="http://schema.org/<?=($arResult['PRICE_MATRIX']['AVAILABLE'] == 'Y' ? 'InStock' : 'OutOfStock')?>" />
 								<?
@@ -1299,10 +1348,22 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 
 	<?$bPriceCount = ($arParams['USE_PRICE_COUNT'] == 'Y');?>
 	<?if($arResult['OFFERS']):?>
+		<?
+		// Нижняя и верхняя цена — по ценам предложений в основной единице
+		// (ndShownPrice), иначе они разошлись бы с ценами самих Offer ниже.
+		$ndShownPrices = array();
+		foreach($arResult['OFFERS'] as $arOffer)
+		{
+			$ndOne = ndShownPrice($arOffer, $arResult);
+			if($ndOne > 0)
+				$ndShownPrices[] = $ndOne;
+		}
+		unset($arOffer, $ndOne);
+		?>
 		<span itemprop="offers" itemscope itemtype="http://schema.org/AggregateOffer" style="display:none;">
 			<meta itemprop="offerCount" content="<?=count($arResult['OFFERS'])?>" />
-			<meta itemprop="lowPrice" content="<?=($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE'] )?>" />
-			<meta itemprop="highPrice" content="<?=($arResult['MAX_PRICE']['DISCOUNT_VALUE'] ? $arResult['MAX_PRICE']['DISCOUNT_VALUE'] : $arResult['MAX_PRICE']['VALUE'] )?>" />
+			<meta itemprop="lowPrice" content="<?=($ndShownPrices ? min($ndShownPrices) : ndShownPrice($arResult))?>" />
+			<meta itemprop="highPrice" content="<?=($ndShownPrices ? max($ndShownPrices) : ndShownPrice($arResult))?>" />
 			<meta itemprop="priceCurrency" content="<?=$arResult['MIN_PRICE']['CURRENCY']?>" />
 			<?foreach($arResult['OFFERS'] as $arOffer):?>
 				<?$currentOffersList = array();?>
@@ -1323,7 +1384,7 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 					<meta itemprop="sku" content="<?=implode('/', $currentOffersList)?>" />
 					<meta itemprop="name" content="<?=$arOffer["NAME"] ?>" />
 					<link itemprop="url" href="<?=$arOffer['DETAIL_PAGE_URL']?>?pid=<?=$arOffer['ID']?>" />
-					<meta itemprop="price" content="<?=($arOffer['MIN_PRICE']['DISCOUNT_VALUE']) ? $arOffer['MIN_PRICE']['DISCOUNT_VALUE'] : $arOffer['MIN_PRICE']['VALUE']?>" />
+					<meta itemprop="price" content="<?=ndShownPrice($arOffer, $arResult)?>" />
 					<meta itemprop="priceCurrency" content="<?=$arOffer['MIN_PRICE']['CURRENCY']?>" />
 					<link itemprop="availability" href="http://schema.org/<?=($arOffer['CAN_BUY'] ? 'InStock' : 'OutOfStock')?>" />
 					<?
@@ -1338,7 +1399,8 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 	<?else:?>
 		<?if(!$bPriceCount):?>
 		<span itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-				<meta itemprop="price" content="<?=($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ? $arResult['MIN_PRICE']['DISCOUNT_VALUE'] : $arResult['MIN_PRICE']['VALUE'])?>" />
+				<?// цена в основной единице — см. ndShownPrice() в начале шаблона?>
+				<meta itemprop="price" content="<?=ndShownPrice($arResult)?>" />
 				<meta itemprop="priceCurrency" content="<?=$arResult['MIN_PRICE']['CURRENCY']?>" />
 				<link itemprop="availability" href="http://schema.org/<?=($arResult['MIN_PRICE']['CAN_BUY'] ? 'InStock' : 'OutOfStock')?>" />
 				<?
