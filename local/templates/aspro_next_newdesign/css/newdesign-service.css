@@ -402,12 +402,26 @@ body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored:hove
     display: none;
 }
 
-.services_newdesign .tiz_ter_block .item > div:last-child {
+/* Заголовок карточки («Опытные монтажники», «Гарантия») — тёмный жирный
+   18/22, а описание под ним — обычный текст страницы 16/24 (Ирина,
+   11 сентября 2026). Раньше было наоборот: серая подпись темы и жирное
+   описание. */
+.services_newdesign .tiz_ter_block .item .title,
+.services_newdesign .tiz_ter_block .item .title.bold {
     margin-top: 16px;
+    margin-bottom: 0;
     font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     font-size: 18px;
     line-height: 22px;
     font-weight: 700;
+    color: #101014;
+}
+.services_newdesign .tiz_ter_block .item > div:last-child {
+    margin-top: 8px;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
     color: #101014;
 }
 
@@ -553,9 +567,15 @@ body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored:hove
         width: 64px;
         height: 64px;
     }
-    .services_newdesign .tiz_ter_block .item > div:last-child {
+    .services_newdesign .tiz_ter_block .item .title,
+    .services_newdesign .tiz_ter_block .item .title.bold {
         margin-top: 12px;
         font-size: 16px;
         line-height: 20px;
+    }
+    .services_newdesign .tiz_ter_block .item > div:last-child {
+        margin-top: 6px;
+        font-size: 15px;
+        line-height: 22px;
     }
 }
