@@ -425,6 +425,33 @@ body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored:hove
     color: #101014;
 }
 
+/* Иконка, заголовок и описание всех карточек ряда — в общих строках сетки
+   (subgrid): у «Бесплатного выезда замерщика» заголовок в две строки, и
+   описания соседей начинались выше (Ирина, 11 сентября 2026). Каждая колонка
+   и карточка занимают три строки сетки и берут их у ряда. Промежуток между
+   рядами карточек (на планшете их два) — полем снизу у колонки: row-gap ряда
+   теперь попал бы и между иконкой, заголовком и описанием. Где subgrid нет,
+   остаётся прежняя раскладка столбиком. */
+@supports (grid-template-rows: subgrid) {
+    .services_newdesign .tiz_ter_block .row {
+        row-gap: 0;
+        margin-bottom: -16px;
+    }
+    .services_newdesign .tiz_ter_block .row > [class*="col-"] {
+        display: grid;
+        grid-row: span 3;
+        grid-template-rows: subgrid;
+        margin-bottom: 16px;
+    }
+    .services_newdesign .tiz_ter_block .item {
+        display: grid;
+        grid-row: span 3;
+        grid-template-rows: subgrid;
+        row-gap: 0;
+        align-content: start;
+    }
+}
+
 /* Иконки: те же узлы, что и раньше, но вместо куска png-спрайта — контурная
    иконка из макета. Рисуем маской, чтобы цвет задавался стилями. */
 .services_newdesign .tiz_ter_block .item .bg-garantiya,
