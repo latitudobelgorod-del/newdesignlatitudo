@@ -197,6 +197,116 @@ margin-bottom:10px;
   padding: 0 10px 10px;
   display: none;
 }
+
+/* Новый вид (Ирина, 11 сентября 2026): строки с серой меткой-квадратом
+   слева (место под иконку услуги) и плюсом справа, между строками — черта.
+   Раскрытый пункт: метка красная, плюс становится минусом, текст серый
+   с отступом под заголовок. Размер шрифта не задаём — остаётся тот, что у
+   текста страницы. Селекторы с .accordeon_lat — чтобы перебить старые
+   .acc-head/.acc-body из custom.css (пунктирная красная ссылка). */
+.accordeon_lat {
+  margin: 8px 0 24px;
+}
+.accordeon_lat .accordion-item {
+  margin: 0;
+  border-bottom: 1px solid rgba(82, 82, 100, .12);
+}
+.accordeon_lat .acc-head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 0;
+  padding: 18px 0;
+  border: 0;
+  color: #101014;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+}
+.accordeon_lat .acc-head:focus-visible {
+  box-shadow: 0 0 0 2px rgba(198, 0, 0, .35);
+  border-radius: 8px;
+}
+.accordeon_lat .acc-head__ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #f0f0f3;
+  color: #7c7c88;
+  transition: background-color .2s ease, color .2s ease;
+}
+.accordeon_lat .acc-head__ico::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+.accordeon_lat .acc-head:hover .acc-head__ico {
+  background: #e6e6eb;
+}
+.accordeon_lat .acc-head__title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+/* Плюс из двух линий: у раскрытого пункта вертикальная прячется — минус. */
+.accordeon_lat .acc-head__sign {
+  position: relative;
+  flex: 0 0 12px;
+  height: 12px;
+  margin-right: 6px;
+  color: #9a9aa5;
+}
+.accordeon_lat .acc-head__sign::before,
+.accordeon_lat .acc-head__sign::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 12px;
+  height: 1.5px;
+  margin-top: -.75px;
+  background: currentColor;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.accordeon_lat .acc-head__sign::after {
+  transform: rotate(90deg);
+}
+.accordeon_lat .accordion-item.is-open .acc-head__ico {
+  background: #c60000;
+  color: #fff;
+}
+.accordeon_lat .accordion-item.is-open .acc-head__sign::after {
+  transform: rotate(0);
+  opacity: 0;
+}
+.accordeon_lat .acc-body {
+  padding: 0 36px 20px 64px;
+  color: #5c5c6b;
+}
+.accordeon_lat .acc-body .detail_text > :first-child {
+  margin-top: 0;
+}
+.accordeon_lat .acc-body .detail_text:last-child > :last-child {
+  margin-bottom: 0;
+}
+@media (max-width: 767px) {
+  .accordeon_lat .acc-head {
+    gap: 14px;
+    padding: 14px 0;
+  }
+  .accordeon_lat .acc-head__ico {
+    flex-basis: 40px;
+    height: 40px;
+  }
+  .accordeon_lat .acc-body {
+    padding: 0 0 16px 54px;
+  }
+}
 /*аккордеон*/
 @media screen and (max-width: 1680px) {
     .sp-gallery-item, .group_description_block .sp-gallery-item  {

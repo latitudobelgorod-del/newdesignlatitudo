@@ -2,14 +2,26 @@
 //аккордеон
 $(document).ready(function() {
   //прикрепляем клик по заголовкам acc-head
-  $('.accordeon_lat .acc-head').on('click', f_acc);
+  $('.accordeon_lat .acc-head').on('click', f_acc).on('keydown', function(e) {
+    // заголовок — role="button": открывается и с клавиатуры
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      f_acc.call(this);
+    }
+  });
 });
 
 function f_acc(){
+  var $item = $(this).closest('.accordion-item');
 //скрываем все кроме того, что должны открыть
+  $('.accordeon_lat .accordion-item.is-open').not($item).removeClass('is-open')
+    .children('.acc-head').attr('aria-expanded', 'false');
   $('.accordeon_lat .acc-body').not($(this).next()).slideUp();
-// открываем или скрываем блок под заголовоком, по которому кликнули
- $(this).next().slideToggle();
+// открываем или скрываем блок под заголовоком, по которому кликнули;
+// класс is-open красит метку и меняет плюс на минус
+  $item.toggleClass('is-open');
+  $(this).attr('aria-expanded', $item.hasClass('is-open') ? 'true' : 'false');
+  $(this).next().slideToggle();
 }
 //аккордеон
 /*accordion*/
