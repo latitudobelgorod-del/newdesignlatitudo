@@ -58,9 +58,12 @@ $ndTelHref = function($value) {
 	return 'tel:'.preg_replace('/[^0-9+]/', '', $value);
 };
 
-// Кнопки основной строки. Порядок и подписи — из макета.
+// Кнопки основной строки. Порядок и подписи — из макета, кроме первой: на
+// месте «Услуг» — красная кнопка «Акции» (Ирина, 11 сентября 2026). «Услуги»
+// ушли в нижнюю строку на место «Работы у нас», а та — на место «Акций и
+// скидок» (menus/*_menu_header_newdesign.php). CLASS — модификатор кнопки.
 $arMainNav = array(
-	array('TEXT' => 'Услуги',       'LINK' => '/services/'),
+	array('TEXT' => 'Акции',        'LINK' => '/sale/', 'CLASS' => 'nd-btn--red nd-btn--sale'),
 	array('TEXT' => 'Партнерам',    'LINK' => '/info/'),
 	array('TEXT' => 'Портфолио',    'LINK' => '/projects/'),
 );
@@ -262,7 +265,7 @@ $basketCount = (int)$arBasketPrices['BASKET_COUNT'];
 			</a>
 
 			<?foreach($arMainNav as $arItem):?>
-				<a class="nd-btn nd-btn--muted" href="<?=$arItem['LINK']?>"><span><?=$arItem['TEXT']?></span></a>
+				<a class="nd-btn <?=($arItem['CLASS'] ?? 'nd-btn--muted')?>" href="<?=$arItem['LINK']?>"><span><?=$arItem['TEXT']?></span></a>
 			<?endforeach;?>
 
 			<?$APPLICATION->IncludeComponent(

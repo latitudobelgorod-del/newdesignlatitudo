@@ -373,6 +373,34 @@ body {
     color: #fff;
 }
 
+/* «Акции» в основной строке рядом с «Каталогом» — красная кнопка, которая
+   притягивает взгляд (Ирина, 11 сентября 2026): белая точка после подписи,
+   как у прежней метки «Акции и скидки» в нижней строке, и мягкая пульсация
+   вокруг неё. Кому анимация мешает (настройка системы), точка не пульсирует. */
+.nd-btn--sale {
+    gap: 8px;
+}
+.nd-btn--sale::after {
+    content: "";
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, .7);
+    animation: nd-sale-pulse 2s ease-out infinite;
+}
+@keyframes nd-sale-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, .7); }
+    70%  { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nd-btn--sale::after {
+        animation: none;
+    }
+}
+
 /* Поиск занимает всё свободное место строки. */
 .nd-search {
     flex: 1 1 auto;
