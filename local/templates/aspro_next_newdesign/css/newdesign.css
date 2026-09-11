@@ -1112,6 +1112,21 @@ textarea {
    ====================================================================== */
 /* Обёртка .infochat у темы со своей рамкой и полем в 15px — под серой
    карточкой она читается как лишний контур. Гасим. */
+/* тот же блок внутри текста страницы услуги (include/infochat_service.php) */
+.nd-service-infochat {
+    margin: 32px 0;
+}
+/* внутри .editor тема подчёркивает все ссылки — у телефона и почты не нужно */
+.editor .nd-infochat a,
+.editor .nd-infochat a:hover,
+.editor .nd-infochat a:focus {
+    text-decoration: none;
+}
+@media (max-width: 767px) {
+    .nd-service-infochat {
+        margin: 24px 0;
+    }
+}
 .nd-infochat-wrap {
     padding: 0;
     border: 0;

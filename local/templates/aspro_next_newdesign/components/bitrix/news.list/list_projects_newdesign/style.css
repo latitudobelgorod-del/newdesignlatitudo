@@ -167,3 +167,14 @@
 .editor .nd-projects__item:focus {
     text-decoration: none;
 }
+/* Внутри страницы сетка идёт вперемешку с другими блоками редактора, а у неё
+   самой нижнего поля нет — кнопка «Полное портфолио» на /services/pirsy-na-svayakh/
+   прилипала к подписям карточек (Ирина, 11 сентября 2026). */
+.editor .nd-projects {
+    margin-bottom: 32px;
+}
+@media (max-width: 767px) {
+    .editor .nd-projects {
+        margin-bottom: 24px;
+    }
+}
