@@ -80,6 +80,260 @@ u {
     }
 }
 
+/* ==================== «Приезжайте в шоурум» (include/showroom_newdesign.php) ====
+   Макет Ирины, 11 сентября 2026: слева тёмная панель (адрес, крупный телефон,
+   режим работы, кнопки «Заказать пропуск» и «Схема проезда»), справа фото
+   шоурума и две светлые карточки со списками с красными галочками, снизу
+   плашка «Архитекторам» с красной кнопкой «Получить условия». Блок стоит в
+   тексте страниц услуг и каталога — поэтому сбрасываем маркеры списков и
+   подчёркивание ссылок, которые тема даёт всему содержимому. */
+.nd-showroom {
+    margin: 40px 0;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+    color: #101014;
+}
+.nd-showroom__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 36fr) minmax(0, 64fr);
+    gap: 22px;
+}
+.nd-showroom__panel {
+    display: flex;
+    flex-direction: column;
+    padding: 36px;
+    border-radius: 8px;
+    background: #525264;
+    color: #fff;
+}
+.nd-showroom__title {
+    margin: 0 0 20px;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 700;
+    color: #fff;
+}
+.nd-showroom__address,
+.nd-showroom__time {
+    font-size: 16px;
+    line-height: 24px;
+    color: rgba(255, 255, 255, .85);
+}
+.nd-showroom .nd-showroom__phone,
+.nd-showroom .nd-showroom__phone:hover,
+.nd-showroom .nd-showroom__phone:focus {
+    display: inline-block;
+    margin: 24px 0;
+    font-size: 32px;
+    line-height: 40px;
+    font-weight: 800;
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.nd-showroom__time {
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, .2);
+}
+.nd-showroom__actions {
+    display: grid;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 32px;
+}
+.nd-showroom .nd-showroom__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 56px;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+.nd-showroom .nd-showroom__btn--light {
+    background: #fff;
+    color: #101014;
+}
+.nd-showroom .nd-showroom__btn--light:hover {
+    background: #ececf0;
+    color: #101014;
+}
+.nd-showroom .nd-showroom__btn--outline {
+    border: 1px solid rgba(255, 255, 255, .7);
+    color: #fff;
+}
+.nd-showroom .nd-showroom__btn--outline:hover,
+.nd-showroom .nd-showroom__btn--outline:focus {
+    background: rgba(255, 255, 255, .1);
+    color: #fff;
+    text-decoration: none;
+}
+.nd-showroom__side {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
+}
+.nd-showroom__photo {
+    flex: 1 1 auto;
+    min-height: 320px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: rgba(82, 82, 100, .1);
+}
+.nd-showroom__photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.nd-showroom__cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+.nd-showroom__card {
+    padding: 28px;
+    border-radius: 8px;
+    background: rgba(82, 82, 100, .05);
+}
+.nd-showroom__card-title {
+    margin: 0 0 16px;
+    font-size: 16px;
+    line-height: 24px;
+    color: #8f8f9a;
+}
+.nd-showroom .nd-showroom__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.nd-showroom .nd-showroom__list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0 0 10px;
+    padding: 0;
+    font-size: 16px;
+    line-height: 24px;
+    color: #101014;
+}
+.nd-showroom .nd-showroom__list li:last-child {
+    margin-bottom: 0;
+}
+.nd-showroom .nd-showroom__list li::before {
+    content: none;
+}
+.nd-showroom__check {
+    flex: 0 0 16px;
+    margin-top: 4px;
+    color: #c60000;
+}
+.nd-showroom .nd-showroom__list a {
+    color: #c60000;
+    text-decoration: none;
+}
+.nd-showroom .nd-showroom__list a:hover,
+.nd-showroom .nd-showroom__list a:focus {
+    text-decoration: underline;
+}
+.nd-showroom__arch {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 22px;
+    padding: 24px 32px;
+    border-radius: 8px;
+    background: #525264;
+    color: #fff;
+}
+.nd-showroom__arch-ico {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='none'%3E%3Ccircle cx='16' cy='16' r='14' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M16 9v9' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='22.5' r='1.6' fill='%23fff'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+.nd-showroom__arch-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 18px;
+    line-height: 26px;
+}
+.nd-showroom .nd-showroom__arch-text a,
+.nd-showroom .nd-showroom__arch-text a:hover {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.nd-showroom .nd-showroom__arch-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    padding: 0 24px;
+    border-radius: 4px;
+    background: #c60000;
+    color: #fff;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color .15s ease;
+}
+.nd-showroom .nd-showroom__arch-btn:hover,
+.nd-showroom .nd-showroom__arch-btn:focus {
+    background: #a80000;
+    color: #fff;
+    text-decoration: none;
+}
+@media (max-width: 1199px) {
+    .nd-showroom__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .nd-showroom__photo {
+        min-height: 280px;
+    }
+}
+@media (max-width: 767px) {
+    .nd-showroom__panel {
+        padding: 24px;
+    }
+    .nd-showroom .nd-showroom__phone {
+        font-size: 26px;
+        line-height: 32px;
+        white-space: normal;
+    }
+    .nd-showroom__cards {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+    .nd-showroom__card {
+        padding: 20px;
+    }
+    .nd-showroom__photo {
+        min-height: 220px;
+    }
+    .nd-showroom__arch {
+        flex-wrap: wrap;
+        padding: 20px;
+    }
+    .nd-showroom__arch-text {
+        flex-basis: calc(100% - 48px);
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .nd-showroom .nd-showroom__arch-btn {
+        width: 100%;
+    }
+}
+
 /* Маркеры списков — чёрные точки, как в макете (Ирина, 11 сентября 2026).
    Тема рисует маркер всем ul li символом «●» в ::before и красит его в цвет
    темы (красный rgb(167,21,31)) правилом `ul li:before` из файла цветов —
