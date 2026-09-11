@@ -218,8 +218,54 @@ body .services_newdesign .nd-srv-hero__cta .btn.btn-default.colored,
     box-shadow: none !important;
 }
 
-/* Обе кнопки белые: прозрачная вторая, как в макете, на фотографии читалась
-   плохо — Ирина попросила сделать её такой же, как первую (19 августа 2026). */
+/* Текст кнопки формы лежит во вложенном <span>, и тема красит его белым —
+   на белой кнопке «Заказать консультацию и расчет» не было видно подписи
+   (Ирина, 11 сентября 2026). */
+body .services_newdesign .nd-srv-hero__cta .btn span {
+    color: inherit !important;
+}
+
+/* Вторая кнопка — как в макете 20669:41851: прозрачная, белая рамка и
+   подпись. 19 августа 2026 Ирина просила сделать её белой, как первую;
+   11 сентября 2026 — снова по макету. */
+body .services_newdesign .nd-srv-hero__cta > * + * span.btn,
+body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored,
+body .services_newdesign .nd-srv-hero__cta > * + * .btn {
+    border: 2px solid #fff !important;
+    background: transparent !important;
+    color: #fff !important;
+}
+body .services_newdesign .nd-srv-hero__cta > * + * .btn:hover,
+body .services_newdesign .nd-srv-hero__cta > * + * a:hover .btn,
+body .services_newdesign .nd-srv-hero__cta > * + * a:focus .btn {
+    background: rgba(255, 255, 255, .12) !important;
+    color: #fff !important;
+}
+
+/* Кнопки в один ряд, как в макете. Подписи здесь длиннее макетных
+   («Посмотреть проекты террас на крыше»): в карточку 642 они влезают с
+   полями 18, а на экране поуже вместо переноса кнопки под кнопку
+   переносится текст внутри кнопок — ряд сохраняется. */
+@media (min-width: 768px) {
+    .services_newdesign .nd-srv-hero__cta {
+        flex-wrap: nowrap;
+    }
+    .services_newdesign .nd-srv-hero__cta > * {
+        flex: 0 1 auto;
+    }
+    body .services_newdesign .nd-srv-hero__cta span.btn,
+    body .services_newdesign .nd-srv-hero__cta a span.btn,
+    body .services_newdesign .nd-srv-hero__cta .btn.btn-default.colored,
+    .services_newdesign .nd-srv-hero__cta .btn,
+    .services_newdesign .nd-srv-hero__cta a .btn {
+        width: 100% !important;
+        height: auto;
+        min-height: 56px;
+        padding: 8px 18px !important;
+        white-space: normal;
+        text-align: center;
+    }
+}
 
 /* ---------------------------------------------------------------------------
    «Вы получаете»: четыре карточки с контурными иконками.
@@ -250,6 +296,19 @@ body .services_newdesign .nd-srv-hero__cta .btn.btn-default.colored,
    карточки упирались в то, что идёт дальше (Ирина, 19 августа 2026). */
 .services_newdesign .tiz_ter_block {
     margin: 0 0 40px;
+}
+
+/* Обёртка карточек из старых стилей (custom.css) — со светлой рамкой по
+   кругу; вместе с нижним полем сетки под карточками выходила пустая рамка
+   (Ирина, 11 сентября 2026). В макете у карточек своя рамка, общей нет. */
+.services_newdesign .terrace-infographic {
+    display: block;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+}
+.services_newdesign .terrace-benefits {
+    margin: 32px 0 0;
 }
 
 .services_newdesign .tiz_ter_block .row {
