@@ -705,34 +705,28 @@ div.title-search-result::-webkit-scrollbar-thumb {
 
    Вертикальные поля 4px, а не 5: лишний пиксель рамки сверху и снизу иначе
    поднял бы строку меню ещё на 2px. */
-.nd-menu-link--accent {
+/* 11 сентября 2026: в accent теперь «Услуги», и Ирина попросила оформить
+   пункт как кнопку «Сбросить фильтры» (css/newdesign.css, .nd-filter__reset):
+   белая, тёмная рамка 2px, радиус 6, жирная подпись, без красного и без
+   точки; на наведении — лёгкая серая подложка. Размер пункта прежний. */
+.nd-menu-link--accent,
+.nd-menu-link--accent.is-active {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 4px 12px;
-    color: #c60000;
+    color: #101014;
     background: #fff;
-    border: 2px solid #c60000;
-    border-radius: 4px;
-    transition: background-color .15s ease, color .15s ease;
-}
-
-/* Точка — отдельный элемент, а не символ шрифта: так она одинакова во всех
-   браузерах и не зависит от начертания. Цвет берём currentColor, поэтому на
-   наведении она сама становится белой вместе с текстом. */
-.nd-menu-link--accent::after {
-    content: "";
-    flex: none;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
+    border: 2px solid #101014;
+    border-radius: 6px;
+    font-weight: 700;
+    transition: background-color .15s ease;
 }
 
 .nd-menu-link--accent:hover,
 .nd-menu-link--accent:focus {
-    background: #c60000;
-    color: #fff;
+    background: rgba(82, 82, 100, .05);
+    color: #101014;
 }
 
 /* ============================== каталог ================================= */
