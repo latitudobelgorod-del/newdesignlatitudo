@@ -325,6 +325,28 @@ body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored:hove
     margin: 0 0 40px;
 }
 
+/* Текст под шапкой («Компания Латитудо имеет опыт строительства…») — секция
+   .terrace-second-screen, которой custom.css задаёт Arial. В макете весь текст
+   услуги — Nunito Sans (Ирина, 11 сентября 2026). */
+.services_newdesign .terrace-second-screen {
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+    color: #101014;
+}
+
+/* Сетка проектов, вставленная блоком редактора в текст услуги: по макету
+   «Услуга» — по две карточки в ряд, крупнее, подпись полужирная 18/24
+   (Ирина, 11 сентября 2026). На телефоне остаётся одна колонка шаблона. */
+@media (min-width: 768px) {
+    .services_newdesign .editor .nd-projects__list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .services_newdesign .editor .nd-projects__name {
+        font-size: 18px;
+        line-height: 24px;
+        font-weight: 600;
+    }
+}
+
 /* Обёртка карточек из старых стилей (custom.css) — со светлой рамкой по
    кругу; вместе с нижним полем сетки под карточками выходила пустая рамка
    (Ирина, 11 сентября 2026). В макете у карточек своя рамка, общей нет. */
