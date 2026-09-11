@@ -23,7 +23,8 @@
  * в среднем 1,8 фото, ни одной характеристики, у 1106 позиций пустое
  * описание. Поэтому уже собранный узел <offer> дополняем:
  *   - фото: доп. картинки предложения (MORE_PHOTO), галерея товара и
- *     последним кадром чертёж «Профиль доски» (PROFIL) — до 20 штук;
+ *     последним кадром чертёж «Профиль доски» (PROFIL) — не больше 10
+ *     штук, это лимит Яндекса (11 сентября 2026, ошибка в отчёте о фиде);
  *   - видео: «Товарное видео» предложения, иначе «Видео в попапе» товара;
  *   - характеристики <param>: у предложения — цвет, длина, вид доски; затем
  *     логистические параметры (длина, ширина, толщина, вес из каталога);
@@ -163,7 +164,7 @@ class LatitudoMarketFeed
     // Наполнение карточки: фото, видео, характеристики, описание
     // =====================================================================
 
-    const PICTURES_MAX = 20;
+    const PICTURES_MAX = 10;
     const DESCRIPTION_MAX = 3000;
 
     /** Свойства предложения, которые идут в <param> первыми. */
@@ -250,20 +251,43 @@ class LatitudoMarketFeed
         }
 
         // --- фото ------------------------------------------------------------
+        // Яндекс берёт не больше 10 картинок, остальные отбрасывает с
+        // ошибкой в отчёте. Чертёж профиля ставим последним кадром, но место
+        // под него держим: без него у доски теряется самое полезное фото.
+        $profil = array_map(static fn($p) => $host . $p, $product['PROFIL'] ?? []);
         $have = [];
         foreach ($offer->getChild('picture') as $pic) {
-            $have[(string)$pic->getValue()] = true;
+            $url = (string)$pic->getValue();
+            if (isset($have[$url])) {
+                $offer->removeChild($pic);
+                continue;
+            }
+            $have[$url] = true;
         }
-        $extra = array_merge($own['MORE_PHOTO'] ?? [], $product['MORE_PHOTO'] ?? [], $product['PROFIL'] ?? []);
-        foreach ($extra as $path) {
-            if (count($have) >= static::PICTURES_MAX) {
+        $photos = array_map(static fn($p) => $host . $p, array_merge($own['MORE_PHOTO'] ?? [], $product['MORE_PHOTO'] ?? []));
+        $room = static::PICTURES_MAX - count(array_diff($profil, array_keys($have)));
+        foreach ($photos as $url) {
+            if (count($have) >= $room) {
                 break;
             }
-            $url = $host . $path;
             if (!isset($have[$url])) {
                 $offer->addChild('picture', $url);
                 $have[$url] = true;
             }
+        }
+        foreach ($profil as $url) {
+            if (count($have) >= static::PICTURES_MAX) {
+                break;
+            }
+            if (!isset($have[$url])) {
+                $offer->addChild('picture', $url);
+                $have[$url] = true;
+            }
+        }
+        // Если модуль сам вывел больше лимита — лишние снимаем с конца.
+        $pictures = $offer->getChild('picture');
+        for ($i = count($pictures) - 1; $i >= static::PICTURES_MAX; $i--) {
+            $offer->removeChild($pictures[$i]);
         }
 
         // --- видео -----------------------------------------------------------
