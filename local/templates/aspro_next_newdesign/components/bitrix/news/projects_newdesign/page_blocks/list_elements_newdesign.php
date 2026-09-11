@@ -289,9 +289,19 @@ if ($ndIb) {
 		}
 	}
 
+	/* У бренда — его значок, тот же, что в ярлыке на карточке проекта
+	   (list_projects_newdesign/style.css, по XML_ID варианта списка). */
+	$ndBrandLogos = [
+		'brand_easydecking' => '/images/logo_brand_easy.png',
+		'brand_latitudo' => SITE_TEMPLATE_PATH.'/images/newdesign/brands/latitudo.png',
+	];
 	$rsEnum = CIBlockPropertyEnum::GetList(['SORT' => 'ASC'], ['IBLOCK_ID' => $ndIb, 'CODE' => 'SET_BRAND']);
 	while ($enum = $rsEnum->Fetch()) {
-		$ndBrandOptions[(int) $enum['ID']] = $enum['VALUE'];
+		$logo = $ndBrandLogos[$enum['XML_ID']] ?? '';
+		$ndBrandOptions[(int) $enum['ID']] = [
+			'NAME' => $enum['VALUE'],
+			'SRC' => ($logo && is_file($_SERVER['DOCUMENT_ROOT'].$logo)) ? $logo : '',
+		];
 	}
 
 	$ndGoodsOptions = ndUsedLinkedGoods($ndIb, 'LINK_GOODS', $ndSectionId);
@@ -434,11 +444,14 @@ if (!defined('ND_UI_JS')) {
 				<?= $ndChevron ?><span>Бренд<?= $ndSelBrand ? ' ('.count($ndSelBrand).')' : '' ?></span>
 			</summary>
 			<div class="nd-filter__panel">
-				<? foreach ($ndBrandOptions as $enumId => $name): ?>
+				<? foreach ($ndBrandOptions as $enumId => $opt): ?>
 					<label class="nd-filter__opt">
 						<input type="checkbox" name="brand[]" value="<?= (int) $enumId ?>"<?= isset($ndSelBrand[$enumId]) ? ' checked' : '' ?>>
 						<span class="nd-filter__box" aria-hidden="true"></span>
-						<span class="nd-filter__opt-name"><?= htmlspecialcharsbx($name) ?></span>
+						<? if ($opt['SRC']): ?>
+							<img class="nd-filter__pic nd-filter__pic--brand" src="<?= htmlspecialcharsbx($opt['SRC']) ?>" alt="" width="24" height="24" loading="lazy">
+						<? endif; ?>
+						<span class="nd-filter__opt-name"><?= htmlspecialcharsbx($opt['NAME']) ?></span>
 					</label>
 				<? endforeach; ?>
 				<button type="submit" class="nd-filter__apply">Применить</button>

@@ -1794,6 +1794,23 @@ span.nd-filter__pic--goods {
     background: rgba(82, 82, 100, .05);
     box-shadow: none;
 }
+/* значок бренда — как в ярлыке на карточке проекта, без подложки */
+.nd-filter__pic--brand {
+    width: 24px;
+    height: 24px;
+    border-radius: 0;
+    background: none;
+}
+/* На общей странице /projects/ фильтр стоит сразу под вводным текстом с
+   чертой снизу — отступ от черты тот же, что был у плиток разделов (32). */
+.nd-page-head__lead ~ .nd-filter {
+    margin-top: 32px;
+}
+@media (max-width: 767px) {
+    .nd-page-head__lead ~ .nd-filter {
+        margin-top: 24px;
+    }
+}
 .nd-filter__opt[hidden],
 .nd-filter__empty[hidden] {
     display: none;
