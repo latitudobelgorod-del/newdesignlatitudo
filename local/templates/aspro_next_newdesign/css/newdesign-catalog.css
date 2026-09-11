@@ -1814,6 +1814,30 @@
     }
 }
 
+/* --- та же лента из блока редактора «Инфоблоки. Элементы» ------------------
+   Вариант «Каталог товаров — слайдер» (sprint.editor, iblock_elements__
+   aspro-catalog.php, Ирина, 11 сентября 2026). Разделительная черта снизу —
+   примета детальной товара, в тексте страницы она не нужна. Заголовок —
+   блок редактора перед лентой, скрипт переносит его в шапку к стрелкам;
+   стрелки при этом всегда у правого края, даже если заголовка нет.
+   Блок стоит в колонке контента (рядом с фильтром — около 1050), поэтому
+   в ряд по четыре карточки, как в сетке раздела, а не по пять. */
+.nd-related--editor {
+    margin: 0 0 40px;
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+.nd-related--editor .nd-related__nav {
+    margin-left: auto;
+}
+.editor .nd-related--editor .nd-related__title {
+    margin: 0;
+}
+.nd-related--editor .nd-catlist .catalog_block .item_block {
+    flex-basis: 25% !important;
+    max-width: 25% !important;
+}
+
 /* Постраничка и заголовок шаблона списка в этом блоке не нужны. */
 .nd-related .nd-catlist__nav,
 .nd-related .nd-catlist > hr,
@@ -1832,7 +1856,8 @@
         font-size: 28px;
         line-height: 32px;
     }
-    .nd-related .nd-catlist .catalog_block .item_block {
+    .nd-related .nd-catlist .catalog_block .item_block,
+    .nd-related--editor .nd-catlist .catalog_block .item_block {
         flex-basis: 33.3333% !important;
         max-width: 33.3333% !important;
     }

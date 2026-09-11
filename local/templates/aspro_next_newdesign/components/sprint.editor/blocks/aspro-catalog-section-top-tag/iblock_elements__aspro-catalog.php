@@ -23,7 +23,19 @@
  * сеткой; поэтому у него появился флаг ND_NO_PAGER.
  * Плиток акций тоже нет: их разметку печатает пул #nd-promo-pool со страницы
  * раздела, здесь его нет.
+ *
+ * Вариант «Каталог товаров — слайдер» (настройка блока param1 = style3,
+ * bitrix/admin/sprint.editor/settings/latitudo.php; Ирина, 11 сентября 2026):
+ * те же карточки лентой со стрелками и счётчиком «01/08» — разметка блока
+ * «С этим товаром покупают» с детальной товара (.nd-related), поэтому листает
+ * и считает страницы его же скрипт (js/newdesign-catalog.js), а на телефоне
+ * лента так же становится сеткой 2×2 с «Показать ещё». Заголовок в редакторе —
+ * отдельный блок перед этим; скрипт переносит его в шапку ленты, к стрелкам.
+ *
+ * Этот файл одинаковый во всех шести папках блоков — держать одинаковыми.
  */
+
+$ndSlider = (($block['settings']['param1'] ?? '') === 'style3');
 
 global $arTheme;
 global $arRegion;
@@ -54,6 +66,24 @@ global $sprintSearchFilter;
 $sprintSearchFilter = [
 	'=ID' => $block['element_ids'],
 ];
+
+if ($ndSlider):
+?>
+<div class="nd-related nd-related--editor">
+	<div class="nd-related__head">
+		<div class="nd-related__nav">
+			<span class="nd-related__counter"></span>
+			<button class="nd-related__arrow nd-related__arrow--prev" type="button" aria-label="Предыдущие товары">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+			<button class="nd-related__arrow nd-related__arrow--next" type="button" aria-label="Следующие товары">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+		</div>
+	</div>
+	<div class="nd-related__body">
+<?
+endif;
 
 $APPLICATION->IncludeComponent(
 	'bitrix:catalog.section',
@@ -230,4 +260,12 @@ $APPLICATION->IncludeComponent(
 	false,
 	['HIDE_ICONS' => 'Y']
 );
+
+if ($ndSlider):
+?>
+	</div>
+	<button type="button" class="nd-related__more nd-brandsect__more-btn" hidden>Показать ещё</button>
+</div>
+<?
+endif;
 ?>

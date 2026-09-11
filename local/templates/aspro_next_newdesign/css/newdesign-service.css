@@ -221,6 +221,25 @@ body .services_newdesign .nd-srv-hero__cta .btn.btn-default.colored,
 /* Текст кнопки формы лежит во вложенном <span>, и тема красит его белым —
    на белой кнопке «Заказать консультацию и расчет» не было видно подписи
    (Ирина, 11 сентября 2026). */
+/* При наведении белую кнопку формы перекрашивало общее правило красных
+   кнопок-форм (.btn.btn-default[data-event="jqm"]:hover span — белый текст,
+   css/newdesign.css): подпись становилась белой на белом, кнопка «сплошная»
+   (Ирина, 11 сентября 2026). Держим тёмный текст и даём лёгкую подложку на
+   наведении — вес выше того правила. */
+body .services_newdesign .nd-srv-hero__cta > :first-child .btn.btn-default[data-event="jqm"],
+body .services_newdesign .nd-srv-hero__cta > :first-child .btn.btn-default[data-event="jqm"] span,
+body .services_newdesign .nd-srv-hero__cta > :first-child .btn.btn-default[data-event="jqm"]:hover,
+body .services_newdesign .nd-srv-hero__cta > :first-child .btn.btn-default[data-event="jqm"]:hover span,
+body .services_newdesign .nd-srv-hero__cta > :first-child .btn.btn-default[data-event="jqm"]:focus,
+body .services_newdesign .nd-srv-hero__cta > :first-child .btn.btn-default[data-event="jqm"]:focus span {
+    color: #101014 !important;
+}
+body .services_newdesign .nd-srv-hero__cta > :first-child .btn.btn-default[data-event="jqm"]:hover,
+body .services_newdesign .nd-srv-hero__cta > :first-child .btn.btn-default[data-event="jqm"]:focus,
+body .services_newdesign .nd-srv-hero__cta > :first-child a:hover .btn,
+body .services_newdesign .nd-srv-hero__cta > :first-child a:focus .btn {
+    background: #ececf0 !important;
+}
 body .services_newdesign .nd-srv-hero__cta .btn span {
     color: inherit !important;
     /* и начертание — тема давала вложенному span обычное, подпись была
@@ -238,9 +257,14 @@ body .services_newdesign .nd-srv-hero__cta > * + * .btn {
     background: transparent !important;
     color: #fff !important;
 }
+/* .btn.btn-default.colored — чтобы перевесить прозрачный фон выше: у того
+   правила пять классов, и без них подложка на наведении не появлялась. */
 body .services_newdesign .nd-srv-hero__cta > * + * .btn:hover,
 body .services_newdesign .nd-srv-hero__cta > * + * a:hover .btn,
-body .services_newdesign .nd-srv-hero__cta > * + * a:focus .btn {
+body .services_newdesign .nd-srv-hero__cta > * + * a:focus .btn,
+body .services_newdesign .nd-srv-hero__cta > * + * a:hover .btn.btn-default.colored,
+body .services_newdesign .nd-srv-hero__cta > * + * a:focus .btn.btn-default.colored,
+body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored:hover {
     background: rgba(255, 255, 255, .12) !important;
     color: #fff !important;
 }

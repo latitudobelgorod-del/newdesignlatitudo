@@ -1053,8 +1053,26 @@
         apply();
     }
 
+    /* Лента из блока редактора (вариант «Каталог товаров — слайдер»): своего
+       заголовка у неё нет, его ставят отдельным блоком «Заголовок» прямо
+       перед ней. По макету заголовок стоит в одной строке со стрелками —
+       переносим его в шапку ленты. Служебные теги между ними (шаблон списка
+       печатает перед сеткой свой <style>) пропускаем. */
+    function pullEditorTitle(box) {
+        if (box.ndTitleDone || !box.classList.contains('nd-related--editor')) return;
+        box.ndTitleDone = true;
+        var head = box.querySelector('.nd-related__head');
+        var el = box.previousElementSibling;
+        while (el && /^(STYLE|SCRIPT|LINK|BR)$/.test(el.tagName)) el = el.previousElementSibling;
+        if (head && el && /^H[1-4]$/.test(el.tagName)) {
+            el.classList.add('nd-related__title');
+            head.insertBefore(el, head.firstChild);
+        }
+    }
+
     function initAllRelated() {
         Array.prototype.forEach.call(document.querySelectorAll('.nd-related'), function (box) {
+            pullEditorTitle(box);
             initRelated(box);
             initRelatedList(box);
         });
