@@ -1742,6 +1742,74 @@ a.nd-sections__item:focus {
     }
 }
 
+/* --- товары каталога («Товары», свойство LINK_GOODS) ---
+   Названия длинные («Террасная доска EasyDecking Вуд-Икс 146х23 Венге»), в
+   разделе их до трёх десятков: панель шире, с прокруткой, сверху поиск.
+   Поиск прилипает к верху панели, чтобы не уезжал при прокрутке списка. */
+.nd-filter__panel--goods {
+    width: min(440px, calc(100vw - 32px));
+    max-height: min(60vh, 480px);
+    overflow-y: auto;
+    padding-top: 0;
+}
+.nd-filter__panel--goods > :first-child:not(.nd-filter__search) {
+    margin-top: 12px;
+}
+.nd-filter__search {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    flex: 0 0 auto;
+    width: 100%;
+    height: 56px;
+    margin: 0 0 4px;
+    padding: 0 8px;
+    border: 0;
+    border-top: 12px solid #fff;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: inset 0 -1px 0 rgba(82, 82, 100, .15);
+    font-family: inherit;
+    font-size: 16px;
+    color: #101014;
+    outline: none;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.nd-filter__search::placeholder {
+    color: #8f8f9a;
+}
+.nd-filter__search:focus {
+    box-shadow: inset 0 -2px 0 #c60000;
+}
+.nd-filter__opt[hidden],
+.nd-filter__empty[hidden] {
+    display: none;
+}
+.nd-filter__empty {
+    margin: 0;
+    padding: 8px;
+    color: #8f8f9a;
+    font-size: 15px;
+}
+/* На телефоне кнопка «Товары» может стоять в ряду не первой, и панель от её
+   левого края вылезала бы за экран — привязываем панель к форме целиком. */
+@media (max-width: 767px) {
+    .nd-filter {
+        position: relative;
+    }
+    .nd-filter__drop--goods {
+        position: static;
+    }
+    .nd-filter__drop--goods .nd-filter__panel {
+        left: 0;
+        right: 0;
+        width: auto;
+        min-width: 0;
+    }
+}
+
 /* ================== корень каталога /catalog/ ==========================
    Макет Figma «Чистовик», фрейм «Каталог страница» 21349:57069: контейнер
    1336, сетка в три колонки по 440 с зазором 8 (и по вертикали тоже 8),

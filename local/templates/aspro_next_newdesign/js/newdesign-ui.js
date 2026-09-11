@@ -22,8 +22,42 @@
 		}
 		filterForm.classList.add('is-js');
 
-		filterForm.addEventListener('change', function () {
+		filterForm.addEventListener('change', function (e) {
+			// поиск по списку «Товары» — не пункт фильтра, форму не отправляет
+			if (e.target.classList && e.target.classList.contains('nd-filter__search')) {
+				return;
+			}
 			filterForm.submit();
+		});
+
+		// Поиск по списку: прячем пункты, в названии которых нет введённого.
+		filterForm.addEventListener('input', function (e) {
+			var search = e.target;
+			if (!search.classList || !search.classList.contains('nd-filter__search')) {
+				return;
+			}
+			var needle = search.value.trim().toLowerCase().replace(/ё/g, 'е');
+			var panel = search.closest('.nd-filter__panel');
+			var shown = 0;
+			Array.prototype.forEach.call(panel.querySelectorAll('.nd-filter__opt'), function (opt) {
+				var name = opt.textContent.toLowerCase().replace(/ё/g, 'е');
+				var hit = !needle || name.indexOf(needle) !== -1;
+				opt.hidden = !hit;
+				if (hit) {
+					shown++;
+				}
+			});
+			var empty = panel.querySelector('.nd-filter__empty');
+			if (empty) {
+				empty.hidden = shown > 0;
+			}
+		});
+
+		// Enter в поиске не должен отправлять форму с недобранным фильтром.
+		filterForm.addEventListener('keydown', function (e) {
+			if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('nd-filter__search')) {
+				e.preventDefault();
+			}
 		});
 
 		filterForm.addEventListener('toggle', function (e) {
@@ -35,6 +69,24 @@
 					d.open = false;
 				}
 			});
+
+			// Панель открывается от левого края кнопки; у последней кнопки в ряду
+			// широкая панель («Товары») уходила за край контента — тогда
+			// выравниваем её по правому краю кнопки.
+			var panel = e.target.querySelector('.nd-filter__panel');
+			if (panel) {
+				panel.style.left = '';
+				panel.style.right = '';
+				var limit = Math.min(document.documentElement.clientWidth - 16, filterForm.getBoundingClientRect().right);
+				if (panel.getBoundingClientRect().right > limit) {
+					panel.style.left = 'auto';
+					panel.style.right = '0';
+					if (panel.getBoundingClientRect().left < 16) {
+						panel.style.left = '';
+						panel.style.right = '';
+					}
+				}
+			}
 		}, true);
 
 		document.addEventListener('click', function (e) {
