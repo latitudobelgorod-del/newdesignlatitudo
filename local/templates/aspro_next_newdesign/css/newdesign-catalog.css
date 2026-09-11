@@ -373,6 +373,9 @@
     max-width: 100%;
     white-space: normal;
     word-break: break-word;
+    /* блок картинки у темы центрирует текст — перенесённая метка вставала
+       по центру (Ирина, 11 сентября 2026) */
+    text-align: left;
 }
 
 .nd-catlist .catalog_item_wrapp .nd-tag--sale {
