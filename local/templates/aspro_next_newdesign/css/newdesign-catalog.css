@@ -351,11 +351,13 @@
 }
 
 /* Метки товара. Цвет — по смыслу метки, класс ставит шаблон. */
+/* Без бокового поля: метки стоят ровно по левому краю плашки «В наличии»
+   над ними (было поле 4 и сдвиг на 4px — Ирина, 11 сентября 2026). */
 .nd-catlist .catalog_item_wrapp .nd-badges__tags {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    padding: 0 4px;
+    padding: 0;
 }
 
 .nd-catlist .catalog_item_wrapp .nd-tag {

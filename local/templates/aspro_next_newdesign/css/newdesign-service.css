@@ -223,6 +223,9 @@ body .services_newdesign .nd-srv-hero__cta .btn.btn-default.colored,
    (Ирина, 11 сентября 2026). */
 body .services_newdesign .nd-srv-hero__cta .btn span {
     color: inherit !important;
+    /* и начертание — тема давала вложенному span обычное, подпись была
+       тоньше, чем у соседней кнопки */
+    font-weight: inherit !important;
 }
 
 /* Вторая кнопка — как в макете 20669:41851: прозрачная, белая рамка и

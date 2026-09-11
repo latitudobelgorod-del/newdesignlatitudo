@@ -1611,7 +1611,9 @@ a.nd-sale__tab:focus {
     gap: 24px;
     width: 100%;
     max-width: 1336px;
-    margin: 32px auto 0;
+    /* снизу — отбивка до SEO-текста общей страницы /projects/ (Ирина,
+       11 сентября 2026), такая же, как под сеткой проектов */
+    margin: 32px auto 48px;
     font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
 }
 .nd-sectiles__item {
@@ -1678,6 +1680,7 @@ a.nd-sale__tab:focus {
         grid-template-columns: minmax(0, 1fr);
         gap: 16px;
         margin-top: 24px;
+        margin-bottom: 32px;
     }
     .nd-sectiles__name {
         font-size: 15px;
