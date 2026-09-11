@@ -302,6 +302,25 @@
     background: #ffecea;
     color: #c60000;
 }
+/* Цвет метки по смыслу — те же пары, что у .nd-tag--* в карточке списка
+   (css/newdesign-catalog.css); класс ставит шаблон по ключевому слову.
+   Без класса метка остаётся красной, как «Бесплатная доставка*». */
+.nd-pd__photo .stickers .sticker_sale_text.nd-tag--sale {
+    background: #f0edfb;
+    color: #5e3fb8;
+}
+.nd-pd__photo .stickers .sticker_sale_text.nd-tag--strong {
+    background: #fff3e6;
+    color: #ff8800;
+}
+.nd-pd__photo .stickers .sticker_sale_text.nd-tag--rest {
+    background: #ffecea;
+    color: #ff4130;
+}
+.nd-pd__photo .stickers .sticker_sale_text.nd-tag--new {
+    background: #e8f8f0;
+    color: #17a06a;
+}
 .nd-pd__photo .stickers .sticker_hit,
 .nd-pd__photo .stickers .sticker_new {
     background: #6e4ad9;

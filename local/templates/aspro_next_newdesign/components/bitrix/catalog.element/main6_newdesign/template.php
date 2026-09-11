@@ -446,12 +446,24 @@ foreach ($ndProdImages as $ndProdImage) {
 				<div><div class="<?=$arSticker['CLASS']?>"><?=$arSticker['VALUE']?></div></div>
 			<?endforeach;?>
 			
-<?if($arParams["SALE_STIKER"] && $arResult["PROPERTIES"][$arParams["SALE_STIKER"]]["VALUE"]):?>						
-<div>							
-<?foreach($arResult["PROPERTIES"][$arParams["SALE_STIKER"]]["VALUE"] as $val):?>
-<div class="sticker_sale_text"><?=$val;?></div>
+<?/* Метки «Бесплатная доставка*», «Усиленная»… — каждая в своей обёртке
+   (зазор между плашками стоит между обёртками, в общей они слипались) и с
+   цветом по смыслу, как в карточке списка: там класс по ключевому слову
+   ставит catalog_blockcolors_newdesign/template.php ($ndTagClass), держать
+   одинаковыми (Ирина, 11 сентября 2026). */?>
+<?if($arParams["SALE_STIKER"] && $arResult["PROPERTIES"][$arParams["SALE_STIKER"]]["VALUE"]):?>
+<?foreach((array)$arResult["PROPERTIES"][$arParams["SALE_STIKER"]]["VALUE"] as $val):?>
+	<?
+	$ndT = mb_strtolower(html_entity_decode(strip_tags($val), ENT_QUOTES, 'UTF-8'), 'UTF-8');
+	$ndTagClass = '';
+	if (mb_strpos($ndT, 'остатк') !== false || mb_strpos($ndT, 'склад') !== false) $ndTagClass = 'nd-tag--rest';
+	elseif (mb_strpos($ndT, 'распродаж') !== false || mb_strpos($ndT, 'акци') !== false) $ndTagClass = 'nd-tag--sale';
+	elseif (mb_strpos($ndT, 'усилен') !== false) $ndTagClass = 'nd-tag--strong';
+	elseif (mb_strpos($ndT, 'новинк') !== false) $ndTagClass = 'nd-tag--new';
+	elseif (mb_strpos($ndT, 'доставк') !== false) $ndTagClass = 'nd-tag--delivery';
+	?>
+	<div><div class="sticker_sale_text <?=$ndTagClass?>"><?=$val;?></div></div>
 <?endforeach;?>
-</div>
 <?endif;?>
 </div>
 
