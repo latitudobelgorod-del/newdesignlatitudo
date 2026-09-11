@@ -333,6 +333,30 @@ body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored:hove
     color: #101014;
 }
 
+/* Абзацы с галочками под карточками («Опытные монтажники учтут…») —
+   .terrace-description, которой custom.css дал поля по 10% с боков: колонка
+   стояла узко посередине. На всю ширину (Ирина, 11 сентября 2026); значок
+   слева отдельной колонкой, чтобы перенос строки не уходил под него. */
+.services_newdesign .terrace-description {
+    margin: 32px 0;
+    padding: 0;
+}
+.services_newdesign .terrace-description p {
+    position: relative;
+    min-height: 30px;
+    margin: 0 0 16px;
+    padding-left: 46px;
+}
+.services_newdesign .terrace-description p:last-child {
+    margin-bottom: 0;
+}
+.services_newdesign .terrace-description p::before {
+    position: absolute;
+    top: -3px;
+    left: 0;
+    margin: 0;
+}
+
 /* Сетка проектов, вставленная блоком редактора в текст услуги: по макету
    «Услуга» — по две карточки в ряд, крупнее, подпись полужирная 18/24
    (Ирина, 11 сентября 2026). На телефоне остаётся одна колонка шаблона. */
