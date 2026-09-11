@@ -1783,6 +1783,17 @@ a.nd-sections__item:focus {
 .nd-filter__search:focus {
     box-shadow: inset 0 -2px 0 #c60000;
 }
+/* миниатюра товара: крупнее, чем у видов ограждений, — на ней видно профиль и цвет */
+.nd-filter__pic--goods {
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px rgba(82, 82, 100, .12);
+}
+span.nd-filter__pic--goods {
+    background: rgba(82, 82, 100, .05);
+    box-shadow: none;
+}
 .nd-filter__opt[hidden],
 .nd-filter__empty[hidden] {
     display: none;

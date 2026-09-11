@@ -36,4 +36,18 @@ $ndIb = (int) $arParams['IBLOCK_ID'];
 <p class="nd-page-head__lead">Посмотрите на фотографии наших проектов. Выберите то, что понравилось - так нам будет проще понять друг друга.</p>
 <?
 
-include __DIR__.'/page_blocks/sections_list_newdesign.php';
+/* Фильтры над плитками (Ирина, 11 сентября 2026): «Есть отзыв», «Есть
+   видео», «Цвет», «Бренд», «Товары» — тот же блок, что на странице раздела.
+   Пока ничего не выбрано, он печатает только панель, и ниже идут плитки
+   разделов. С выбранным фильтром блок сам выводит плашки разделов и сетку
+   подходящих объектов из всех разделов — плитки тогда не нужны. */
+$ndProjectsRoot = true;
+$ndActive = false;
+include __DIR__.'/page_blocks/list_elements_newdesign.php';
+
+if ($ndActive) {
+	// выборки по фильтру — дубли общей страницы, из индекса убираем, как у разделов
+	$APPLICATION->SetPageProperty('robots', 'noindex, nofollow');
+} else {
+	include __DIR__.'/page_blocks/sections_list_newdesign.php';
+}
