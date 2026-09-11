@@ -270,27 +270,29 @@ u {
     text-decoration: underline;
     text-underline-offset: 3px;
 }
+/* Кнопка — белая, как «Заказать консультацию» в шапке услуги (Ирина,
+   11 сентября 2026; в макете была красная). */
 .nd-showroom .nd-showroom__arch-btn {
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 48px;
+    height: 56px;
     padding: 0 24px;
     border-radius: 4px;
-    background: #c60000;
-    color: #fff;
+    background: #fff;
+    color: #101014;
     font-size: 16px;
     line-height: 24px;
-    font-weight: 700;
+    font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
     transition: background-color .15s ease;
 }
 .nd-showroom .nd-showroom__arch-btn:hover,
 .nd-showroom .nd-showroom__arch-btn:focus {
-    background: #a80000;
-    color: #fff;
+    background: #ececf0;
+    color: #101014;
     text-decoration: none;
 }
 @media (max-width: 1199px) {
@@ -332,6 +334,67 @@ u {
     .nd-showroom .nd-showroom__arch-btn {
         width: 100%;
     }
+}
+
+/* Плитки услуг «Монтаж террасной доски — цена от 750 руб./м2» и соседние
+   (.tiz_ter_block_3img, включаемые области /include/catalog/tizer_block_service.php
+   и tizer_ter_doska.php). Раньше подпись лежала белым по центру поверх фото;
+   теперь фото сверху, под ним заголовок и ниже описание обычным текстом
+   (Ирина, 11 сентября 2026). Разметка прежняя: заголовок — первая ссылка
+   (у «Установки ступеней» это span со встроенным белым цветом, поэтому
+   !important), описание — последний span; <br> между ними не нужен. */
+.tiz_ter_block_3img .list .item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+}
+.tiz_ter_block_3img .list .item .img {
+    overflow: hidden;
+    border-radius: 6px;
+}
+.tiz_ter_block_3img .list .item .img img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.tiz_ter_block_3img .list .item .name {
+    position: static;
+    padding: 0;
+}
+.tiz_ter_block_3img .list .item .name .blk {
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    text-align: left;
+    color: #101014;
+}
+.tiz_ter_block_3img .list .item .name .blk .left {
+    float: none;
+    width: auto;
+    padding: 0;
+}
+.tiz_ter_block_3img .list .item .name .blk .left > br {
+    display: none;
+}
+.tiz_ter_block_3img .list .item .name .blk .left > :first-child {
+    display: block;
+    margin-bottom: 4px;
+    border-bottom: 0 !important;
+    color: #101014 !important;
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.tiz_ter_block_3img .list .item:hover .name .blk .left > a:first-child,
+.tiz_ter_block_3img .list .item .name .blk .left > a:first-child:hover {
+    color: #c60000 !important;
+}
+.tiz_ter_block_3img .list .item .name .blk .left > span:last-child {
+    display: block;
+    color: #101014 !important;
+    font-weight: 400;
 }
 
 /* Маркеры списков — чёрные точки, как в макете (Ирина, 11 сентября 2026).

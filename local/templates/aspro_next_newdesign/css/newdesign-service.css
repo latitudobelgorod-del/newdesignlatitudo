@@ -397,6 +397,15 @@ body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored:hove
     text-align: left;
 }
 
+/* Иконки-картинки (у «Террасы на кровле» это <img class="img-responsive">)
+   тема ставила по центру карточки — по левому краю, как текст (Ирина,
+   11 сентября 2026). */
+.services_newdesign .tiz_ter_block .item img {
+    display: block;
+    margin-left: 0;
+    margin-right: 0;
+}
+
 /* Пустая подпись из разметки места не занимает. */
 .services_newdesign .tiz_ter_block .item .title:empty {
     display: none;
