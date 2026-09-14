@@ -399,7 +399,8 @@ $APPLICATION->AddHeadString('<meta property="price:currency" content="' . htmlsp
 <meta itemprop="description" content="<?=(strlen(strip_tags($arResult["IPROPERTY_VALUES"]["ELEMENT_META_DESCRIPTION"])) ? strip_tags($arResult["IPROPERTY_VALUES"]["ELEMENT_META_DESCRIPTION"]) : (strlen(strip_tags($arResult["IPROPERTY_VALUES"]["ELEMENT_META_DESCRIPTION"])) ? strip_tags($arResult["IPROPERTY_VALUES"]["ELEMENT_META_DESCRIPTION"]) : $name))?>" />
 <meta itemprop="sku" content="<?=$arResult['ID'];?>" />
 	<div itemprop="brand" itemscope itemtype="https://schema.org/Brand">
-		<meta itemprop="name" content="<?=$arResult["BRAND_ITEM"]["NAME"]?>" />
+		<?/* Латиница из «Производителей», если заполнена: по ней Яндекс и Google сопоставляют бренд со своим справочником */?>
+		<meta itemprop="name" content="<?=(strlen(trim($arResult["BRAND_ITEM"]["PROPERTY_BRAND_ENGLISH_NAME_VALUE"])) ? trim($arResult["BRAND_ITEM"]["PROPERTY_BRAND_ENGLISH_NAME_VALUE"]) : $arResult["BRAND_ITEM"]["NAME"])?>" />
 	</div>
 <link itemprop="url" href="<?=$detail_URL?>" />
 
@@ -1283,7 +1284,23 @@ $ndColorItems = array_values(array_filter(
 									<div class="props props_list">
 									
 											<div class=""><span class="choise colored" data-block=".examples">Примеры применения материала</span></div>
-									
+
+									</div>
+								</div>
+							<?endif;?>
+
+							<?/* «Вся террасная доска ДПК» — ссылка на общий раздел с товаров
+							     его подразделов, в том же ряду красных ссылок. Ради веса
+							     раздела в поиске: до этого на него вели только хлебные
+							     крошки (Ирина, 14 сентября 2026). Какие разделы и тексты —
+							     ND_SEO_SECTION_LINKS в local/php_interface/include/latitudo_seo_links.php. */
+							$ndAllLink = function_exists('ndSeoSectionLinkForSection')
+								? ndSeoSectionLinkForSection($arResult['SECTION']['ID'] ?? $arResult['IBLOCK_SECTION_ID'] ?? 0)
+								: null;?>
+							<?if($ndAllLink):?>
+								<div class="top_props nd-pd__cat-link">
+									<div class="props props_list">
+										<div class=""><a class="choise colored" href="<?=htmlspecialcharsbx($ndAllLink['URL'])?>"><?=htmlspecialcharsbx($ndAllLink['TEXT'])?></a></div>
 									</div>
 								</div>
 							<?endif;?>

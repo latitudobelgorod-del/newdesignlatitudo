@@ -644,6 +644,16 @@ textarea {
     font-size: 52px;
     line-height: 57px;
 }
+/* Заголовок обложки — H1 главной (до 14.09.2026 был div): снимаем с него
+   отступы, цвет и шрифт, которые тема задаёт всем h1. */
+.nd-cover h1.nd-cover__title {
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    font-family: inherit;
+    letter-spacing: inherit;
+    text-transform: none;
+}
 .nd-cover__subtitle {
     font-size: 16px;
     line-height: 24px;

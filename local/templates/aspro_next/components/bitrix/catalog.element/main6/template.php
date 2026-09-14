@@ -356,7 +356,8 @@ $APPLICATION->AddHeadString('<meta property="price:currency" content="' . htmlsp
 <meta itemprop="description" content="<?=(strlen(strip_tags($arResult["IPROPERTY_VALUES"]["ELEMENT_META_DESCRIPTION"])) ? strip_tags($arResult["IPROPERTY_VALUES"]["ELEMENT_META_DESCRIPTION"]) : (strlen(strip_tags($arResult["IPROPERTY_VALUES"]["ELEMENT_META_DESCRIPTION"])) ? strip_tags($arResult["IPROPERTY_VALUES"]["ELEMENT_META_DESCRIPTION"]) : $name))?>" />
 <meta itemprop="sku" content="<?=$arResult['ID'];?>" />
 	<div itemprop="brand" itemscope itemtype="https://schema.org/Brand">
-		<meta itemprop="name" content="<?=$arResult["BRAND_ITEM"]["NAME"]?>" />
+		<?/* Латиница из «Производителей», если заполнена: по ней Яндекс и Google сопоставляют бренд со своим справочником */?>
+		<meta itemprop="name" content="<?=(strlen(trim($arResult["BRAND_ITEM"]["PROPERTY_BRAND_ENGLISH_NAME_VALUE"])) ? trim($arResult["BRAND_ITEM"]["PROPERTY_BRAND_ENGLISH_NAME_VALUE"]) : $arResult["BRAND_ITEM"]["NAME"])?>" />
 	</div>
 <link itemprop="url" href="<?=$detail_URL?>" />
 <div class="item_main_info type_clothes <?=(!$showCustomOffer ? "noffer" : "");?> <?=($arParams["SHOW_UNABLE_SKU_PROPS"] != "N" ? "show_un_props" : "unshow_un_props");?>" id="<?=$arItemIDs["strMainID"];?>">
