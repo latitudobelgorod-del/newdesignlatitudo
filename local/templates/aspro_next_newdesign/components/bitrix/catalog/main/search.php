@@ -13,43 +13,11 @@
    идёт строка поиска, а черта — уже под ней. */
 $ndSearchQuery = isset($_REQUEST['q']) ? trim($_REQUEST['q']) : '';
 
-/* Ввели артикул и нажали Enter — открываем сразу карточку, а не список из
-   одной строки (Ирина, 2026-08-17). Для артикула торгового предложения ведём
-   на карточку с ?pid=<ID предложения>: по этому параметру js/newdesign-element.js
-   выбирает нужное предложение и тут же убирает его из адресной строки, чтобы
-   ссылка у покупателя осталась обычной. Неоднозначные артикулы findByArticle
-   не возвращает — по ним честнее показать список.
-
-   Проверку делаем до всякого вывода: ниже страница начинает собирать шапку и
-   подключать компоненты. Ajax-запросы подсказок (POST с ajax_call) сюда тоже
-   заходят — их не трогаем, им нужен список, а не переход. */
-if ($ndSearchQuery !== '' && empty($_REQUEST['ajax_call'])) {
-	require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_quick_search.php';
-
-	if ($ndExactHit = LatitudoQuickSearch::findByArticle($ndSearchQuery)) {
-		$rsExact = CIBlockElement::GetList(
-			array(),
-			array(
-				'IBLOCK_ID'         => LatitudoQuickSearch::IBLOCK_PRODUCTS,
-				'ID'                => $ndExactHit['PRODUCT_ID'],
-				'ACTIVE'            => 'Y',
-				'ACTIVE_DATE'       => 'Y',
-				'CHECK_PERMISSIONS' => 'Y',
-				'MIN_PERMISSION'    => 'R',
-			),
-			false,
-			array('nTopCount' => 1),
-			array('ID', 'IBLOCK_ID', 'DETAIL_PAGE_URL')
-		);
-		if ($arExact = $rsExact->GetNext(false, false)) {
-			$ndExactUrl = $arExact['DETAIL_PAGE_URL'];
-			if ($ndExactHit['OFFER_ID']) {
-				$ndExactUrl .= (strpos($ndExactUrl, '?') === false ? '?' : '&').'pid='.$ndExactHit['OFFER_ID'];
-			}
-			LocalRedirect($ndExactUrl);
-		}
-	}
-}
+/* Артикул в строке поиска — обычная выдача плитками, как по любому запросу
+   (Ирина, 15 сентября 2026: «нужно, чтобы плиточка показывалась»). С 17 августа
+   точный артикул сразу уводил на карточку товара — этот переход убран. Сразу
+   на карточку (с ?pid= нужного предложения) по-прежнему ведёт строка
+   подсказки при вводе: search.title/newdesign/result_modifier.php. */
 $ndSearchTitle = ($ndSearchQuery !== '')
 	? 'Результаты поиска: «'.htmlspecialcharsbx($ndSearchQuery).'»'
 	: 'Введите поисковый запрос';
