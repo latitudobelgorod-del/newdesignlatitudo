@@ -11,8 +11,9 @@
  *
  * Поэтому перед записью предложения (событие модуля onExportOfferExtendData)
  * домножаем price и oldprice. Касается ТОЛЬКО прайс-листов, чьё название
- * начинается с «Полный товарный фид» (Ирина, 10 сентября 2026): дилерские
- * и прежние «для вебмастера» выгружаются как раньше.
+ * начинается с «Полный товарный фид» (Ирина, 10 сентября 2026) или с
+ * «Фид бренд » (брендовые копии полных, 15 сентября): дилерские и прежние
+ * «для вебмастера» выгружаются как раньше.
  *
  * Формула та же, что в ndShownPrice() шаблонов карточки и в
  * local/feed/generate.php — менять в четырёх местах сразу.
@@ -47,7 +48,10 @@
 
 class LatitudoMarketFeed
 {
-    const NAME_PREFIX = 'Полный товарный фид';
+    /* Брендовые фиды «Фид бренд EasyDecking / LATITUDO <город>» (15 сентября
+       2026, local/tools/nd_market_brand_feeds.php) — копии полных с отбором по
+       отметке бренда, им нужна та же цена и то же наполнение карточки. */
+    const NAME_PREFIXES = ['Полный товарный фид', 'Фид бренд '];
     const IBLOCK_PRODUCTS = 19;
     const IBLOCK_OFFERS = 20;
     const IBLOCK_BRANDS = 12;
@@ -65,7 +69,14 @@ class LatitudoMarketFeed
             $row = \Bitrix\Main\Application::getConnection()
                 ->query('SELECT NAME FROM yamarket_export_setup WHERE ID = ' . $setupId)
                 ->fetch();
-            static::$setups[$setupId] = $row && mb_strpos((string)$row['NAME'], static::NAME_PREFIX) === 0;
+            $full = false;
+            foreach (static::NAME_PREFIXES as $prefix) {
+                if ($row && mb_strpos((string)$row['NAME'], $prefix) === 0) {
+                    $full = true;
+                    break;
+                }
+            }
+            static::$setups[$setupId] = $full;
         }
         return static::$setups[$setupId];
     }
