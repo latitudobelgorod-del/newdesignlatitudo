@@ -50,9 +50,16 @@ if ($ndWords) {
 		}
 	}
 
-	// Если запрос — это ровно артикул торгового предложения, строка этого
-	// товара должна открывать карточку сразу на нём (тем же ?pid=, что и Enter).
+	// Запрос — ровно артикул: строка этого товара ведёт не на карточку, а на
+	// выдачу /catalog/?q=<артикул> с плиткой — так же, как Enter (Ирина,
+	// 15 сентября 2026: «это тоже нужно заменить»). В плитке нужное
+	// предложение выбирается само. Раньше строка открывала карточку с ?pid=.
 	$ndExact = LatitudoQuickSearch::findByArticle($ndQuery);
+	$ndSearchUrl = CHTTP::urlAddParams(
+		str_replace('#SITE_DIR#', SITE_DIR, $arParams['PAGE']),
+		array('q' => $ndQuery),
+		array('encode' => true)
+	);
 
 	$ndItems = array();
 	foreach ($ndFound as $ndId) {
@@ -63,8 +70,8 @@ if ($ndWords) {
 		// экранирование дальше делает подсветка.
 		$ndName = LatitudoQuickSearch::plainText($ndRows[$ndId]['NAME']);
 		$ndUrl  = $ndRows[$ndId]['DETAIL_PAGE_URL'];
-		if ($ndExact && $ndExact['OFFER_ID'] && $ndExact['PRODUCT_ID'] == $ndId) {
-			$ndUrl .= (strpos($ndUrl, '?') === false ? '?' : '&').'pid='.$ndExact['OFFER_ID'];
+		if ($ndExact && $ndExact['PRODUCT_ID'] == $ndId) {
+			$ndUrl = $ndSearchUrl;
 		}
 		$ndItems[] = array(
 			'ITEM_ID'   => (string)$ndId,
