@@ -800,6 +800,23 @@
     padding: 0 !important;
 }
 
+/* У товара без цены (кнопка «Заказать») строки цены нет, и переключатель
+   единиц остаётся там, куда его вставил компонент, — прямо над блоком
+   покупки. Зазор между ними давал только margin-top:auto блока покупки,
+   а у самой высокой карточки ряда свободного места нет — переключатель
+   прилипал к кнопке (Ирина, 15 сентября 2026, страница бренда). Прибиваем
+   к низу сам переключатель, а до кнопки — постоянный зазор: в ряду он
+   встаёт на одну линию. */
+.nd-catlist .catalog_item_wrapp .inner_wrap > .measure-unit-block {
+    margin-top: auto !important;
+    margin-bottom: 12px !important;
+}
+
+.nd-catlist .catalog_item_wrapp .inner_wrap > .measure-unit-block + .offer_buy_block,
+.nd-catlist .catalog_item_wrapp .inner_wrap > .measure-unit-block + .counter_wrapp {
+    margin-top: 0 !important;
+}
+
 .nd-catlist .catalog_item_wrapp .offer_buy_block {
     margin: 0 !important;
     padding: 0 !important;
