@@ -1596,9 +1596,14 @@
    там, где скрипт темы плитки ничем не заполнил, оставались четыре пустых
    серых прямоугольника (светильник ТеррaСвет Орион, 2 сентября 2026). Класс
    nd-empty ставит js/newdesign-element.js: только он знает, что в плитку в
-   итоге попало. !important — потому что правила выше тоже с ним. */
+   итоге попало. !important — потому что правила выше тоже с ним.
+   Плитке нужен именно div.nd-empty: у правила раскладки выше
+   `> div:not(.logistic_title)` — на один элемент специфичнее, чем
+   `> .nd-empty`, и при обоих !important побеждал его display:flex. Скрипт
+   класс ставил, а пустая плитка «Вес» всё равно висела (ступень
+   EasyDecking 170x23, вес не заполнен; Ирина, 15 сентября 2026). */
 .catalog_detail.element_newdesign .right_info .info_item .logistic.nd-empty,
-.catalog_detail.element_newdesign .right_info .info_item .logistic > .nd-empty {
+.catalog_detail.element_newdesign .right_info .info_item .logistic > div.nd-empty {
     display: none !important;
 }
 
