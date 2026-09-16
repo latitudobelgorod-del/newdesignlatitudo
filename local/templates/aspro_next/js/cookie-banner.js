@@ -79,9 +79,11 @@
      рамка одна сверху, углы не скруглены, отступы и кегль мельче, кружка «i»
      нет. Цвета и шрифт держать согласованными с .nd-catlist-note.
 
-     Содержимое прижато вправо. Справа внизу висит круглая кнопка звонка
-     (Envybox, ~88px и отступ ~32px), поэтому под неё оставлен запас 140px —
-     иначе «Согласен» оказывается под кнопкой и по нему не попасть. */
+     Содержимое прижато вправо. На десктопе справа внизу висит круглая кнопка
+     звонка (Envybox, ~88px и отступ ~32px), поэтому под неё оставлен запас
+     140px — иначе «Согласен» оказывается под кнопкой и по нему не попасть.
+     На телефоне запас не нужен: там эта кнопка стоит ВЫШЕ полосы и с ней не
+     пересекается, а лишний отступ только отрывал «Согласен» от края. */
   var style = document.createElement('style');
   style.textContent = [
     '#cb-wrap{position:fixed;left:0;right:0;bottom:0;background:#fff;color:#101014;',
@@ -102,10 +104,10 @@
     'background:#c60000;color:#fff;font-family:inherit;font-size:13px;font-weight:700;',
     'line-height:32px;cursor:pointer;white-space:nowrap;transition:background-color .15s;}',
     '#cb-accept:hover,#cb-accept:focus{background:#a80000;}',
-    /* На телефоне текст в одну строку не влезает: переносим его, кнопку
-       прижимаем вправо. Запас под кнопку звонка там меньше — она мельче. */
+    /* На телефоне текст в одну строку не влезает: переносим его и отдаём ему
+       всю свободную ширину, кнопка встаёт вплотную к правому краю. */
     '@media(max-width:760px){#cb-wrap{justify-content:flex-start;',
-    'padding:8px 70px 8px 10px;gap:8px;font-size:12px;line-height:16px;}',
+    'padding:8px 10px;gap:8px;font-size:12px;line-height:16px;}',
     '#cb-text{white-space:normal;flex:1;}',
     '#cb-accept{height:30px;padding:0 12px;line-height:30px;font-size:12px;}}'
   ].join('');
