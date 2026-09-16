@@ -69,29 +69,42 @@
   if (getCookie(COOKIE_NAME)) { return; }
 
   // ─── Стили баннера ──────────────────────────────────────────────────────────
+  /* Узкая полоса, прибитая к нижнему краю по центру (Ирина, 16 сентября 2026).
+     Прежде была широкая тёмная карточка на три строки с отступом снизу — она
+     перекрывала низ страницы. Теперь: светлая плашка в один ряд, скруглены
+     только верхние углы (4px, как у .nd-btn), кнопка фирменного красного
+     #c60000. На телефоне текст переносится, но плашка остаётся тонкой. */
   var style = document.createElement('style');
   style.textContent = [
-    '#cb-wrap{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);',
-    'width:calc(100% - 48px);max-width:860px;background:#1a1a1a;color:#f0f0f0;',
-    'border-radius:14px;padding:18px 22px;display:flex;align-items:center;gap:18px;',
-    'z-index:99999;box-shadow:0 8px 32px rgba(0,0,0,.28);font-family:inherit;',
-    'font-size:14px;line-height:1.5;box-sizing:border-box;',
-    'animation:cb-up .35s cubic-bezier(.16,1,.3,1) both;}',
-    '@keyframes cb-up{from{opacity:0;transform:translateX(-50%) translateY(20px)}',
+    '#cb-wrap{position:fixed;bottom:0;left:50%;transform:translateX(-50%);',
+    'max-width:calc(100% - 24px);background:#fff;color:#444;',
+    'border:1px solid #e6e6e6;border-bottom:0;border-radius:4px 4px 0 0;',
+    'padding:8px 8px 8px 16px;display:flex;align-items:center;gap:14px;',
+    'z-index:99999;box-shadow:0 -2px 12px rgba(0,0,0,.08);font-family:inherit;',
+    'font-size:13px;line-height:18px;box-sizing:border-box;',
+    'animation:cb-up .3s cubic-bezier(.16,1,.3,1) both;}',
+    '@keyframes cb-up{from{opacity:0;transform:translateX(-50%) translateY(100%)}',
     'to{opacity:1;transform:translateX(-50%) translateY(0)}}',
-    '#cb-wrap.cb-hide{animation:cb-down .3s ease forwards;}',
-    '@keyframes cb-down{to{opacity:0;transform:translateX(-50%) translateY(20px)}}',
-    '#cb-text{flex:1;color:#c8c8c8;}',
-    '#cb-text a{color:#fff;text-decoration:underline;text-underline-offset:3px;}',
-    '#cb-text a:hover{opacity:.75;}',
-    '#cb-actions{display:flex;gap:10px;flex-shrink:0;}',
-    '#cb-accept{background:#fff;color:#1a1a1a;border:none;border-radius:8px;',
-    'padding:9px 22px;font-size:14px;font-weight:600;cursor:pointer;',
-    'white-space:nowrap;transition:opacity .15s;}',
-    '#cb-accept:hover{opacity:.85;}',
-    '@media(max-width:600px){#cb-wrap{flex-direction:column;align-items:flex-start;',
-    'bottom:12px;width:calc(100% - 24px);padding:16px 18px;}',
-    '#cb-actions{width:100%;}#cb-accept{flex:1;text-align:center;}}'
+    '#cb-wrap.cb-hide{animation:cb-down .25s ease forwards;}',
+    '@keyframes cb-down{to{opacity:0;transform:translateX(-50%) translateY(100%)}}',
+    '#cb-text{margin:0;white-space:nowrap;}',
+    '#cb-text a{color:#c60000;text-decoration:underline;text-underline-offset:2px;}',
+    '#cb-text a:hover{color:#a80000;}',
+    '#cb-accept{flex:0 0 auto;height:34px;padding:0 18px;border:0;border-radius:4px;',
+    'background:#c60000;color:#fff;font-family:inherit;font-size:13px;font-weight:700;',
+    'line-height:34px;cursor:pointer;white-space:nowrap;transition:background-color .15s;}',
+    '#cb-accept:hover,#cb-accept:focus{background:#a80000;}',
+    /* На телефоне в одну строку текст не влезает — разрешаем перенос, но
+       держим плашку мелкой и прижатой к низу во всю ширину экрана. */
+    '@media(max-width:760px){#cb-wrap{left:0;right:0;transform:none;max-width:none;',
+    'border-left:0;border-right:0;border-radius:0;padding:8px 10px;gap:10px;',
+    'font-size:12px;line-height:16px;animation-name:cb-up-m;}',
+    '@keyframes cb-up-m{from{opacity:0;transform:translateY(100%)}',
+    'to{opacity:1;transform:translateY(0)}}',
+    '#cb-wrap.cb-hide{animation:cb-down-m .25s ease forwards;}',
+    '@keyframes cb-down-m{to{opacity:0;transform:translateY(100%)}}',
+    '#cb-text{white-space:normal;}',
+    '#cb-accept{height:30px;padding:0 14px;line-height:30px;font-size:12px;}}'
   ].join('');
   document.head.appendChild(style);
 
@@ -101,13 +114,9 @@
   wrap.setAttribute('role', 'dialog');
   wrap.setAttribute('aria-label', 'Уведомление об использовании файлов cookie');
   wrap.innerHTML =
-    '<p id="cb-text">Мы используем файлы cookie и аналитические сервисы для корректной ' +
-    'работы сайта и улучшения качества обслуживания. Нажимая «Принять», вы соглашаетесь ' +
-    'на обработку данных согласно ' +
+    '<p id="cb-text">Сайт использует cookie и аналитику, согласно ' +
     '<a href="/info/licenses_detail/" target="_blank" rel="noopener">Политике конфиденциальности</a>.</p>' +
-    '<div id="cb-actions">' +
-      '<button id="cb-accept">Принять</button>' +
-    '</div>';
+    '<button id="cb-accept">Согласен</button>';
 
   /* Кнопка одна, отклонять нечего — пишем всегда accepted. Прежнее
      значение declined у тех, кто нажимал «Отклонить» раньше, баннер
