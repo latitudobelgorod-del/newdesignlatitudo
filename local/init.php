@@ -909,6 +909,152 @@ function ndMovedElementRedirect()
 }
 
 /**
+ * Канонический адрес разделов и списков.
+ *
+ * Карточка товара (main6_newdesign/component_epilog) и главная свой canonical
+ * ставят, а разделы каталога, «Акции», «Отзывы», «Портфолио», «Материалы» —
+ * нет. Из-за этого Яндекс считает самостоятельными страницами адреса с
+ * техническими параметрами: /catalog/?newdesign=Y&z=1,
+ * /catalog/sadovaya-mebel/?bx_sender_conversion_id=766857,
+ * /company/reviews/?photo=y, /projects/?brand[]=988 (Яндекс.Вебмастер,
+ * 68 страниц с одинаковым title, 16 сентября 2026).
+ *
+ * Из параметров оставляем только номер страницы: постраничная навигация —
+ * самостоятельная страница со своим заголовком (ndPaginationTitles ниже).
+ * Метки, фильтры и сортировки дают дубль раздела, поэтому отбрасываются.
+ *
+ * Хост берём текущий: у региональных поддоменов канониклом должна быть их
+ * собственная страница, иначе регионы выпадут из индекса. Там, где canonical
+ * уже есть, не трогаем — порядок атрибутов у тега бывает любой, карточка
+ * печатает href раньше rel.
+ *
+ * Порядок 10045 — до ndOpenGraphFallback (10050): он берёт og:url из canonical.
+ */
+AddEventHandler('main', 'OnEndBufferContent', 'ndCanonicalFallback', 10045);
+
+function ndCanonicalFallback(&$content)
+{
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET' || defined('PUBLIC_AJAX_MODE')) {
+        return;
+    }
+    if (defined('ADMIN_SECTION') && ADMIN_SECTION === true) {
+        return;
+    }
+    if (!is_string($content) || $content === '' || stripos($content, '</head>') === false) {
+        return;   // не html-страница (ajax, xml, картинка) — уходим
+    }
+    if (preg_match('/<link[^>]+rel\s*=\s*["\']?canonical["\']?/i', $content)) {
+        return;
+    }
+
+    // Страницу, закрытую от индексации (ложная пагинация из ndFakePagination404
+    // отдаёт 404 и noindex), в индекс никто не возьмёт: канонический адрес,
+    // указывающий на несуществующую страницу, ей только во вред.
+    if (preg_match('/<meta[^>]+name=["\']robots["\'][^>]*content=["\'][^"\']*noindex/i', $content)) {
+        return;
+    }
+
+    $path = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+    if ($path === '') {
+        $path = '/';
+    }
+    // Технические разделы закрыты в robots.txt, канонические адреса им ни к чему.
+    $arSkip = array('/bitrix/', '/ajax/', '/search/', '/basket/', '/order/', '/personal/', '/auth/', '/dev/');
+    foreach ($arSkip as $sSkip) {
+        if (strpos($path, $sSkip) === 0) {
+            return;
+        }
+    }
+
+    $arKeep = array();
+    foreach ($_GET as $sKey => $sValue) {
+        if (!is_array($sValue) && preg_match('/^PAGEN_\d+$/i', $sKey) && (int) $sValue > 1) {
+            $arKeep[$sKey] = (int) $sValue;
+        }
+    }
+    ksort($arKeep);
+
+    $url = (CMain::IsHTTPS() ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].$path
+        .($arKeep ? '?'.http_build_query($arKeep) : '');
+
+    $pos = stripos($content, '</head>');
+    $content = substr($content, 0, $pos)
+        ."\n".'<link rel="canonical" href="'.htmlspecialcharsbx($url).'" />'."\n"
+        .substr($content, $pos);
+}
+
+/**
+ * «Страница N» в заголовке и описании постраничной навигации.
+ *
+ * Вторая и дальше страницы разделов отдают тот же title и description, что и
+ * первая: /company/reviews/?PAGEN_1=2, /projects/?PAGEN_1=5, /materials/?PAGEN_1=2 —
+ * Вебмастер считает их дублями. Приписка делает заголовки различимыми.
+ *
+ * Правим в буфере по той же причине, что и og:title: заголовок ставит
+ * компонент, то есть уже после вывода <head>.
+ *
+ * Порядок 10046 — после canonical и до Open Graph, чтобы og:title получил
+ * готовый заголовок.
+ */
+AddEventHandler('main', 'OnEndBufferContent', 'ndPaginationTitles', 10046);
+
+function ndPaginationTitles(&$content)
+{
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET' || defined('PUBLIC_AJAX_MODE')) {
+        return;
+    }
+    if (defined('ADMIN_SECTION') && ADMIN_SECTION === true) {
+        return;
+    }
+    if (!is_string($content) || $content === '' || stripos($content, '</head>') === false) {
+        return;
+    }
+
+    $page = 0;
+    foreach ($_GET as $sKey => $sValue) {
+        if (!is_array($sValue) && preg_match('/^PAGEN_\d+$/i', $sKey) && (int) $sValue > 1) {
+            $page = (int) $sValue;
+            break;
+        }
+    }
+    if ($page < 2) {
+        return;
+    }
+
+    $suffix = ' — страница '.$page;
+
+    $content = preg_replace_callback(
+        '/<title[^>]*>(.*?)<\/title>/is',
+        function ($m) use ($suffix) {
+            $title = trim($m[1]);
+            if ($title === '' || mb_strpos($title, $suffix) !== false) {
+                return $m[0];
+            }
+
+            return '<title>'.$title.$suffix.'</title>';
+        },
+        $content,
+        1
+    );
+
+    $content = preg_replace_callback(
+        '/<meta[^>]+name=["\']description["\'][^>]*>/i',
+        function ($m) use ($suffix) {
+            if (!preg_match('/content=(["\'])(.*?)\1/is', $m[0], $c) || trim($c[2]) === '') {
+                return $m[0];
+            }
+            if (mb_strpos($c[2], $suffix) !== false) {
+                return $m[0];
+            }
+
+            return str_replace($c[0], 'content='.$c[1].$c[2].$suffix.$c[1], $m[0]);
+        },
+        $content,
+        1
+    );
+}
+
+/**
  * Open Graph: дописываем og:title, og:type и og:url там, где их нет.
  *
  * Тема печатает только og:image и og:description, а og:title/type/url ставит
