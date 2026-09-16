@@ -474,6 +474,24 @@
     display: none;
 }
 
+/* «Вся террасная доска ДПК» под карточками материалов — ссылка на весь
+   раздел (SEO, 14 сентября 2026). Цвет и подчёркивание — как у красных
+   ссылок карточки товара. */
+.nd-projgoods__all {
+    display: inline-block;
+    margin-top: 24px;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
+    color: #c60000;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.nd-projgoods__all:hover,
+.nd-projgoods__all:focus {
+    color: #a30000;
+}
+
 .nd-projgoods + .wraps .nd-workserv::before,
 .nd-projgoods ~ .nd-projinterest::before {
     content: none;

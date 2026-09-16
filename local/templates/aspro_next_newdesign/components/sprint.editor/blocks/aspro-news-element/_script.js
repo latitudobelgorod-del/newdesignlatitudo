@@ -1,16 +1,45 @@
 /* Общие скрипты для блоков */
 //аккордеон
-$(document).ready(function() {
-  //прикрепляем клик по заголовкам acc-head
-  $('.accordeon_lat .acc-head').on('click', f_acc);
-});
-
-function f_acc(){
+// Клик ловим на документе, а не на заголовках: на посадочных каталога блок
+// стоит в #right_block_ajax, который тема перерисовывает после загрузки, и
+// привязка к самим заголовкам при ready терялась — аккордеон не открывался.
+//
+// f_acc — общее имя: такую же функцию объявляют скрипты других шаблонов
+// блоков (aspro-catalog-section — пустую, top-tag вешает её на клик сам).
+// Поэтому свою держим под своим именем, глобальную f_acc подменяем на неё,
+// а один клик обрабатываем один раз — метка на исходном событии.
+function ndAccToggle(e){
+  var orig = e && e.originalEvent;
+  if (orig) {
+    if (orig.ndAccDone) {
+      return;
+    }
+    orig.ndAccDone = true;
+  }
+  var $item = $(this).closest('.accordion-item');
 //скрываем все кроме того, что должны открыть
+  $('.accordeon_lat .accordion-item.is-open').not($item).removeClass('is-open')
+    .children('.acc-head').attr('aria-expanded', 'false');
   $('.accordeon_lat .acc-body').not($(this).next()).slideUp();
-// открываем или скрываем блок под заголовоком, по которому кликнули
- $(this).next().slideToggle();
+// открываем или скрываем блок под заголовоком, по которому кликнули;
+// класс is-open красит метку и меняет плюс на минус
+  $item.toggleClass('is-open');
+  $(this).attr('aria-expanded', $item.hasClass('is-open') ? 'true' : 'false');
+  $(this).next().slideToggle();
 }
+window.f_acc = ndAccToggle;
+$(document).ready(function() {
+  window.f_acc = ndAccToggle;
+});
+$(document).off('.ndAcc')
+  .on('click.ndAcc', '.accordeon_lat .acc-head', ndAccToggle)
+  .on('keydown.ndAcc', '.accordeon_lat .acc-head', function(e) {
+    // заголовок — role="button": открывается и с клавиатуры
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      ndAccToggle.call(this, e);
+    }
+  });
 //аккордеон
 /*accordion*/
 

@@ -442,11 +442,29 @@
         } catch (e) { }
     }
 
+    /* Единица по умолчанию не подсвечена. Модуль единиц сначала помечает
+       базовую, а потом, если у товара задано «показывать в единице»
+       (BASE_KOEF), снимает пометку со всех и ищет чип с этим ID. У базового
+       чипа ID нет, поэтому когда «показывать» указывает на саму базовую
+       единицу (у винтов EasyDecking — «уп.»), не подсвечен ни один, хотя цена
+       уже в базовой: «260 ₽/уп.» (Ирина, 15 сентября 2026, страница бренда).
+       Тот же приём, что на детальной (syncMeasureActive в newdesign-element.js):
+       ставим класс, только когда активной нет вовсе, — выбор посетителя
+       не перебиваем, и наблюдатель на повторном вызове ничего не меняет. */
+    function syncMeasureActive(card) {
+        var box = card.querySelector('.measure-unit-block');
+        if (!box || box.querySelector('.measure-unit-active')) return;
+        var base = box.querySelector('.measure-unit[data-unit="1"]') || box.querySelector('.measure-unit');
+        if (base) base.classList.add('measure-unit-active');
+    }
+
     /* ---------------------------------------------------------------------
        Текст и состояния — без переносов DOM (иначе ломаются клики)
        ------------------------------------------------------------------ */
     function syncState(card) {
         try {
+            syncMeasureActive(card);
+
             var price = card.querySelector('.cost.prices');
             if (price) rublesToSign(price);
 
@@ -1053,8 +1071,26 @@
         apply();
     }
 
+    /* Лента из блока редактора (вариант «Каталог товаров — слайдер»): своего
+       заголовка у неё нет, его ставят отдельным блоком «Заголовок» прямо
+       перед ней. По макету заголовок стоит в одной строке со стрелками —
+       переносим его в шапку ленты. Служебные теги между ними (шаблон списка
+       печатает перед сеткой свой <style>) пропускаем. */
+    function pullEditorTitle(box) {
+        if (box.ndTitleDone || !box.classList.contains('nd-related--editor')) return;
+        box.ndTitleDone = true;
+        var head = box.querySelector('.nd-related__head');
+        var el = box.previousElementSibling;
+        while (el && /^(STYLE|SCRIPT|LINK|BR)$/.test(el.tagName)) el = el.previousElementSibling;
+        if (head && el && /^H[1-4]$/.test(el.tagName)) {
+            el.classList.add('nd-related__title');
+            head.insertBefore(el, head.firstChild);
+        }
+    }
+
     function initAllRelated() {
         Array.prototype.forEach.call(document.querySelectorAll('.nd-related'), function (box) {
+            pullEditorTitle(box);
             initRelated(box);
             initRelatedList(box);
         });

@@ -15,7 +15,7 @@
                                 "PROPERTY_CODE" => "EDITOR1_VRN",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -32,7 +32,7 @@
                                 "PROPERTY_CODE" => "EDITOR1",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -55,7 +55,7 @@
                                 "PROPERTY_CODE" => "EDITOR1_BEL",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -73,7 +73,7 @@
                                 "PROPERTY_CODE" => "EDITOR1",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -96,7 +96,7 @@
                                 "PROPERTY_CODE" => "EDITOR1_KRD",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -115,7 +115,7 @@
                                 "PROPERTY_CODE" => "EDITOR1",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -137,7 +137,7 @@
                                 "PROPERTY_CODE" => "EDITOR1_MSK",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -155,7 +155,7 @@
                                 "PROPERTY_CODE" => "EDITOR1",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -178,7 +178,7 @@
                                 "PROPERTY_CODE" => "EDITOR1_ROSTOV",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -197,7 +197,7 @@
                                 "PROPERTY_CODE" => "EDITOR1",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -221,7 +221,7 @@
                                 "PROPERTY_CODE" => "EDITOR1_KURSK",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -240,7 +240,7 @@
                                 "PROPERTY_CODE" => "EDITOR1",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -264,7 +264,7 @@
                                 "PROPERTY_CODE" => "EDITOR1_LIPETSK",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -282,7 +282,7 @@
                                 "PROPERTY_CODE" => "EDITOR1",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -305,7 +305,7 @@
                                 "PROPERTY_CODE" => "EDITOR1_TAMBOV",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -323,7 +323,7 @@
                                 "PROPERTY_CODE" => "EDITOR1",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -346,7 +346,7 @@
                                 "PROPERTY_CODE" => "EDITOR1_STAVR",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -364,7 +364,7 @@
                                 "PROPERTY_CODE" => "EDITOR1",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(
@@ -387,7 +387,7 @@
                                 "PROPERTY_CODE" => "EDITOR1",
                                 "NEWS_NAME" => $arSeoItem["NAME"],
                                 "USE_JQUERY" => "N",
-                                "USE_FANCYBOX" => "Y",
+                                "USE_FANCYBOX" => "N",
                             ),
                             $component,
                             array(

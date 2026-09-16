@@ -10,6 +10,9 @@
    rgba(82,82,100,.15)) с шагом 16; согласие — клетка 20 в поле 24; кнопка
    во всю ширину, высота 56, подпись 16/16 700.
    Мобильный: карточка 360, шапка 36/16/20, заголовок 24/29, поля по 16.
+   На телефоне от макета отступаем в сторону компактности (поля 44, шаг 10,
+   заголовок 20/26) — иначе кнопка формы не помещалась в экран; см. блок
+   @media (max-width: 767px) ниже.
 
    Как устроена разметка (form.result.new/popup, общая с боевой темой):
 
@@ -324,6 +327,13 @@
 .form-container .captcha-row .captcha_image:empty {
     display: none;
 }
+/* У строки капчи тема оставила класс clearfix: его ::before/::after во
+   флекс-колонке становятся пустыми элементами и добавляют два лишних
+   отступа по 8px под виджетом. */
+.form-container .form-control.captcha-row:before,
+.form-container .form-control.captcha-row:after {
+    display: none !important;
+}
 /* Виджет Яндекс SmartCaptcha (модуль ceteralabs.smartcaptcha подменяет им
    штатное поле captcha_word). В макете под капчу отведена полоса на всю
    ширину колонки; своей рамки у виджета нет.
@@ -489,37 +499,77 @@
     color: #c60000;
 }
 
+/* Плавающая кнопка звонка (виджет Callbackkiller) висит поверх всего и на
+   телефоне закрывает капчу и кнопку формы. Пока открыто окно — прячем:
+   оверлей jqModal живёт ровно столько, сколько открыто окно. */
+body:has(.jqmOverlay) a.cbk-phone {
+    display: none !important;
+}
+
 @media (max-width: 767px) {
     /* На узком экране карточка занимает ширину слоя: 360 макета плюс поля
        по 16 в 390 уже не помещаются, и окно уезжало за правый край. */
     .form-container {
         padding: 8px !important;
     }
+    /* Высота — по видимой части экрана (dvh). В iOS Safari 100vh считается
+       без учёта нижней панели браузера, и низ карточки с кнопкой уходил
+       под неё. */
     .form-container > div {
         width: 100%;
         max-width: 360px;
         max-height: calc(100vh - 16px);
+        max-height: calc(100dvh - 16px);
     }
+
+    /* Компактная раскладка. По макету (поля 52, шаг 16, шапка 36/20)
+       форма «Рассчитать» выходит под 790px и на телефоне не влезает:
+       до кнопки «Отправить» приходилось листать. Ужимаем поля, шаги
+       и шапку — так форма с капчей помещается в экран около 650px. */
     .form-container .form .form_head {
-        padding: 36px 16px 20px !important;
+        padding: 20px 52px 12px 16px !important;
     }
     .form-container .form .form_head h2.formnameru,
     .form-container .form .form_head .formnameru {
-        font-size: 24px !important;
-        line-height: 29px;
+        font-size: 20px !important;
+        line-height: 26px;
     }
     .form-container > div > a.close.jqmClose {
         top: 8px !important;
         right: 8px !important;
     }
     .form-container .form .form_body {
-        padding: 0 16px 15px !important;
+        gap: 10px;
+        padding: 0 16px 10px !important;
+    }
+    .form-container .form-control input.inputtext,
+    .form-container .form-control input[type="text"],
+    .form-container .form-control input[type="tel"],
+    .form-container .form-control input[type="email"],
+    .form-container .form-control input.phone {
+        height: 44px !important;
+    }
+    .form-container .form-control textarea {
+        height: 80px !important;
+    }
+    .form-container .form-control > label:not(.error) {
+        top: 22px !important;
+    }
+    .form-container .form-control.is-filled > label:not(.error),
+    .form-container .form-control.is-focused > label:not(.error) {
+        top: 4px !important;
+    }
+    .form-container .form-control.is-filled input,
+    .form-container .form-control.is-focused input {
+        padding-top: 16px !important;
     }
     .form-container .form .form_footer {
-        padding: 4px 16px 24px !important;
+        gap: 12px;
+        padding: 2px 16px 16px !important;
     }
     .form-container .form_footer input[type="submit"],
     .form-container .form_footer .btn {
+        height: 48px;
         font-size: 15px;
         line-height: 15px;
     }
@@ -720,17 +770,20 @@
 }
 
 @media (max-width: 767px) {
+    /* Та же компактная раскладка, что у общих форм выше. */
     .popup[class*="one_click_buy"] .form-container > div > .popup-intro {
-        padding: 36px 16px 0;
+        padding: 20px 52px 0 16px;
     }
     .popup[class*="one_click_buy"] .form-container .pop-up-title {
-        font-size: 24px;
-        line-height: 29px;
+        font-size: 20px;
+        line-height: 26px;
     }
     .popup[class*="one_click_buy"] .form-container > div > .form {
-        padding: 20px 16px 24px !important;
+        gap: 10px;
+        padding: 12px 16px 16px !important;
     }
     .popup[class*="one_click_buy"] .form-container .but-r .btn {
+        height: 48px;
         font-size: 15px;
         line-height: 15px;
     }

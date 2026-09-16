@@ -11,8 +11,9 @@
  *
  * Поэтому перед записью предложения (событие модуля onExportOfferExtendData)
  * домножаем price и oldprice. Касается ТОЛЬКО прайс-листов, чьё название
- * начинается с «Полный товарный фид» (Ирина, 10 сентября 2026): дилерские
- * и прежние «для вебмастера» выгружаются как раньше.
+ * начинается с «Полный товарный фид» (Ирина, 10 сентября 2026) или с
+ * «Фид бренд » (брендовые копии полных, 15 сентября): дилерские и прежние
+ * «для вебмастера» выгружаются как раньше.
  *
  * Формула та же, что в ndShownPrice() шаблонов карточки и в
  * local/feed/generate.php — менять в четырёх местах сразу.
@@ -23,7 +24,8 @@
  * в среднем 1,8 фото, ни одной характеристики, у 1106 позиций пустое
  * описание. Поэтому уже собранный узел <offer> дополняем:
  *   - фото: доп. картинки предложения (MORE_PHOTO), галерея товара и
- *     последним кадром чертёж «Профиль доски» (PROFIL) — до 20 штук;
+ *     последним кадром чертёж «Профиль доски» (PROFIL) — не больше 10
+ *     штук, это лимит Яндекса (11 сентября 2026, ошибка в отчёте о фиде);
  *   - видео: «Товарное видео» предложения, иначе «Видео в попапе» товара;
  *   - характеристики <param>: у предложения — цвет, длина, вид доски; затем
  *     логистические параметры (длина, ширина, толщина, вес из каталога);
@@ -33,16 +35,26 @@
  *     списка всех цветов товара;
  *   - описание, если модуль его не вывел: детальный текст товара, иначе
  *     анонс, иначе короткий текст из характеристик;
- *   - гарантия производителя (manufacturer_warranty), если заполнена.
+ *   - гарантия производителя (manufacturer_warranty), если заполнена;
+ *   - бренд <vendor> латиницей из свойства BRAND_ENGLISH_NAME производителя
+ *     (инфоблок 12), если оно заполнено. Модуль ставит название элемента
+ *     («Би-Файр»), а в справочнике Яндекса бренд записан «B-fire» — без
+ *     совпадения товары пропадают из фильтра «Бренд» в Яндекс Товарах
+ *     (Ирина, 14 сентября 2026);
+ *   - ссылка простого товара — без ?pid=<ID товара> (cleanSimpleUrl).
  *
  * Подключается из local/init.php лениво, внутри обработчика.
  */
 
 class LatitudoMarketFeed
 {
-    const NAME_PREFIX = 'Полный товарный фид';
+    /* Брендовые фиды «Фид бренд EasyDecking / LATITUDO <город>» (15 сентября
+       2026, local/tools/nd_market_brand_feeds.php) — копии полных с отбором по
+       отметке бренда, им нужна та же цена и то же наполнение карточки. */
+    const NAME_PREFIXES = ['Полный товарный фид', 'Фид бренд '];
     const IBLOCK_PRODUCTS = 19;
     const IBLOCK_OFFERS = 20;
+    const IBLOCK_BRANDS = 12;
 
     /** @var array<int, bool> ID прайс-листа => полный ли он */
     protected static $setups = [];
@@ -57,7 +69,14 @@ class LatitudoMarketFeed
             $row = \Bitrix\Main\Application::getConnection()
                 ->query('SELECT NAME FROM yamarket_export_setup WHERE ID = ' . $setupId)
                 ->fetch();
-            static::$setups[$setupId] = $row && mb_strpos((string)$row['NAME'], static::NAME_PREFIX) === 0;
+            $full = false;
+            foreach (static::NAME_PREFIXES as $prefix) {
+                if ($row && mb_strpos((string)$row['NAME'], $prefix) === 0) {
+                    $full = true;
+                    break;
+                }
+            }
+            static::$setups[$setupId] = $full;
         }
         return static::$setups[$setupId];
     }
@@ -163,7 +182,7 @@ class LatitudoMarketFeed
     // Наполнение карточки: фото, видео, характеристики, описание
     // =====================================================================
 
-    const PICTURES_MAX = 20;
+    const PICTURES_MAX = 10;
     const DESCRIPTION_MAX = 3000;
 
     /** Свойства предложения, которые идут в <param> первыми. */
@@ -229,10 +248,41 @@ class LatitudoMarketFeed
             $elementId = (int)$elementId;
             $productId = $parentOf[$elementId] ?? $elementId;
             try {
+                static::cleanSimpleUrl($offer, $elementId, $productId === $elementId);
                 static::enrichOffer($offer, $data['own'][$elementId] ?? [], $data['product'][$productId] ?? [], $data['catalog'][$elementId] ?? []);
             } catch (\Throwable $e) {
                 // Карточку, которую не удалось дополнить, оставляем как её собрал модуль.
             }
+        }
+    }
+
+    /**
+     * У простого товара (без торговых предложений) модуль всё равно дописывает
+     * к ссылке ?pid=<ID самого товара> — выбирать там нечего, а адрес выходит
+     * другим, чем у страницы товара и её canonical. Убираем параметр (Ирина,
+     * 14 сентября 2026). У предложений pid оставляем: он открывает карточку
+     * сразу на нужном цвете/длине с её ценой. Адреса с pid в robots.txt
+     * склеены через Clean-param, поэтому робот Яндекса их открывает.
+     */
+    protected static function cleanSimpleUrl(\Yandex\Market\Export\Xml\Data\XmlElement $offer, int $elementId, bool $simple): void
+    {
+        if (!$simple) {
+            return;
+        }
+        foreach ($offer->getChild('url') as $u) {
+            $url = (string)$u->getValue();
+            $parts = parse_url($url);
+            if (empty($parts['query'])) {
+                continue;
+            }
+            parse_str($parts['query'], $query);
+            if (!isset($query['pid']) || (int)$query['pid'] !== $elementId) {
+                continue;
+            }
+            unset($query['pid']);
+            $clean = strtok($url, '?') . ($query ? '?' . http_build_query($query) : '')
+                . (isset($parts['fragment']) ? '#' . $parts['fragment'] : '');
+            $u->setValue($clean);
         }
     }
 
@@ -250,20 +300,43 @@ class LatitudoMarketFeed
         }
 
         // --- фото ------------------------------------------------------------
+        // Яндекс берёт не больше 10 картинок, остальные отбрасывает с
+        // ошибкой в отчёте. Чертёж профиля ставим последним кадром, но место
+        // под него держим: без него у доски теряется самое полезное фото.
+        $profil = array_map(static fn($p) => $host . $p, $product['PROFIL'] ?? []);
         $have = [];
         foreach ($offer->getChild('picture') as $pic) {
-            $have[(string)$pic->getValue()] = true;
+            $url = (string)$pic->getValue();
+            if (isset($have[$url])) {
+                $offer->removeChild($pic);
+                continue;
+            }
+            $have[$url] = true;
         }
-        $extra = array_merge($own['MORE_PHOTO'] ?? [], $product['MORE_PHOTO'] ?? [], $product['PROFIL'] ?? []);
-        foreach ($extra as $path) {
-            if (count($have) >= static::PICTURES_MAX) {
+        $photos = array_map(static fn($p) => $host . $p, array_merge($own['MORE_PHOTO'] ?? [], $product['MORE_PHOTO'] ?? []));
+        $room = static::PICTURES_MAX - count(array_diff($profil, array_keys($have)));
+        foreach ($photos as $url) {
+            if (count($have) >= $room) {
                 break;
             }
-            $url = $host . $path;
             if (!isset($have[$url])) {
                 $offer->addChild('picture', $url);
                 $have[$url] = true;
             }
+        }
+        foreach ($profil as $url) {
+            if (count($have) >= static::PICTURES_MAX) {
+                break;
+            }
+            if (!isset($have[$url])) {
+                $offer->addChild('picture', $url);
+                $have[$url] = true;
+            }
+        }
+        // Если модуль сам вывел больше лимита — лишние снимаем с конца.
+        $pictures = $offer->getChild('picture');
+        for ($i = count($pictures) - 1; $i >= static::PICTURES_MAX; $i--) {
+            $offer->removeChild($pictures[$i]);
         }
 
         // --- видео -----------------------------------------------------------
@@ -321,6 +394,14 @@ class LatitudoMarketFeed
         }
         foreach ($product['ATTRIBUTES'] ?? [] as $p) {
             $add($p['NAME'], $p['VALUE'], $p['UNIT']);
+        }
+
+        // --- бренд латиницей ------------------------------------------------
+        if (($product['VENDOR'] ?? '') !== '') {
+            foreach ($offer->getChild('vendor') as $v) {
+                $offer->removeChild($v);
+            }
+            $offer->addChild('vendor', $product['VENDOR']);
         }
 
         // --- гарантия производителя -----------------------------------------
@@ -407,8 +488,10 @@ class LatitudoMarketFeed
         $productProps = static::propertyMeta(static::IBLOCK_PRODUCTS);
         $values = [];
         \CIBlockElement::GetPropertyValuesArray($values, static::IBLOCK_PRODUCTS, ['ID' => $productIds],
-            ['CODE' => array_merge(['MORE_PHOTO', 'PROFIL', 'POPUP_VIDEO', 'CML2_ATTRIBUTES'], static::PRODUCT_PARAMS)]);
+            ['CODE' => array_merge(['MORE_PHOTO', 'PROFIL', 'POPUP_VIDEO', 'CML2_ATTRIBUTES', 'BRAND'], static::PRODUCT_PARAMS)]);
+        $brandOf = [];
         foreach ($values as $id => $props) {
+            $brandOf[(int)$id] = (int)($props['BRAND']['VALUE'] ?? 0);
             $attributes = [];
             $vals  = (array)($props['CML2_ATTRIBUTES']['VALUE'] ?? []);
             $descs = (array)($props['CML2_ATTRIBUTES']['DESCRIPTION'] ?? []);
@@ -426,7 +509,19 @@ class LatitudoMarketFeed
                 'ATTRIBUTES'  => $attributes,
                 'WARRANTY'    => trim((string)($props['GARANTY']['VALUE'] ?? '')) !== '',
                 'TEXT'        => '',
+                'VENDOR'      => '',
             ];
+        }
+
+        // Бренд латиницей — у производителя, на которого ссылается товар.
+        $brandIds = array_values(array_unique(array_filter($brandOf)));
+        if ($brandIds) {
+            $brandValues = [];
+            \CIBlockElement::GetPropertyValuesArray($brandValues, static::IBLOCK_BRANDS, ['ID' => $brandIds],
+                ['CODE' => ['BRAND_ENGLISH_NAME']]);
+            foreach ($brandOf as $id => $brandId) {
+                $out['product'][$id]['VENDOR'] = trim((string)($brandValues[$brandId]['BRAND_ENGLISH_NAME']['VALUE'] ?? ''));
+            }
         }
 
         // Тексты товаров — для позиций, которым модуль не вывел описание.

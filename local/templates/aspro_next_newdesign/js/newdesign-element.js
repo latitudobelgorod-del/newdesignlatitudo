@@ -1467,6 +1467,26 @@
 				syncLogistic();
 				syncMeasureActive();
 			}).observe(info, { childList: true, subtree: true, characterData: true });
+
+			/* «В корзину» → «В корзине» тема переключает ОДНИМ атрибутом style
+			   (display у .to-cart/.in-cart), без изменения разметки. Наблюдатель
+			   выше атрибутов не видит, и после нажатия счётчик оставался на
+			   месте, а «В корзине» — узкой кнопкой рядом с ним; на всю ширину
+			   она вставала только после перезагрузки (Ирина, 11 сентября 2026).
+
+			   Отдельный наблюдатель и только за style: наш syncInCart меняет
+			   class у .counter_wrapp, и слежка за class будила бы сама себя.
+			   Единственная его запись в style — снятие display у плитки единиц,
+			   и она однократная (showMeasureTile выходит, если снимать нечего). */
+			var inCartQueued = false;
+			new MutationObserver(function () {
+				if (inCartQueued) return;
+				inCartQueued = true;
+				requestAnimationFrame(function () {
+					inCartQueued = false;
+					syncInCart();
+				});
+			}).observe(info, { attributes: true, attributeFilter: ['style'], subtree: true });
 		}
 
 		/* Скрытая галерея темы: адрес ролика она проставляет уже после нашей

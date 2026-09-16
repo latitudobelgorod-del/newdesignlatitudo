@@ -183,6 +183,16 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_ba
 require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_schema.php';
 
 /**
+ * SEO раздела «Террасная доска»: ссылка «Вся террасная доска ДПК» с карточек
+ * товаров и из материалов проектов, цена «от … ₽/м²» в title раздела через
+ * метку #ND_PRICE_M2_FROM_<ID>#. Функции зовут шаблоны — подключаем сразу.
+ *
+ * Логика в local/php_interface/include/latitudo_seo_links.php.
+ */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_seo_links.php';
+AddEventHandler('main', 'OnEndBufferContent', 'ndPriceFromTokens', 10040);
+
+/**
  * «Полный товарный фид <город>» в модуле «Маркет для продавцов»: цена в
  * основной единице (м², п.м), как на карточке, а не за штуку.
  *

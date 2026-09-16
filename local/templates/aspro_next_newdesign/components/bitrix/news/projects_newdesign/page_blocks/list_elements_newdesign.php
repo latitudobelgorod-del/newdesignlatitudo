@@ -24,18 +24,28 @@ $arNdProjectFields = array_values(array_unique(array_filter(array_merge(
 
 /* ======================= фильтр над сеткой =======================
    Состояние держим в GET: review=y, video=y, color[] и fence[] (XML_ID
-   справочников), brand[] (ID варианта списка). Собранный фильтр кладём в
+   справочников), brand[] (ID варианта списка), goods[] (ID товаров
+   каталога из свойства «Товары» LINK_GOODS). Собранный фильтр кладём в
    глобальную переменную с именем из FILTER_NAME — её читает news.list. */
 $ndIb = (int) $arParams['IBLOCK_ID'];
 $ndFilterName = $arParams['FILTER_NAME'] ?: 'arProjectFilter';
 // ID раздела ставит section.php; на общей странице /projects/ его нет
 $ndSectionId = (int) ($ndSectionId ?? 0);
+/* Общая страница /projects/ (news.php ставит $ndProjectsRoot): там по
+   просьбе Ирины (11 сентября 2026) те же фильтры, кроме «Видов ограждений».
+   Пока фильтр не выбран, под ним остаются плитки разделов — блок выводит
+   только панель и возвращается; с выбранным фильтром — сетка объектов из
+   всех разделов, как на странице раздела. */
+$ndRoot = !empty($ndProjectsRoot);
 
 $ndReview = ($_GET['review'] ?? '') === 'y';
 $ndVideo = ($_GET['video'] ?? '') === 'y';
 $ndColor = array_values(array_filter(array_map('strval', (array) ($_GET['color'] ?? [])), 'strlen'));
-$ndFence = array_values(array_filter(array_map('strval', (array) ($_GET['fence'] ?? [])), 'strlen'));
+$ndFence = $ndRoot ? [] : array_values(array_filter(array_map('strval', (array) ($_GET['fence'] ?? [])), 'strlen'));
 $ndBrand = array_values(array_filter(array_map('intval', (array) ($_GET['brand'] ?? []))));
+$ndGoods = array_values(array_unique(array_filter(array_map('intval', (array) ($_GET['goods'] ?? [])), static function ($id) {
+	return $id > 0;
+})));
 
 if (!function_exists('ndDirectoryOptions')) {
 	/**
@@ -160,14 +170,104 @@ if (!function_exists('ndUsedDirectoryValues')) {
 	}
 }
 
+if (!function_exists('ndUsedLinkedGoods')) {
+	/**
+	 * Товары каталога, привязанные к элементам портфолио (свойство-привязка
+	 * LINK_GOODS «Товары»), — пункты фильтра «Товары» (Ирина, 11 сентября 2026).
+	 *
+	 * Берём только активные товары: неактивные (снятые с продажи, «(OLD)») на
+	 * сайте не открываются, и выбирать их в фильтре незачем. Внутри раздела —
+	 * только товары его элементов, как у справочников выше.
+	 *
+	 * У пункта миниатюра товара (Ирина, 11 сентября 2026): картинка анонса,
+	 * а если её нет — детальная, сразу уменьшенная до 80×80 (показ 40×40).
+	 *
+	 * @param int    $iblockId  инфоблок портфолио
+	 * @param string $code      код свойства-привязки
+	 * @param int    $sectionId раздел; 0 — весь инфоблок
+	 * @return array ID товара => ['NAME' => ..., 'SRC' => миниатюра|''], по алфавиту
+	 */
+	function ndUsedLinkedGoods($iblockId, $code, $sectionId)
+	{
+		$sectionId = (int) $sectionId;
+
+		$cache = new CPHPCache();
+		// «2» — формат с картинками; прежние записи кеша (только названия) не читаем
+		$cacheId = 'nd_goods2_'.$iblockId.'_'.$code.'_'.$sectionId;
+		$cacheDir = '/nd/projects_filter';
+
+		if ($cache->InitCache(86400, $cacheId, $cacheDir)) {
+			$vars = $cache->GetVars();
+
+			return is_array($vars['GOODS'] ?? null) ? $vars['GOODS'] : [];
+		}
+
+		$rsProp = CIBlockProperty::GetList([], ['IBLOCK_ID' => $iblockId, 'CODE' => $code]);
+		$prop = $rsProp->Fetch();
+		$linkIblockId = $prop ? (int) $prop['LINK_IBLOCK_ID'] : 0;
+
+		$taggedCache = Bitrix\Main\Application::getInstance()->getTaggedCache();
+		$taggedCache->startTagCache($cacheDir);
+		$taggedCache->registerTag('iblock_id_'.$iblockId);
+		if ($linkIblockId) {
+			// переименовали или сняли товар — список пересоберётся
+			$taggedCache->registerTag('iblock_id_'.$linkIblockId);
+		}
+
+		$filter = ['IBLOCK_ID' => $iblockId, 'ACTIVE' => 'Y', '!PROPERTY_'.$code => false];
+		if ($sectionId > 0) {
+			$filter['SECTION_ID'] = $sectionId;
+			$filter['INCLUDE_SUBSECTIONS'] = 'Y';
+		}
+
+		$ids = [];
+		$rs = CIBlockElement::GetList([], $filter, false, false, ['ID', 'PROPERTY_'.$code]);
+		while ($r = $rs->Fetch()) {
+			$id = (int) ($r['PROPERTY_'.$code.'_VALUE'] ?? 0);
+			if ($id > 0) {
+				$ids[$id] = true;
+			}
+		}
+
+		$goods = [];
+		if ($ids && $linkIblockId) {
+			$rs = CIBlockElement::GetList(
+				['NAME' => 'ASC', 'ID' => 'ASC'],
+				['IBLOCK_ID' => $linkIblockId, 'ID' => array_keys($ids), 'ACTIVE' => 'Y'],
+				false,
+				false,
+				['ID', 'NAME', 'PREVIEW_PICTURE', 'DETAIL_PICTURE']
+			);
+			while ($r = $rs->Fetch()) {
+				$src = '';
+				$fileId = (int) ($r['PREVIEW_PICTURE'] ?: $r['DETAIL_PICTURE']);
+				if ($fileId > 0) {
+					$img = CFile::ResizeImageGet($fileId, ['width' => 80, 'height' => 80], BX_RESIZE_IMAGE_PROPORTIONAL, true);
+					$src = (string) ($img['src'] ?? '');
+				}
+				$goods[(int) $r['ID']] = ['NAME' => (string) $r['NAME'], 'SRC' => $src];
+			}
+		}
+
+		$taggedCache->endTagCache();
+
+		if ($cache->StartDataCache()) {
+			$cache->EndDataCache(['GOODS' => $goods]);
+		}
+
+		return $goods;
+	}
+}
+
 /* --- списки для выпадающих меню --- */
 $ndColorOptions = [];
 $ndFenceOptions = [];
 $ndBrandOptions = [];
+$ndGoodsOptions = [];
 
 if ($ndIb) {
 	$ndColorOptions = ndDirectoryOptions($ndIb, 'COLOR_IN_FILTER');
-	$ndFenceOptions = ndDirectoryOptions($ndIb, 'VIDW_OGRAJDENIY', true);
+	$ndFenceOptions = $ndRoot ? [] : ndDirectoryOptions($ndIb, 'VIDW_OGRAJDENIY', true);
 
 	/* Внутри раздела оставляем только те значения, что реально встречаются
 	   у его элементов: «Виды ограждений» заполняют у ограждений и заборов, и в
@@ -189,10 +289,22 @@ if ($ndIb) {
 		}
 	}
 
+	/* У бренда — его значок, тот же, что в ярлыке на карточке проекта
+	   (list_projects_newdesign/style.css, по XML_ID варианта списка). */
+	$ndBrandLogos = [
+		'brand_easydecking' => '/images/logo_brand_easy.png',
+		'brand_latitudo' => SITE_TEMPLATE_PATH.'/images/newdesign/brands/latitudo.png',
+	];
 	$rsEnum = CIBlockPropertyEnum::GetList(['SORT' => 'ASC'], ['IBLOCK_ID' => $ndIb, 'CODE' => 'SET_BRAND']);
 	while ($enum = $rsEnum->Fetch()) {
-		$ndBrandOptions[(int) $enum['ID']] = $enum['VALUE'];
+		$logo = $ndBrandLogos[$enum['XML_ID']] ?? '';
+		$ndBrandOptions[(int) $enum['ID']] = [
+			'NAME' => $enum['VALUE'],
+			'SRC' => ($logo && is_file($_SERVER['DOCUMENT_ROOT'].$logo)) ? $logo : '',
+		];
 	}
+
+	$ndGoodsOptions = ndUsedLinkedGoods($ndIb, 'LINK_GOODS', $ndSectionId);
 }
 
 /* --- сам фильтр --- */
@@ -207,14 +319,19 @@ if ($ndBrand) {
 	$ndFilter['PROPERTY_SET_BRAND'] = $ndBrand;
 }
 
-/* Множественные справочники отбираем через ID; если выбраны оба фильтра,
-   берём пересечение — элемент должен подходить и по цвету, и по виду. */
+/* Множественные свойства отбираем через ID; если выбрано несколько фильтров,
+   берём пересечение — элемент должен подходить и по цвету, и по виду, и по
+   товару. Внутри одного фильтра пункты через «или»: выбрали два товара —
+   покажем объекты хотя бы с одним из них. */
 $ndIdSets = [];
 if ($ndColor) {
 	$ndIdSets[] = ndElementIdsByProperty($ndIb, 'COLOR_IN_FILTER', $ndColor);
 }
 if ($ndFence) {
 	$ndIdSets[] = ndElementIdsByProperty($ndIb, 'VIDW_OGRAJDENIY', $ndFence);
+}
+if ($ndGoods) {
+	$ndIdSets[] = ndElementIdsByProperty($ndIb, 'LINK_GOODS', $ndGoods);
 }
 if ($ndIdSets) {
 	$ids = array_shift($ndIdSets);
@@ -229,7 +346,7 @@ $GLOBALS[$ndFilterName] = array_merge(
 	$ndFilter
 );
 
-$ndActive = (bool) ($ndReview || $ndVideo || $ndColor || $ndFence || $ndBrand);
+$ndActive = (bool) ($ndReview || $ndVideo || $ndColor || $ndFence || $ndBrand || $ndGoods);
 
 /* ======================= разметка панели фильтров =======================
    Рисуем здесь, а не в шаблоне news.list: тот кешируется по составу фильтра,
@@ -240,6 +357,7 @@ $ndActive = (bool) ($ndReview || $ndVideo || $ndColor || $ndFence || $ndBrand);
 $ndSelColor = array_flip($ndColor);
 $ndSelFence = array_flip($ndFence);
 $ndSelBrand = array_flip($ndBrand);
+$ndSelGoods = array_flip($ndGoods);
 $ndResetUrl = $APPLICATION->GetCurPage(false);
 
 /** Кружки у названий цветов — из макета, по XML_ID справочника. */
@@ -326,13 +444,48 @@ if (!defined('ND_UI_JS')) {
 				<?= $ndChevron ?><span>Бренд<?= $ndSelBrand ? ' ('.count($ndSelBrand).')' : '' ?></span>
 			</summary>
 			<div class="nd-filter__panel">
-				<? foreach ($ndBrandOptions as $enumId => $name): ?>
+				<? foreach ($ndBrandOptions as $enumId => $opt): ?>
 					<label class="nd-filter__opt">
 						<input type="checkbox" name="brand[]" value="<?= (int) $enumId ?>"<?= isset($ndSelBrand[$enumId]) ? ' checked' : '' ?>>
 						<span class="nd-filter__box" aria-hidden="true"></span>
-						<span class="nd-filter__opt-name"><?= htmlspecialcharsbx($name) ?></span>
+						<? if ($opt['SRC']): ?>
+							<img class="nd-filter__pic nd-filter__pic--brand" src="<?= htmlspecialcharsbx($opt['SRC']) ?>" alt="" width="24" height="24" loading="lazy">
+						<? endif; ?>
+						<span class="nd-filter__opt-name"><?= htmlspecialcharsbx($opt['NAME']) ?></span>
 					</label>
 				<? endforeach; ?>
+				<button type="submit" class="nd-filter__apply">Применить</button>
+			</div>
+		</details>
+	<? endif; ?>
+
+	<? /* товары каталога из свойства «Товары»: названия длинные, их до трёх
+	      десятков в разделе — панель шире, с прокруткой и поиском по названию.
+	      Поле поиска без name: в адрес фильтра оно не уходит, а скрипт не
+	      отправляет форму, пока в нём печатают. */ ?>
+	<? if ($ndGoodsOptions): ?>
+		<details class="nd-filter__drop nd-filter__drop--goods">
+			<summary class="nd-filter__head">
+				<?= $ndChevron ?><span>Товары<?= $ndSelGoods ? ' ('.count($ndSelGoods).')' : '' ?></span>
+			</summary>
+			<div class="nd-filter__panel nd-filter__panel--goods">
+				<? if (count($ndGoodsOptions) > 8): ?>
+					<input type="search" class="nd-filter__search" placeholder="Найти товар" autocomplete="off" aria-label="Найти товар в списке">
+				<? endif; ?>
+				<? foreach ($ndGoodsOptions as $goodsId => $opt): ?>
+					<label class="nd-filter__opt">
+						<input type="checkbox" name="goods[]" value="<?= (int) $goodsId ?>"<?= isset($ndSelGoods[$goodsId]) ? ' checked' : '' ?>>
+						<span class="nd-filter__box" aria-hidden="true"></span>
+						<? /* без картинки — пустая плашка того же размера, чтобы названия стояли ровно */ ?>
+						<? if ($opt['SRC']): ?>
+							<img class="nd-filter__pic nd-filter__pic--goods" src="<?= htmlspecialcharsbx($opt['SRC']) ?>" alt="" width="40" height="40" loading="lazy">
+						<? else: ?>
+							<span class="nd-filter__pic nd-filter__pic--goods" aria-hidden="true"></span>
+						<? endif; ?>
+						<span class="nd-filter__opt-name"><?= htmlspecialcharsbx($opt['NAME']) ?></span>
+					</label>
+				<? endforeach; ?>
+				<p class="nd-filter__empty" hidden>Ничего не нашлось</p>
 				<button type="submit" class="nd-filter__apply">Применить</button>
 			</div>
 		</details>
@@ -343,6 +496,11 @@ if (!defined('ND_UI_JS')) {
 	<? endif; ?>
 </form>
 <?
+
+// общая страница без фильтра — дальше плитки разделов рисует news.php
+if ($ndRoot && !$ndActive) {
+	return;
+}
 
 /* Разделы портфолио и SEO-текст раздела. Порядок по макету: фильтры,
    плашки разделов, текст, сетка. */
@@ -366,7 +524,7 @@ $APPLICATION->IncludeComponent(
 		'SORT_ORDER2' => $arParams['SORT_ORDER2'],
 		'FIELD_CODE' => $arNdProjectFields,
 		'PROPERTY_CODE' => $arNdProjectProps,
-		'FILTER_NAME' => $arParams['FILTER_NAME'],
+		'FILTER_NAME' => $ndFilterName,
 		'AJAX_MODE' => 'N',
 		'CACHE_TYPE' => $arParams['CACHE_TYPE'],
 		'CACHE_TIME' => $arParams['CACHE_TIME'],
@@ -382,8 +540,9 @@ $APPLICATION->IncludeComponent(
 		'ADD_SECTIONS_CHAIN' => 'N',
 		'HIDE_LINK_WHEN_NO_DETAIL' => 'N',
 		'CHECK_DATES' => $arParams['CHECK_DATES'],
-		'PARENT_SECTION' => $arResult['VARIABLES']['SECTION_ID'],
-		'PARENT_SECTION_CODE' => $arResult['VARIABLES']['SECTION_CODE'],
+		// на общей странице /projects/ раздела нет — выборка по всему инфоблоку
+		'PARENT_SECTION' => $arResult['VARIABLES']['SECTION_ID'] ?? '',
+		'PARENT_SECTION_CODE' => $arResult['VARIABLES']['SECTION_CODE'] ?? '',
 		'INCLUDE_SUBSECTIONS' => 'Y',
 		'STRICT_SECTION_CHECK' => $arParams['STRICT_SECTION_CHECK'],
 		'DISPLAY_TOP_PAGER' => 'N',

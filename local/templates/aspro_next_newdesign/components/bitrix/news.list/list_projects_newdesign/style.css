@@ -4,10 +4,12 @@
    три карточки в ряд по 429 с зазором 24, картинка со скруглением 6,
    плашки поверх картинки, подпись под ней.
    ========================================================================= */
+/* Снизу отбивка до того, что идёт за сеткой: на /projects/ с фильтром сразу
+   под навигацией начинался SEO-текст страницы (Ирина, 11 сентября 2026). */
 .nd-projects {
     width: 100%;
     max-width: 1336px;
-    margin: 0 auto;
+    margin: 0 auto 48px;
     font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
     color: #101014;
 }
@@ -157,6 +159,9 @@
     .nd-projects__nav {
         margin-top: 24px;
     }
+    .nd-projects {
+        margin-bottom: 32px;
+    }
 }
 
 /* Блок редактора (sprint.editor) выводит эту же сетку внутри .editor, а там
@@ -166,4 +171,15 @@
 .editor .nd-projects__item:hover,
 .editor .nd-projects__item:focus {
     text-decoration: none;
+}
+/* Внутри страницы сетка идёт вперемешку с другими блоками редактора, а у неё
+   самой нижнего поля нет — кнопка «Полное портфолио» на /services/pirsy-na-svayakh/
+   прилипала к подписям карточек (Ирина, 11 сентября 2026). */
+.editor .nd-projects {
+    margin-bottom: 32px;
+}
+@media (max-width: 767px) {
+    .editor .nd-projects {
+        margin-bottom: 24px;
+    }
 }

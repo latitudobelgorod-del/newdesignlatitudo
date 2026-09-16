@@ -9,6 +9,23 @@
 (function () {
     'use strict';
 
+    /* Видео-презентация внутри вакансии: плеер грузим, только когда пункт
+       раскрыт, а при сворачивании сбрасываем — иначе ролик продолжал бы
+       играть со звуком из закрытого пункта, и у трёх вакансий с одним и тем
+       же роликом сразу грузились бы три плеера Rutube. */
+    function syncVideo(item, open) {
+        Array.prototype.forEach.call(item.querySelectorAll('[data-nd-vac-video]'), function (frame) {
+            var src = frame.getAttribute('data-src');
+            if (open && frame.getAttribute('src') !== src) {
+                frame.setAttribute('src', src);
+            } else if (!open && frame.hasAttribute('src')) {
+                // Просто снять src мало: браузер оставляет загруженный
+                // документ, и звук продолжает идти. Уводим на пустую страницу.
+                frame.setAttribute('src', 'about:blank');
+            }
+        });
+    }
+
     function initAccordions(root) {
         var items = root.querySelectorAll('[data-nd-vac-acc]');
         Array.prototype.forEach.call(items, function (item) {
@@ -16,9 +33,11 @@
             if (!head) {
                 return;
             }
+            syncVideo(item, item.classList.contains('is-open'));
             head.addEventListener('click', function () {
                 var open = item.classList.toggle('is-open');
                 head.setAttribute('aria-expanded', open ? 'true' : 'false');
+                syncVideo(item, open);
             });
         });
     }

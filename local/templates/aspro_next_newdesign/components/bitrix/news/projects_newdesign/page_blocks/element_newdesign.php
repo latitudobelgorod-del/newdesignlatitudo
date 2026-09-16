@@ -134,6 +134,12 @@ if(strlen($ndEd2Raw))
 			);
 			include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_products.php';
 			?>
+			<?// Если среди материалов есть террасная доска — ссылка на весь её
+			   // раздел (SEO, Ирина, 14 сентября 2026; см. latitudo_seo_links.php).
+			$ndAllLink = function_exists('ndSeoSectionLinkForGoods') ? ndSeoSectionLinkForGoods($arElement['PROPERTY_LINK_GOODS_VALUE']) : null;?>
+			<?if($ndAllLink):?>
+				<a class="nd-projgoods__all" href="<?=htmlspecialcharsbx($ndAllLink['URL'])?>"><?=htmlspecialcharsbx($ndAllLink['TEXT'])?></a>
+			<?endif;?>
 		</div>
 	<?endif;?>
 <?endif;?>
