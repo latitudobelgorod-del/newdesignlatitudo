@@ -1,22 +1,22 @@
 <?php
 /**
  * Полные товарные фиды в модуле «Маркет для продавцов» (yandex.market):
- * цена — в основной единице товара, как на карточке.
+ * наполнение карточки товара. Цену модуль отдаёт как есть — за штуку,
+ * и это правильно: столько покупатель платит за одну позицию.
  *
- * Модуль берёт цену из каталога как есть, то есть за штуку: доска 2265 ₽.
- * А покупатель на карточке, в микроразметке и в нашем фиде видит 5000 ₽/м²
- * (основная единица из свойства BASE_KOEF, множитель — из UNIT_KOEF).
- * Такое расхождение Яндекс называет «фактические цены отличаются от
- * заявленных» — на easydecking.ru из-за этого блокировали источник.
+ * С 10 сентября 2026 мы домножали price и oldprice на множитель основной
+ * единицы (BASE_KOEF, UNIT_KOEF), чтобы фид совпал с крупной ценой карточки
+ * «3 243 ₽/м²». 16 сентября служба контроля качества Яндекс Товаров
+ * заблокировала источник ровно за это: со страницы она читает цену за штуку —
+ * строку «Общая стоимость 1 868 ₽» под счётчиком количества, а не заголовок
+ * в м² и не микроразметку. Все пять позиций из письма сошлись копейка
+ * в копейку именно по цене за штуку. Домножение снято, обработчик
+ * onExportOfferExtendData отключён в local/init.php.
  *
- * Поэтому перед записью предложения (событие модуля onExportOfferExtendData)
- * домножаем price и oldprice. Касается ТОЛЬКО прайс-листов, чьё название
- * начинается с «Полный товарный фид» (Ирина, 10 сентября 2026) или с
- * «Фид бренд » (брендовые копии полных, 15 сентября): дилерские и прежние
- * «для вебмастера» выгружаются как раньше.
- *
- * Формула та же, что в ndShownPrice() шаблонов карточки и в
- * local/feed/generate.php — менять в четырёх местах сразу.
+ * Цена в м²/п.м на карточке — справочная, так и написано в плашке над ней.
+ * То же решение в ndShownPrice() шаблонов карточки (aspro_next/…/main6 и
+ * aspro_next_newdesign/…/main6_newdesign) и в local/feed/generate.php:
+ * цена везде за штуку — менять в трёх местах сразу.
  *
  * Второе — наполнение карточки товара (событие onExportOfferWriteData,
  * onOfferWriteData ниже; Ирина, 10 сентября 2026). Модуль выводит только
@@ -50,7 +50,7 @@ class LatitudoMarketFeed
 {
     /* Брендовые фиды «Фид бренд EasyDecking / LATITUDO <город>» (15 сентября
        2026, local/tools/nd_market_brand_feeds.php) — копии полных с отбором по
-       отметке бренда, им нужна та же цена и то же наполнение карточки. */
+       отметке бренда, им нужно то же наполнение карточки. */
     const NAME_PREFIXES = ['Полный товарный фид', 'Фид бренд '];
     const IBLOCK_PRODUCTS = 19;
     const IBLOCK_OFFERS = 20;
@@ -79,103 +79,6 @@ class LatitudoMarketFeed
             static::$setups[$setupId] = $full;
         }
         return static::$setups[$setupId];
-    }
-
-    public static function onOfferExtendData(\Bitrix\Main\Event $event): void
-    {
-        $params  = $event->getParameters();
-        $context = (array)($params['CONTEXT'] ?? []);
-        if (!static::isFullSetup($context['SETUP_ID'] ?? 0)) {
-            return;
-        }
-
-        $tagValues = $params['TAG_VALUE_LIST'] ?? [];
-        $elements  = $params['ELEMENT_LIST'] ?? [];
-        if (!$tagValues) {
-            return;
-        }
-
-        // ID позиции => ID товара (у простого товара — он сам)
-        $parentOf = [];
-        foreach ($elements as $element) {
-            $id = (int)($element['ID'] ?? 0);
-            if ($id) {
-                $parentOf[$id] = (int)($element['PARENT_ID'] ?? 0) ?: $id;
-            }
-        }
-        $units = static::loadUnits(array_unique(array_merge(array_keys($parentOf), array_values($parentOf))));
-
-        foreach ($tagValues as $elementId => $tagValue) {
-            if (!is_object($tagValue) || !method_exists($tagValue, 'getTagValue')) {
-                continue;
-            }
-            $elementId = (int)$elementId;
-            $koef = static::koef($units[$elementId] ?? null, $units[$parentOf[$elementId] ?? 0] ?? null);
-            if ($koef === 1.0) {
-                continue;
-            }
-            foreach (['price', 'oldprice'] as $tag) {
-                $value = $tagValue->getTagValue($tag);
-                if ($value !== null && $value !== '' && is_numeric($value) && (float)$value > 0) {
-                    $tagValue->setTagValue($tag, static::num(round((float)$value * $koef, 2)));
-                }
-            }
-        }
-    }
-
-    /**
-     * Множитель основной единицы: свойства позиции, а если у неё они не
-     * заведены — свойства товара. Нет основной единицы — 1 (цена за штуку).
-     */
-    protected static function koef(?array $own, ?array $parent): float
-    {
-        $src = ($own && $own['BASE'] > 0 && $own['KOEFS']) ? $own : $parent;
-        if (!$src || $src['BASE'] <= 0) {
-            return 1.0;
-        }
-        return (float)($src['KOEFS'][$src['BASE']] ?? 1.0);
-    }
-
-    /**
-     * BASE_KOEF и UNIT_KOEF пачкой для товаров и предложений.
-     *
-     * @return array<int, array{BASE:int, KOEFS:array<int,float>}>
-     */
-    protected static function loadUnits(array $ids): array
-    {
-        $ids = array_values(array_filter(array_map('intval', $ids)));
-        if (!$ids || !\Bitrix\Main\Loader::includeModule('iblock')) {
-            return [];
-        }
-
-        $out = [];
-        foreach ([static::IBLOCK_OFFERS, static::IBLOCK_PRODUCTS] as $iblockId) {
-            $values = [];
-            \CIBlockElement::GetPropertyValuesArray(
-                $values,
-                $iblockId,
-                ['ID' => $ids],
-                ['CODE' => ['BASE_KOEF', 'UNIT_KOEF']]
-            );
-            foreach ($values as $id => $props) {
-                $koefs = [];
-                $vals  = (array)($props['UNIT_KOEF']['VALUE'] ?? []);
-                $descs = (array)($props['UNIT_KOEF']['DESCRIPTION'] ?? []);
-                foreach ($vals as $i => $v) {
-                    $unit = (int)trim((string)($descs[$i] ?? ''));
-                    $k    = (float)str_replace(',', '.', (string)$v);
-                    if ($unit > 0 && $k > 0) {
-                        $koefs[$unit] = $k;
-                    }
-                }
-                $base = $props['BASE_KOEF']['DESCRIPTION'] ?? '';
-                if (is_array($base)) {
-                    $base = reset($base);
-                }
-                $out[(int)$id] = ['BASE' => (int)trim((string)$base), 'KOEFS' => $koefs];
-            }
-        }
-        return $out;
     }
 
     // =====================================================================

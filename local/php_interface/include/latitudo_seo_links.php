@@ -21,11 +21,14 @@
  *    пересчитывает его при смене цен.
  *
  *    Цена — минимальная среди позиций раздела и подразделов в полном
- *    товарном фиде (latitudo_full.xml): там она уже в основной единице (м²),
- *    как на карточке, и совпадает с тем, что видит Яндекс. Фид собирается
- *    раз в сутки — значит, и цена в заголовке обновляется раз в сутки. Цены
- *    по городам одинаковые (проверено по всем фидам), поэтому берём Москву.
- *    Нет фида или позиций — метка заменяется на « за м²», без цифры.
+ *    товарном фиде (latitudo_full.xml). С 16 сентября 2026 в фиде цена за
+ *    штуку (см. latitudo_market_feed.php), поэтому множитель основной
+ *    единицы, который раньше давал фид, считаем здесь сами — по BASE_KOEF и
+ *    UNIT_KOEF, той же формулой. Число в заголовке от этого не изменилось.
+ *    Фид собирается раз в сутки — значит, и цена в заголовке обновляется раз
+ *    в сутки. Цены по городам одинаковые (проверено по всем фидам), поэтому
+ *    берём Москву. Нет фида или позиций — метка заменяется на « за м²»,
+ *    без цифры.
  */
 
 const ND_SEO_SECTION_LINKS = [
@@ -87,8 +90,61 @@ function ndSeoSectionLinkForGoods($ids): ?array
 }
 
 /**
- * Минимальная цена позиций раздела (с подразделами) из полного фида, кеш 6 ч.
- * Ключ кеша включает время сборки фида — после ночной пересборки цена новая.
+ * Множитель основной единицы для позиций фида: свойства BASE_KOEF (ID единицы
+ * в DESCRIPTION) и UNIT_KOEF самой позиции, а если у неё они не заведены —
+ * товара-родителя ($parentOf; у модуля это атрибут group_id предложения).
+ * Нет основной единицы — 1, цена остаётся за штуку.
+ *
+ * До 16 сентября 2026 ровно это делал обработчик фида, теперь цена в фиде
+ * за штуку — и множитель нужен здесь.
+ *
+ * @param array<int,int> $parentOf ID позиции => ID товара
+ * @return array<int,float> ID позиции => множитель
+ */
+function ndBaseUnitKoef(array $parentOf): array
+{
+    if (!$parentOf || !\Bitrix\Main\Loader::includeModule('iblock')) {
+        return [];
+    }
+
+    $ids = array_values(array_unique(array_merge(array_keys($parentOf), array_values($parentOf))));
+    $units = [];
+    foreach ([20, 19] as $iblockId) {
+        $values = [];
+        \CIBlockElement::GetPropertyValuesArray($values, $iblockId, ['ID' => $ids],
+            ['CODE' => ['BASE_KOEF', 'UNIT_KOEF']]);
+        foreach ($values as $id => $props) {
+            $koefs = [];
+            $vals  = (array)($props['UNIT_KOEF']['VALUE'] ?? []);
+            $descs = (array)($props['UNIT_KOEF']['DESCRIPTION'] ?? []);
+            foreach ($vals as $i => $v) {
+                $unit = (int)trim((string)($descs[$i] ?? ''));
+                $k    = (float)str_replace(',', '.', (string)$v);
+                if ($unit > 0 && $k > 0) {
+                    $koefs[$unit] = $k;
+                }
+            }
+            $base = $props['BASE_KOEF']['DESCRIPTION'] ?? '';
+            if (is_array($base)) {
+                $base = reset($base);
+            }
+            $units[(int)$id] = ['BASE' => (int)trim((string)$base), 'KOEFS' => $koefs];
+        }
+    }
+
+    $out = [];
+    foreach ($parentOf as $id => $productId) {
+        $own = $units[$id] ?? null;
+        $src = ($own && $own['BASE'] > 0 && $own['KOEFS']) ? $own : ($units[$productId] ?? null);
+        $out[$id] = ($src && $src['BASE'] > 0) ? (float)($src['KOEFS'][$src['BASE']] ?? 1.0) : 1.0;
+    }
+    return $out;
+}
+
+/**
+ * Минимальная цена позиций раздела (с подразделами) из полного фида,
+ * приведённая к основной единице, кеш 6 ч. Ключ кеша включает время сборки
+ * фида — после ночной пересборки цена новая.
  */
 function ndSectionMinPrice(int $sectionId): ?float
 {
@@ -119,15 +175,31 @@ function ndSectionMinPrice(int $sectionId): ?float
         }
         return false;
     };
-    $min = 0.0;
-    preg_match_all('~<offer [^>]*>.*?<price>([\d.]+)</price>.*?<categoryId>(\d+)</categoryId>~s', $xml, $m, PREG_SET_ORDER);
+    // Цена за штуку и ID товара-родителя (group_id) — по ним ниже множитель.
+    $prices   = [];
+    $parentOf = [];
+    preg_match_all(
+        '~<offer id="(\d+)"([^>]*)>.*?<price>([\d.]+)</price>.*?<categoryId>(\d+)</categoryId>~s',
+        $xml, $m, PREG_SET_ORDER
+    );
     foreach ($m as $o) {
-        $price = (float)$o[1];
-        if ($price > 0 && $inTree((int)$o[2]) && ($min == 0.0 || $price < $min)) {
+        $price = (float)$o[3];
+        if ($price <= 0 || !$inTree((int)$o[4])) {
+            continue;
+        }
+        $id = (int)$o[1];
+        $prices[$id]   = $price;
+        $parentOf[$id] = preg_match('~\\bgroup_id="(\d+)"~', $o[2], $g) ? (int)$g[1] : $id;
+    }
+    unset($xml);
+
+    $min = 0.0;
+    foreach (ndBaseUnitKoef($parentOf) as $id => $koef) {
+        $price = round($prices[$id] * $koef, 2);
+        if ($min == 0.0 || $price < $min) {
             $min = $price;
         }
     }
-    unset($xml);
 
     $cache->endDataCache($min);
     return $min > 0 ? $min : null;
