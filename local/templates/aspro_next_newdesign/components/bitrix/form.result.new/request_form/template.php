@@ -51,7 +51,7 @@ foreach (array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_t
 			<?endif;?>
  		<div class="licence_block filter label_block" style="margin:0 0 20px 0;">
 						<input type="checkbox" id="licenses_popup_OCB" <?=(COption::GetOptionString("aspro.next", "LICENCE_CHECKED", "N") == "Y" ? "checked" : "");?> name="licenses_popup_OCB" required value="Y">
-						<label style="margin:0;" for="licenses_popup_OCB" class="license">Я даю согласие на обработку персональных данных</label>
+						<label style="margin:0;" for="licenses_popup_OCB" class="license">Согласен с <a href="/info/licenses_detail/" target="_blank">обработкой персональных данных</a> по 152-ФЗ</label>
 					</div>
 				
 	<div class="block"> <input type="submit" class="btn white" style="width:100%;" value="<?=$arResult["arForm"]["BUTTON"]?>"></div>
