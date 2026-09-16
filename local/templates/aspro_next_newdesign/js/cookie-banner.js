@@ -75,15 +75,18 @@
 
      Оформление повторяет контурную карточку-сообщение из каталога
      (.nd-catlist-note в newdesign-catalog.css): белый фон, рамка #e5e5ea,
-     кружок «i» на #eeeeef, шрифт Nunito Sans. Отличия от неё только те, что
-     нужны полосе: рамка одна сверху, углы не скруглены, отступы и кегль
-     мельче — баннер должен быть тонким. Значения держать согласованными
-     с .nd-catlist-note. */
+     шрифт Nunito Sans, текст #101014. Отличия только те, что нужны полосе:
+     рамка одна сверху, углы не скруглены, отступы и кегль мельче, кружка «i»
+     нет. Цвета и шрифт держать согласованными с .nd-catlist-note.
+
+     Содержимое прижато вправо. Справа внизу висит круглая кнопка звонка
+     (Envybox, ~88px и отступ ~32px), поэтому под неё оставлен запас 140px —
+     иначе «Согласен» оказывается под кнопкой и по нему не попасть. */
   var style = document.createElement('style');
   style.textContent = [
     '#cb-wrap{position:fixed;left:0;right:0;bottom:0;background:#fff;color:#101014;',
-    'border-top:1px solid #e5e5ea;padding:10px 16px;',
-    'display:flex;align-items:center;justify-content:center;gap:12px;',
+    'border-top:1px solid #e5e5ea;padding:10px 140px 10px 16px;',
+    'display:flex;align-items:center;justify-content:flex-end;gap:12px;',
     'z-index:99999;box-shadow:0 -2px 12px rgba(0,0,0,.06);box-sizing:border-box;',
     "font-family:'Nunito Sans','Nunito Fallback',Arial,sans-serif;",
     'font-size:14px;line-height:20px;',
@@ -92,9 +95,6 @@
     'to{opacity:1;transform:translateY(0)}}',
     '#cb-wrap.cb-hide{animation:cb-down .25s ease forwards;}',
     '@keyframes cb-down{to{opacity:0;transform:translateY(100%)}}',
-    '#cb-icon{flex:0 0 auto;width:24px;height:24px;border-radius:50%;',
-    'background:#eeeeef;color:#6f6f7a;font-size:13px;font-weight:700;',
-    'line-height:24px;text-align:center;}',
     '#cb-text{margin:0;white-space:nowrap;}',
     '#cb-text a{color:#c60000;text-decoration:underline;text-underline-offset:2px;}',
     '#cb-text a:hover{color:#a80000;}',
@@ -102,11 +102,10 @@
     'background:#c60000;color:#fff;font-family:inherit;font-size:13px;font-weight:700;',
     'line-height:32px;cursor:pointer;white-space:nowrap;transition:background-color .15s;}',
     '#cb-accept:hover,#cb-accept:focus{background:#a80000;}',
-    /* На телефоне текст в одну строку не влезает: кружок «i» убираем, текст
-       переносим, кнопку прижимаем вправо — полоса остаётся тонкой. */
+    /* На телефоне текст в одну строку не влезает: переносим его, кнопку
+       прижимаем вправо. Запас под кнопку звонка там меньше — она мельче. */
     '@media(max-width:760px){#cb-wrap{justify-content:flex-start;',
-    'padding:8px 10px;gap:8px;font-size:12px;line-height:16px;}',
-    '#cb-icon{display:none;}',
+    'padding:8px 70px 8px 10px;gap:8px;font-size:12px;line-height:16px;}',
     '#cb-text{white-space:normal;flex:1;}',
     '#cb-accept{height:30px;padding:0 12px;line-height:30px;font-size:12px;}}'
   ].join('');
@@ -118,7 +117,6 @@
   wrap.setAttribute('role', 'dialog');
   wrap.setAttribute('aria-label', 'Уведомление об использовании файлов cookie');
   wrap.innerHTML =
-    '<span id="cb-icon" aria-hidden="true">i</span>' +
     '<p id="cb-text">Сайт использует cookie и аналитику, согласно ' +
     '<a href="/info/licenses_detail/" target="_blank" rel="noopener">Политике конфиденциальности</a>.</p>' +
     '<button id="cb-accept">Согласен</button>';
