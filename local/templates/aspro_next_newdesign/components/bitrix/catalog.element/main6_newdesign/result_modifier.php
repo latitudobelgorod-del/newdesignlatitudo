@@ -1297,6 +1297,32 @@ if( !empty($arResult["PROPERTIES"]["ASSOCIATED"]["VALUE"]) ){
 if( !empty($arResult["PROPERTIES"]["EXPANDABLES"]["VALUE"]) ){
 	$arSelect = array("ID", "IBLOCK_ID", "IBLOCK_SECTION_ID", "NAME", "PREVIEW_PICTURE", "PREVIEW_TEXT", "DETAIL_PAGE_URL");
 	$arResult["EXPANDABLES"]=CNextCache::CIBLockElement_GetList(array('CACHE' => array("TAG" => CNextCache::GetIBlockCacheTag($arResult["PROPERTIES"]["EXPANDABLES"]["LINK_IBLOCK_ID"]))), array("IBLOCK_ID" => $arResult["PROPERTIES"]["EXPANDABLES"]["LINK_IBLOCK_ID"], "ACTIVE"=>"Y", "ACTIVE_DATE" => "Y", "ID" => $arResult["PROPERTIES"]["EXPANDABLES"]["VALUE"]), false, false, $arSelect);
+
+	/* Порядок ленты «С этим товаром покупают» — по разделам, как в меню каталога
+	   (меню строится деревом разделов, то есть по LEFT_MARGIN). Внутри раздела —
+	   как расставили в админке. Ленте уходит списком ID (ND_ORDER_IDS). */
+	$ndExpPos = array_flip(array_map('intval', array_values((array)$arResult["PROPERTIES"]["EXPANDABLES"]["VALUE"])));
+	// основной раздел товара; CNextCache в IBLOCK_SECTION_ID отдаёт все разделы разом, поэтому свой запрос
+	$ndExpSect = array();
+	$ndRs = CIBlockElement::GetList(array(), array("IBLOCK_ID" => $arResult["PROPERTIES"]["EXPANDABLES"]["LINK_IBLOCK_ID"], "ACTIVE" => "Y", "ID" => array_keys($ndExpPos)), false, false, array("ID", "IBLOCK_SECTION_ID"));
+	while ($ndExp = $ndRs->Fetch()) {
+		$ndExpSect[(int)$ndExp["ID"]] = (int)$ndExp["IBLOCK_SECTION_ID"];
+	}
+	$ndSectMargin = array();
+	$ndSectIds = array_values(array_unique(array_filter($ndExpSect)));
+	if ($ndSectIds) {
+		$ndRs = CIBlockSection::GetList(array(), array("IBLOCK_ID" => $arResult["PROPERTIES"]["EXPANDABLES"]["LINK_IBLOCK_ID"], "ID" => $ndSectIds), false, array("ID", "LEFT_MARGIN"));
+		while ($ndSect = $ndRs->Fetch()) {
+			$ndSectMargin[(int)$ndSect["ID"]] = (int)$ndSect["LEFT_MARGIN"];
+		}
+	}
+	$ndOrder = array_keys($ndExpSect);
+	usort($ndOrder, function ($a, $b) use ($ndExpSect, $ndSectMargin, $ndExpPos) {
+		$ma = $ndSectMargin[$ndExpSect[$a]] ?? PHP_INT_MAX;
+		$mb = $ndSectMargin[$ndExpSect[$b]] ?? PHP_INT_MAX;
+		return $ma <=> $mb ?: (($ndExpPos[$a] ?? PHP_INT_MAX) <=> ($ndExpPos[$b] ?? PHP_INT_MAX));
+	});
+	$arResult["ND_EXPANDABLES_ORDER"] = $ndOrder;
 }
 
 /*services*/

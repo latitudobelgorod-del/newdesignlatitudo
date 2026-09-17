@@ -926,6 +926,22 @@ elseif (($arParams['LD_FLAT'] ?? '') === 'Y') {
 	$arResult['ITEMS'] = array_values($ldPart);
 	$arResult['LD_FLATTENED'] = true;
 }
+/* Карточка товара, лента «С этим товаром покупают»: порядок задаёт сама карточка
+   (разделы как в меню каталога) и передаёт готовым списком ID в ND_ORDER_IDS.
+   Компонент сортирует по SORT, поэтому переставляем здесь. Кого в списке нет — в конец. */
+elseif (!empty($arParams['ND_ORDER_IDS']) && is_array($arParams['ND_ORDER_IDS']) && !empty($arResult['ITEMS'])) {
+	$ndPos = array_flip(array_map('intval', array_values($arParams['ND_ORDER_IDS'])));
+	$ndItems = array_values($arResult['ITEMS']);
+	usort($ndItems, function ($a, $b) use ($ndPos) {
+		return ($ndPos[(int)$a['ID']] ?? PHP_INT_MAX) <=> ($ndPos[(int)$b['ID']] ?? PHP_INT_MAX);
+	});
+	// LAST_ELEMENT проставлен выше по прежнему порядку
+	foreach ($ndItems as $ndKey => $ndItem) {
+		$ndItems[$ndKey]['LAST_ELEMENT'] = 'N';
+	}
+	$ndItems[count($ndItems) - 1]['LAST_ELEMENT'] = 'Y';
+	$arResult['ITEMS'] = $ndItems;
+}
 
 /* Догрузке нужно знать, откуда продолжать и осталось ли что-то: по этим числам
    шаблон печатает метку, а скрипт правит по ней кнопку «Показать ещё».

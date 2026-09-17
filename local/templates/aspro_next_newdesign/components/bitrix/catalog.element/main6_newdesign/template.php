@@ -2595,6 +2595,7 @@ if (CModule::IncludeModule('iblock')) {
                     "ELEMENT_SORT_FIELD" => "SORT",
                     "ELEMENT_SORT_ORDER" => "asc",
                     "FILTER_NAME" => "arrFilterAccess",
+                    "ND_ORDER_IDS" => $arResult["ND_EXPANDABLES_ORDER"] ?? array(), // порядок по разделам меню, см. result_modifier
                     "SHOW_ALL_WO_SECTION" => "Y",
                     "SECTION_ID" => '',
                     "SECTION_CODE" => '',
