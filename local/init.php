@@ -473,10 +473,12 @@ function ndFakePagination404(&$content)
  * - МЕТКА хранится 30 дней с последнего рекламного перехода (кука ND_UTM).
  *   Она уходит в скрытые поля заявок — клиент из рекламы, написавший через
  *   неделю, остаётся рекламным;
- * - ПОДМЕНА контактов — только ВИЗИТ, как в Метрике: пока посетитель ходит по
- *   сайту, и до 30 минут бездействия (кука ND_UTM_VISIT на полчаса,
- *   продлевается каждым хитом; в сессии — время последнего хита на случай,
- *   если кука не дошла). Пришёл потом напрямую — видит настоящие номера.
+ * - ПОДМЕНА контактов — сутки с рекламного перехода (кука ND_UTM_VISIT на
+ *   24 часа, не продлевается; в сессии — время перехода на случай, если кука
+ *   не дошла). Сначала сделали визит как в Метрике (30 минут бездействия), но
+ *   тогда клиент, открывший вкладку вечером после перезапуска браузера, видел
+ *   уже настоящий номер — Ирина выбрала сутки. Новый рекламный переход
+ *   отсчитывает сутки заново.
  * До 18.09 подмена жила все 30 дней, и однажды открывший ссылку с меткой
  * (в том числе сотрудник) месяц видел подменные номера.
  *
@@ -485,7 +487,7 @@ function ndFakePagination404(&$content)
 const ND_UTM_COOKIE = 'ND_UTM';
 const ND_UTM_COOKIE_DAYS = 30;
 const ND_UTM_VISIT_COOKIE = 'ND_UTM_VISIT';
-const ND_UTM_VISIT_SECONDS = 1800;
+const ND_UTM_VISIT_SECONDS = 86400;
 
 AddEventHandler('main', 'OnBeforeProlog', 'ndUtmRemember', 100);
 
@@ -527,9 +529,11 @@ function ndUtmRemember()
     }
 
     if ($fresh) {
-        /* Новый рекламный переход — новые метки вместо прежних и новый визит. */
+        /* Новый рекламный переход — новые метки вместо прежних, сутки подмены заново. */
         $_SESSION['UTM'] = $fresh;
+        $_SESSION['ND_UTM_TS'] = $now;
         ndUtmSetCookie(ND_UTM_COOKIE, json_encode($fresh, JSON_UNESCAPED_UNICODE), $now + ND_UTM_COOKIE_DAYS * 86400);
+        ndUtmSetCookie(ND_UTM_VISIT_COOKIE, '1', $now + ND_UTM_VISIT_SECONDS);
         $visit = true;
     } else {
         /* Метки в адресе нет — поднимаем их из куки: сессия на сервере живёт
@@ -541,24 +545,19 @@ function ndUtmRemember()
             }
         }
 
-        /* Визит ещё идёт: кука визита жива или последний хит был меньше
-           получаса назад. */
+        /* Сутки подмены не истекли: кука жива или переход был меньше суток назад. */
         $visit = !empty($_SESSION['UTM']) && (
             !empty($_COOKIE[ND_UTM_VISIT_COOKIE])
             || $now - (int)($_SESSION['ND_UTM_TS'] ?? 0) <= ND_UTM_VISIT_SECONDS
         );
     }
 
-    if ($visit) {
-        $GLOBALS['ND_UTM_VISIT_ACTIVE'] = true;
-        $_SESSION['ND_UTM_TS'] = $now;
-        ndUtmSetCookie(ND_UTM_VISIT_COOKIE, '1', $now + ND_UTM_VISIT_SECONDS);
-    }
+    $GLOBALS['ND_UTM_VISIT_ACTIVE'] = $visit;
 }
 
 /**
  * Показывать ли подменные контакты: посетитель пришёл по ссылке с utm-меткой
- * (любой) и его визит ещё не закончился — см. ndUtmRemember.
+ * (любой) меньше суток назад — см. ndUtmRemember.
  *
  * Метки складывает в сессию обработчик PageHandler::OnBeforeProlog из
  * bitrix/php_interface/init.php и ndUtmRemember: utm_source, utm_medium,
