@@ -140,6 +140,46 @@ class LatitudoFilterRedirect
 		return count($found) === 1 ? $found[0] : '';
 	}
 
+	/**
+	 * ID бренда, если раздел — «раздел бренда» (все его активные товары одного
+	 * бренда), иначе 0. Нужен шаблону фильтра: на странице раздела бренда
+	 * галочка этого бренда стоит сразу — посетитель пришёл сюда, выбрав бренд
+	 * в фильтре раздела выше (Ирина, 18 сентября 2026).
+	 */
+	public static function brandOfSection($sectionId)
+	{
+		$sectionId = (int)$sectionId;
+		if ($sectionId <= 0) {
+			return 0;
+		}
+
+		$cache = \Bitrix\Main\Data\Cache::createInstance();
+		if ($cache->initCache(86400, 'nd_section_brand_' . $sectionId, '/nd_filter_brand')) {
+			return (int)$cache->getVars();
+		}
+		$cache->startDataCache();
+		global $CACHE_MANAGER;
+		$CACHE_MANAGER->StartTagCache('/nd_filter_brand');
+		$CACHE_MANAGER->RegisterTag('iblock_id_' . self::IBLOCK_CATALOG);
+
+		$brandId = 0;
+		if (\Bitrix\Main\Loader::includeModule('iblock')) {
+			$brands = array();
+			$rs = CIBlockElement::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'SECTION_ID' => $sectionId, 'INCLUDE_SUBSECTIONS' => 'Y', 'ACTIVE' => 'Y', 'CHECK_PERMISSIONS' => 'N'), array('PROPERTY_' . self::PROP_BRAND), false, array('ID'));
+			while ($row = $rs->Fetch()) {
+				$brands[] = (int)$row['PROPERTY_' . self::PROP_BRAND . '_VALUE'];
+			}
+			if (count($brands) === 1 && $brands[0] > 0) {
+				$brandId = $brands[0];
+			}
+		}
+
+		$CACHE_MANAGER->EndTagCache();
+		$cache->endDataCache($brandId);
+
+		return $brandId;
+	}
+
 	/** В разделе (с подразделами) есть активные товары, и все они бренда $brandId. */
 	private static function isBrandSection($sectionId, $brandId)
 	{

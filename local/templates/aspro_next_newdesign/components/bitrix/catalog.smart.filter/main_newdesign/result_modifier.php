@@ -160,3 +160,37 @@ if (!empty($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'])) {
         $arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'] = $ndSectionUrl;
     }
 }
+
+/* На странице раздела бренда (все товары раздела — одного бренда) галочка
+   этого бренда в фильтре стоит сразу: сюда приводит выбор бренда в фильтре
+   раздела выше, и посетитель должен видеть, что отбор применён (Ирина,
+   18 сентября 2026). Только при первой отрисовке — в ajax-пересчёте состояние
+   галочек задаёт сам посетитель — и только если бренд ещё не выбран. */
+if (empty($_REQUEST['ajax']) && !empty($arParams['SECTION_ID'])) {
+    $ndBrandId = LatitudoFilterRedirect::brandOfSection($arParams['SECTION_ID']);
+    if ($ndBrandId > 0 && \Bitrix\Main\Loader::includeModule('iblock')) {
+        $ndBrand = CIBlockElement::GetList(array(), array('ID' => $ndBrandId), false, array('nTopCount' => 1), array('ID', 'CODE'))->Fetch();
+        foreach ($arResult['ITEMS'] as $ndPid => $ndItem) {
+            if (($ndItem['CODE'] ?? '') !== 'BRAND' || empty($ndItem['VALUES'])) {
+                continue;
+            }
+            $ndAlreadyChecked = false;
+            foreach ($ndItem['VALUES'] as $ndVal) {
+                if (!empty($ndVal['CHECKED'])) {
+                    $ndAlreadyChecked = true;
+                    break;
+                }
+            }
+            if ($ndAlreadyChecked) {
+                break;
+            }
+            foreach ($ndItem['VALUES'] as $ndKey => $ndVal) {
+                if ((string)($ndVal['FACET_VALUE'] ?? '') === (string)$ndBrandId
+                    || ($ndBrand && ($ndVal['URL_ID'] ?? '') === $ndBrand['CODE'])) {
+                    $arResult['ITEMS'][$ndPid]['VALUES'][$ndKey]['CHECKED'] = true;
+                }
+            }
+            break;
+        }
+    }
+}
