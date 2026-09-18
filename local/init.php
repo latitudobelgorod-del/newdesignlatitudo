@@ -469,27 +469,32 @@ function ndFakePagination404(&$content)
  * региональные сайты живут на *.latitudo.ru, и метка не должна теряться при
  * переходе между ними.
  *
- * Срок — ВИЗИТ, как в Метрике (Ирина, 18 сентября 2026): метка держится, пока
- * посетитель ходит по сайту, и сбрасывается после 30 минут бездействия. Кука
- * живёт 30 минут и продлевается на каждом хите, в сессии помним время
- * последнего хита — сессия на сервере может пережить полчаса, если сборщик
- * мусора PHP до неё не добрался. До 18.09 кука жила 30 дней, и однажды
- * открывший ссылку с меткой (в том числе сотрудник) месяц видел подменные
- * номера, а отложенные прямые заходы считались рекламными.
+ * Два срока (Ирина, 18 сентября 2026):
+ * - МЕТКА хранится 30 дней с последнего рекламного перехода (кука ND_UTM).
+ *   Она уходит в скрытые поля заявок — клиент из рекламы, написавший через
+ *   неделю, остаётся рекламным;
+ * - ПОДМЕНА контактов — только ВИЗИТ, как в Метрике: пока посетитель ходит по
+ *   сайту, и до 30 минут бездействия (кука ND_UTM_VISIT на полчаса,
+ *   продлевается каждым хитом; в сессии — время последнего хита на случай,
+ *   если кука не дошла). Пришёл потом напрямую — видит настоящие номера.
+ * До 18.09 подмена жила все 30 дней, и однажды открывший ссылку с меткой
+ * (в том числе сотрудник) месяц видел подменные номера.
  *
- * ?utm_reset=1 — сбросить метку сразу (для сотрудников, проверявших рекламные ссылки).
+ * ?utm_reset=1 — сбросить и метку, и подмену сразу (для сотрудников).
  */
 const ND_UTM_COOKIE = 'ND_UTM';
+const ND_UTM_COOKIE_DAYS = 30;
+const ND_UTM_VISIT_COOKIE = 'ND_UTM_VISIT';
 const ND_UTM_VISIT_SECONDS = 1800;
 
 AddEventHandler('main', 'OnBeforeProlog', 'ndUtmRemember', 100);
 
-function ndUtmSetCookie($value, $expires)
+function ndUtmSetCookie($name, $value, $expires)
 {
     $host = (string)($_SERVER['HTTP_HOST'] ?? '');
     $domain = preg_match('/([a-z0-9-]+\.[a-z]{2,})$/i', $host, $m) ? '.'.$m[1] : '';
 
-    @setcookie(ND_UTM_COOKIE, $value, [
+    @setcookie($name, $value, [
         'expires' => $expires,
         'path' => '/',
         'domain' => $domain,
@@ -503,10 +508,12 @@ function ndUtmRemember()
 {
     $keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_geo'];
     $now = time();
+    $GLOBALS['ND_UTM_VISIT_ACTIVE'] = false;
 
     if (!empty($_REQUEST['utm_reset'])) {
         unset($_SESSION['UTM'], $_SESSION['ND_UTM_TS']);
-        ndUtmSetCookie('', $now - 3600);
+        ndUtmSetCookie(ND_UTM_COOKIE, '', $now - 3600);
+        ndUtmSetCookie(ND_UTM_VISIT_COOKIE, '', $now - 3600);
         return;
     }
 
@@ -520,43 +527,42 @@ function ndUtmRemember()
     }
 
     if ($fresh) {
-        /* Новый рекламный переход начинает новый визит — метки прошлого не смешиваем. */
+        /* Новый рекламный переход — новые метки вместо прежних и новый визит. */
         $_SESSION['UTM'] = $fresh;
-        $_SESSION['ND_UTM_TS'] = $now;
-        ndUtmSetCookie(json_encode($fresh, JSON_UNESCAPED_UNICODE), $now + ND_UTM_VISIT_SECONDS);
-
-        return;
-    }
-
-    /* Полчаса без хитов — визит закончился, метка из сессии уходит. Кука к
-       этому времени истекла в браузере сама. */
-    if (!empty($_SESSION['UTM']) && $now - (int)($_SESSION['ND_UTM_TS'] ?? 0) > ND_UTM_VISIT_SECONDS) {
-        unset($_SESSION['UTM'], $_SESSION['ND_UTM_TS']);
-    }
-
-    /* Метки в адресе нет — поднимаем их из куки, чтобы сессия, умершая по
-       таймауту на сервере (24 минуты), не обрывала визит. */
-    if (empty($_SESSION['UTM']) && !empty($_COOKIE[ND_UTM_COOKIE])) {
-        $saved = json_decode((string)$_COOKIE[ND_UTM_COOKIE], true);
-        if (is_array($saved) && $saved) {
-            $_SESSION['UTM'] = array_intersect_key($saved, array_flip($keys));
+        ndUtmSetCookie(ND_UTM_COOKIE, json_encode($fresh, JSON_UNESCAPED_UNICODE), $now + ND_UTM_COOKIE_DAYS * 86400);
+        $visit = true;
+    } else {
+        /* Метки в адресе нет — поднимаем их из куки: сессия на сервере живёт
+           24 минуты, а метка нужна заявкам все 30 дней. */
+        if (empty($_SESSION['UTM']) && !empty($_COOKIE[ND_UTM_COOKIE])) {
+            $saved = json_decode((string)$_COOKIE[ND_UTM_COOKIE], true);
+            if (is_array($saved) && $saved) {
+                $_SESSION['UTM'] = array_intersect_key($saved, array_flip($keys));
+            }
         }
+
+        /* Визит ещё идёт: кука визита жива или последний хит был меньше
+           получаса назад. */
+        $visit = !empty($_SESSION['UTM']) && (
+            !empty($_COOKIE[ND_UTM_VISIT_COOKIE])
+            || $now - (int)($_SESSION['ND_UTM_TS'] ?? 0) <= ND_UTM_VISIT_SECONDS
+        );
     }
 
-    /* Визит продолжается — продлеваем его ещё на полчаса. */
-    if (!empty($_SESSION['UTM'])) {
+    if ($visit) {
+        $GLOBALS['ND_UTM_VISIT_ACTIVE'] = true;
         $_SESSION['ND_UTM_TS'] = $now;
-        ndUtmSetCookie(json_encode($_SESSION['UTM'], JSON_UNESCAPED_UNICODE), $now + ND_UTM_VISIT_SECONDS);
+        ndUtmSetCookie(ND_UTM_VISIT_COOKIE, '1', $now + ND_UTM_VISIT_SECONDS);
     }
 }
 
 /**
- * Пришёл ли посетитель по РЕКЛАМНОЙ ссылке — то есть с любой utm-меткой.
+ * Показывать ли подменные контакты: посетитель пришёл по ссылке с utm-меткой
+ * (любой) и его визит ещё не закончился — см. ndUtmRemember.
  *
  * Метки складывает в сессию обработчик PageHandler::OnBeforeProlog из
- * bitrix/php_interface/init.php: utm_source, utm_medium, utm_campaign,
- * utm_content, utm_term, utm_geo. Держится это до конца визита, поэтому
- * тащить метку в адресе по всему сайту не нужно.
+ * bitrix/php_interface/init.php и ndUtmRemember: utm_source, utm_medium,
+ * utm_campaign, utm_content, utm_term, utm_geo.
  *
  * По этому признаку показываем подменные контакты — и почту, и телефон.
  * Раньше правилом был список источников (ya/tg/vk/maps), но подменять просили
@@ -565,7 +571,8 @@ function ndUtmRemember()
  */
 function ndIsUtmVisit(): bool
 {
-    return !empty($_SESSION['UTM']) && is_array($_SESSION['UTM']) && array_filter($_SESSION['UTM']);
+    return !empty($GLOBALS['ND_UTM_VISIT_ACTIVE'])
+        && !empty($_SESSION['UTM']) && is_array($_SESSION['UTM']) && array_filter($_SESSION['UTM']);
 }
 
 /**
