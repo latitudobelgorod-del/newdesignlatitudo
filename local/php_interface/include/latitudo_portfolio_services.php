@@ -35,6 +35,7 @@ class LatitudoPortfolioServices
 		323 => array(22166),               // Фасады ДПК: монтаж фасадов
 		107 => array(10972),               // Заборы: монтаж заборов
 		333 => array(27590),               // Пирсы: пирсы на сваях
+		191 => array(21746),               // Крыльцо и ступени: крыльцо на металлокаркасе
 	);
 
 	public static function onAfterSave(array $fields, $isNew)
