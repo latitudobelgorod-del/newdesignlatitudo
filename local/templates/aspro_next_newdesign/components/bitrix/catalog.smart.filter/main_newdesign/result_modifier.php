@@ -161,36 +161,55 @@ if (!empty($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'])) {
     }
 }
 
-/* На странице раздела бренда (все товары раздела — одного бренда) галочка
-   этого бренда в фильтре стоит сразу: сюда приводит выбор бренда в фильтре
-   раздела выше, и посетитель должен видеть, что отбор применён (Ирина,
-   18 сентября 2026). Только при первой отрисовке — в ajax-пересчёте состояние
-   галочек задаёт сам посетитель — и только если бренд ещё не выбран. */
-if (empty($_REQUEST['ajax']) && !empty($arParams['SECTION_ID'])) {
+/* Раздел бренда (все товары раздела — одного бренда), Ирина, 18 сентября 2026:
+   - при первой отрисовке галочка этого бренда стоит сразу — сюда приводит выбор
+     бренда в фильтре раздела выше, и посетитель должен видеть, что отбор
+     применён (если бренд ещё не выбран);
+   - «Сбросить фильтры» ведёт в РОДИТЕЛЬСКИЙ раздел: сброс внутри раздела бренда
+     вёл на тот же раздел, где галочка снова стоит, и не работал;
+   - сняли галочку бренда (ajax-пересчёт) — «Показать» ведёт в родителя с
+     остальными выбранными пунктами (LatitudoFilterRedirect::moveToParent). */
+if (!empty($arParams['SECTION_ID'])) {
     $ndBrandId = LatitudoFilterRedirect::brandOfSection($arParams['SECTION_ID']);
     if ($ndBrandId > 0 && \Bitrix\Main\Loader::includeModule('iblock')) {
         $ndBrand = CIBlockElement::GetList(array(), array('ID' => $ndBrandId), false, array('nTopCount' => 1), array('ID', 'CODE'))->Fetch();
+        $ndIsAjax = !empty($_REQUEST['ajax']);
+        $ndBrandChecked = false;
         foreach ($arResult['ITEMS'] as $ndPid => $ndItem) {
             if (($ndItem['CODE'] ?? '') !== 'BRAND' || empty($ndItem['VALUES'])) {
                 continue;
             }
-            $ndAlreadyChecked = false;
             foreach ($ndItem['VALUES'] as $ndVal) {
                 if (!empty($ndVal['CHECKED'])) {
-                    $ndAlreadyChecked = true;
+                    $ndBrandChecked = true;
                     break;
                 }
             }
-            if ($ndAlreadyChecked) {
-                break;
-            }
-            foreach ($ndItem['VALUES'] as $ndKey => $ndVal) {
-                if ((string)($ndVal['FACET_VALUE'] ?? '') === (string)$ndBrandId
-                    || ($ndBrand && ($ndVal['URL_ID'] ?? '') === $ndBrand['CODE'])) {
-                    $arResult['ITEMS'][$ndPid]['VALUES'][$ndKey]['CHECKED'] = true;
+            if (!$ndBrandChecked && !$ndIsAjax) {
+                foreach ($ndItem['VALUES'] as $ndKey => $ndVal) {
+                    if ((string)($ndVal['FACET_VALUE'] ?? '') === (string)$ndBrandId
+                        || ($ndBrand && ($ndVal['URL_ID'] ?? '') === $ndBrand['CODE'])) {
+                        $arResult['ITEMS'][$ndPid]['VALUES'][$ndKey]['CHECKED'] = true;
+                        $ndBrandChecked = true;
+                    }
                 }
             }
             break;
+        }
+
+        list($ndSectionUrl, $ndParentUrl) = LatitudoFilterRedirect::sectionAndParentUrl($arParams['SECTION_ID']);
+        if ($ndParentUrl !== '') {
+            $arResult['SEF_DEL_FILTER_URL'] = htmlspecialcharsbx($ndParentUrl);
+            if (isset($arResult['JS_FILTER_PARAMS']) && is_array($arResult['JS_FILTER_PARAMS'])) {
+                $arResult['JS_FILTER_PARAMS']['SEF_DEL_FILTER_URL'] = $ndParentUrl;
+            }
+            if ($ndIsAjax && !$ndBrandChecked) {
+                foreach (array('FILTER_URL', 'SEF_SET_FILTER_URL') as $ndUrlKey) {
+                    if (!empty($arResult[$ndUrlKey])) {
+                        $arResult[$ndUrlKey] = LatitudoFilterRedirect::moveToParent($arResult[$ndUrlKey], $ndSectionUrl, $ndParentUrl);
+                    }
+                }
+            }
         }
     }
 }

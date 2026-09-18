@@ -180,6 +180,46 @@ class LatitudoFilterRedirect
 		return $brandId;
 	}
 
+	/**
+	 * Адрес фильтра в разделе бренда → тот же отбор в родительском разделе, но уже
+	 * без бренда. Нужен, когда в разделе бренда галочку бренда сняли или нажали
+	 * «Сбросить»: иначе адрес вёл на тот же раздел, где галочка снова стоит, и
+	 * сброс «не работал» (Ирина, 18 сентября 2026).
+	 * $url — адрес из catalog.smart.filter (может быть html-экранирован),
+	 * $sectionUrl / $parentUrl — адреса раздела бренда и его родителя.
+	 */
+	public static function moveToParent($url, $sectionUrl, $parentUrl)
+	{
+		$plain = htmlspecialcharsback((string)$url);
+		if ($sectionUrl === '' || $parentUrl === '' || strpos($plain, $sectionUrl) !== 0) {
+			return (string)$url;
+		}
+
+		$rest = (string)substr($plain, strlen($sectionUrl));
+		$result = ($rest === '' || strpos($rest, 'filter/clear/') === 0) ? $parentUrl : $parentUrl . $rest;
+
+		/* В родителе остался ровно один бренд — туда ведёт своё правило. */
+		$brandSection = self::sectionForFilterUrl($result);
+
+		return htmlspecialcharsbx($brandSection !== '' ? $brandSection : $result);
+	}
+
+	/** Адреса раздела и его родителя: ['', ''] если родителя нет. */
+	public static function sectionAndParentUrl($sectionId)
+	{
+		$sectionId = (int)$sectionId;
+		if ($sectionId <= 0 || !\Bitrix\Main\Loader::includeModule('iblock')) {
+			return array('', '');
+		}
+		$section = CIBlockSection::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'ID' => $sectionId, 'CHECK_PERMISSIONS' => 'N'), false, array('ID', 'IBLOCK_SECTION_ID', 'SECTION_PAGE_URL'))->GetNext();
+		if (!$section || !$section['IBLOCK_SECTION_ID']) {
+			return array('', '');
+		}
+		$parent = CIBlockSection::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'ID' => $section['IBLOCK_SECTION_ID'], 'CHECK_PERMISSIONS' => 'N'), false, array('ID', 'SECTION_PAGE_URL'))->GetNext();
+
+		return array($section['SECTION_PAGE_URL'], $parent ? $parent['SECTION_PAGE_URL'] : '');
+	}
+
 	/** В разделе (с подразделами) есть активные товары, и все они бренда $brandId. */
 	private static function isBrandSection($sectionId, $brandId)
 	{
