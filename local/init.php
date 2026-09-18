@@ -182,6 +182,27 @@ function ndPortfolioServices(array $arFields, $isNew)
 
     require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_portfolio_services.php';
     LatitudoPortfolioServices::onAfterSave($arFields, $isNew);
+
+    if (!isset($arFields['RESULT']) || $arFields['RESULT']) {
+        LatitudoPortfolioServices::syncGoods($arFields['ID']);
+    }
+}
+
+/**
+ * Проекты в карточке товара (LINK_PORTFOLIO) — зеркало товаров работы (LINK_GOODS):
+ * при сохранении работы оно обновляется выше, при удалении работа снимается
+ * со всех товаров (Ирина, 18 сентября 2026).
+ */
+AddEventHandler('iblock', 'OnAfterIBlockElementDelete', 'ndPortfolioGoodsOnDelete');
+
+function ndPortfolioGoodsOnDelete($arFields)
+{
+    if ((int)$arFields['IBLOCK_ID'] !== 18) {
+        return;
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_portfolio_services.php';
+    LatitudoPortfolioServices::syncGoods($arFields['ID'], true);
 }
 
 /**

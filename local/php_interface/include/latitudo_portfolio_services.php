@@ -73,6 +73,77 @@ class LatitudoPortfolioServices
 
 		CIBlockElement::SetPropertyValuesEx($id, self::IBLOCK_PORTFOLIO, array(self::PROP => $result));
 	}
+
+	/*
+	 * Обратная связь товар → портфолио (Ирина, 18 сентября 2026).
+	 *
+	 * Проекты в карточке товара выводятся из свойства товара LINK_PORTFOLIO, а
+	 * заполняют связь со стороны работы — LINK_GOODS. 18.09 LINK_PORTFOLIO разово
+	 * пересобран зеркалом LINK_GOODS (~/nd_goods_link_portfolio.php на проде),
+	 * дальше зеркало держат эти методы: после сохранения работы её ID есть ровно
+	 * у тех товаров, что указаны в её LINK_GOODS; после удаления — ни у кого.
+	 */
+	const IBLOCK_GOODS = 19;
+	const PROP_GOODS = 'LINK_GOODS';
+	const PROP_BACK = 'LINK_PORTFOLIO';
+
+	public static function syncGoods($portfolioId, $deleted = false)
+	{
+		$portfolioId = (int)$portfolioId;
+		if ($portfolioId <= 0) {
+			return;
+		}
+
+		$wanted = array();
+		if (!$deleted) {
+			$rs = CIBlockElement::GetProperty(self::IBLOCK_PORTFOLIO, $portfolioId, array(), array('CODE' => self::PROP_GOODS));
+			while ($row = $rs->Fetch()) {
+				if ((int)$row['VALUE'] > 0) {
+					$wanted[(int)$row['VALUE']] = true;
+				}
+			}
+		}
+
+		// в LINK_GOODS может остаться ID удалённого товара — такие пропускаем
+		if ($wanted) {
+			$exists = array();
+			$rs = CIBlockElement::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_GOODS, 'ID' => array_keys($wanted), 'CHECK_PERMISSIONS' => 'N'), false, false, array('ID'));
+			while ($row = $rs->Fetch()) {
+				$exists[(int)$row['ID']] = true;
+			}
+			$wanted = array_intersect_key($wanted, $exists);
+		}
+
+		// товары, у которых работа сейчас стоит
+		$has = array();
+		$rs = CIBlockElement::GetList(array(), array(
+			'IBLOCK_ID' => self::IBLOCK_GOODS,
+			'=PROPERTY_' . self::PROP_BACK => $portfolioId,
+			'CHECK_PERMISSIONS' => 'N',
+		), false, false, array('ID'));
+		while ($row = $rs->Fetch()) {
+			$has[(int)$row['ID']] = true;
+		}
+
+		$touched = array_keys(array_diff_key($has, $wanted) + array_diff_key($wanted, $has));
+		foreach ($touched as $goodId) {
+			$links = array();
+			$rs = CIBlockElement::GetProperty(self::IBLOCK_GOODS, $goodId, array('sort' => 'asc', 'id' => 'asc'), array('CODE' => self::PROP_BACK));
+			while ($row = $rs->Fetch()) {
+				if ((int)$row['VALUE'] > 0 && (int)$row['VALUE'] !== $portfolioId) {
+					$links[] = (int)$row['VALUE'];
+				}
+			}
+			if (isset($wanted[$goodId])) {
+				$links[] = $portfolioId;
+			}
+			CIBlockElement::SetPropertyValuesEx($goodId, self::IBLOCK_GOODS, array(self::PROP_BACK => $links ? $links : false));
+		}
+
+		if ($touched) {
+			CIBlock::clearIblockTagCache(self::IBLOCK_GOODS);
+		}
+	}
 }
 
 }
