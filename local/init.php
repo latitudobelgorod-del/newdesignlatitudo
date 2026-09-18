@@ -189,6 +189,43 @@ function ndPortfolioServices(array $arFields, $isNew)
 }
 
 /**
+ * Фильтр по одному бренду → раздел этого бренда, 301 (Ирина, 18 сентября 2026):
+ * /catalog/terrasnaya-doska-iz-dpk/filter/brand-is-nextwood/ дублирует раздел
+ * «Террасная доска Nextwood» и отнимает у него запросы.
+ *
+ * Здесь только дешёвая проверка адреса — в базу (и то через суточный кеш) идём
+ * лишь для /catalog/…/filter/brand-is-…/. Логика в
+ * local/php_interface/include/latitudo_filter_redirect.php.
+ */
+AddEventHandler('main', 'OnBeforeProlog', 'ndFilterBrandToSection', 50);
+
+function ndFilterBrandToSection()
+{
+    if (defined('ADMIN_SECTION') || ($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET'
+        || strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest') {
+        return;
+    }
+
+    $path = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+    if (strpos($path, '/catalog/') !== 0) {
+        return;
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_filter_redirect.php';
+
+    /* Сюда попадают уже только старые/внешние ссылки: кнопка фильтра сама ведёт
+       на раздел (шаблон catalog.smart.filter main_newdesign). Посадочные
+       SEO-подборок на таком же фильтре разбираются там же, по REAL_URL. */
+    $target = LatitudoFilterRedirect::sectionForFilterUrl($path);
+    if ($target === '' || $target === $path) {
+        return;
+    }
+
+    $query = (string)($_SERVER['QUERY_STRING'] ?? '');
+    LocalRedirect($target . ($query !== '' ? '?' . $query : ''), true, '301 Moved permanently');
+}
+
+/**
  * Проекты в карточке товара (LINK_PORTFOLIO) — зеркало товаров работы (LINK_GOODS):
  * при сохранении работы оно обновляется выше, при удалении работа снимается
  * со всех товаров (Ирина, 18 сентября 2026).

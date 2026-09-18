@@ -138,3 +138,25 @@ if (\Bitrix\Main\Loader::includeModule('sotbit.seometa')) {
         $arResult['FORM_ACTION'] = $newActionUrl;
     }
 }
+
+/* Фильтр ровно по одному бренду, у которого есть свой раздел, ведёт сразу на
+   адрес раздела, а не на /filter/brand-is-…/: страница фильтра была дублем
+   раздела и отнимала у него запросы (Ирина, 18 сентября 2026). Решает
+   LatitudoFilterRedirect — тот же класс держит 301 со старых адресов фильтра
+   (local/init.php, ndFilterBrandToSection). Работает и для ajax-ответа
+   фильтра (ajax.php отдаёт этот же $arResult), и для первой отрисовки. */
+require_once $_SERVER['DOCUMENT_ROOT'] . '/local/php_interface/include/latitudo_filter_redirect.php';
+foreach (array('FILTER_URL', 'SEF_SET_FILTER_URL') as $ndUrlKey) {
+    if (!empty($arResult[$ndUrlKey])) {
+        $ndSectionUrl = LatitudoFilterRedirect::sectionForFilterUrl($arResult[$ndUrlKey]);
+        if ($ndSectionUrl !== '') {
+            $arResult[$ndUrlKey] = htmlspecialcharsbx($ndSectionUrl);
+        }
+    }
+}
+if (!empty($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'])) {
+    $ndSectionUrl = LatitudoFilterRedirect::sectionForFilterUrl($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL']);
+    if ($ndSectionUrl !== '') {
+        $arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'] = $ndSectionUrl;
+    }
+}
