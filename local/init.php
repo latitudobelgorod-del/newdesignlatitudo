@@ -465,18 +465,50 @@ function ndFakePagination404(&$content)
  * подмена уже не работает, хотя пришёл он по рекламе: ровно это Ирина и
  * заметила 4 сентября 2026 («ходишь по сайту — метка как будто слетает»).
  *
- * Поэтому дублируем метки в куку на 30 дней — обычный срок жизни utm в
- * аналитике. Домен ставим общий для поддоменов: региональные сайты живут на
- * *.latitudo.ru, и метка не должна теряться при переходе между ними.
+ * Поэтому дублируем метки в куку. Домен ставим общий для поддоменов:
+ * региональные сайты живут на *.latitudo.ru, и метка не должна теряться при
+ * переходе между ними.
+ *
+ * Срок — ВИЗИТ, как в Метрике (Ирина, 18 сентября 2026): метка держится, пока
+ * посетитель ходит по сайту, и сбрасывается после 30 минут бездействия. Кука
+ * живёт 30 минут и продлевается на каждом хите, в сессии помним время
+ * последнего хита — сессия на сервере может пережить полчаса, если сборщик
+ * мусора PHP до неё не добрался. До 18.09 кука жила 30 дней, и однажды
+ * открывший ссылку с меткой (в том числе сотрудник) месяц видел подменные
+ * номера, а отложенные прямые заходы считались рекламными.
+ *
+ * ?utm_reset=1 — сбросить метку сразу (для сотрудников, проверявших рекламные ссылки).
  */
 const ND_UTM_COOKIE = 'ND_UTM';
-const ND_UTM_COOKIE_DAYS = 30;
+const ND_UTM_VISIT_SECONDS = 1800;
 
 AddEventHandler('main', 'OnBeforeProlog', 'ndUtmRemember', 100);
+
+function ndUtmSetCookie($value, $expires)
+{
+    $host = (string)($_SERVER['HTTP_HOST'] ?? '');
+    $domain = preg_match('/([a-z0-9-]+\.[a-z]{2,})$/i', $host, $m) ? '.'.$m[1] : '';
+
+    @setcookie(ND_UTM_COOKIE, $value, [
+        'expires' => $expires,
+        'path' => '/',
+        'domain' => $domain,
+        'secure' => !empty($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
 
 function ndUtmRemember()
 {
     $keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_geo'];
+    $now = time();
+
+    if (!empty($_REQUEST['utm_reset'])) {
+        unset($_SESSION['UTM'], $_SESSION['ND_UTM_TS']);
+        ndUtmSetCookie('', $now - 3600);
+        return;
+    }
 
     $fresh = [];
     foreach ($keys as $key) {
@@ -488,30 +520,33 @@ function ndUtmRemember()
     }
 
     if ($fresh) {
-        $_SESSION['UTM'] = array_merge((array)($_SESSION['UTM'] ?? []), $fresh);
-
-        $host = (string)($_SERVER['HTTP_HOST'] ?? '');
-        $domain = preg_match('/([a-z0-9-]+\.[a-z]{2,})$/i', $host, $m) ? '.'.$m[1] : '';
-
-        @setcookie(ND_UTM_COOKIE, json_encode($fresh, JSON_UNESCAPED_UNICODE), [
-            'expires' => time() + ND_UTM_COOKIE_DAYS * 86400,
-            'path' => '/',
-            'domain' => $domain,
-            'secure' => !empty($_SERVER['HTTPS']),
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
+        /* Новый рекламный переход начинает новый визит — метки прошлого не смешиваем. */
+        $_SESSION['UTM'] = $fresh;
+        $_SESSION['ND_UTM_TS'] = $now;
+        ndUtmSetCookie(json_encode($fresh, JSON_UNESCAPED_UNICODE), $now + ND_UTM_VISIT_SECONDS);
 
         return;
     }
 
+    /* Полчаса без хитов — визит закончился, метка из сессии уходит. Кука к
+       этому времени истекла в браузере сама. */
+    if (!empty($_SESSION['UTM']) && $now - (int)($_SESSION['ND_UTM_TS'] ?? 0) > ND_UTM_VISIT_SECONDS) {
+        unset($_SESSION['UTM'], $_SESSION['ND_UTM_TS']);
+    }
+
     /* Метки в адресе нет — поднимаем их из куки, чтобы сессия, умершая по
-       таймауту, не отменяла подмену. */
+       таймауту на сервере (24 минуты), не обрывала визит. */
     if (empty($_SESSION['UTM']) && !empty($_COOKIE[ND_UTM_COOKIE])) {
         $saved = json_decode((string)$_COOKIE[ND_UTM_COOKIE], true);
         if (is_array($saved) && $saved) {
             $_SESSION['UTM'] = array_intersect_key($saved, array_flip($keys));
         }
+    }
+
+    /* Визит продолжается — продлеваем его ещё на полчаса. */
+    if (!empty($_SESSION['UTM'])) {
+        $_SESSION['ND_UTM_TS'] = $now;
+        ndUtmSetCookie(json_encode($_SESSION['UTM'], JSON_UNESCAPED_UNICODE), $now + ND_UTM_VISIT_SECONDS);
     }
 }
 
