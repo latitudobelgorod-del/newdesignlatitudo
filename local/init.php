@@ -155,6 +155,36 @@ function ndSyncBrandWeight(&$arFields)
 }
 
 /**
+ * Услуги у работ портфолио (ИБ 18): у новой работы — услуги её разделов и
+ * «Расчет по вашим размерам», у существующей — только если услуг нет совсем
+ * (Ирина, 18 сентября 2026).
+ *
+ * Логика и таблица «раздел → услуги» в local/php_interface/include/latitudo_portfolio_services.php.
+ */
+AddEventHandler('iblock', 'OnAfterIBlockElementAdd', 'ndPortfolioServicesOnAdd');
+AddEventHandler('iblock', 'OnAfterIBlockElementUpdate', 'ndPortfolioServicesOnUpdate');
+
+function ndPortfolioServicesOnAdd(&$arFields)
+{
+    ndPortfolioServices($arFields, true);
+}
+
+function ndPortfolioServicesOnUpdate(&$arFields)
+{
+    ndPortfolioServices($arFields, false);
+}
+
+function ndPortfolioServices(array $arFields, $isNew)
+{
+    if ((int)$arFields['IBLOCK_ID'] !== 18) {
+        return;
+    }
+
+    require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_portfolio_services.php';
+    LatitudoPortfolioServices::onAfterSave($arFields, $isNew);
+}
+
+/**
  * Сквозной баннер: сервис и защита от второй записи.
  *
  * На сайте всегда ровно один текущий баннер — новый запускается заменой данных
