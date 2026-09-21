@@ -446,6 +446,15 @@
     display: none;
 }
 
+/* До того как collapseTags() свернёт чипы, видна только первая строка (высота
+   чипа 32px) — иначе при загрузке мелькали два-три ряда (21.09.2026). После «…»
+   скрипт ставит .nd-tags-open и ограничение снимается. Только если в блоке есть
+   чипы: текстовые блоки редактора в .section_tag_top не обрезаем. */
+.nd-catlist-sort__tags .section_tag_top:has(.tag_ank):not(.nd-tags-open) {
+    max-height: 32px;
+    overflow: hidden;
+}
+
 .nd-catlist-sort__more {
     display: inline-block;
     padding: 6px 12px;

@@ -778,6 +778,7 @@
                 more.title = 'Показать все теги';
                 more.addEventListener('click', function () {
                     box.__ndOpened = true;
+                    box.classList.add('nd-tags-open');   // снимает ограничение в один ряд (css)
                     chips.forEach(function (c) { c.classList.remove('nd-tag-hidden'); });
                     more.remove();
                 });
