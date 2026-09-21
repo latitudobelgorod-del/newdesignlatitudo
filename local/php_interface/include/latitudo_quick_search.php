@@ -172,12 +172,40 @@ class LatitudoQuickSearch
 			$forms[$form] = true;
 		}
 
+		foreach (self::stems($word) as $form) {
+			$forms[$form] = true;
+		}
+
 		$out = array();
 		foreach (array_keys($forms) as $form) {
 			$out[self::foldSizes($form)] = true;
 		}
 
 		return array_keys($out);
+	}
+
+	/**
+	 * Основа слова без окончания (21.09.2026): «белые» находит «Белый»,
+	 * «серая» — «Серый», «ограждение» — «Ограждения». Раньше слово искалось как
+	 * есть, и форма в другом роде или числе не находила ничего. У прилагательных
+	 * срезаем окончание целиком, у прочих длинных слов — последнюю букву;
+	 * короткие («столб», «доска») и слова с цифрами (размеры, артикулы) не трогаем,
+	 * иначе «стол» ловил бы столбы, а «100*100» — «100*10…».
+	 */
+	private static function stems($word)
+	{
+		if (preg_match('/\d/', $word) || mb_strlen($word, 'UTF-8') < 5) {
+			return array();
+		}
+		$adj = preg_replace('/(ыми|ими|ого|его|ому|ему|ый|ий|ой|ая|яя|ое|ее|ые|ие|ых|их|ую|юю|ым|им)$/u', '', $word);
+		if ($adj !== $word && mb_strlen($adj, 'UTF-8') >= 3) {
+			return array($adj);
+		}
+		if (mb_strlen($word, 'UTF-8') > 5) {
+			return array(mb_substr($word, 0, -1, 'UTF-8'));
+		}
+
+		return array();
 	}
 
 	/**
@@ -284,10 +312,16 @@ class LatitudoQuickSearch
 		// Запрос целиком — чтобы поймать точное совпадение артикула.
 		$whole = ' '.trim(self::normalize($query)).' ';
 
+		/* Названия разделов учитываем, только если слов в запросе больше одного:
+		   «ограждения белый», «садовая мебель» — это раздел плюс уточнение. Одно
+		   слово по разделам ловило бы полкаталога: «дпк» и «террас» есть в
+		   названиях почти всех разделов (90 → 1127 и 260 → 922 товаров). */
+		$hayKey = (count($terms) > 1) ? 's' : 'h';
+
 		$found = array();
 		foreach (self::getIndex() as $id => $row) {
 			foreach ($terms as $forms) {
-				if (self::firstHit($row['h'], $forms) === false) {
+				if (self::firstHit(isset($row[$hayKey]) ? $row[$hayKey] : $row['h'], $forms) === false) {
 					continue 2;
 				}
 			}
@@ -480,7 +514,14 @@ class LatitudoQuickSearch
 		   индекс пересоберётся сам, а не через сутки. */
 		$words = md5(serialize(self::sectionWords()));
 
-		return ($row ? $row['C'].'@'.$row['T'] : '0@').'@'.$words;
+		/* И сами разделы: их названия лежат в сеновале (buildIndex) —
+		   переименовали или добавили раздел, индекс пересоберётся. */
+		$sec = $DB->Query(
+			'SELECT COUNT(*) AS C, MAX(TIMESTAMP_X) AS T FROM b_iblock_section WHERE IBLOCK_ID = '.self::IBLOCK_PRODUCTS
+		)->Fetch();
+
+		return ($row ? $row['C'].'@'.$row['T'] : '0@').'@'.$words
+			.'@s'.($sec ? $sec['C'].'@'.$sec['T'] : '0');
 	}
 
 	/**
@@ -605,6 +646,40 @@ class LatitudoQuickSearch
 			self::addArticle($articles, $row['ARTICLE'], $id, (int)$row['OFFER_ID']);
 		}
 
+		/* Названия разделов товара и всех разделов выше (21.09.2026, Ирина):
+		   «ограждения белый» находит белые товары раздела «Ограждения из ДПК»,
+		   даже если слова «ограждения» в названии товара нет. В ранге такой
+		   товар ниже тех, где все слова есть в самом названии. */
+		$sections = array();
+		$rs = $DB->Query('SELECT ID, IBLOCK_SECTION_ID, NAME FROM b_iblock_section WHERE IBLOCK_ID = '.self::IBLOCK_PRODUCTS);
+		while ($row = $rs->Fetch()) {
+			$sections[(int)$row['ID']] = array((int)$row['IBLOCK_SECTION_ID'], self::plainText($row['NAME']));
+		}
+		$paths = array();
+		$pathOf = function ($id) use (&$sections, &$paths) {
+			if (isset($paths[$id])) {
+				return $paths[$id];
+			}
+			$names = array();
+			for ($cur = $id, $guard = 0; $cur && isset($sections[$cur]) && $guard < 20; $guard++) {
+				$names[] = $sections[$cur][1];
+				$cur = $sections[$cur][0];
+			}
+			return $paths[$id] = implode(' ', $names);
+		};
+		$rs = $DB->Query(
+			'SELECT se.IBLOCK_ELEMENT_ID AS EID, se.IBLOCK_SECTION_ID AS SID '
+			.'FROM b_iblock_section_element se '
+			.'INNER JOIN b_iblock_section s ON s.ID = se.IBLOCK_SECTION_ID AND s.IBLOCK_ID = '.self::IBLOCK_PRODUCTS.' '
+			.'WHERE se.ADDITIONAL_PROPERTY_ID IS NULL'
+		);
+		while ($row = $rs->Fetch()) {
+			$id = (int)$row['EID'];
+			if (isset($raw[$id])) {
+				$raw[$id]['sec'] = (isset($raw[$id]['sec']) ? $raw[$id]['sec'].' ' : '').$pathOf((int)$row['SID']);
+			}
+		}
+
 		// Слова, приписанные разделу — см. sectionWords().
 		foreach (self::sectionWords() as $rule) {
 			$extra = ' '.self::plainText($rule['WORDS']);
@@ -623,6 +698,9 @@ class LatitudoQuickSearch
 				// Повторы слов схлопываем: у товара с десятком предложений
 				// сеновал иначе раздувается в разы без пользы для поиска.
 				'h' => self::wordSet($item['hay']),
+				// сеновал вместе с названиями разделов — только для запросов из
+				// нескольких слов, см. findProducts()
+				's' => self::wordSet($item['hay'].' '.(isset($item['sec']) ? $item['sec'] : '')),
 				'a' => self::wordSet($item['art']),
 				'b' => $item['bw'],
 			);

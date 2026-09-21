@@ -192,8 +192,8 @@ if (!function_exists('ndUsedLinkedGoods')) {
 		$sectionId = (int) $sectionId;
 
 		$cache = new CPHPCache();
-		// «2» — формат с картинками; прежние записи кеша (только названия) не читаем
-		$cacheId = 'nd_goods2_'.$iblockId.'_'.$code.'_'.$sectionId;
+		// «3» — формат с картинками и разделами для поиска; прежние записи кеша не читаем
+		$cacheId = 'nd_goods3_'.$iblockId.'_'.$code.'_'.$sectionId;
 		$cacheDir = '/nd/projects_filter';
 
 		if ($cache->InitCache(86400, $cacheId, $cacheDir)) {
@@ -236,8 +236,11 @@ if (!function_exists('ndUsedLinkedGoods')) {
 				['IBLOCK_ID' => $linkIblockId, 'ID' => array_keys($ids), 'ACTIVE' => 'Y'],
 				false,
 				false,
-				['ID', 'NAME', 'PREVIEW_PICTURE', 'DETAIL_PICTURE']
+				['ID', 'NAME', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'IBLOCK_SECTION_ID']
 			);
+			// Названия раздела товара и разделов выше — скрытые слова для поиска по
+			// списку: «ограждения белый» находит белые товары раздела «Ограждения из ДПК».
+			$sectionPath = [];
 			while ($r = $rs->Fetch()) {
 				$src = '';
 				$fileId = (int) ($r['PREVIEW_PICTURE'] ?: $r['DETAIL_PICTURE']);
@@ -245,7 +248,16 @@ if (!function_exists('ndUsedLinkedGoods')) {
 					$img = CFile::ResizeImageGet($fileId, ['width' => 80, 'height' => 80], BX_RESIZE_IMAGE_PROPORTIONAL, true);
 					$src = (string) ($img['src'] ?? '');
 				}
-				$goods[(int) $r['ID']] = ['NAME' => (string) $r['NAME'], 'SRC' => $src];
+				$secId = (int) $r['IBLOCK_SECTION_ID'];
+				if ($secId > 0 && !isset($sectionPath[$secId])) {
+					$names = [];
+					$chain = CIBlockSection::GetNavChain($linkIblockId, $secId, ['ID', 'NAME']);
+					while ($s = $chain->Fetch()) {
+						$names[] = (string) $s['NAME'];
+					}
+					$sectionPath[$secId] = implode(' ', $names);
+				}
+				$goods[(int) $r['ID']] = ['NAME' => (string) $r['NAME'], 'SRC' => $src, 'SEARCH' => $sectionPath[$secId] ?? ''];
 			}
 		}
 
@@ -473,7 +485,7 @@ if (!defined('ND_UI_JS')) {
 					<input type="search" class="nd-filter__search" placeholder="Найти товар" autocomplete="off" aria-label="Найти товар в списке">
 				<? endif; ?>
 				<? foreach ($ndGoodsOptions as $goodsId => $opt): ?>
-					<label class="nd-filter__opt">
+					<label class="nd-filter__opt"<?= !empty($opt['SEARCH']) ? ' data-nd-search="'.htmlspecialcharsbx($opt['SEARCH']).'"' : '' ?>>
 						<input type="checkbox" name="goods[]" value="<?= (int) $goodsId ?>"<?= isset($ndSelGoods[$goodsId]) ? ' checked' : '' ?>>
 						<span class="nd-filter__box" aria-hidden="true"></span>
 						<? /* без картинки — пустая плашка того же размера, чтобы названия стояли ровно */ ?>

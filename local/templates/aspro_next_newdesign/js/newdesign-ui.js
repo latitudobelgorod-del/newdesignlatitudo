@@ -36,19 +36,35 @@
 		// в названии, порядок любой. Раньше строка искалась целиком и такой
 		// запрос давал «Ничего не нашлось». ё = е, русская «х» = латинская «x»
 		// (размеры «100х100» пишут и так, и так).
+		// Вместе с названием ищем по разделу товара (data-nd-search: «Ограждения
+		// из ДПК …»), так что «ограждения белый» показывает белые товары раздела.
+		// У длинных слов отбрасываем последнюю букву — «ограждение» найдёт
+		// «ограждения»; короткие («столб») как есть, иначе «стол» ловил бы столы.
 		var ndNorm = function (s) {
 			return s.toLowerCase().replace(/ё/g, 'е').replace(/х/g, 'x');
+		};
+		// Окончания прилагательных срезаем всегда: «белые»/«белая» = «белый»,
+		// «серые» = «серый» (цвета в названиях товаров — в разных родах и числах).
+		var ndStem = function (w) {
+			if (/\d/.test(w)) {
+				return w;   // размеры и артикулы («100x100», «146х24») не обрезаем
+			}
+			var a =w.replace(/(ыми|ими|ого|его|ому|ему|ый|ий|ой|ая|яя|ое|ее|ые|ие|ых|их|ую|юю|ым|им)$/, '');
+			if (a !== w && a.length >= 3) {
+				return a;
+			}
+			return w.length > 5 ? w.slice(0, -1) : w;
 		};
 		filterForm.addEventListener('input', function (e) {
 			var search = e.target;
 			if (!search.classList || !search.classList.contains('nd-filter__search')) {
 				return;
 			}
-			var words = ndNorm(search.value).split(/[\s,.;]+/).filter(Boolean);
+			var words = ndNorm(search.value).split(/[\s,.;]+/).filter(Boolean).map(ndStem);
 			var panel = search.closest('.nd-filter__panel');
 			var shown = 0;
 			Array.prototype.forEach.call(panel.querySelectorAll('.nd-filter__opt'), function (opt) {
-				var name = ndNorm(opt.textContent);
+				var name = ndNorm(opt.textContent + ' ' + (opt.getAttribute('data-nd-search') || ''));
 				var hit = words.every(function (w) { return name.indexOf(w) !== -1; });
 				opt.hidden = !hit;
 				if (hit) {
