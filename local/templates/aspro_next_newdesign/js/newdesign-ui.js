@@ -31,17 +31,25 @@
 		});
 
 		// Поиск по списку: прячем пункты, в названии которых нет введённого.
+		// Ищем по словам, как поиск в шапке (21.09.2026): «столб бел» находит
+		// «Столб EasyDecking … 100x100 Белый» — каждое слово должно встретиться
+		// в названии, порядок любой. Раньше строка искалась целиком и такой
+		// запрос давал «Ничего не нашлось». ё = е, русская «х» = латинская «x»
+		// (размеры «100х100» пишут и так, и так).
+		var ndNorm = function (s) {
+			return s.toLowerCase().replace(/ё/g, 'е').replace(/х/g, 'x');
+		};
 		filterForm.addEventListener('input', function (e) {
 			var search = e.target;
 			if (!search.classList || !search.classList.contains('nd-filter__search')) {
 				return;
 			}
-			var needle = search.value.trim().toLowerCase().replace(/ё/g, 'е');
+			var words = ndNorm(search.value).split(/[\s,.;]+/).filter(Boolean);
 			var panel = search.closest('.nd-filter__panel');
 			var shown = 0;
 			Array.prototype.forEach.call(panel.querySelectorAll('.nd-filter__opt'), function (opt) {
-				var name = opt.textContent.toLowerCase().replace(/ё/g, 'е');
-				var hit = !needle || name.indexOf(needle) !== -1;
+				var name = ndNorm(opt.textContent);
+				var hit = words.every(function (w) { return name.indexOf(w) !== -1; });
 				opt.hidden = !hit;
 				if (hit) {
 					shown++;
