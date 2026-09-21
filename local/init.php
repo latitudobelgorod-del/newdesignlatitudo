@@ -1095,6 +1095,20 @@ function ndCanonicalFallback(&$content)
         }
     }
 
+    // Посадочная Сотбит (ЧПУ): модуль ещё до страницы подменяет REQUEST_URI на технический
+    // адрес фильтра, и canonical указывал на /…/filter/…/ — а тот отдаёт 301 обратно на
+    // посадочную (21.09.2026). Канонический адрес посадочной — её красивый адрес.
+    if (strpos($path, '/filter/') !== false && \Bitrix\Main\Loader::includeModule('sotbit.seometa')) {
+        $arChpu = \Sotbit\Seometa\Orm\SeometaUrlTable::getList(array(
+            'filter' => array('=REAL_URL' => $path, '=ACTIVE' => 'Y'),
+            'select' => array('NEW_URL'),
+            'limit'  => 1,
+        ))->fetch();
+        if ($arChpu && $arChpu['NEW_URL'] !== '') {
+            $path = $arChpu['NEW_URL'];
+        }
+    }
+
     $arKeep = array();
     foreach ($_GET as $sKey => $sValue) {
         if (!is_array($sValue) && preg_match('/^PAGEN_\d+$/i', $sKey) && (int) $sValue > 1) {

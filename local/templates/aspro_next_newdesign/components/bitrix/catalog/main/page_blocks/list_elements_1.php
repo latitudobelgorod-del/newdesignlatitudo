@@ -350,7 +350,9 @@ if($isAjaxFilter == "Y")
 										<?/*SEO текст для посадочных страниц каталога по регионам ВЕРХ*/?>
 				<? else: ?>
 				
-				<?$APPLICATION->AddHeadString('<link href="https://'.$_SERVER['SERVER_NAME'].$arSeoItem['PROPERTY_FILTER_URL_VALUE'].'" rel="canonical" />',true);?>
+				<?/* canonical страниц пагинации посадочной ставит ndCanonicalFallback (local/init.php):
+				     красивый адрес посадочной + номер страницы. Здесь раньше выводился FILTER_URL —
+				     технический адрес фильтра, который отдаёт 301 обратно на посадочную (21.09.2026). */?>
 			<? endif; ?>
 
 
@@ -1445,8 +1447,13 @@ if($arTheme["HIDE_SITE_NAME_TITLE"]["VALUE"] == "N" && ($bBitrixAjax || $isAjaxF
 
 <?//bBitrixAjax?>	
 
-<? if (!IsSeoDisrupting($arParams)): ?>
-		
+<?/* H1/Title/Description посадочной ставим и на страницах пагинации (21.09.2026). Раньше блок
+     был под !IsSeoDisrupting(): при SEO_DEOPTIMIZING=Y на ?PAGEN_1=2 посадочная получала H1 и
+     Title родительского раздела и становилась дублем его второй страницы. «— страница N» к
+     Title добавляет ndPaginationTitles (local/init.php); SEO-тексты посадочной на пагинации
+     по-прежнему не выводятся — они под своими проверками PAGEN выше. */?>
+<? if (true): ?>
+
     <? if ($arSeoItem) {
         $langing_seo_h1 = ($arSeoItem["IPROPERTY_VALUES"]["ELEMENT_PAGE_TITLE"] != "" ? $arSeoItem["IPROPERTY_VALUES"]["ELEMENT_PAGE_TITLE"] : $arSeoItem["NAME"]);
         $APPLICATION->SetTitle($langing_seo_h1);
