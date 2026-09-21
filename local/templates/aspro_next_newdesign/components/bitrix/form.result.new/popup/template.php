@@ -23,7 +23,8 @@ $rand = '_'.md5($_SERVER['REQUEST_TIME_FLOAT']); ?>
 		<div id="mynameform"></div>
 		<?if($arResult["isFormTitle"] == "Y"):?>
 		<h2 class="formnameru"><?/*=$arResult["FORM_TITLE"]*/?>
-<?=empty($_GET['formhead']) ? $arResult["FORM_TITLE"] : $_GET['formhead'];?></h2>
+<?/* formhead — подпись нажатой кнопки из адреса запроса: экранируем, иначе ссылкой с formhead=<script> в окно подсовывается чужой код */?>
+<?=empty($_GET['formhead']) ? $arResult["FORM_TITLE"] : htmlspecialcharsbx((string) $_GET['formhead']);?></h2>
 		<?endif;?>
 
 		<?if($arResult["isFormDescription"] == "Y"):?>

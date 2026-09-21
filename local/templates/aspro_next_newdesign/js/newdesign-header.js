@@ -318,7 +318,10 @@
 	   только первое, отправиться может форма из соседнего — с текстом страницы
 	   в NAMEFORM. */
 	function setFormTitle(label) {
-		var heads = document.querySelectorAll('div.form_head h2.formnameru, div.form_headin h2.formnameruinline');
+		/* Только внутри всплывающих окон: встроенные в страницу формы (услуги,
+		   «Обсудить проект») носят свои заголовки. .pop-up-title — окно заказа
+		   в 1 клик, у него своя разметка и нет NAMEFORM. */
+		var heads = document.querySelectorAll('.jqmWindow div.form_head h2.formnameru, .jqmWindow div.form_headin h2.formnameruinline, .popup .pop-up-title');
 		Array.prototype.forEach.call(heads, function (head) {
 			if (head.textContent !== label) head.textContent = label;
 		});
@@ -368,24 +371,29 @@
 		}, 8000);
 	}
 
-	/* Беда не только у шапки: у любой кнопки нового дизайна hash.t приезжает
-	   как document. Кнопки вне шапки подключаются к починке явно — атрибутом
-	   data-nd-form-title, чтобы случайно не перехватить чужие триггеры темы. */
+	/* Правило сайта: окно с формой называется так же, как кнопка, которая его
+	   открыла (21.09.2026) — для любой кнопки, не только шапки. Кроме окон темы
+	   (data-event="jqm") сюда же окно заказа: «Заказать» в корзине и «Купить
+	   в 1 клик» в карточке открывают его своими обработчиками.
+
+	   Слушаем на фазе захвата: со второго открытия окна на той же странице клик
+	   принимает обработчик jqModal на самой кнопке и гасит всплытие (return false),
+	   до document он не доходит — заголовок оставался «Общая форма». */
+	var FORM_TRIGGERS = '[data-event="jqm"], [data-entity="basket-checkout-button"], .one_click, .fast_order, [onclick*="oneClickBuy"]';
+
 	document.addEventListener('click', function (e) {
-		/* Кнопки форм, вставленные разметкой темы прямо в текст страницы
-		   («Обсудить проект» на /projects/), своего атрибута не имеют и иметь
-		   не могут: включаемые области правятся из публички и общие со старым
-		   дизайном. У них подпись кнопки и есть нужный заголовок — берём её. */
-		var trigger = e.target.closest('#nd-header [data-event="jqm"], [data-event="jqm"][data-nd-form-title], [data-event="jqm"].btn.btn-default');
+		var trigger = e.target.closest && e.target.closest(FORM_TRIGGERS);
 		if (!trigger) return;
 
 		/* data-nd-form-title задаёт заголовок явно — нужен там, где подпись кнопки
 		   короче названия формы (мессенджеры: подпись «MAX», заголовок «Написать в MAX»).
-		   Без атрибута берём текст кнопки («Оставить заявку»). */
+		   Без атрибута берём текст кнопки («Оставить заявку»). Кнопки-иконки без
+		   подписи и слишком длинные подписи (карточка целиком) не трогаем —
+		   остаётся заголовок формы. */
 		var label = trigger.getAttribute('data-nd-form-title')
 			|| (trigger.textContent || '').replace(/\s+/g, ' ').trim();
-		if (label) applyFormTitle(label);
-	});
+		if (label && label.length <= 60) applyFormTitle(label);
+	}, true);
 
 	/* Escape — закрыть всё */
 	document.addEventListener('keydown', function (e) {

@@ -939,8 +939,13 @@ $utm_content = $arMessageFields["UTM_CONTENT"];
 $utm_term = $arMessageFields["UTM_TERM"];
 $utm_geo = $arMessageFields["UTM_GEO"];
 $utm_medium = $arMessageFields["UTM_MEDIUM"];
-	// определяем URL 
-$Url = 'https://latitudo.bitrix24.ru/rest/45/rt9aho9sj05d409a/crm.lead.add.json';
+	// определяем URL
+// Адрес вебхука Б24 — в файле вне папки сайта и вне git (~/.latitudo_b24.php,
+// возвращает ['webhook' => 'https://…/rest/ID/КЛЮЧ/']). Раньше ключ был прописан
+// здесь, а репозиторий публичный — ключ заменён 21.09.2026. Нет файла (локальная
+// сборка) — лид не отправляем, заказ создаётся как обычно.
+$ndB24 = @include dirname(dirname($_SERVER['DOCUMENT_ROOT'])) . '/.latitudo_b24.php';
+$Url = (is_array($ndB24) && !empty($ndB24['webhook'])) ? $ndB24['webhook'] . 'crm.lead.add.json' : '';
 // описываем параметры лида 
 $ParamLid = http_build_query(array(
   'fields' => array(
@@ -973,6 +978,7 @@ $ParamLid = http_build_query(array(
   'params' => array("REGISTER_SONET_EVENT" => "Y")
 ));
 // обращаемся к сформированному URL при помощи функции curl_exec для создания лида
+if ($Url) {
 $ch = curl_init();
 curl_setopt_array($ch, array(
   CURLOPT_SSL_VERIFYPEER => 0,
@@ -984,6 +990,7 @@ curl_setopt_array($ch, array(
 ));
 $result2 = curl_exec($ch);
 curl_close($ch);
+}
 
 
 	$_SESSION['SALE_BASKET_NUM_PRODUCTS'][$SITE_ID] = 0;
