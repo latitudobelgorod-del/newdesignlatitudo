@@ -2212,6 +2212,14 @@ body .nd-brandhead #pagetitle {
 .catalog_item_wrapp.nd-ready .cost.prices .price_matrix_wrapper > .price.discount {
     display: none !important;
 }
+/* …и до того, как скрипт разложил карточку: при обновлении страницы старая
+   цена и «Цена скидки» успевали мелькнуть в оформлении Аспро — в строку с
+   ценой (Ирина, 2026-09-22). Строку .nd-old-row скрипт дорисует следом. */
+.catalog_item_wrapp:not(.nd-ready) .cost.prices .offers_price_old,
+.catalog_item_wrapp:not(.nd-ready) .cost.prices .sale_block,
+.catalog_item_wrapp:not(.nd-ready) .cost.prices .price_matrix_wrapper > .price.discount {
+    display: none !important;
+}
 /* Тема даёт блоку цены `margin: 11px 0 0` и `line-height: 0` (селектор
    .catalog_item .cost.prices) — из-за этого цена съезжала относительно
    переключателя единиц. */

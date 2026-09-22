@@ -692,11 +692,30 @@
 .catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .value {
     display: none;
 }
-/* В нижней панели покупки на телефоне старой цены и скидки нет — как у товаров
-   с предложениями (см. #nd-pd-buybar ниже). */
+/* Нижняя панель покупки на телефоне: блок цены уезжает в неё целиком, и если
+   старую цену там спрятать, о скидке на телефоне не видно нигде (Ирина,
+   2026-09-22, диван ПРИМО Сицилия). Строка под ценой — мельче, 14/19.6:
+   правила панели (#nd-pd-buybar … .price_value 28px !important) бьют id,
+   поэтому перебиваем тоже через id. */
+#nd-pd-buybar .prices_block .price_matrix_wrapper {
+    row-gap: 0;
+    column-gap: 8px;
+}
+/* «скидку» в панели прячет правило для товаров с предложениями
+   (#nd-pd-buybar .prices_block .sale_block, в @media ниже) — возвращаем её
+   только в матрице цен. */
+#nd-pd-buybar .prices_block .price_matrix_wrapper > .sale_block {
+    display: flex !important;
+}
+#nd-pd-buybar .prices_block .price_matrix_wrapper > .price.discount .price_value,
+#nd-pd-buybar .prices_block .price_matrix_wrapper > .price.discount .price_currency,
+#nd-pd-buybar .prices_block .price_matrix_wrapper > .sale_block .title,
+#nd-pd-buybar .prices_block .price_matrix_wrapper > .sale_block .price_value,
+#nd-pd-buybar .prices_block .price_matrix_wrapper > .sale_block .price_currency,
 #nd-pd-buybar .prices_block .price_matrix_wrapper > .price.discount,
 #nd-pd-buybar .prices_block .price_matrix_wrapper > .sale_block {
-    display: none !important;
+    font-size: 14px !important;
+    line-height: 19.6px !important;
 }
 .catalog_detail.element_newdesign .right_info .info_item .uf_comment_price::before {
     /* Тот же кружок с «i», что в списке раздела: рисуем стилями, без картинки. */
@@ -2599,6 +2618,13 @@
         font-weight: 500;
         color: #101014;
         white-space: nowrap;
+    }
+    /* Подпись больше не показываем (Ирина, 22 сентября 2026): единица и так
+       стоит в цене («₽/шт») и в счётчике («1 шт»), а в списке и на десктопе
+       такой плашки нет. Скрипт её по-прежнему строит — вернуть можно, сняв
+       это правило. */
+    #nd-pd-buybar .nd-pd-unit {
+        display: none;
     }
     #nd-pd-buybar .buy_block,
     #nd-pd-buybar .offer_buy_block,

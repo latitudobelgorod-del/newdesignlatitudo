@@ -400,10 +400,17 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 								{{{SUM_PRICE_FORMATED}}}
 							</span>
 						</div>
-		<?/* Цену за штуку в строке товара не печатаем (Ирина, 7 сентября 2026):
-		     при количестве 1 она повторяет сумму слово в слово, и та же цифра
-		     выводилась дважды подряд. Штатная ячейка «за шт.» скрыта стилями
-		     и без нашего блока. */?>
+		<?/* Цена за штуку под суммой — «4 560₽ за шт.», как в макете (Ирина,
+		     22 сентября 2026). Только когда штук больше одной (SHOW_PRICE_FOR из
+		     mutator.php: количество ≠ коэффициенту): при 1 шт. она повторяет сумму
+		     слово в слово — из-за этого строку 7 сентября и убирали. Порядок в
+		     колонке (сумма → за шт. → старая → скидка) задаёт newdesign-basket.css. */?>
+		{{#SHOW_PRICE_FOR}}
+						<div class="nd-price-unit">
+							<span class="nd-price-unit__value">{{{PRICE_FORMATED}}}</span>
+							<span class="nd-price-unit__title"><?=Loc::getMessage('SBB_ND_PRICE_FOR')?> {{MEASURE_TEXT}}.</span>
+						</div>
+		{{/SHOW_PRICE_FOR}}
 		{{#SHOW_DISCOUNT_PRICE}}
 							<div class="basket-item-price-old ">
 								<span class="basket-item-price-old-text">

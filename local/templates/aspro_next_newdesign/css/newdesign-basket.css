@@ -468,6 +468,54 @@
 #basket-root .differ-per {
     display: none;
 }
+/* Правила выше не доставали: style.css шаблона (идёт в склейке страницы) держит
+   `#basket-root .basket-item-block-price.main {display:block}` и
+   `.main > div {display:inline-block}` — селектор сильнее нашего, поэтому
+   старая цена вставала в строку с суммой, а скидка печаталась серым с
+   жёлтой плашкой «-46%» (Ирина, 2026-09-22, кресло ПРИМО). Перебиваем тем же
+   весом плюс ячейка. Колонку флексом собираем только с 768: на телефоне
+   .main — display:contents внутри сетки ячейки (см. max-width 767 ниже). */
+@media (min-width: 768px) {
+#basket-root .basket-items-list-item-price .basket-item-block-price.main {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: auto;
+}
+#basket-root .basket-items-list-item-price .basket-item-block-price.main > div {
+    display: block;
+}
+/* Строка скидки стояла на 8px правее суммы: тема центрирует блок и даёт
+   ему поля. */
+#basket-root .basket-items-list-item-price .basket-item-price-difference,
+#basket-root .basket-items-list-item-price .basket-item-price-difference > div {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    text-align: left !important;
+}
+}
+#basket-root .basket-items-list-item-price .basket-item-block-price.main .basket-item-price-old {
+    text-align: left !important;
+}
+#basket-root .basket-items-list-item-price .basket-item-block-price.main .basket-item-price-old-text {
+    font-size: 14px;
+    line-height: 19.6px;
+    font-weight: 500;
+    color: #8f8f9a;
+    text-decoration: line-through;
+}
+#basket-root .basket-items-list-item-price .basket-item-price-difference,
+#basket-root .basket-items-list-item-price .basket-item-price-difference > div,
+#basket-root .basket-items-list-item-price .basket-item-price-difference .nd-price-diff__sum {
+    color: #ff4130 !important;
+    background: none !important;
+}
+#basket-root .basket-items-list-item-price .differ-per {
+    display: none !important;
+}
 
 /* ---- счётчик количества -------------------------------------------------- */
 #basket-root .basket-item-block-amount {
