@@ -163,7 +163,32 @@ $(document).ready(function() {
 		
 		
 <script src="/local/templates/aspro_next_newdesign/js/cookie-banner.js?v=20260922"></script>
-<link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css">
-<script type="text/javascript" src="https://cdn.envybox.io/widget/cbk.js?wcb_code=e4de92bacc448ee6b674c4cb61afd66e" charset="UTF-8" async></script>
+<?/* Виджет обратного звонка envybox (он же тянет чат saas-support/whitesaas)
+   подключаем не сразу, а через 2 с после загрузки или по первому действию
+   посетителя (22.09.2026): на телефоне он занимал процессор ~0,4 с
+   и его CSS задерживал отрисовку страницы. */?>
+<script>
+(function () {
+	var done = false, evs = ['touchstart', 'scroll', 'mousemove', 'keydown', 'click'];
+	function loadWidget() {
+		if (done) return;
+		done = true;
+		evs.forEach(function (e) { window.removeEventListener(e, loadWidget, true); });
+		var l = document.createElement('link');
+		l.rel = 'stylesheet';
+		l.href = 'https://cdn.envybox.io/widget/cbk.css';
+		document.head.appendChild(l);
+		var s = document.createElement('script');
+		s.src = 'https://cdn.envybox.io/widget/cbk.js?wcb_code=e4de92bacc448ee6b674c4cb61afd66e';
+		s.charset = 'UTF-8';
+		s.async = true;
+		document.body.appendChild(s);
+	}
+	evs.forEach(function (e) { window.addEventListener(e, loadWidget, {capture: true, passive: true, once: true}); });
+	function later() { setTimeout(loadWidget, 2000); }
+	if (document.readyState === 'complete') later();
+	else window.addEventListener('load', later);
+})();
+</script>
 </body>
 </html>
