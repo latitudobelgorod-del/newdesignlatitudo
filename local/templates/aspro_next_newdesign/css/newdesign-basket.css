@@ -1280,6 +1280,16 @@
     #basket-root .basket-items-list-item-price .nd-price-diff__sum {
         display: block;
     }
+    /* Тема центрирует строку скидки и даёт ей поля — «СКИДКА» съезжала вправо
+       от старой цены над ней. */
+    #basket-root .basket-items-list-item-price .basket-item-price-difference,
+    #basket-root .basket-items-list-item-price .basket-item-price-difference > div {
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 0;
+        padding-right: 0;
+        text-align: left !important;
+    }
 
     /* Счётчик: в мобильном макете «шт» стоит внутри серой плашки,
        под числом, а не отдельной строкой под ней. */
