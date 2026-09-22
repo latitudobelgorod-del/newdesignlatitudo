@@ -1215,6 +1215,10 @@ if($arSection["PLACE"]){
 						?>
 					<?endif;?>
 				<?else:?>
+					<?/* Нижние теги раздела — и на посадочной (22.09.2026, Ирина: на «Венге»
+					     нет тегов, которые есть внизу террасной доски). Только теги: SEO-текст
+					     раздела (km_posle_tovarov) на посадочной был бы дублем. */?>
+					<? include_once(__DIR__ . "/../include/km_bottom_tag.php") ?>
 					<?ob_start();?>
 					<?if($arSeoItem["DETAIL_TEXT"]):?>
 						<?=$arSeoItem["DETAIL_TEXT"];?>
@@ -1244,7 +1248,10 @@ if($arSection["PLACE"]){
                     <? if ($arSeoItems): ?>
                         <? $arLandingFilter = array();
                         if ($arSeoItem) {
-                            $arLandingFilter = array("PROPERTY_SECTION" => $arSeoItem["PROPERTY_SECTION_VALUE"], "!ID" => $arSeoItem["ID"], array("!SORT" => 1000));
+                            /* Пустое SECTION — текущий раздел, как в верхнем блоке: иначе на
+                               ?PAGEN_1=2 посадочной выводились все посадочные сайта (22.09.2026). */
+                            $ndLandingSectionId = $arSeoItem["PROPERTY_SECTION_VALUE"] ?: $arSection["ID"];
+                            $arLandingFilter = array("PROPERTY_SECTION" => ($ndLandingSectionId ?: -1), "!ID" => $arSeoItem["ID"], array("!SORT" => 1000));
                         } else {
                              $arLandingFilter = array("PROPERTY_SECTION" => $arSection["ID"]);
                         }
