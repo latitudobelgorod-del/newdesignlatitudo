@@ -564,7 +564,13 @@ $ar_res = $res->GetNext();
             <? if ($arSeoItems): ?>
                 <? $arLandingFilter = array();
                 if ($arSeoItem) {
-                    $arLandingFilter = array("PROPERTY_SECTION" => $arSeoItem["PROPERTY_SECTION_VALUE"], "!ID" => $arSeoItem["ID"]);
+                    /* У большинства посадочных (Венге, Серая, толщины…) свойство SECTION
+                       пустое, а PROPERTY_SECTION => '' Битрикс не фильтрует — на посадочной
+                       вылезали все посадочные сайта, вплоть до садовой мебели (22.09.2026).
+                       Пустое — берём раздел, в котором открыта посадочная; SORT 1000 скрыт,
+                       как и на странице раздела. */
+                    $ndLandingSectionId = $arSeoItem["PROPERTY_SECTION_VALUE"] ?: $arSection["ID"];
+                    $arLandingFilter = array("PROPERTY_SECTION" => ($ndLandingSectionId ?: -1), "!ID" => $arSeoItem["ID"], array("!SORT" => 1000));
                 } else {
                     $arLandingFilter = array("PROPERTY_SECTION" => $arSection["ID"], array("!SORT" => 1000));
                 }
@@ -1662,9 +1668,17 @@ if($arTheme["HIDE_SITE_NAME_TITLE"]["VALUE"] == "N" && ($bBitrixAjax || $isAjaxF
    ShowTitle: ShowTitle — отложенная функция, она закрывает текущий буфер и
    открывает свой, поэтому внутри ob_start() половина разметки уехала бы мимо
    области. К этому моменту заголовок уже проставлен catalog.section — ниже на
-   том же GetTitle построен и ответ ajax-фильтра. */
+   том же GetTitle построен и ответ ajax-фильтра.
+
+   Кроме ajax: на посадочных Сотбит (sotbit:seo.meta) ставит свой H1 уже ПОСЛЕ
+   этого файла — в section.php. Здесь брали «Венге» из названия посадочной
+   вместо «Террасная доска ДПК Венге» (в старом дизайне ShowTitle отложенный,
+   там верно). Поэтому шапку отдаёт section.php после Сотбита (22.09.2026). */
+if (!$isAjaxFilter) {
+	$GLOBALS['ND_PAGE_HEAD_ROW'] = (string)$ndRowHtml;
+}
 $ndTitle = $APPLICATION->GetTitle(false);
-if (strlen($ndTitle) || strlen($ndRowHtml)) {
+if ($isAjaxFilter && (strlen($ndTitle) || strlen($ndRowHtml))) {
 	$APPLICATION->AddViewContent(
 		'nd_page_head',
 		(strlen($ndTitle) ? '<div class="nd-cat-head"><h1 id="pagetitle">'.$ndTitle.'</h1></div>' : '').$ndRowHtml

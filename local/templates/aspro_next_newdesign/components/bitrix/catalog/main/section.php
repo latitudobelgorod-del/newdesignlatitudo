@@ -539,4 +539,18 @@ if($arSeoItems)
 
 <?// не использовалось на старом сайте?>
 
+<?/* Шапка раздела (H1 + ряд плиток), собранная в page_blocks/list_elements_1.php.
+     Отдаём здесь, после sotbit:seo.meta: он ставит H1 посадочной позже шаблона
+     списка (22.09.2026). */
+if (isset($GLOBALS['ND_PAGE_HEAD_ROW'])) {
+	$ndTitle = $APPLICATION->GetTitle(false);
+	if (strlen($ndTitle) || strlen($GLOBALS['ND_PAGE_HEAD_ROW'])) {
+		$APPLICATION->AddViewContent(
+			'nd_page_head',
+			(strlen($ndTitle) ? '<div class="nd-cat-head"><h1 id="pagetitle">'.$ndTitle.'</h1></div>' : '').$GLOBALS['ND_PAGE_HEAD_ROW']
+		);
+	}
+	unset($GLOBALS['ND_PAGE_HEAD_ROW']);
+}?>
+
 
