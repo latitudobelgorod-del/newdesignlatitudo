@@ -109,7 +109,13 @@
     '@media(max-width:760px){#cb-wrap{justify-content:flex-start;',
     'padding:8px 10px;gap:8px;font-size:12px;line-height:16px;}',
     '#cb-text{white-space:normal;flex:1;}',
-    '#cb-accept{height:30px;padding:0 12px;line-height:30px;font-size:12px;}}'
+    '#cb-accept{height:30px;padding:0 12px;line-height:30px;font-size:12px;}}',
+    /* До 991px внизу экрана стоит нижняя навигация (.nd-navbar) — полоса
+       согласия ложилась поверх неё (Ирина, 22 сентября 2026). Поднимаем над
+       навигацией, а на карточке товара — ещё и над панелью покупки: её верх
+       js/newdesign-element.js кладёт в --nd-buybar-top. */
+    '@media(max-width:991px){#cb-wrap{bottom:calc(var(--nd-navbar-h,56px) + env(safe-area-inset-bottom,0px));}',
+    'html.nd-has-buybar #cb-wrap{bottom:var(--nd-buybar-top);}}'
   ].join('');
   document.head.appendChild(style);
 
