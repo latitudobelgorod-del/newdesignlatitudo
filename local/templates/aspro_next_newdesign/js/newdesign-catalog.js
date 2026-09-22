@@ -606,6 +606,22 @@
             var obj = findCardObject(card);
             var offer = obj && obj.offers && obj.offers[obj.offerNum];
             var prices = offer && offer.ITEM_PRICES && offer.ITEM_PRICES[offer.ITEM_PRICE_SELECTED || 0];
+            /* Товар без предложений (кресла, мебель): объекта с ITEM_PRICES нет,
+               а тема печатает матрицу цен — .price[data-value] (текущая) и
+               .price.discount[data-value] (старая). Старая стояла в строке цены
+               вплотную к «₽/шт» (Ирина, 2026-09-22) — берём цифры из разметки
+               в ту же строку, что у товаров с предложениями. */
+            if (!prices) {
+                var pNow = card.querySelector('.cost.prices .price_matrix_wrapper > .price:not(.discount)[data-value]');
+                var pOld = card.querySelector('.cost.prices .price_matrix_wrapper > .price.discount[data-value]');
+                if (pNow && pOld) {
+                    prices = {
+                        BASE_PRICE: pOld.getAttribute('data-value'),
+                        PRICE: pNow.getAttribute('data-value'),
+                        CURRENCY: pOld.getAttribute('data-currency') || 'RUB'
+                    };
+                }
+            }
             if (!prices) {
                 row.style.display = 'none';
                 return;

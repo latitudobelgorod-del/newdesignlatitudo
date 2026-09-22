@@ -605,6 +605,99 @@
     max-width: none;
     float: none;
 }
+/* Товар без торговых предложений (кресла, мебель): тема печатает цену матрицей —
+   .price_matrix_wrapper > .price, .price.discount (старая) и .sale_block («Экономия»)
+   соседними блоками, и каждый выходил крупным кеглем своим этажом (Ирина,
+   2026-09-22, кресло ПРИМО 33237). По макету старая цена 18/25.2 #8F8F9A
+   зачёркнутая и «скидка N₽» #FF4130 стоят за ценой, но справа от цены место
+   единиц измерения — поэтому строку ставим ПОД действующую цену, отбивка 10. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 4px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price:not(.discount) {
+    flex: 0 0 100%;
+}
+/* У цены тема держит margin-bottom 20px — со строкой скидки под ней выходил
+   разрыв 24px. Со скидкой: 20 отдаём под строку (6 до неё + её 25 + ниже), без
+   скидки цену не трогаем — у товаров без акции ничего не сдвигается. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper:has(> .price.discount) > .price:not(.discount) {
+    margin-bottom: 2px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper:has(> .price.discount) {
+    margin-bottom: 4px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    float: none;
+    margin: 0;
+    padding: 0;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount .values_wrapper,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount .price_value,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount .price_currency {
+    width: auto;
+    min-width: 0;
+    float: none;
+    font-size: 18px !important;
+    line-height: 25.2px !important;
+    font-weight: 400 !important;
+    color: #8F8F9A !important;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount {
+    text-decoration: line-through;
+}
+/* Тема даёт .values_wrapper и .price_value старой цены margin-top 12px — дважды,
+   поэтому она опускалась на 24px ниже «скидки» и отрывалась от цены. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount .values_wrapper,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount .price_value,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount .price_currency {
+    margin: 0 !important;
+    padding: 0 !important;
+    vertical-align: baseline;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .sale_wrapper,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .title,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .text,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .values_wrapper,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .price_value,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .price_currency {
+    width: auto;
+    min-width: 0;
+    float: none;
+    margin: 0;
+    padding: 0;
+    background: none;
+    font-size: 18px !important;
+    line-height: 25.2px !important;
+    font-weight: 400 !important;
+    color: #FF4130 !important;
+}
+/* «скидка» и сумма — одной строкой, как у товаров с предложениями выше. */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .sale_wrapper,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .text {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .clearfix,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .sale_block .value {
+    display: none;
+}
+/* В нижней панели покупки на телефоне старой цены и скидки нет — как у товаров
+   с предложениями (см. #nd-pd-buybar ниже). */
+#nd-pd-buybar .prices_block .price_matrix_wrapper > .price.discount,
+#nd-pd-buybar .prices_block .price_matrix_wrapper > .sale_block {
+    display: none !important;
+}
 .catalog_detail.element_newdesign .right_info .info_item .uf_comment_price::before {
     /* Тот же кружок с «i», что в списке раздела: рисуем стилями, без картинки. */
     content: "i";

@@ -2206,6 +2206,12 @@ body .nd-brandhead #pagetitle {
 .catalog_item_wrapp.nd-ready .cost.prices .sale_block {
     display: none !important;
 }
+/* То же у товара без предложений: его старая цена — .price.discount в матрице
+   цен, стояла вплотную к «₽/шт». Цифры показывает .nd-old-row
+   (updateOldPrice берёт их из data-value) (Ирина, 2026-09-22). */
+.catalog_item_wrapp.nd-ready .cost.prices .price_matrix_wrapper > .price.discount {
+    display: none !important;
+}
 /* Тема даёт блоку цены `margin: 11px 0 0` и `line-height: 0` (селектор
    .catalog_item .cost.prices) — из-за этого цена съезжала относительно
    переключателя единиц. */
