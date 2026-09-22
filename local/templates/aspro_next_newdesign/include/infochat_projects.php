@@ -37,8 +37,10 @@ if (!$isShowCompany || !$arRegion) {
 
 $ndPhoneDigits = preg_replace('/[^0-9]/', '', $arRegion['PROPERTY_REGION_TAG_PHONE_VALUE']);
 $ndPhonePodmenaDigits = preg_replace('/[^0-9]/', '', $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);
-$ndPodmena = (str_contains($ndUtmSource, 'ya') || str_contains($ndUtmSource, 'tg')
-	|| str_contains($ndUtmSource, 'vk') || str_contains($ndUtmSource, 'maps'));
+/* 22.09.2026: подмена телефона — как в шапке, только пока идёт рекламный визит
+   (ndIsUtmVisit, сутки с перехода). Метка в сессии живёт 30 дней, и проверка
+   по ней одной показывала подменный номер, когда в шапке уже обычный. */
+$ndPodmena = ndIsUtmVisit();
 
 $ndPhoto = '';
 $res = CIBlockElement::GetList(['ID' => 'ASC'], ['ID' => $arRegion['ID'], 'IBLOCK_ID' => 7], false, false, ['ID', 'NAME', 'PREVIEW_PICTURE']);
