@@ -486,6 +486,15 @@
 #basket-root .basket-items-list-item-price .basket-item-block-price.main > div {
     display: block;
 }
+/* «2 600 руб за уп.» в колонку 130px не влезает одной строкой — подпись
+   переносим целиком, сумму не рвём. */
+#basket-root .basket-items-list-item-price .nd-price-unit {
+    white-space: normal;
+}
+#basket-root .basket-items-list-item-price .nd-price-unit__value,
+#basket-root .basket-items-list-item-price .nd-price-unit__title {
+    white-space: nowrap;
+}
 /* Строка скидки стояла на 8px правее суммы: тема центрирует блок и даёт
    ему поля. */
 #basket-root .basket-items-list-item-price .basket-item-price-difference,

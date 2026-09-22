@@ -400,17 +400,15 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 								{{{SUM_PRICE_FORMATED}}}
 							</span>
 						</div>
-		<?/* Цена за штуку под суммой — «4 560₽ за шт.», как в макете (Ирина,
-		     22 сентября 2026). Только когда штук больше одной (SHOW_PRICE_FOR из
-		     mutator.php: количество ≠ коэффициенту): при 1 шт. она повторяет сумму
-		     слово в слово — из-за этого строку 7 сентября и убирали. Порядок в
-		     колонке (сумма → за шт. → старая → скидка) задаёт newdesign-basket.css. */?>
-		{{#SHOW_PRICE_FOR}}
+		<?/* Цена за основную единицу под суммой — «4 560₽ за шт.», как в макете,
+		     у каждого товара, в том числе при количестве 1 (Ирина, 22 сентября 2026;
+		     7 сентября её убирали как повтор суммы — решение пересмотрено).
+		     Подпись ND_UNIT_LABEL готовит mutator.php (без двойной точки у «уп.»).
+		     Порядок в колонке (сумма → за шт. → старая → скидка) — newdesign-basket.css. */?>
 						<div class="nd-price-unit">
 							<span class="nd-price-unit__value">{{{PRICE_FORMATED}}}</span>
-							<span class="nd-price-unit__title"><?=Loc::getMessage('SBB_ND_PRICE_FOR')?> {{MEASURE_TEXT}}.</span>
+							<span class="nd-price-unit__title"><?=Loc::getMessage('SBB_ND_PRICE_FOR')?> {{ND_UNIT_LABEL}}</span>
 						</div>
-		{{/SHOW_PRICE_FOR}}
 		{{#SHOW_DISCOUNT_PRICE}}
 							<div class="basket-item-price-old ">
 								<span class="basket-item-price-old-text">

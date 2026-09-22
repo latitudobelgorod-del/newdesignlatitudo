@@ -214,6 +214,9 @@ foreach ($this->basketItems as &$row)
 	}
 
 	$rowData['SHOW_PRICE_FOR'] = (float)$rowData['QUANTITY'] !== (float)$rowData['MEASURE_RATIO'];
+	// Подпись к цене за единицу в строке товара нового дизайна: «за шт.», «за уп.».
+	// Точку ставим сами, но у части единиц она уже в названии («уп.») — было «за уп..».
+	$rowData['ND_UNIT_LABEL'] = rtrim(trim((string)$rowData['MEASURE_TEXT']), '.') . '.';
 
 	$hideDetailPicture = false;
 
