@@ -1198,6 +1198,42 @@ function ndPaginationTitles(&$content)
 }
 
 /**
+ * «руб» → «₽» в новом дизайне (Ирина, 22 сентября 2026: «замени руб на символ
+ * рубля везде в каталоге»). Раньше символ ставили скрипты уже в браузере
+ * (rublesToSign, fixMoney) — при загрузке мелькало «руб», а в корзине его не
+ * меняли вовсе.
+ *
+ * Не через формат валюты в настройках: он общий для сайта, а по нему живут
+ * старый дизайн, письма и oneclickbuy.next/script.php — тот вырезает из суммы
+ * заказа «руб» перед отправкой лида в Битрикс24.
+ *
+ * Здесь — готовый ответ нового дизайна, в том числе ajax (фильтр, «Показать
+ * ещё»): вместе с текстом меняется и формат валюты, вшитый в страницу
+ * (BX.Currency, '# руб'), поэтому и пересчёт на лету печатает «₽». Меняем
+ * только «руб» отдельным словом: «рублей», «рубль» не трогаем; точку после
+ * «руб.» съедаем, если за ней не начинается новое предложение. Корзину, у
+ * которой ajax идёт мимо шаблона сайта, правит её mutator.php.
+ */
+AddEventHandler('main', 'OnEndBufferContent', 'ndRubleSign', 10047);
+
+function ndRubleSign(&$content)
+{
+    if (!defined('SITE_TEMPLATE_ID') || SITE_TEMPLATE_ID !== 'aspro_next_newdesign') {
+        return;
+    }
+    if (defined('ADMIN_SECTION') && ADMIN_SECTION === true) {
+        return;
+    }
+    if (!is_string($content) || $content === '' || mb_strpos($content, 'руб') === false) {
+        return;
+    }
+    $res = preg_replace('/(?<![а-яёА-ЯЁa-zA-Z])руб(?:\.(?!\s+[А-ЯЁA-Z]))?(?![а-яёА-ЯЁa-zA-Z])/u', '₽', $content);
+    if (is_string($res)) {
+        $content = $res;
+    }
+}
+
+/**
  * Open Graph: дописываем og:title, og:type и og:url там, где их нет.
  *
  * Тема печатает только og:image и og:description, а og:title/type/url ставит

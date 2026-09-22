@@ -742,3 +742,20 @@ if($totalVal>0){
 }
 
 
+
+// «руб» → «₽» в ценах корзины нового дизайна (Ирина, 22 сентября 2026). HTML
+// страниц нового дизайна правит ndRubleSign (local/init.php), но пересчёт корзины
+// приходит ajax'ом мимо шаблона сайта — поэтому заменяем и здесь, в данных строк
+// и итогов. Формат валюты в настройках не трогаем: он общий со старым дизайном.
+$ndRuble = function ($v) {
+	return is_string($v) ? preg_replace('/(?<![а-яёА-ЯЁ])руб\.?(?![а-яёА-ЯЁ])/u', '₽', $v) : $v;
+};
+foreach ($result['BASKET_ITEM_RENDER_DATA'] as &$ndItem) {
+	foreach ($ndItem as $ndKey => $ndVal) {
+		if (substr($ndKey, -9) === '_FORMATED') $ndItem[$ndKey] = $ndRuble($ndVal);
+	}
+}
+unset($ndItem);
+foreach ($result['TOTAL_RENDER_DATA'] as $ndKey => $ndVal) {
+	if (substr($ndKey, -9) === '_FORMATED') $result['TOTAL_RENDER_DATA'][$ndKey] = $ndRuble($ndVal);
+}
