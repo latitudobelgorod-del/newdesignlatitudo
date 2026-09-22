@@ -102,6 +102,29 @@ $ndTagsHtml = isset($GLOBALS['ND_CATALOG_TAGS_HTML']) ? trim($GLOBALS['ND_CATALO
 			<?endforeach;?>
 		</div>
 	</div>
+
+	<?/* Мобильная шторка «Сортировка» (макет 22.09.2026: снизу, радиокнопки,
+	   «Закрыть»). Те же ссылки, что в выпадашке; скрипт переносит шторку
+	   в body и открывает её вместо выпадашки на ширине до 767px. */?>
+	<div class="nd-sheet nd-sheet--bottom nd-sortsheet" id="nd-sheet-sort" hidden>
+		<div class="nd-sheet__overlay" data-nd-sort-close></div>
+		<div class="nd-sheet__panel">
+			<div class="nd-sheet__head">
+				<span class="nd-sheet__grip"></span>
+				<div class="nd-sheet__headrow">
+					<span class="nd-sheet__title">Сортировка</span>
+					<button class="nd-sheet__closetext" type="button" data-nd-sort-close>Закрыть</button>
+				</div>
+			</div>
+			<div class="nd-sortsheet__list">
+				<a href="<?=$ndSortUrl("")?>" class="nd-sortsheet__opt<?=($sort !== 'PRICE' ? ' current' : '')?>" rel="nofollow">По популярности</a>
+				<?foreach($sortArr as $value):?>
+					<a href="<?=$ndSortUrl('sort='.$value["key"].'&order='.$value['order'])?>"
+					   class="nd-sortsheet__opt<?=(($sort == $value['key'] && $sort_order == $value['order']) ? ' current' : '')?>" rel="nofollow"><?=$value['title']?></a>
+				<?endforeach;?>
+			</div>
+		</div>
+	</div>
 	<?endif;?>
 </div>
 <?

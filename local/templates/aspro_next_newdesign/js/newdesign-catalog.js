@@ -828,12 +828,42 @@
         sel.__ndBound = 1;
         var cur = sel.querySelector('.nd-catlist-sort__current');
         if (!cur) return;
+        /* На телефоне вместо выпадашки — шторка снизу. Переносим её в body:
+           внутри списка её перекрыл бы контекст наложения .wraps. */
+        var sheet = sel.parentNode.querySelector('.nd-sortsheet');
+        if (sheet) {
+            /* список перерисовали аяксом — старая шторка в body уже не нужна */
+            [].forEach.call(document.querySelectorAll('body > .nd-sortsheet'), function (s) { s.remove(); });
+            document.body.appendChild(sheet);
+        }
+        var mobile = window.matchMedia ? window.matchMedia('(max-width: 767px)') : null;
+        function closeSheet() {
+            if (!sheet || sheet.hidden) return;
+            sheet.hidden = true;
+            document.body.classList.remove('nd-sheet-open');
+        }
         cur.addEventListener('click', function (e) {
             e.stopPropagation();
+            if (sheet && mobile && mobile.matches) {
+                sheet.hidden = false;
+                document.body.classList.add('nd-sheet-open');
+                return;
+            }
             sel.classList.toggle('opened');
         });
-        document.addEventListener('click', function () {
+        document.addEventListener('click', function (e) {
             sel.classList.remove('opened');
+            if (e.target.closest && e.target.closest('[data-nd-sort-close]')) {
+                e.preventDefault();
+                closeSheet();
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeSheet();
+        });
+        /* повернули телефон или раздвинули окно — шторку не оставляем */
+        if (mobile && mobile.addEventListener) mobile.addEventListener('change', function (m) {
+            if (!m.matches) closeSheet();
         });
 
         /* «Фильтры» на мобильном — штатный триггер темы лежит отдельным блоком

@@ -2687,3 +2687,68 @@ body .nd-brandhead #pagetitle {
     margin: 0;
     padding: 0;
 }
+
+/* ---------------------------------------------------------------------------
+   Мобильная шторка «Сортировка» (макет 22.09.2026). Сама шторка —
+   общие .nd-sheet из newdesign-mobile.css; здесь только пункты-радиокнопки.
+   На десктопе её нет вовсе — там выпадашка.
+   ------------------------------------------------------------------------ */
+.nd-sortsheet {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .nd-sortsheet:not([hidden]) {
+        display: block;
+    }
+
+    .nd-sortsheet__list {
+        padding: 8px 16px 24px;
+        overflow-y: auto;
+    }
+
+    .nd-sortsheet__opt {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        color: #101014 !important;
+        font-size: 16px;
+        line-height: 21px;
+        font-weight: 400;
+        text-decoration: none !important;
+        border: 0 !important;
+    }
+
+    .nd-sortsheet__opt:before {
+        content: '';
+        flex: 0 0 auto;
+        box-sizing: border-box;
+        width: 24px;
+        height: 24px;
+        border: 1.5px solid #d1d1d6;
+        border-radius: 50%;
+        background: #fff;
+    }
+
+    .nd-sortsheet__opt.current:before {
+        border: 7px solid #c60000;
+    }
+}
+
+/* Чипы посадочных на телефоне (22.09.2026): длинные названия
+   («Коричневые садовые кресла из искусственного ротанга») не влезали
+   в строку и обрезались краем экрана — разрешаем перенос внутри чипа. */
+@media (max-width: 767px) {
+    .nd-catlist-sort__tags .tag_ank,
+    .section_tag_bottom .tag_ank {
+        max-width: 100%;
+    }
+
+    .nd-catlist-sort__tags .tag_ank a,
+    .section_tag_bottom .tag_ank a {
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+}
