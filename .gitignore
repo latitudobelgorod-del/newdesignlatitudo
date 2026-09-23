@@ -15,3 +15,7 @@
 /local/short-link/config.php
 # боевой токен обмена остатков с 1С — вне Git, образец рядом в config.sample.php
 /local/stock-sync/config.php
+
+# зависимости скриптов в /tools
+/tools/**/node_modules
+/tools/**/package-lock.json

@@ -1,0 +1,12 @@
+{
+  "name": "nd-css-purge",
+  "private": true,
+  "description": "Урезанная копия CSS-сборки шаблона нового дизайна, см. purge.js",
+  "dependencies": {
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^7.0.0",
+    "postcss": "^8.4.47",
+    "postcss-safe-parser": "^7.0.1",
+    "puppeteer-core": "^24.0.0"
+  }
+}

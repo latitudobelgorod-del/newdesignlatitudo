@@ -1350,3 +1350,48 @@ function ndRequirePersonalDataConsent($webFormId, &$arFields, &$arrVALUES)
 
     $APPLICATION->ThrowException('Подтвердите согласие на обработку персональных данных.');
 }
+
+/**
+ * Урезанная CSS-сборка шаблона нового дизайна (22.09.2026, ускорение мобильной).
+ *
+ * Сборка template_<hash>_v1.css — ~1,5 МБ (старая тема Аспро + newdesign*.css), и пока она не скачана
+ * и не разобрана, телефон не рисует ничего. На страницах нового дизайна срабатывает ~15% её правил.
+ * tools/css-purge/purge.js собирает только их в css/purged/template_<hash>.css. Здесь, если такая копия
+ * есть, ссылку на сборку заменяем двумя: копия — обычным стилем (её и ждёт отрисовка), полная сборка —
+ * на ТОМ ЖЕ месте, но без ожидания (media=print → all по onload). Место важно: порядок стилей в каскаде
+ * тот же, что был, поэтому правила newdesign-catalog.css и прочих, подключённых позже, по-прежнему
+ * перебивают сборку. Чего нет в копии (всплывающие формы, открытые меню), придёт из полной сборки.
+ *
+ * Нет копии под текущий <hash> (правили CSS и не пересобрали) — страница получает сборку как раньше.
+ * ?nd_nopurge=1 — страница по-старому, для сравнения.
+ */
+AddEventHandler('main', 'OnEndBufferContent', 'ndPurgedCss', 10060);
+
+function ndPurgedCss(&$content)
+{
+    if (!defined('SITE_TEMPLATE_ID') || SITE_TEMPLATE_ID !== 'aspro_next_newdesign') {
+        return;
+    }
+    if ((defined('ADMIN_SECTION') && ADMIN_SECTION === true) || !empty($_GET['nd_nopurge'])) {
+        return;
+    }
+    if (!is_string($content) || stripos($content, '</head>') === false) {
+        return;   // ajax, json, xml — не трогаем
+    }
+    $content = preg_replace_callback(
+        '~<link href="(/bitrix/cache/css/s1/aspro_next_newdesign/template_([0-9a-f]{32})/template_\2_v1\.css\?\d+)"[^>]*>~',
+        function ($m) {
+            $rel = SITE_TEMPLATE_PATH . '/css/purged/template_' . $m[2] . '.css';
+            $abs = $_SERVER['DOCUMENT_ROOT'] . $rel;
+            if (!is_file($abs)) {
+                return $m[0];
+            }
+            $full = htmlspecialchars($m[1], ENT_QUOTES);
+            return '<link href="' . $rel . '?' . filemtime($abs) . '" rel="stylesheet">'
+                . '<link href="' . $full . '" rel="stylesheet" media="print" onload="this.media=\'all\'">'
+                . '<noscript><link href="' . $full . '" rel="stylesheet"></noscript>';
+        },
+        $content,
+        1
+    );
+}
