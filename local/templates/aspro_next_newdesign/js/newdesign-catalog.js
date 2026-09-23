@@ -781,41 +781,66 @@
         adoptLandingTags();
         try {
             var box = document.querySelector('.nd-catlist-sort__tags .section_tag_top');
-            if (!box || box.__ndOpened) return;
+            if (!box) return;
 
             var chips = [].slice.call(box.querySelectorAll('.tag_ank'));
             if (!chips.length) return;
 
-            var more = box.querySelector('.nd-catlist-sort__more');
-            if (!more) {
-                more = document.createElement('span');
-                more.className = 'nd-catlist-sort__more';
-                more.textContent = '…';
-                more.title = 'Показать все теги';
-                more.addEventListener('click', function () {
-                    box.__ndOpened = true;
-                    box.classList.add('nd-tags-open');   // снимает ограничение в один ряд (css)
-                    chips.forEach(function (c) { c.classList.remove('nd-tag-hidden'); });
-                    more.remove();
+            /* На телефоне показываем три строки: раньше в одну строку не влезал
+               ни один длинный тег и посетитель видел только «…» (Ирина, 23.09.2026).
+               На компьютере по макету по-прежнему одна строка. */
+            var rows = window.matchMedia && window.matchMedia('(max-width: 767px)').matches ? 3 : 1;
+
+            var btn = box.querySelector('.nd-catlist-sort__more');
+            if (!btn) {
+                btn = document.createElement('span');
+                btn.className = 'nd-catlist-sort__more';
+                btn.addEventListener('click', function () {
+                    if (box.classList.contains('nd-tags-open')) {
+                        box.classList.remove('nd-tags-open');
+                        collapseTags();                 // свернуть обратно
+                    } else {
+                        box.classList.add('nd-tags-open');
+                        chips.forEach(function (c) { c.classList.remove('nd-tag-hidden'); });
+                        btn.textContent = 'Свернуть';
+                        btn.title = 'Свернуть список';
+                    }
                 });
-                box.appendChild(more);
+                box.appendChild(btn);
             }
 
-            /* Считаем по фактическому положению: в ряд попадают чипы, чей
-               верх совпадает с верхом первого. Кнопке «…» оставляем место. */
+            /* Считаем по фактическому положению: сколько чипов укладывается
+               в разрешённые строки. Кнопке оставляем место в последней строке. */
+            box.classList.remove('nd-tags-open');
             chips.forEach(function (c) { c.classList.remove('nd-tag-hidden'); });
+            btn.textContent = '…';
+            btn.style.display = 'none';                 // не мешает измерению строк
             var top0 = chips[0].getBoundingClientRect().top;
-            var limit = box.getBoundingClientRect().right - more.getBoundingClientRect().width - 8;
+            var rowTops = [];
             var cut = -1;
             for (var i = 0; i < chips.length; i++) {
-                var r = chips[i].getBoundingClientRect();
-                if (r.top > top0 + 2 || r.right > limit) { cut = i; break; }
+                var t = chips[i].getBoundingClientRect().top;
+                if (!rowTops.length || t > rowTops[rowTops.length - 1] + 2) rowTops.push(t);
+                if (rowTops.length > rows) { cut = i; break; }
             }
+            btn.style.display = '';
             if (cut < 0) {
-                more.remove();
+                btn.remove();
                 return;
             }
+            btn.textContent = 'Ещё ' + (chips.length - cut);
+            btn.title = 'Показать все теги';
             for (var j = cut; j < chips.length; j++) chips[j].classList.add('nd-tag-hidden');
+
+            /* Кнопка не должна перескакивать на следующую строку: если перескочила,
+               прячем ещё один чип. */
+            for (var g = 0; g < chips.length && cut > 1; g++) {
+                var last = chips[cut - 1].getBoundingClientRect();
+                if (btn.getBoundingClientRect().top <= last.top + 2) break;
+                cut--;
+                chips[cut].classList.add('nd-tag-hidden');
+                btn.textContent = 'Ещё ' + (chips.length - cut);
+            }
         } catch (e) { }
     }
 
@@ -837,6 +862,30 @@
             document.body.appendChild(sheet);
         }
         var mobile = window.matchMedia ? window.matchMedia('(max-width: 767px)') : null;
+
+        /* В шторке выбор пункта только отмечает кружок, переход — по «Применить»
+           (Ирина, 23.09.2026): раньше касание сразу уводило на другую страницу,
+           и было непонятно, что выбралось. Кнопку показываем только при JS. */
+        if (sheet) {
+            var apply = sheet.querySelector('[data-nd-sort-apply]');
+            var opts = [].slice.call(sheet.querySelectorAll('.nd-sortsheet__opt'));
+            if (apply && opts.length) {
+                apply.hidden = false;
+                var chosen = sheet.querySelector('.nd-sortsheet__opt.current') || opts[0];
+                opts.forEach(function (o) {
+                    o.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        chosen = o;
+                        opts.forEach(function (x) { x.classList.toggle('current', x === o); });
+                    });
+                });
+                apply.addEventListener('click', function () {
+                    var href = chosen && chosen.getAttribute('href');
+                    if (href) window.location.href = href;
+                });
+            }
+        }
+
         function closeSheet() {
             if (!sheet || sheet.hidden) return;
             sheet.hidden = true;

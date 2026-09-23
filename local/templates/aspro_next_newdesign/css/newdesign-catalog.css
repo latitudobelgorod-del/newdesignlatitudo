@@ -2752,3 +2752,39 @@ body .nd-brandhead #pagetitle {
         overflow-wrap: anywhere;
     }
 }
+
+/* Теги на телефоне (23.09.2026): до сворачивания показываем три строки, а не одну —
+   длинные названия посадочных в одну строку не помещались, и до нажатия «Ещё»
+   был виден только значок «…». Высота: три чипа по 32px и два промежутка по 8px. */
+@media (max-width: 767px) {
+    .nd-catlist-sort__tags .section_tag_top:has(.tag_ank):not(.nd-tags-open) {
+        max-height: 112px;
+    }
+}
+
+/* Кнопка «Применить» в шторке сортировки (23.09.2026): выбор пункта отмечает кружок,
+   переход — только по ней. Без JS кнопка скрыта атрибутом hidden, ссылки работают сами. */
+@media (max-width: 767px) {
+    .nd-sortsheet__apply {
+        display: block;
+        width: calc(100% - 32px);
+        margin: 8px 16px 24px;
+        padding: 14px 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #c60000;
+        color: #fff;
+        font-family: inherit;
+        font-size: 16px;
+        line-height: 20px;
+        font-weight: 600;
+    }
+
+    .nd-sortsheet__apply[hidden] {
+        display: none;
+    }
+
+    .nd-sortsheet__list {
+        padding-bottom: 8px;
+    }
+}

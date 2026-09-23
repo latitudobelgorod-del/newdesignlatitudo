@@ -116,6 +116,9 @@ $ndTagsHtml = isset($GLOBALS['ND_CATALOG_TAGS_HTML']) ? trim($GLOBALS['ND_CATALO
 					<button class="nd-sheet__closetext" type="button" data-nd-sort-close>Закрыть</button>
 				</div>
 			</div>
+			<?/* Выбор отмечает кружок, переход — по кнопке «Применить» (Ирина, 23.09.2026):
+			     раньше касание пункта сразу перезагружало страницу, и было неясно,
+			     что выбралось. Без JS ссылки работают как прежде. */?>
 			<div class="nd-sortsheet__list">
 				<a href="<?=$ndSortUrl("")?>" class="nd-sortsheet__opt<?=($sort !== 'PRICE' ? ' current' : '')?>" rel="nofollow">По популярности</a>
 				<?foreach($sortArr as $value):?>
@@ -123,6 +126,7 @@ $ndTagsHtml = isset($GLOBALS['ND_CATALOG_TAGS_HTML']) ? trim($GLOBALS['ND_CATALO
 					   class="nd-sortsheet__opt<?=(($sort == $value['key'] && $sort_order == $value['order']) ? ' current' : '')?>" rel="nofollow"><?=$value['title']?></a>
 				<?endforeach;?>
 			</div>
+			<button class="nd-sortsheet__apply" type="button" data-nd-sort-apply hidden>Применить</button>
 		</div>
 	</div>
 	<?endif;?>

@@ -49,6 +49,30 @@
 		}
 	}
 
+	/* Количество товаров рядом с названием плитки (Ирина, 23 сентября 2026): так же, как
+	   в мобильном меню каталога — там цифра давно есть, а на компьютере её не было.
+	   Считаем с подразделами (CNT_ALL) и только активные (CNT_ACTIVE): у раздела верхнего
+	   уровня своих товаров может не быть. Запрос один на вызов и уезжает в кеш компонента
+	   вместе с разметкой; тег кеша инфоблока сбрасывает его при правке товаров. */
+	if(!empty($arResult["SECTIONS"]) && CModule::IncludeModule('iblock')){
+		$ndCntIds = array();
+		foreach($arResult["SECTIONS"] as $arItem)
+			$ndCntIds[] = (int)$arItem['ID'];
+
+		$ndCounts = array();
+		$rsCnt = CIBlockSection::GetList(
+			array(),
+			array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'ID' => $ndCntIds, 'CNT_ACTIVE' => 'Y', 'CNT_ALL' => 'Y'),
+			true,
+			array('ID')
+		);
+		while($arCnt = $rsCnt->GetNext())
+			$ndCounts[(int)$arCnt['ID']] = (int)$arCnt['ELEMENT_CNT'];
+
+		foreach($arResult["SECTIONS"] as $key => $arItem)
+			$arResult["SECTIONS"][$key]['ND_CNT'] = $ndCounts[(int)$arItem['ID']] ?? 0;
+	}
+
 	if($arParams["TOP_DEPTH"]>1 && ($arParams["ND_FLAT"] ?? '') !== 'Y'){
 		$arSections = array();
 		$arSectionsDepth3 = array();

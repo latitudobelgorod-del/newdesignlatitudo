@@ -21,7 +21,7 @@
 						<img src="<?=$img["src"]?>" alt="<?=$alt?>" title="<?=$title?>" loading="lazy" />
 					</span>
 				<?endif;?>
-				<span class="nd-subsec__name"><?=$arSection["NAME"];?></span>
+				<span class="nd-subsec__name"><?=$arSection["NAME"];?><?if(!empty($arSection["ND_CNT"])):?><sup class="nd-subsec__cnt"><?=(int)$arSection["ND_CNT"]?></sup><?endif;?></span>
 			</a>
 		<?endforeach;?>
 	</div>
