@@ -86,6 +86,7 @@ class LatitudoPortfolioServices
 	const IBLOCK_GOODS = 19;
 	const PROP_GOODS = 'LINK_GOODS';
 	const PROP_BACK = 'LINK_PORTFOLIO';
+	const PROP_VARIATIONS = 'ASSOCIATED';   // «Вариации цветов» у товара
 
 	public static function syncGoods($portfolioId, $deleted = false)
 	{
@@ -100,6 +101,21 @@ class LatitudoPortfolioServices
 			while ($row = $rs->Fetch()) {
 				if ((int)$row['VALUE'] > 0) {
 					$wanted[(int)$row['VALUE']] = true;
+				}
+			}
+
+			/* Работа появляется и у вариаций товара (Ирина, 23 сентября 2026): в «Товары»
+			   работы указывают один цвет, а проект показывает тот же товар — у соседних
+			   цветов блок «Наши работы» пустовал. Вариации берём из свойства товара
+			   ASSOCIATED «Вариации цветов»; связь там взаимная, но на всякий случай
+			   собираем объединение по всем указанным товарам. При снятии связи работа
+			   так же уходит у всей группы — ниже сравнивается с теми, у кого она стоит. */
+			foreach (array_keys($wanted) as $goodId) {
+				$rs = CIBlockElement::GetProperty(self::IBLOCK_GOODS, $goodId, array(), array('CODE' => self::PROP_VARIATIONS));
+				while ($row = $rs->Fetch()) {
+					if ((int)$row['VALUE'] > 0) {
+						$wanted[(int)$row['VALUE']] = true;
+					}
 				}
 			}
 		}
