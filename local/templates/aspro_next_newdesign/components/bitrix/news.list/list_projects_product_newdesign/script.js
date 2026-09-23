@@ -33,11 +33,14 @@
 			var per = Math.max(1, Math.round(w / step));
 			var total = Math.max(1, Math.ceil(list.length / per));
 			var first = Math.round(track.scrollLeft / step);
-			var current = Math.min(total, Math.floor(first / per) + 1);
+			var atEnd = track.scrollLeft + w >= track.scrollWidth - 1;
+			/* Последняя страница обычно неполная: лента упирается в правый край раньше,
+			   чем пройдёт целая страница, и номер по прокрутке был бы меньше (23.09.2026). */
+			var current = atEnd ? total : Math.min(total, Math.floor(first / per) + 1);
 			return {
 				list: list, step: step, per: per, total: total, current: current,
 				atStart: track.scrollLeft <= 1,
-				atEnd: track.scrollLeft + w >= track.scrollWidth - 1
+				atEnd: atEnd
 			};
 		}
 
