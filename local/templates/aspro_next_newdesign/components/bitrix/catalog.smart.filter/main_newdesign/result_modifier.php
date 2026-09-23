@@ -118,24 +118,35 @@ global $sotbitFilterResult;
 $sotbitFilterResult = $arResult;
 
 if (\Bitrix\Main\Loader::includeModule('sotbit.seometa')) {
-    $newFilterUrl = \Sotbit\Seometa\Orm\SeometaUrlTable::getRow([
-        'filter' => ['=REAL_URL' => $arResult['FILTER_URL']],
-        'select' => ['NEW_URL'],
-        'cache' => ['ttl' => 300],
-    ])['NEW_URL'];
+    /* Адрес /filter/… , у которого есть посадочная, подменяем на её красивый адрес.
+       Иначе покупатель сначала попадал на /filter/… и только оттуда шёл 301 на посадочную —
+       лишний переход, на телефоне заметный (Ирина, 23 сентября 2026). Редирект остаётся
+       страховкой для старых ссылок и роботов.
 
-    if ($newFilterUrl) {
-        $arResult['FILTER_URL'] = $newFilterUrl;
+       SEF_SET_FILTER_URL — адрес кнопки «Показать»; он же в JS_FILTER_PARAMS, откуда его
+       берёт ajax-фильтр. FILTER_URL и FORM_ACTION подменялись и раньше. */
+    $ndChpu = function ($url) {
+        $url = (string)$url;
+        if ($url === '' || strpos($url, '/filter/') === false) {
+            return '';
+        }
+        $row = \Sotbit\Seometa\Orm\SeometaUrlTable::getRow([
+            'filter' => ['=REAL_URL' => html_entity_decode($url, ENT_QUOTES, 'UTF-8')],
+            'select' => ['NEW_URL'],
+            'cache' => ['ttl' => 300],
+        ]);
+        return $row && $row['NEW_URL'] ? $row['NEW_URL'] : '';
+    };
+
+    foreach (array('FILTER_URL', 'FORM_ACTION', 'SEF_SET_FILTER_URL') as $ndKey) {
+        if (!empty($arResult[$ndKey]) && ($ndNew = $ndChpu($arResult[$ndKey])) !== '') {
+            $arResult[$ndKey] = $ndNew;
+        }
     }
 
-    $newActionUrl = \Sotbit\Seometa\Orm\SeometaUrlTable::getRow([
-        'filter' => ['=REAL_URL' => $arResult['FORM_ACTION']],
-        'select' => ['NEW_URL'],
-        'cache' => ['ttl' => 300],
-    ])['NEW_URL'];
-
-    if ($newActionUrl) {
-        $arResult['FORM_ACTION'] = $newActionUrl;
+    if (!empty($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'])
+        && ($ndNew = $ndChpu($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'])) !== '') {
+        $arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'] = $ndNew;
     }
 }
 
