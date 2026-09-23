@@ -2788,3 +2788,18 @@ body .nd-brandhead #pagetitle {
         padding-bottom: 8px;
     }
 }
+
+/* Кнопка «Свернуть» у тегов — как «Сбросить фильтры» в фильтре: белая с чёрной
+   рамкой (Ирина, 23.09.2026). «Ещё N» остаётся серой плашкой, как сами теги:
+   так видно, что это продолжение списка, а «Свернуть» — действие. */
+.nd-tags-open .nd-catlist-sort__more {
+    background: #fff;
+    border: 2px solid #101014;
+    border-radius: 6px;
+    padding: 4px 16px;
+    font-weight: 700;
+}
+
+.nd-tags-open .nd-catlist-sort__more:hover {
+    background: rgba(82, 82, 100, .05);
+}
