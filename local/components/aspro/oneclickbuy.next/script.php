@@ -878,11 +878,50 @@ if ($val=='utm_geo')
 				$arSkuPropertiesText[$skuId] = $skuPropertiesValuesText;
 			}
 		}
+		/* Артикул в письмо (Ирина, 23 сентября 2026): в заявке быстрого заказа были только
+		   название и цена, а менеджеру нужен артикул, как в карточке. Берём его у того же
+		   элемента, что лежит в корзине: у торгового предложения — свойство ARTICLE,
+		   у товара без предложений — CML2_ARTICLE. Пусто у предложения — подставляем
+		   артикул родительского товара ($arProductsList: ТП => товар). */
+		$arArticles = array();
+		if ($arProductsIds) {
+			$arParentIds = array();
+			foreach ($arProductsIds as $ndId) {
+				if (isset($arProductsList[$ndId]['ID'])) {
+					$arParentIds[$ndId] = $arProductsList[$ndId]['ID'];
+				}
+			}
+			$arOfferArticles = $arProductArticles = array();
+			$resOffers = CIBlockElement::GetList(array(), array('ID' => $arProductsIds, 'IBLOCK_ID' => ($arProductsList ? reset($arProductsList)['OFFER_IBLOCK_ID'] : 0)), false, false, array('ID', 'PROPERTY_ARTICLE'));
+			while ($ndRow = $resOffers->Fetch()) {
+				if ($ndRow['PROPERTY_ARTICLE_VALUE']) {
+					$arOfferArticles[$ndRow['ID']] = $ndRow['PROPERTY_ARTICLE_VALUE'];
+				}
+			}
+			$arNeedProduct = array_merge(array_diff($arProductsIds, array_keys($arOfferArticles)), array_values($arParentIds));
+			if ($arNeedProduct) {
+				$resProducts = CIBlockElement::GetList(array(), array('ID' => array_unique($arNeedProduct)), false, false, array('ID', 'PROPERTY_CML2_ARTICLE'));
+				while ($ndRow = $resProducts->Fetch()) {
+					if ($ndRow['PROPERTY_CML2_ARTICLE_VALUE']) {
+						$arProductArticles[$ndRow['ID']] = $ndRow['PROPERTY_CML2_ARTICLE_VALUE'];
+					}
+				}
+			}
+			foreach ($arProductsIds as $ndId) {
+				$ndParent = isset($arParentIds[$ndId]) ? $arParentIds[$ndId] : 0;
+				$arArticles[$ndId] = $arOfferArticles[$ndId]
+					?: ($arProductArticles[$ndId] ?: ($ndParent && isset($arProductArticles[$ndParent]) ? $arProductArticles[$ndParent] : ''));
+			}
+		}
+
 		foreach ($arBasketItems as $arBasketItem) {
 			if($arBasketItem['CAN_BUY'] === 'Y'){
 				$productID = $arBasketItem['PRODUCT_ID'];
-				
+
 				$orderList .= "\n".GetMessage('ITEM_NAME') . $arBasketItem['NAME'] ;
+				if(!empty($arArticles[$productID])){
+					$orderList .= "\n".GetMessage('ITEM_ARTICLE') . $arArticles[$productID];
+				}
 				if(isset($arSkuPropertiesText[$productID])){
 					$orderList .= "\n".GetMessage('OFFER_TREE_PROPS').$arSkuPropertiesText[$productID];
 				}

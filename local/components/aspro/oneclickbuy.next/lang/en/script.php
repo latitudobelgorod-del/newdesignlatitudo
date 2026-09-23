@@ -17,6 +17,7 @@ $MESS['ITEM_UPDATE_FAIL'] = 'Ошибка присвоения номера за
 $MESS['ORDER_CREATE_SUCCESS'] = 'Заказ успешно оформлен.';
 $MESS['PHONE'] = 'Телефон для связи: ';
 $MESS['ITEM_NAME'] = 'Название: ';
+$MESS['ITEM_ARTICLE'] = 'Артикул: ';
 $MESS['ITEM_PRICE'] = 'Цена за единицу: ';
 $MESS['ITEM_QTY'] = ', количество: ';
 $MESS['ITEM_TOTAL'] = ', стоимость: ';
