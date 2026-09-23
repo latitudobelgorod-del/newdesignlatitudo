@@ -1,4 +1,4 @@
-/* Урезанная копия /bitrix/cache/css/s1/aspro_next_newdesign/template_f1981299cdef612cd0277446d2fc7e2a/template_f1981299cdef612cd0277446d2fc7e2a_v1.css — tools/css-purge/purge.js, 2026-09-23T12:55:47.964Z, https://latitudo.ru */
+/* Урезанная копия /bitrix/cache/css/s1/aspro_next_newdesign/template_db7afa0ec4da4b5449730c484f537eab/template_db7afa0ec4da4b5449730c484f537eab_v1.css — tools/css-purge/purge.js, 2026-09-23T13:07:29.962Z, https://latitudo.ru */
 
 
 /* Start:/local/templates/aspro_next_newdesign/vendor/css/bootstrap.min.css?178472734588740*/
@@ -2495,7 +2495,7 @@ div[id*="prop_169"] {/*display:none;*/}
 /* End */
 
 
-/* Start:/local/templates/aspro_next_newdesign/css/newdesign.css?1790167827197310*/
+/* Start:/local/templates/aspro_next_newdesign/css/newdesign.css?1790168619198999*/
 /* ============================================================================
    Новый дизайн Latitudo — стили новых элементов.
 
@@ -5092,8 +5092,9 @@ body .nd-cat-head #pagetitle {
 
 /* Количество товаров в разделе — надстрочной цифрой, как в мобильном меню
    каталога (Ирина, 23 сентября 2026). */
-/* Как в мобильном меню (.nd-msub__cnt): обычный <sup> со своей строкой, без сдвигов —
-   иначе у названий в две-три строки цифра наезжала на соседнюю строку (23.09.2026). */
+/* Количество товаров в разделе. На компьютере — тем же шрифтом и в скобках, в одну
+   строку с названием (Ирина, 23.09.2026). На телефоне остаётся надстрочная цифра,
+   как в мобильном меню каталога (.nd-msub__cnt). */
 .nd-subsec__cnt {
     margin-left: 4px;
     color: #525264;
@@ -5101,6 +5102,22 @@ body .nd-cat-head #pagetitle {
     line-height: 14px;
     font-weight: 400;
     white-space: nowrap;
+    vertical-align: super;
+}
+@media (min-width: 768px) {
+    .nd-subsec__cnt {
+        margin-left: 4px;
+        font-size: inherit;
+        line-height: inherit;
+        color: inherit;
+        vertical-align: baseline;
+    }
+    .nd-subsec__cnt:before {
+        content: '(';
+    }
+    .nd-subsec__cnt:after {
+        content: ')';
+    }
 }
 .nd-subsec__item:hover .nd-subsec__cnt {
     color: #c60000;
@@ -5195,9 +5212,30 @@ body .nd-cat-head #pagetitle {
 /* На мобильном по макету («Категория», 360) плитка разворачивается в строку:
    картинка слева, название справа по левому краю, две колонки. */
 @media (max-width: 767px) {
+    /* Плитки в две строки с прокруткой пальцем вбок (Ирина, 23.09.2026): раньше все
+       подразделы шли вниз в два столбца и отодвигали товары далеко за первый экран.
+       Видно четыре плитки, остальные листаются. Колонки идут по горизонтали, ширина
+       столбца — чуть меньше половины экрана, чтобы край следующей плитки подсказывал,
+       что список продолжается. */
     .nd-subsec {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: none;
+        grid-auto-flow: column;
+        grid-template-rows: repeat(2, auto);
+        grid-auto-columns: calc(50% - 12px);
         gap: 8px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+        /* полосу прокрутки не показываем: подсказка — обрезанная плитка справа */
+        scrollbar-width: none;
+    }
+    .nd-subsec::-webkit-scrollbar {
+        display: none;
+    }
+    .nd-subsec__item {
+        scroll-snap-align: start;
     }
     .nd-subsec__item {
         flex-direction: row;
@@ -9300,7 +9338,7 @@ a.callbackkiller.cbk-phone {
 /* /local/templates/aspro_next_newdesign/css/width-2.min.css?17847273442723 */
 /* /local/templates/aspro_next_newdesign/css/font-4.min.css?17888450195082 */
 /* /local/templates/aspro_next_newdesign/css/custom.css?178884501999741 */
-/* /local/templates/aspro_next_newdesign/css/newdesign.css?1790167827197310 */
+/* /local/templates/aspro_next_newdesign/css/newdesign.css?1790168619198999 */
 /* /local/templates/aspro_next_newdesign/css/newdesign-header.css?178912746339788 */
 /* /local/templates/aspro_next_newdesign/css/newdesign-mobile.css?179007908224865 */
 /* /local/templates/aspro_next_newdesign/css/newdesign-forms.css?178913286334215 */

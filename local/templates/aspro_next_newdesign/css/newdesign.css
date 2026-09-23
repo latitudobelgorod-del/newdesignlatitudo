@@ -3472,8 +3472,9 @@ body .nd-cat-head #pagetitle {
 
 /* Количество товаров в разделе — надстрочной цифрой, как в мобильном меню
    каталога (Ирина, 23 сентября 2026). */
-/* Как в мобильном меню (.nd-msub__cnt): обычный <sup> со своей строкой, без сдвигов —
-   иначе у названий в две-три строки цифра наезжала на соседнюю строку (23.09.2026). */
+/* Количество товаров в разделе. На компьютере — тем же шрифтом и в скобках, в одну
+   строку с названием (Ирина, 23.09.2026). На телефоне остаётся надстрочная цифра,
+   как в мобильном меню каталога (.nd-msub__cnt). */
 .nd-subsec__cnt {
     margin-left: 4px;
     color: #525264;
@@ -3481,6 +3482,22 @@ body .nd-cat-head #pagetitle {
     line-height: 14px;
     font-weight: 400;
     white-space: nowrap;
+    vertical-align: super;
+}
+@media (min-width: 768px) {
+    .nd-subsec__cnt {
+        margin-left: 4px;
+        font-size: inherit;
+        line-height: inherit;
+        color: inherit;
+        vertical-align: baseline;
+    }
+    .nd-subsec__cnt:before {
+        content: '(';
+    }
+    .nd-subsec__cnt:after {
+        content: ')';
+    }
 }
 .nd-subsec__item:hover .nd-subsec__cnt {
     color: #c60000;
@@ -3595,9 +3612,30 @@ body .nd-cat-head #pagetitle {
 /* На мобильном по макету («Категория», 360) плитка разворачивается в строку:
    картинка слева, название справа по левому краю, две колонки. */
 @media (max-width: 767px) {
+    /* Плитки в две строки с прокруткой пальцем вбок (Ирина, 23.09.2026): раньше все
+       подразделы шли вниз в два столбца и отодвигали товары далеко за первый экран.
+       Видно четыре плитки, остальные листаются. Колонки идут по горизонтали, ширина
+       столбца — чуть меньше половины экрана, чтобы край следующей плитки подсказывал,
+       что список продолжается. */
     .nd-subsec {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: none;
+        grid-auto-flow: column;
+        grid-template-rows: repeat(2, auto);
+        grid-auto-columns: calc(50% - 12px);
         gap: 8px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+        /* полосу прокрутки не показываем: подсказка — обрезанная плитка справа */
+        scrollbar-width: none;
+    }
+    .nd-subsec::-webkit-scrollbar {
+        display: none;
+    }
+    .nd-subsec__item {
+        scroll-snap-align: start;
     }
     .nd-subsec__item {
         flex-direction: row;
