@@ -782,6 +782,10 @@
         try {
             var box = document.querySelector('.nd-catlist-sort__tags .section_tag_top');
             if (!box) return;
+            /* Список уже раскрыт посетителем — повторный пересчёт (он идёт при resize
+               и после ajax-обновления списка) не должен сворачивать его обратно
+               (Ирина, 23.09.2026: «нажимаем ещё — открываются и сразу прячутся»). */
+            if (box.classList.contains('nd-tags-open')) return;
 
             var chips = [].slice.call(box.querySelectorAll('.tag_ank'));
             if (!chips.length) return;
