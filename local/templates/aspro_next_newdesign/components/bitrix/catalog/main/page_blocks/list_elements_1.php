@@ -675,12 +675,17 @@ $ar_res = $res->GetNext();
 			   сортировки (21.09.2026, Ирина: при загрузке «проскакивал другой дизайн»).
 			   Раньше блок .landings_list_inline печатался в оформлении Аспро, а чипами
 			   его делал adoptLandingTags() в newdesign-catalog.js уже после загрузки.
-			   Скрипт остаётся запасным: видит готовые .tag_ank и ничего не трогает. */
-			if (strpos($ndKmTags, 'tag_ank') === false
-				&& strpos($ndKmTags, '<div class="section_tag_top">') !== false
+			   Скрипт остаётся запасным: видит готовые .tag_ank и ничего не трогает.
+			   С 24.09.2026 — и когда свои теги у раздела есть: у «Террасной доски» после
+			   перевода «Полнотелой» и «Ко-экструзии» в посадочные их ссылки выходили
+			   отдельным рядом в оформлении Аспро над тегами раздела. Ссылку, которая
+			   уже есть среди тегов раздела, второй раз не добавляем. */
+			if (strpos($ndKmTags, '<div class="section_tag_top">') !== false
 				&& preg_match_all('#<a\b([^>]*)href="([^"]+)"[^>]*>(.*?)</a>#su', $ndLandingTags, $ndLm, PREG_SET_ORDER)) {
 				$ndChips = '';
 				foreach ($ndLm as $ndA) {
+					if (strpos($ndKmTags, 'href="' . $ndA[2] . '"') !== false)
+						continue;
 					$ndActive = (strpos($ndA[1], 'active') !== false) ? ' class="active"' : '';
 					$ndChips .= '<div class="tag_ank"><a' . $ndActive . ' href="' . $ndA[2] . '">' . trim(strip_tags($ndA[3])) . '</a></div>';
 				}
