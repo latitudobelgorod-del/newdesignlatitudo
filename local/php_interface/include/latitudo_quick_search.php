@@ -357,13 +357,30 @@ class LatitudoQuickSearch
 				? 0
 				: (isset($row['b']) ? $row['b'] : self::BRAND_WEIGHT_OTHER);
 
-			$found[] = array($rank, $pos, $row['n'], $id, $brand);
+			/* Нашёлся только благодаря названию раздела — такие идут после
+			   всех, у кого слова запроса есть в самом товаре (Ирина, 24.09.2026:
+			   на «Тер доск» первыми вставали винты EasyDecking из «Комплектующих
+			   для террасной доски» — марка перевешивала, а слов в их названии нет). */
+			$bySection = 0;
+			if ($hayKey === 's' && $rank !== 0) {
+				foreach ($terms as $forms) {
+					if (self::firstHit($row['h'], $forms) === false) {
+						$bySection = 1;
+						break;
+					}
+				}
+			}
+
+			$found[] = array($rank, $pos, $row['n'], $id, $brand, $bySection);
 		}
 
 		/* Порядок: сначала точный артикул, затем свои марки (EasyDecking,
 		   LATITUDO, остальные), внутри марки — по релевантности, положению
 		   первого слова в названии и алфавиту. */
 		usort($found, function ($a, $b) {
+			if ($a[5] !== $b[5]) {
+				return $a[5] < $b[5] ? -1 : 1;
+			}
 			if ($a[4] !== $b[4]) {
 				return $a[4] < $b[4] ? -1 : 1;
 			}
