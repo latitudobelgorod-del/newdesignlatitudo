@@ -1466,6 +1466,16 @@
 			return el.classList && el.classList.contains('nd-filter__drop');
 		});
 
+		/* В мобильной шторке группы идут столбиком — прятать под «…» нечего. */
+		if (box.closest('.nd-hfsheet')) {
+			pills.forEach(function (p) { p.classList.remove('nd-filter-hidden'); });
+			var extra = box.querySelector('.nd-filter__more');
+			if (extra) {
+				extra.remove();
+			}
+			return;
+		}
+
 		if (!pills.length) {
 			return;
 		}
@@ -1552,4 +1562,122 @@
 	document.addEventListener('DOMContentLoaded', collapseFilter);
 	document.addEventListener('nd:appended', schedule);
 	window.addEventListener('resize', schedule);
+})();
+
+/* ---------------------------------------------------------------------------
+   Фильтры поиска на телефоне — шторкой снизу (Ирина, 24.09.2026).
+
+   Над выдачей поиска стоял ряд плашек фильтра, а в строке «Найдено N» ещё и
+   кнопка «Фильтры», которая не делала ничего: она жмёт штатную шторку темы,
+   а на поиске левой колонки с фильтром нет (и код сортировки, который её
+   подключает, на поиске не запускается — сортировки там нет). Теперь на
+   телефоне плашек над списком нет, форма фильтра живёт в шторке и выезжает
+   по кнопке «Фильтры». На компьютере всё по-прежнему — ряд плашек.
+
+   Шторку пересобираем после каждой живой перерисовки выдачи (nd:appended):
+   вместе со списком приходят новые форма и кнопка.
+   ------------------------------------------------------------------------ */
+(function () {
+	'use strict';
+
+	var mq = window.matchMedia ? window.matchMedia('(max-width: 767px)') : null;
+	var sheet = null;
+	var form = null;
+	var home = null;
+
+	function close() {
+		if (sheet && !sheet.hidden) {
+			sheet.hidden = true;
+			document.body.classList.remove('nd-sheet-open');
+		}
+	}
+
+	function place() {
+		if (!sheet || !form) {
+			return;
+		}
+		var body = sheet.querySelector('.nd-hfsheet__body');
+		if (mq && mq.matches) {
+			if (form.parentNode !== body) {
+				body.appendChild(form);
+			}
+		} else {
+			close();
+			if (form.parentNode === body && home && home.parentNode) {
+				home.parentNode.insertBefore(form, home);
+			}
+		}
+	}
+
+	function init() {
+		var btn = document.querySelector('.nd-search-wide [data-nd-filter-opener], .middle [data-nd-filter-opener]');
+		var box = document.querySelector('.middle .nd-filter--horizontal');
+		if (!btn || !box || btn.__ndHf) {
+			return;
+		}
+		btn.__ndHf = 1;
+
+		/* от прежней выдачи — шторка с её формой уже не нужна */
+		if (sheet) {
+			close();
+			sheet.remove();
+		}
+
+		form = box;
+		home = document.createComment('nd-filter');
+		form.parentNode.insertBefore(home, form);
+
+		sheet = document.createElement('div');
+		sheet.className = 'nd-sheet nd-sheet--bottom nd-hfsheet';
+		sheet.hidden = true;
+		sheet.innerHTML =
+			'<div class="nd-sheet__overlay" data-nd-hf-close></div>' +
+			'<div class="nd-sheet__panel">' +
+				'<div class="nd-sheet__head">' +
+					'<span class="nd-sheet__grip"></span>' +
+					'<div class="nd-sheet__headrow">' +
+						'<span class="nd-sheet__title">Фильтры</span>' +
+						'<button class="nd-sheet__closetext" type="button" data-nd-hf-close>Закрыть</button>' +
+					'</div>' +
+				'</div>' +
+				'<div class="nd-hfsheet__body"></div>' +
+			'</div>';
+		/* в body: внутри списка шторку перекрыл бы контекст наложения .wraps */
+		document.body.appendChild(sheet);
+		sheet.addEventListener('click', function (e) {
+			if (e.target.closest && e.target.closest('[data-nd-hf-close]')) {
+				e.preventDefault();
+				close();
+			}
+		});
+
+		btn.addEventListener('click', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (!mq || !mq.matches) {
+				return;
+			}
+			place();
+			sheet.hidden = false;
+			document.body.classList.add('nd-sheet-open');
+		});
+
+		place();
+		document.body.classList.add('nd-has-hfsheet');
+	}
+
+	if (mq && mq.addEventListener) {
+		mq.addEventListener('change', place);
+	}
+	document.addEventListener('keydown', function (e) {
+		if (e.key === 'Escape') {
+			close();
+		}
+	});
+
+	if (document.readyState !== 'loading') {
+		init();
+	}
+	document.addEventListener('DOMContentLoaded', init);
+	document.addEventListener('nd:appended', init);
 })();
