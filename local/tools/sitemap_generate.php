@@ -111,6 +111,140 @@ foreach ($rows as $row) {
     say(sprintf('  шагов: %d, время: %.1f с', $steps, microtime(true) - $started));
 }
 
+/* ------------------------------------------------------------------------
+   Посадочные страницы каталога — sitemap-landings.xml (24 сентября 2026).
+
+   Модуль seo про них не знает: посадочная — это красивый адрес из ЧПУ Сотбита
+   (b_sotbit_seometa_chpu), а не раздел и не элемент. В карте не было ни одной
+   из 74 («Полнотелые ступени», «Штакетник из ДПК», цвета садовой мебели…) —
+   Яндекс находил их только по ссылкам.
+
+   В карту берём лишь то, что робот должен проиндексировать: каждую страницу
+   спрашиваем у самого сайта и оставляем ответ 200 без noindex и с canonical на
+   себя (или без canonical). Так в карту не попадут посадочные, которые
+   уходят 301 (бренд → раздел бренда) или отвечают 404.
+
+   Индекс sitemap.xml модуль seo переписывает при каждой генерации, поэтому
+   строку о нашем файле дописываем в него сразу после генерации, здесь же.
+   Региональные домены получают файл через sitemap_handler1.php с заменой
+   адреса, как и остальные карты.
+   ------------------------------------------------------------------------ */
+const ND_LANDINGS_FILE = 'sitemap-landings.xml';
+const ND_LANDINGS_HOST = 'https://latitudo.ru';
+
+/**
+ * Годится ли посадочная для карты: 200, нет noindex, canonical на себя.
+ *
+ * @return string '' — годится, иначе причина
+ */
+function ndLandingCheck(string $url): string
+{
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_TIMEOUT => 60,
+        CURLOPT_USERAGENT => 'LatitudoSitemap/1.0',
+    ]);
+    $body = (string) curl_exec($ch);
+    $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($code !== 200) {
+        return 'ответ ' . $code;
+    }
+    if (preg_match('~<meta\s+name="robots"\s+content="([^"]*)"~i', $body, $m) && stripos($m[1], 'noindex') !== false) {
+        return 'noindex';
+    }
+    if (preg_match('~<link\s+rel="canonical"\s+href="([^"]*)"~i', $body, $m)) {
+        $canonical = rtrim((string) parse_url($m[1], PHP_URL_PATH), '/') . '/';
+        $self = rtrim((string) parse_url($url, PHP_URL_PATH), '/') . '/';
+        if ($canonical !== $self) {
+            return 'canonical на ' . $m[1];
+        }
+    }
+    return '';
+}
+
+function ndBuildLandingsSitemap(string $root): bool
+{
+    $conn = \Bitrix\Main\Application::getConnection();
+    try {
+        $rows = $conn->query(
+            "SELECT NEW_URL, DATE_CHANGE FROM b_sotbit_seometa_chpu WHERE ACTIVE = 'Y' AND NEW_URL <> '' ORDER BY NEW_URL"
+        )->fetchAll();
+    } catch (\Exception $e) {
+        fwrite(STDERR, '  посадочные: не прочитана таблица Сотбита — ' . $e->getMessage() . "\n");
+        return false;
+    }
+
+    $urls = [];
+    $skipped = [];
+    foreach ($rows as $row) {
+        $path = '/' . trim((string) $row['NEW_URL'], '/') . '/';
+        $url = ND_LANDINGS_HOST . $path;
+        if (isset($urls[$url])) {
+            continue;
+        }
+        $reason = ndLandingCheck($url);
+        if ($reason !== '') {
+            $skipped[] = $path . ' — ' . $reason;
+            continue;
+        }
+        $date = $row['DATE_CHANGE'] instanceof \Bitrix\Main\Type\DateTime
+            ? $row['DATE_CHANGE']->getTimestamp()
+            : time();
+        $urls[$url] = date('c', $date);
+    }
+
+    foreach ($skipped as $line) {
+        say('  посадочная не в карте: ' . $line);
+    }
+
+    /* Сайт не ответил ни разу (ночной сбой) — вчерашний файл лучше пустого. */
+    $file = $root . '/' . ND_LANDINGS_FILE;
+    if (!$urls && is_file($file)) {
+        fwrite(STDERR, "  посадочные: ни одна не ответила 200, оставляю прежний " . ND_LANDINGS_FILE . "\n");
+        return false;
+    }
+
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+        . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    foreach ($urls as $url => $lastmod) {
+        $xml .= '<url><loc>' . htmlspecialchars($url, ENT_XML1) . '</loc><lastmod>' . $lastmod
+            . '</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>';
+    }
+    $xml .= '</urlset>';
+
+    /* Через временный файл: робот не должен застать карту наполовину записанной. */
+    $tmp = $file . '.tmp';
+    if (file_put_contents($tmp, $xml) === false || !rename($tmp, $file)) {
+        fwrite(STDERR, '  посадочные: не удалось записать ' . ND_LANDINGS_FILE . "\n");
+        return false;
+    }
+
+    /* Строка о файле в индексе. Индекс только что переписан модулем seo. */
+    $index = $root . '/sitemap.xml';
+    $content = is_file($index) ? (string) file_get_contents($index) : '';
+    $loc = ND_LANDINGS_HOST . '/' . ND_LANDINGS_FILE;
+    if ($content !== '' && strpos($content, $loc) === false && strpos($content, '</sitemapindex>') !== false) {
+        $entry = '<sitemap><loc>' . $loc . '</loc><lastmod>' . date('c') . '</lastmod></sitemap>';
+        $content = str_replace('</sitemapindex>', $entry . '</sitemapindex>', $content);
+        $tmp = $index . '.tmp';
+        if (file_put_contents($tmp, $content) === false || !rename($tmp, $index)) {
+            fwrite(STDERR, "  посадочные: не удалось дописать sitemap.xml\n");
+            return false;
+        }
+    }
+
+    say(sprintf('  посадочные: %d в карте, %d пропущено', count($urls), count($skipped)));
+    return true;
+}
+
+if (!$onlyId && !ndBuildLandingsSitemap($_SERVER['DOCUMENT_ROOT'])) {
+    $hadError = true;
+}
+
 /* Короткая сводка по файлам: по ней в логе крона сразу видно, что карта
    действительно переписалась и не опустела. */
 $root = $_SERVER['DOCUMENT_ROOT'];
