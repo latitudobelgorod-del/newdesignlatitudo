@@ -45,6 +45,13 @@ $aMenuLinks = Array(
 		""
 	),
 	Array(
+		"Производители",
+		"/brands/",
+		Array(),
+		Array("ARROW" => "N"),
+		""
+	),
+	Array(
 		"О компании",
 		"/info/company/",
 		Array(),
