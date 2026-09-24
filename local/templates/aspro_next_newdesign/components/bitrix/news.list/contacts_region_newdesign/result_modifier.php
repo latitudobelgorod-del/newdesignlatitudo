@@ -56,8 +56,16 @@ foreach ($arResult['ITEMS'] as &$arItem) {
 		return '';
 	};
 
-	$ndOffice = $ndFirstMap($arItem['PROPERTIES']['YMAP_CONSTR_OFFICE']['~VALUE'] ?? '');
-	$ndStore = $ndFirstMap($arItem['PROPERTIES']['YMAP_CONSTR_SKLAD']['~VALUE'] ?? '');
+	/* Карта 2ГИС (TWO_GIS_CONSTR_OFFICE / TWO_GIS_CONSTR_SKLAD, тоже готовый
+	   <iframe>) заменяет яндексовую той же точки, если заполнена. */
+	$ndOffice = $ndFirstMap($arItem['PROPERTIES']['TWO_GIS_CONSTR_OFFICE']['~VALUE'] ?? '');
+	if ($ndOffice === '') {
+		$ndOffice = $ndFirstMap($arItem['PROPERTIES']['YMAP_CONSTR_OFFICE']['~VALUE'] ?? '');
+	}
+	$ndStore = $ndFirstMap($arItem['PROPERTIES']['TWO_GIS_CONSTR_SKLAD']['~VALUE'] ?? '');
+	if ($ndStore === '') {
+		$ndStore = $ndFirstMap($arItem['PROPERTIES']['YMAP_CONSTR_SKLAD']['~VALUE'] ?? '');
+	}
 
 	$arItem['ND_MAPS'] = [];
 
