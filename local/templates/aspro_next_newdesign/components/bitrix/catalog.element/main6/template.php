@@ -2229,8 +2229,10 @@ $db_list = CIBlockSection::GetList(Array("timestamp_x"=>"DESC"), $arFilter, fals
 				"IBLOCK_TYPE" => "aspro_next_content",
 				"IBLOCK_ID" => $arResult["PROPERTIES"]["LINK_PORTFOLIO"]["LINK_IBLOCK_ID"],
 				"NEWS_COUNT" => "20",
-				"SORT_BY1" => "SORT",
-				"SORT_ORDER1" => "ASC",
+				/* Новые проекты первыми — по дате добавления на сайт (Ирина, 24.09.2026);
+				   раньше порядок задавало поле «Сортировка». */
+				"SORT_BY1" => "DATE_CREATE",
+				"SORT_ORDER1" => "DESC",
 				"SORT_BY2" => "ID",
 				"SORT_ORDER2" => "DESC",
 				"FILTER_NAME" => "arrFilterProjects",
