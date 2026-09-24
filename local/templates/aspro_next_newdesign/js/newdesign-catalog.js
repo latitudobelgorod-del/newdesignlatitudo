@@ -1565,31 +1565,82 @@
 })();
 
 /* ---------------------------------------------------------------------------
-   Фильтры поиска на телефоне — шторкой снизу (Ирина, 24.09.2026).
+   Фильтры поиска на телефоне — панелью, как фильтр каталога (Ирина, 24.09.2026).
 
    Над выдачей поиска стоял ряд плашек фильтра, а в строке «Найдено N» ещё и
    кнопка «Фильтры», которая не делала ничего: она жмёт штатную шторку темы,
-   а на поиске левой колонки с фильтром нет (и код сортировки, который её
-   подключает, на поиске не запускается — сортировки там нет). Теперь на
-   телефоне плашек над списком нет, форма фильтра живёт в шторке и выезжает
-   по кнопке «Фильтры». На компьютере всё по-прежнему — ряд плашек.
+   а на поиске левой колонки с фильтром нет. Теперь на телефоне плашек над
+   списком нет, форма фильтра переезжает в панель и открывается кнопкой.
 
-   Шторку пересобираем после каждой живой перерисовки выдачи (nd:appended):
+   Вид — как у мобильного фильтра каталога (css/newdesign-filter-mobile.css,
+   макет «Фильтры» 21408:72598): на весь экран, шапка «‹ Фильтры ✕», группы
+   раскрыты, значения плашками, у длинных групп «Все», снизу «Сбросить
+   фильтры» и «Применить». Сам механизм каталога сюда не годится — он живёт
+   на шторке темы и её пересчёте smartFilter, а форма поиска — простая
+   GET-форма (шаблон catalog.smart.filter/horizontal_newdesign). Поэтому
+   переносим форму как есть и только перекладываем её вид; применяется она
+   кнопкой (сразу после выбора её отправляет newdesign-ui.js — в панели он
+   это пропускает).
+
+   Панель пересобираем после каждой живой перерисовки выдачи (nd:appended):
    вместе со списком приходят новые форма и кнопка.
    ------------------------------------------------------------------------ */
 (function () {
 	'use strict';
+
+	/* Сколько значений в группе видно до «Все» — как в каталоге. */
+	var VISIBLE = 6;
 
 	var mq = window.matchMedia ? window.matchMedia('(max-width: 767px)') : null;
 	var sheet = null;
 	var form = null;
 	var home = null;
 
+	function icon(kind) {
+		var d = kind === 'back' ? 'M15 6l-6 6 6 6' : 'M6 6l12 12M18 6L6 18';
+		return '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">'
+			+ '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/></svg>';
+	}
+
+	function drops() {
+		return form ? [].slice.call(form.querySelectorAll('.nd-filter__drop')) : [];
+	}
+
 	function close() {
 		if (sheet && !sheet.hidden) {
 			sheet.hidden = true;
 			document.body.classList.remove('nd-sheet-open');
 		}
+	}
+
+	/* Группы в панели раскрыты все сразу; длинные — первые VISIBLE значений
+	   и «Все». Отмеченные значения не прячем никогда. */
+	function syncChecked() {
+		[].forEach.call(form.querySelectorAll('.nd-filter__opt'), function (o) {
+			var input = o.querySelector('input');
+			o.classList.toggle('is-checked', !!(input && input.checked));
+		});
+	}
+
+	function prepare() {
+		drops().forEach(function (d) {
+			d.open = true;
+			var opts = [].slice.call(d.querySelectorAll('.nd-filter__opt'));
+			if (opts.length <= VISIBLE || d.querySelector('.nd-hf-all')) {
+				return;
+			}
+			opts.forEach(function (o, i) {
+				var input = o.querySelector('input');
+				if (i >= VISIBLE && !(input && input.checked)) {
+					o.classList.add('nd-hf-extra');
+				}
+			});
+			var all = document.createElement('span');
+			all.className = 'nd-hf-all';
+			all.textContent = 'Все';
+			var head = d.querySelector('.nd-filter__head');
+			head.appendChild(all);
+		});
 	}
 
 	function place() {
@@ -1601,23 +1652,31 @@
 			if (form.parentNode !== body) {
 				body.appendChild(form);
 			}
+			prepare();
 		} else {
 			close();
 			if (form.parentNode === body && home && home.parentNode) {
 				home.parentNode.insertBefore(form, home);
 			}
+			drops().forEach(function (d) { d.open = false; });
 		}
 	}
 
+	function resetAll() {
+		[].forEach.call(form.querySelectorAll('input[type="checkbox"]'), function (i) { i.checked = false; });
+		[].forEach.call(form.querySelectorAll('.nd-filter__num'), function (i) { i.value = ''; });
+		form.submit();
+	}
+
 	function init() {
-		var btn = document.querySelector('.nd-search-wide [data-nd-filter-opener], .middle [data-nd-filter-opener]');
+		var btn = document.querySelector('.middle [data-nd-filter-opener]');
 		var box = document.querySelector('.middle .nd-filter--horizontal');
 		if (!btn || !box || btn.__ndHf) {
 			return;
 		}
 		btn.__ndHf = 1;
 
-		/* от прежней выдачи — шторка с её формой уже не нужна */
+		/* от прежней выдачи — панель с её формой уже не нужна */
 		if (sheet) {
 			close();
 			sheet.remove();
@@ -1628,28 +1687,58 @@
 		form.parentNode.insertBefore(home, form);
 
 		sheet = document.createElement('div');
-		sheet.className = 'nd-sheet nd-sheet--bottom nd-hfsheet';
+		sheet.className = 'nd-hfsheet';
 		sheet.hidden = true;
 		sheet.innerHTML =
-			'<div class="nd-sheet__overlay" data-nd-hf-close></div>' +
-			'<div class="nd-sheet__panel">' +
-				'<div class="nd-sheet__head">' +
-					'<span class="nd-sheet__grip"></span>' +
-					'<div class="nd-sheet__headrow">' +
-						'<span class="nd-sheet__title">Фильтры</span>' +
-						'<button class="nd-sheet__closetext" type="button" data-nd-hf-close>Закрыть</button>' +
-					'</div>' +
-				'</div>' +
-				'<div class="nd-hfsheet__body"></div>' +
+			'<div class="nd-hfsheet__head">' +
+				'<button type="button" class="nd-hfsheet__btn" data-nd-hf-close aria-label="Назад">' + icon('back') + '</button>' +
+				'<span class="nd-hfsheet__title">Фильтры</span>' +
+				'<button type="button" class="nd-hfsheet__btn" data-nd-hf-close aria-label="Закрыть">' + icon('close') + '</button>' +
+			'</div>' +
+			'<div class="nd-hfsheet__body"></div>' +
+			'<div class="nd-hfsheet__bar">' +
+				'<button type="button" class="nd-hfsheet__reset">Сбросить фильтры</button>' +
+				'<button type="button" class="nd-hfsheet__apply">Применить</button>' +
 			'</div>';
-		/* в body: внутри списка шторку перекрыл бы контекст наложения .wraps */
+		/* в body: внутри списка панель перекрыл бы контекст наложения .wraps */
 		document.body.appendChild(sheet);
+
 		sheet.addEventListener('click', function (e) {
-			if (e.target.closest && e.target.closest('[data-nd-hf-close]')) {
+			var t = e.target;
+			if (!t.closest) {
+				return;
+			}
+			if (t.closest('[data-nd-hf-close]')) {
 				e.preventDefault();
 				close();
+				return;
+			}
+			if (t.closest('.nd-hfsheet__apply')) {
+				form.submit();
+				return;
+			}
+			if (t.closest('.nd-hfsheet__reset')) {
+				resetAll();
+				return;
+			}
+			var all = t.closest('.nd-hf-all');
+			if (all) {
+				e.preventDefault();
+				var d = all.closest('.nd-filter__drop');
+				var open = d.classList.toggle('nd-hf-open');
+				all.textContent = open ? 'Свернуть' : 'Все';
+				return;
+			}
+			/* заголовок группы в панели ничего не сворачивает; крестик «снять»
+			   внутри него — обычная ссылка, её пропускаем */
+			if (t.closest('.nd-filter__head') && !t.closest('a')) {
+				e.preventDefault();
 			}
 		});
+
+		/* выделение выбранной плашки — классом: :has() знают не все телефоны */
+		form.addEventListener('change', syncChecked);
+		syncChecked();
 
 		btn.addEventListener('click', function (e) {
 			e.preventDefault();
@@ -1663,7 +1752,6 @@
 		});
 
 		place();
-		document.body.classList.add('nd-has-hfsheet');
 	}
 
 	if (mq && mq.addEventListener) {

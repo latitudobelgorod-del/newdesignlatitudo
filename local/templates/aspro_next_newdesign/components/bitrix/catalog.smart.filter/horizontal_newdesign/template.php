@@ -40,6 +40,43 @@ $ndChevron = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"
    наличию VALUES[MIN] — у них два поля «от» и «до». */
 $ndGroups = array();
 
+/* Значки брендов 20×20 — те же файлы, что у фильтра каталога
+   (catalog.smart.filter/main_newdesign/result_modifier.php): квадратные марки
+   из макета лежат в images/newdesign/brands/<символьный код бренда>.(svg|png).
+   Нужны мобильной шторке фильтров поиска (24.09.2026, «как в каталоге»);
+   в выпадающих списках на компьютере их прячет CSS. */
+$ndBrandLogos = function (array $ids) {
+	$ids = array_values(array_unique(array_map('intval', $ids)));
+	sort($ids);
+	if (!$ids || !CModule::IncludeModule('iblock'))
+		return array();
+
+	$cache = \Bitrix\Main\Data\Cache::createInstance();
+	$cacheId = 'nd_brand_logos_'.md5(implode(',', $ids));
+	if ($cache->initCache(86400, $cacheId, '/nd/brand_logos'))
+		return $cache->getVars();
+
+	$dir = SITE_TEMPLATE_PATH.'/images/newdesign/brands/';
+	$logos = array();
+	$rs = CIBlockElement::GetList(array(), array('ID' => $ids), false, false, array('ID', 'CODE'));
+	while ($el = $rs->Fetch()) {
+		$code = trim((string)$el['CODE']);
+		if ($code === '')
+			continue;
+		foreach (array('svg', 'png') as $ext) {
+			if (file_exists($_SERVER['DOCUMENT_ROOT'].$dir.$code.'.'.$ext)) {
+				$logos[$el['ID']] = $dir.$code.'.'.$ext;
+				break;
+			}
+		}
+	}
+
+	$cache->startDataCache();
+	$cache->endDataCache($logos);
+
+	return $logos;
+};
+
 foreach ($arResult['ITEMS'] as $arItem)
 {
 	if (in_array($arItem['CODE'], $ndSkipCodes, true) || in_array($arItem['NAME'], $ndSkipNames, true))
@@ -89,6 +126,20 @@ foreach ($arResult['ITEMS'] as $arItem)
 
 	if (!$values)
 		continue;
+
+	/* У свойства-привязки (бренд) ключи VALUES — ID элементов брендов. */
+	if (isset($arItem['PROPERTY_TYPE']) && $arItem['PROPERTY_TYPE'] === 'E') {
+		$ndLogos = $ndBrandLogos(array_keys($arItem['VALUES']));
+		$ndLogoById = array();
+		foreach ($arItem['VALUES'] as $ndId => $ndAr) {
+			if (isset($ndLogos[(int)$ndId], $ndAr['CONTROL_ID']))
+				$ndLogoById[$ndAr['CONTROL_ID']] = $ndLogos[(int)$ndId];
+		}
+		foreach ($values as $vi => $v) {
+			if (isset($ndLogoById[$v['CONTROL_ID']]))
+				$values[$vi]['ND_LOGO'] = $ndLogoById[$v['CONTROL_ID']];
+		}
+	}
 
 	$ndFields = array();
 
@@ -199,6 +250,9 @@ if (!$ndGroups)
 							       id="<?=$ar["CONTROL_ID"]?>"
 							       value="<?=$ar["HTML_VALUE"]?>"<?=!empty($ar["CHECKED"]) ? ' checked' : ''?>>
 							<span class="nd-filter__box" aria-hidden="true"></span>
+							<?if(!empty($ar["ND_LOGO"])):?>
+								<img class="nd-filter__logo" src="<?=$ar["ND_LOGO"]?>" width="20" height="20" alt="" loading="lazy" />
+							<?endif;?>
 							<span class="nd-filter__opt-name"><?=htmlspecialcharsbx($ar["VALUE"])?></span>
 							<?if(isset($ar["ELEMENT_COUNT"]) && $ar["ELEMENT_COUNT"] !== ''):?>
 								<span class="nd-filter__opt-count"><?=(int)$ar["ELEMENT_COUNT"]?></span>

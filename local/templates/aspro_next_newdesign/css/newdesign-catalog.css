@@ -2931,64 +2931,238 @@ body .nd-brandhead #pagetitle {
 }
 
 /* ---------------------------------------------------------------------------
-   Фильтры поиска на телефоне — шторкой по кнопке «Фильтры» (24.09.2026).
-   Над списком плашек нет: форму переносит в шторку newdesign-catalog.js,
-   а до его запуска скрываем её здесь, чтобы ряд плашек не мелькал.
-   В шторке группы — столбиком, значения раскрываются под названием группы.
+   Фильтры поиска на телефоне — панелью, как фильтр каталога (24.09.2026).
+   Размеры — из css/newdesign-filter-mobile.css (макет «Фильтры» 21408:72598):
+   шапка 64, поля 16, плашки значений с рамкой 2px rgba(82,82,100,.25) и
+   радиусом 4, выбранная — рамка #a80000 и заливка rgba(198,0,0,.05); снизу
+   «Сбросить фильтры» и «Применить» по 48. Панель и её поведение —
+   js/newdesign-catalog.js; до его запуска форму над списком прячем здесь,
+   чтобы ряд плашек не мелькал. На компьютере панели нет.
    ------------------------------------------------------------------------ */
+.nd-hfsheet,
+.nd-hf-all,
+.nd-filter--horizontal .nd-filter__logo {
+    display: none;
+}
+
 @media (max-width: 767px) {
     .middle .nd-filter--horizontal {
         display: none !important;
     }
 
-    .nd-hfsheet__body {
-        flex: 1 1 auto;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        padding: 0 16px 24px;
+    .nd-hfsheet:not([hidden]) {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 1004;
+        background: #fff;
+        font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+        color: #101014;
     }
 
-    .nd-hfsheet .nd-filter--horizontal {
+    .nd-hfsheet__head {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        height: 64px;
+        padding: 0 6px;
+        border-bottom: 1px solid rgba(82, 82, 100, .15);
+        background: #fff;
+    }
+
+    .nd-hfsheet__btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: #101014;
+    }
+
+    .nd-hfsheet__title {
+        flex: 1 1 auto;
+        text-align: center;
+        font-size: 18px;
+        line-height: 22px;
+        font-weight: 700;
+    }
+
+    .nd-hfsheet__body {
+        position: absolute;
+        top: 64px;
+        bottom: 128px;
+        left: 0;
+        right: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nd-hfsheet__bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
         flex-direction: column;
-        align-items: stretch;
-        flex-wrap: nowrap;
         gap: 8px;
+        height: 128px;
+        padding: 12px 6px;
+        border-top: 1px solid rgba(82, 82, 100, .25);
+        background: #fff;
+    }
+
+    .nd-hfsheet__reset,
+    .nd-hfsheet__apply {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 48px;
+        border-radius: 4px;
+        font-family: inherit;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .nd-hfsheet__reset {
+        border: 2px solid rgba(82, 82, 100, .25);
+        background: #fff;
+        color: #101014;
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    .nd-hfsheet__apply {
+        border: 0;
+        background: #c60000;
+        color: #fff;
+        font-size: 16px;
+        line-height: 24px;
+    }
+
+    /* форма — столбиком групп, без плашечного вида */
+    .nd-hfsheet .nd-filter--horizontal {
+        display: block;
         margin: 0;
         max-width: none;
     }
 
-    .nd-hfsheet .nd-filter--horizontal > .nd-filter__drop,
-    .nd-hfsheet .nd-filter--horizontal > .nd-filter__reset {
-        flex: 0 0 auto;
-        width: 100%;
-        max-width: none;
-    }
-
-    .nd-hfsheet .nd-filter--horizontal .nd-filter-hidden {
+    .nd-hfsheet .nd-filter--horizontal > .nd-filter__drop {
         display: block !important;
+        max-width: none;
+        padding: 16px;
+        border-bottom: 1px solid rgba(82, 82, 100, .15);
     }
 
-    .nd-hfsheet .nd-filter__more,
-    .nd-hfsheet .nd-filter__break {
-        display: none !important;
-    }
-
-    .nd-hfsheet .nd-filter--horizontal .nd-filter__head {
-        height: 48px;
-        padding: 0 12px;
+    .nd-hfsheet .nd-filter--horizontal .nd-filter__head,
+    .nd-hfsheet .nd-filter--horizontal .nd-filter__drop.is-selected > .nd-filter__head {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        height: auto;
+        padding: 0 0 12px;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+        color: #101014;
         font-size: 16px;
+        line-height: 19px;
+        font-weight: 700;
+        cursor: default;
+    }
+
+    .nd-hfsheet .nd-filter__head > svg,
+    .nd-hfsheet .nd-filter__clear {
+        display: none;
+    }
+
+    .nd-hfsheet .nd-filter__head > span:first-of-type {
+        flex: 1 1 auto;
+    }
+
+    .nd-hfsheet .nd-hf-all {
+        display: inline;
+        flex: 0 0 auto;
+        color: #e8292c;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 400;
+        cursor: pointer;
     }
 
     .nd-hfsheet .nd-filter--horizontal .nd-filter__panel {
         position: static;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
         min-width: 0;
-        margin-top: 4px;
-        padding: 4px 0 8px;
+        padding: 0;
         border-radius: 0;
+        background: none;
         box-shadow: none;
     }
 
-    .nd-hfsheet .nd-filter--horizontal > .nd-filter__reset {
-        margin: 8px 0 0;
+    .nd-hfsheet .nd-filter__opt {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px;
+        border: 2px solid rgba(82, 82, 100, .25);
+        border-radius: 4px;
+        background: none;
+        font-size: 16px;
+        line-height: 24px;
+    }
+
+    .nd-hfsheet .nd-filter__opt.is-checked,
+    .nd-hfsheet .nd-filter__opt:has(input:checked) {
+        border-color: #a80000;
+        background: rgba(198, 0, 0, .05);
+    }
+
+    .nd-hfsheet .nd-filter__box,
+    .nd-hfsheet .nd-filter__opt-count {
+        display: none;
+    }
+
+    .nd-hfsheet .nd-filter--horizontal .nd-filter__logo {
+        display: block;
+        flex: 0 0 20px;
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+    .nd-hfsheet .nd-filter__drop:not(.nd-hf-open) .nd-hf-extra {
+        display: none;
+    }
+
+    .nd-hfsheet .nd-filter__range {
+        flex: 1 1 100%;
+        margin: 0;
+    }
+
+    .nd-hfsheet .nd-filter__num {
+        height: 48px;
+        padding: 0 12px;
+        border: 1px solid rgba(82, 82, 100, .25);
+        border-radius: 4px;
+        font-size: 16px;
+    }
+
+    /* свои кнопки панели заменяют кнопки формы */
+    .nd-hfsheet .nd-filter__apply,
+    .nd-hfsheet .nd-filter__reset,
+    .nd-hfsheet .nd-filter__more,
+    .nd-hfsheet .nd-filter__break {
+        display: none !important;
     }
 }

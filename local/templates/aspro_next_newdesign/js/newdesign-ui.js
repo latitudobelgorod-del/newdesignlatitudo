@@ -22,9 +22,19 @@
 		}
 		filterForm.classList.add('is-js');
 
+		// Форма в мобильной шторке поиска: там все группы раскрыты разом.
+		var inSheet = function () {
+			return !!(filterForm.closest && filterForm.closest('.nd-hfsheet'));
+		};
+
 		filterForm.addEventListener('change', function (e) {
 			// поиск по списку «Товары» — не пункт фильтра, форму не отправляет
 			if (e.target.classList && e.target.classList.contains('nd-filter__search')) {
+				return;
+			}
+			// В мобильной шторке поиска фильтр применяется кнопкой «Применить»
+			// (newdesign-catalog.js), а не сразу после выбора — как в каталоге.
+			if (inSheet()) {
 				return;
 			}
 			filterForm.submit();
@@ -85,7 +95,7 @@
 		});
 
 		filterForm.addEventListener('toggle', function (e) {
-			if (!e.target.open) {
+			if (!e.target.open || inSheet()) {
 				return;
 			}
 			Array.prototype.forEach.call(filterForm.querySelectorAll('.nd-filter__drop[open]'), function (d) {
@@ -114,7 +124,7 @@
 		}, true);
 
 		document.addEventListener('click', function (e) {
-			if (filterForm.contains(e.target)) {
+			if (filterForm.contains(e.target) || inSheet()) {
 				return;
 			}
 			Array.prototype.forEach.call(filterForm.querySelectorAll('.nd-filter__drop[open]'), function (d) {
