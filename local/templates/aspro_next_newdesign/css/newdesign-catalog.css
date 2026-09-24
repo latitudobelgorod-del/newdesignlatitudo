@@ -2885,3 +2885,20 @@ body .nd-brandhead #pagetitle {
         display: none;
     }
 }
+
+/* Счётчик в плитке на телефоне (24.09.2026): по макету у «−» и «+» отступ
+   от краёв плитки, а у нас знаки стояли вплотную. Возвращаем поля 6px и
+   уменьшаем знаки (20 → 14) и кнопки (22 → 18), чтобы число не потеряло места. */
+@media (max-width: 767px) {
+    .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-wrapper .measure-block,
+    .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block {
+        padding: 0 6px;
+    }
+
+    .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-button,
+    .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus,
+    .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
+        width: 18px !important;
+        background-size: 14px 14px !important;
+    }
+}
