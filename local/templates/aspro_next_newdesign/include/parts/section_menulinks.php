@@ -163,6 +163,46 @@ if (!function_exists('ndLandingCount')) {
 	}
 }
 
+if (!function_exists('ndLandingUrlVariants')) {
+	/**
+	 * Адреса посадочных вместе с их двойниками из ЧПУ Сотбита: красивый
+	 * (/catalog/stupeni-iz-dpk/polnotelyye-stupeni-iz-dpk/) и технический
+	 * адрес фильтра (/catalog/stupeni-iz-dpk/filter/format-is-…/). Нужны,
+	 * чтобы узнать посадочную, на какой бы из адресов ни вела ссылка.
+	 *
+	 * @param string[] $arHrefs
+	 * @return string[] пути со слэшем на конце
+	 */
+	function ndLandingUrlVariants(array $arHrefs)
+	{
+		$arPaths = array();
+		foreach ($arHrefs as $href) {
+			$path = rtrim((string)parse_url((string)$href, PHP_URL_PATH), '/') . '/';
+			if ($path !== '/')
+				$arPaths[$path] = true;
+		}
+		if (!$arPaths)
+			return array();
+
+		$conn = \Bitrix\Main\Application::getConnection();
+		$helper = $conn->getSqlHelper();
+		$in = implode(',', array_map(function ($p) use ($helper) {
+			return "'" . $helper->forSql($p) . "'";
+		}, array_keys($arPaths)));
+		try {
+			$rs = $conn->query("SELECT NEW_URL, REAL_URL FROM b_sotbit_seometa_chpu WHERE ACTIVE = 'Y' AND (NEW_URL IN ($in) OR REAL_URL IN ($in))");
+			while ($row = $rs->fetch()) {
+				$arPaths[rtrim($row['NEW_URL'], '/') . '/'] = true;
+				$arPaths[rtrim($row['REAL_URL'], '/') . '/'] = true;
+			}
+		} catch (\Exception $e) {
+			// нет таблицы Сотбита — сверяем только сами адреса
+		}
+
+		return array_keys($arPaths);
+	}
+}
+
 if (!function_exists('ndSectionMenuLinks')) {
 	/**
 	 * Разбирает UF_MENULINK_TOP раздела в список карточек.

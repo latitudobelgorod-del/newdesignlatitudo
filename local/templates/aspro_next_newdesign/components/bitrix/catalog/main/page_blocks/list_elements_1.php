@@ -385,9 +385,11 @@ if($arSection["PLACE"]){
    Берём поле ТЕКУЩЕГО раздела, а не $ndSubsecSectionId: при подстановке
    родителя (лист дерева показывает соседей) ссылки родителя здесь не к месту. */
 $ndMenuLinkCards = '';
+$ndMenuLinkHrefs = array();
 if (!IsSeoDisrupting($arParams)) {
 	require_once $_SERVER['DOCUMENT_ROOT'] . SITE_TEMPLATE_PATH . '/include/parts/section_menulinks.php';
 	foreach (ndSectionMenuLinks($arSection, $arParams['IBLOCK_ID']) as $ndCard) {
+		$ndMenuLinkHrefs[] = $ndCard['LINK'];
 		$ndCardImg = $ndCard['PIC_ID']
 			? CFile::ResizeImageGet($ndCard['PIC_ID'], array("width" => 240, "height" => 160), BX_RESIZE_IMAGE_PROPORTIONAL, true)
 			: false;
@@ -614,6 +616,21 @@ $ar_res = $res->GetNext();
 				}
 				$ndKmTags = preg_replace('#<div class="section_tag_top">#', '<div class="section_tag_top">' . $ndChips, $ndKmTags, 1);
 				$ndLandingTags = '';
+			}
+			/* Посадочная, которая уже стоит плиткой над списком, тегом не дублируется
+			   (Ирина, 24.09.2026: у «Ступеней из ДПК» полнотелые/пустотелые были и
+			   плитками, и тегами — и в разделе, и на самих посадочных). Тег ссылается
+			   на технический адрес фильтра, плитка — на красивый, сверяем оба. */
+			if ($ndMenuLinkHrefs && strpos($ndKmTags, 'tag_ank') !== false) {
+				$ndTileUrls = array_flip(ndLandingUrlVariants($ndMenuLinkHrefs));
+				$ndKmTags = preg_replace_callback(
+					'#<div class="tag_ank">\s*<a\b[^>]*href="([^"]+)"[^>]*>.*?</a>\s*</div>#su',
+					function ($m) use ($ndTileUrls) {
+						$path = rtrim((string)parse_url(htmlspecialchars_decode($m[1]), PHP_URL_PATH), '/') . '/';
+						return isset($ndTileUrls[$path]) ? '' : $m[0];
+					},
+					$ndKmTags
+				);
 			}
 			$GLOBALS['ND_CATALOG_TAGS_HTML'] = $ndKmTags;
 			echo $ndLandingTags;
