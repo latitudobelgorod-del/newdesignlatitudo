@@ -223,7 +223,10 @@
 		   тап раскрывает список, а не уводит по ссылке. Без JS ссылка
 		   остаётся рабочей. */
 		var link = e.target.closest('a[href]');
-		if (link && !e.target.closest('.nd-msub')) {
+		/* Пункт «Меню» без стрелки (ARROW = N) — обычная ссылка, даже если
+		   для его адреса есть панель: «Производители» ведёт сразу на /brands/. */
+		var plainItem = link && link.classList.contains('nd-mmenu__item') && !link.querySelector('.nd-mmenu__arrow');
+		if (link && !plainItem && !e.target.closest('.nd-msub')) {
 			var name = subByKey[subKey(link.getAttribute('href') || '')];
 			if (name && (navbar.contains(link) || (sheets.menu && sheets.menu.contains(link)))) {
 				e.preventDefault();
