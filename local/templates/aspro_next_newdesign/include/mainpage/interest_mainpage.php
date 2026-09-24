@@ -117,12 +117,14 @@ $ndCount = function ($arFilter) use ($ndCatalogIblock) {
 	);
 };
 
+// Порядок вкладок = порядок здесь, первая открыта сразу. «Хиты месяца»
+// первыми (Ирина, 24.09.2026).
 $ndTabs = [];
-if ($ndSaleGoods && $ndCount($GLOBALS['arNdInterestSale'])) {
-	$ndTabs['sale'] = ['NAME' => 'Акции', 'FILTER' => 'arNdInterestSale'];
-}
 if ($ndHitEnumId && $ndCount($GLOBALS['arNdInterestHit'])) {
 	$ndTabs['hit'] = ['NAME' => 'Хиты месяца', 'FILTER' => 'arNdInterestHit'];
+}
+if ($ndSaleGoods && $ndCount($GLOBALS['arNdInterestSale'])) {
+	$ndTabs['sale'] = ['NAME' => 'Акции', 'FILTER' => 'arNdInterestSale'];
 }
 
 // Ни одной вкладки — блока на странице нет вовсе
