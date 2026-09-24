@@ -25,11 +25,10 @@ $this->setFrameMode(true);
 
 use Bitrix\Main\Localization\Loc;
 
-// Подмена телефона для платного трафика — как в исходном шаблоне.
-$utm_medium = 'empty';
-if (!empty($_SESSION['UTM']['utm_medium'])) {
-    $utm_medium = $_SESSION['UTM']['utm_medium'];
-}
+// Подмена телефона — по тому же правилу, что в шапке: ndIsUtmVisit() (сутки с рекламного
+// перехода). Раньше решала метка в сессии/куке ND_UTM, которая живёт 30 дней, — в окне городов
+// оставались подменные номера, когда в шапке уже обычный (Ирина, 24.09.2026).
+$bPodmena = function_exists('ndIsUtmVisit') && ndIsUtmVisit();
 
 $imgPath = SITE_TEMPLATE_PATH.'/images/newdesign/mobile';
 ?>
@@ -91,9 +90,9 @@ $imgPath = SITE_TEMPLATE_PATH.'/images/newdesign/mobile';
                     $url = urldecode($arItem['URL']);
                     $bCurrent = ($arResult['CURRENT_REGION']['ID'] == $arItem['ID']);
 
-                    // Тот же выбор номера, что в исходном шаблоне.
+                    // Подменный номер — только на время рекламного визита, как в шапке.
                     $phone = $arItem['PROPERTY_REGION_TAG_PHONE_VALUE'];
-                    if ($utm_medium == 'cpc' && $arItem['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']) {
+                    if ($bPodmena && $arItem['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']) {
                         $phone = $arItem['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE'];
                     }
                     ?>
