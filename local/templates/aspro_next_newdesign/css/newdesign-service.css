@@ -521,10 +521,12 @@ body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored:hove
 }
 
 /* ---------------------------------------------------------------------------
-   Меню услуг на телефоне: выпадающий список над шапкой.
-   Разметку добавляет js/newdesign-service.js. На десктопе меню остаётся
-   в боковой колонке, поэтому список показываем только там, где тема эту
-   колонку прячет, — ниже 992px (css/media.css).
+   Меню услуг на телефоне: кнопка с текущей услугой над шапкой, по нажатию —
+   шторка снизу «Услуги / Закрыть» (макет Figma «Список открытый» 20817:36736,
+   24.09.2026). Раньше был <select>, и телефон открывал системное колесо выбора.
+   Разметку строит js/newdesign-service.js, сама шторка — общие .nd-sheet
+   из css/newdesign-mobile.css. На десктопе меню остаётся в боковой колонке,
+   поэтому кнопку показываем только ниже 992px, где тема колонку прячет.
    ------------------------------------------------------------------------ */
 .nd-srv-menu {
     display: none;
@@ -537,11 +539,13 @@ body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored:hove
         margin: 0 0 16px;
     }
 
-    .nd-srv-menu .nd-srv-menu__select {
-        display: block;
+    .nd-srv-menu__btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         width: 100%;
-        height: 48px;
-        padding: 0 40px 0 16px;
+        min-height: 48px;
+        padding: 12px 16px;
         border: 1px solid rgba(82, 82, 100, .25);
         border-radius: 6px;
         background: #fff;
@@ -550,19 +554,85 @@ body .services_newdesign .nd-srv-hero__cta > * + * .btn.btn-default.colored:hove
         font-size: 16px;
         line-height: 24px;
         font-weight: 500;
-        text-overflow: ellipsis;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        /* Галочка — в фоне: родную стрелку убрали вместе с appearance. */
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23101014' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 16px center;
+        text-align: left;
+        cursor: pointer;
     }
 
-    .nd-srv-menu .nd-srv-menu__select:focus {
-        outline: none;
-        border-color: rgba(82, 82, 100, .5);
+    .nd-srv-menu__btn span {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .nd-srv-menu__btn svg {
+        flex: 0 0 auto;
+    }
+}
+
+/* Пункты шторки: подложка 5%, поля 24/16, текст 16/24, между пунктами 1px;
+   текущая услуга — заливка #525264, белый текст (макет 20817:37212). */
+.nd-srvsheet__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin: 8px 16px 16px;
+    border-radius: 4px;
+    overflow: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.nd-srvsheet__item {
+    display: block;
+    padding: 16px 24px;
+    background: rgba(82, 82, 100, .05);
+    color: #101014;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.nd-srvsheet__item:hover,
+.nd-srvsheet__item:focus {
+    color: #101014;
+    background: rgba(82, 82, 100, .1);
+    text-decoration: none;
+}
+
+.nd-srvsheet__item.is-current,
+.nd-srvsheet__item.is-current:hover {
+    background: #525264;
+    color: #fff;
+}
+
+/* Таблица из редактора на телефоне: у темы (custom.css) min-width 520px, и
+   даже таблица в две колонки («Вид работ / Цена») уезжала за край с
+   прокруткой вбок (Ирина, 24.09.2026). До трёх колонок — во всю ширину с
+   переносом слов; шире — по-прежнему прокрутка внутри блока. */
+@media (max-width: 767px) {
+    .services_newdesign .sp-block-table table {
+        min-width: 0;
+    }
+
+    .services_newdesign .sp-block-table table:has(tr > :nth-child(4)) {
+        min-width: 520px;
+    }
+
+    .services_newdesign .sp-block-table table td,
+    .services_newdesign .sp-block-table table th {
+        padding: 10px 12px;
+        overflow-wrap: break-word;
+    }
+
+    /* В таблице из двух колонок вторая — обычно «Цена»: «от 250 р./шт.» не рвём */
+    .services_newdesign .sp-block-table table:not(:has(tr > :nth-child(3))) td:last-child {
+        white-space: nowrap;
     }
 }
 
