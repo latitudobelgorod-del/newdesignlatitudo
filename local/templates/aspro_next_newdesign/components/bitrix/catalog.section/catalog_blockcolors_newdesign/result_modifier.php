@@ -11,6 +11,24 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED!==true) die();
 /** @var array $arParams */
 /** @var array $arResult */
 
+/* Выдача поиска по релевантности (catalog.search/main, ndSearchRelevancePage):
+   товары текущей страницы приходят списком ID в нужном порядке, а номера
+   страниц — готовой строкой. Сама база упорядочила их по марке и SORT —
+   переставляем, как нашёл поиск (24.09.2026). */
+if (!empty($arParams['ND_ID_ORDER']) && is_array($arParams['ND_ID_ORDER']) && !empty($arResult['ITEMS'])) {
+	$ndPos = array_flip(array_map('intval', $arParams['ND_ID_ORDER']));
+	usort($arResult['ITEMS'], function ($a, $b) use ($ndPos) {
+		$pa = $ndPos[(int)$a['ID']] ?? PHP_INT_MAX;
+		$pb = $ndPos[(int)$b['ID']] ?? PHP_INT_MAX;
+		return $pa <=> $pb;
+	});
+}
+/* ~ND_NAV_STRING — копия без экранирования: строковые параметры Битрикс
+   пропускает через htmlspecialchars, и навигация вышла бы текстом. */
+if (isset($arParams['~ND_NAV_STRING']) && $arParams['~ND_NAV_STRING'] !== null) {
+	$arResult['NAV_STRING'] = (string)$arParams['~ND_NAV_STRING'];
+}
+
 // Остатки Начало
 
 

@@ -27,6 +27,83 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_qu
 /* Приоритет своих марок на выдаче — сортировка ниже по файлу. */
 require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_brand_weight.php';
 
+if (!function_exists('ndSearchRelevancePage')) {
+	/**
+	 * Страница выдачи поиска в порядке релевантности (24.09.2026).
+	 *
+	 * Из найденных LatitudoQuickSearch товаров (порядок = релевантность)
+	 * оставляет те, что пройдут фильтр списка, и режет текущую страницу.
+	 * Фильтр повторяет то, что добавляет к $searchFilter catalog.section:
+	 * активность, права, доступность, условия по торговым предложениям.
+	 *
+	 * @return array|null {IDS, NAV_STRING, TOTAL}; null — номер страницы вне
+	 *                    выдачи (тогда работает прежний путь и его 404)
+	 */
+	function ndSearchRelevancePage(array $ids, array $filter, array $arParams)
+	{
+		if (!$ids || !CModule::IncludeModule('iblock') || !CModule::IncludeModule('catalog'))
+			return null;
+
+		$f = $filter;
+		unset($f['FACET_OPTIONS']);
+		$f['IBLOCK_ID'] = (int)$arParams['IBLOCK_ID'];
+		$f['ACTIVE'] = 'Y';
+		$f['ACTIVE_DATE'] = 'Y';
+		$f['CHECK_PERMISSIONS'] = 'Y';
+		if (($arParams['HIDE_NOT_AVAILABLE'] ?? 'N') === 'Y')
+			$f['CATALOG_AVAILABLE'] = 'Y';
+
+		if (!empty($f['OFFERS']) && is_array($f['OFFERS'])) {
+			$of = $f['OFFERS'];
+			$sku = CCatalogSku::GetInfoByProductIBlock($f['IBLOCK_ID']);
+			$of['IBLOCK_ID'] = $sku ? (int)$sku['IBLOCK_ID'] : 20;
+			$of['ACTIVE'] = 'Y';
+			$of['ACTIVE_DATE'] = 'Y';
+			if (($arParams['HIDE_NOT_AVAILABLE_OFFERS'] ?? 'N') === 'Y')
+				$of['CATALOG_AVAILABLE'] = 'Y';
+			$f[] = array('ID' => CIBlockElement::SubQuery('PROPERTY_'.LatitudoQuickSearch::PROP_OFFER_LINK, $of));
+		}
+		unset($f['OFFERS']);
+
+		$allowed = array();
+		$rs = CIBlockElement::GetList(array(), $f, false, false, array('ID'));
+		while ($row = $rs->Fetch())
+			$allowed[(int)$row['ID']] = true;
+
+		$ordered = array();
+		foreach ($ids as $id) {
+			if (isset($allowed[(int)$id]))
+				$ordered[] = (int)$id;
+		}
+
+		$size = max(1, (int)$arParams['PAGE_ELEMENT_COUNT']);
+		$total = count($ordered);
+		$pages = max(1, (int)ceil($total / $size));
+		$page = isset($_GET['PAGEN_1']) ? (int)$_GET['PAGEN_1'] : 1;
+		if ($page < 1 || $page > $pages)
+			return null;
+
+		/* Номера страниц — штатной навигацией Битрикса по нашему списку, тем же
+		   шаблоном, что у списка. NavStart занимает номер навигации (PAGEN_1) —
+		   возвращаем счётчик, чтобы список получил тот же PAGEN_1. */
+		$nav = '';
+		if ($pages > 1) {
+			$rsNav = new CDBResult();
+			$rsNav->InitFromArray($ordered);
+			$rsNav->NavStart($size, false, $page);
+			$navObj = null;
+			$nav = $rsNav->GetPageNavStringEx($navObj, '', 'pagination_newdesign', false);
+			$GLOBALS['NavNum']--;
+		}
+
+		return array(
+			'IDS' => array_slice($ordered, ($page - 1) * $size, $size),
+			'NAV_STRING' => $nav,
+			'TOTAL' => $total,
+		);
+	}
+}
+
 $arElements = LatitudoQuickSearch::findProducts(isset($_REQUEST['q']) ? $_REQUEST['q'] : '');
 
 if (is_array($arElements) && !empty($arElements)) {
@@ -179,6 +256,29 @@ if (is_array($arElements) && !empty($arElements)) {
 		$ndSortOrder  = ($sort === 'sort') ? 'asc'        : $sort_order;
 		$ndSortField2 = ($sort === 'sort') ? 'sort'       : $ndBrandSort;
 		$ndSortOrder2 = ($sort === 'sort') ? $sort_order  : 'asc';
+
+		/* Порядок по релевантности (Ирина, 24.09.2026: на «Тер доск» первыми
+		   шли винты). Сортировка выше знает только вес марки и поле SORT, а
+		   порядок, в котором их нашёл LatitudoQuickSearch (точный артикул →
+		   слова в названии → найдено только по разделу), терялся: база не умеет
+		   упорядочить выборку по заданному списку ID.
+
+		   Поэтому при сортировке по умолчанию страницы режем сами: берём
+		   найденные товары в порядке поиска, оставляем прошедшие фильтр и
+		   отдаём списку только ID текущей страницы. Список переставляет их в
+		   этом порядке (ND_ID_ORDER), а номера страниц и «Найдено N» получает
+		   готовыми (ND_NAV_STRING, ND_TOTAL). Для списка это всегда первая
+		   страница — иначе его проверка номера страницы отдала бы 404. */
+		$ndRel = null;
+		if ($sort === 'sort') {
+			$ndRel = ndSearchRelevancePage($arElements, $searchFilter, $arParams);
+		}
+		if ($ndRel) {
+			$searchFilter['=ID'] = $ndRel['IDS'] ?: array(0);
+			$ndPagenBackup = isset($_GET['PAGEN_1']) ? $_GET['PAGEN_1'] : null;
+			$ndPagenBackupReq = isset($_REQUEST['PAGEN_1']) ? $_REQUEST['PAGEN_1'] : null;
+			unset($_GET['PAGEN_1'], $_REQUEST['PAGEN_1']);
+		}
 		?>
 
 		<div class="ajax_load <?=$display;?>">
@@ -282,8 +382,19 @@ if (is_array($arElements) && !empty($arElements)) {
 					"HIDE_NOT_AVAILABLE_OFFERS" => $arParams["HIDE_NOT_AVAILABLE_OFFERS"],
 					"COMPATIBLE_MODE" => 'Y',
 
+					/* порядок по релевантности — см. ndSearchRelevancePage() */
+					"ND_ID_ORDER" => $ndRel ? $ndRel['IDS'] : array(),
+					"ND_NAV_STRING" => $ndRel ? $ndRel['NAV_STRING'] : null,
+					"ND_TOTAL" => $ndRel ? $ndRel['TOTAL'] : null,
 			),
 	$arResult["THEME_COMPONENT"]);
+
+	if ($ndRel) {
+		if ($ndPagenBackup !== null)
+			$_GET['PAGEN_1'] = $ndPagenBackup;
+		if ($ndPagenBackupReq !== null)
+			$_REQUEST['PAGEN_1'] = $ndPagenBackupReq;
+	}
 ?>
 		</div>
 		</div>

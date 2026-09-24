@@ -1070,9 +1070,12 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
    ставит заранее, содержимое приезжает сюда. Флаг ND_SEARCH_COUNT поднимает
    тот же шаблон поиска — на разделе и в блоках главной ничего не меняется. */?>
 <?if(!empty($GLOBALS['ND_SEARCH_COUNT']) && !$ldItemsOnly){
-	$ndTotal = (isset($arResult['NAV_RESULT']) && is_object($arResult['NAV_RESULT']))
+	/* при выдаче по релевантности общее число считает шаблон поиска */
+	$ndTotal = (isset($arParams['ND_TOTAL']) && $arParams['ND_TOTAL'] !== null)
+		? (int)$arParams['ND_TOTAL']
+		: ((isset($arResult['NAV_RESULT']) && is_object($arResult['NAV_RESULT']))
 		? (int)$arResult['NAV_RESULT']->NavRecordCount
-		: count((array)$arResult['ITEMS']);
+		: count((array)$arResult['ITEMS']));
 	/* Именно SetViewTarget, а не $APPLICATION->AddViewContent: компонент
 	   кешируется, и на попадании в кеш его шаблон не выполняется. Битрикс
 	   кладёт в кеш только те области, что открыты этой парой (__view →
