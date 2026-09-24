@@ -392,12 +392,16 @@ if (!IsSeoDisrupting($arParams)) {
 			? CFile::ResizeImageGet($ndCard['PIC_ID'], array("width" => 240, "height" => 160), BX_RESIZE_IMAGE_PROPORTIONAL, true)
 			: false;
 		$ndCardName = htmlspecialcharsbx($ndCard['TEXT']);
+		/* Количество товаров — как у плиток подразделов (24.09.2026). */
+		$ndCardCnt = ndLandingCount($ndCard['LINK'], $arParams['IBLOCK_ID']);
 		$ndMenuLinkCards .= '<a class="nd-subsec__item' . ($ndCardImg ? '' : ' nd-subsec__item--noimg') . '"'
 			. ' href="' . htmlspecialcharsbx($ndCard['LINK']) . '">'
 			. ($ndCardImg
 				? '<span class="nd-subsec__pic"><img src="' . $ndCardImg['src'] . '" alt="' . $ndCardName . '" title="' . $ndCardName . '" loading="lazy" /></span>'
 				: '')
-			. '<span class="nd-subsec__name">' . $ndCardName . '</span></a>';
+			. '<span class="nd-subsec__name">' . $ndCardName
+			. ($ndCardCnt ? '<span class="nd-subsec__cnt">' . (int)$ndCardCnt . '</span>' : '')
+			. '</span></a>';
 	}
 }
 
@@ -527,6 +531,12 @@ if ($ndRowHtml === '' && $ndMenuLinkCards !== '') {
 	$ndRowHtml = '<div class="section_block nd-subsec-row nd-subsec-row--nobanner">'
 		. '<div class="nd-subsec-row__grid"><div class="nd-subsec">' . $ndMenuLinkCards . '</div></div>'
 		. '</div>';
+}
+/* Плиток мало (до четырёх) — на телефоне прокрутка вбок не нужна: ставим их
+   обычной сеткой в два столбца. Иначе две плитки шли одна под другой узким
+   столбцом в пол-экрана (Ирина, 24.09.2026, «Ступени из ДПК»). */
+if (!empty($ndRowHtml) && preg_match_all('/class="nd-subsec__item[" ]/', $ndRowHtml) <= 4) {
+	$ndRowHtml = str_replace('<div class="nd-subsec">', '<div class="nd-subsec nd-subsec--few">', $ndRowHtml);
 }
 ?>
 

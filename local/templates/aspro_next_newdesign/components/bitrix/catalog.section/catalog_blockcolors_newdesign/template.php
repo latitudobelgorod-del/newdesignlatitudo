@@ -862,7 +862,10 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 										</div>
 									<?}else{?>
                                             <?
-                                                $buttonHTML = '<span class="small read_more1 to-order btn btn-default grey transition_bg transparent animate-load" data-event="jqm" 
+                                                /* nd-buy-ph — заглушка до того, как JCCatalogSection построит счётчик и
+                                                   корзину выбранного оффера: пока карточка не готова, её не показываем,
+                                                   иначе мелькала белая кнопка «В корзину» (css/newdesign-catalog.css). */
+                                                $buttonHTML ='<span class="small read_more1 to-order nd-buy-ph btn btn-default grey transition_bg transparent animate-load" data-event="jqm" 
 												data-param-form_id="TOORDER" data-name="toorder" data-autoload-product_name="" data-autoload-product_id="'.$arItem["ID"].'"><i></i>
 												<span>'.(empty($arItem["PROPERTIES"]['IN_STOCK']['PROPERTY_VALUE_ID'])?'Заказать':'В корзину').'</span>
 												</span>';

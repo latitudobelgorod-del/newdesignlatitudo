@@ -56,6 +56,113 @@ if (!function_exists('ndSectionLandingPics')) {
 	}
 }
 
+if (!function_exists('ndLandingCount')) {
+	/**
+	 * Сколько товаров на посадочной — цифра в плитке, как у подразделов
+	 * (Ирина, 24 сентября 2026: у «Ступеней из ДПК» плитки без количества).
+	 *
+	 * Сотбит своё PRODUCT_COUNT не ведёт (везде 0), поэтому считаем сами:
+	 * красивый адрес → REAL_URL из b_sotbit_seometa_chpu → раздел и условия
+	 * умного фильтра вида `code-is-a-or-b`. Понимаем списки (XML_ID) и привязки
+	 * к элементам (CODE) — этого хватает посадочным из UF_MENULINK_TOP. Всё,
+	 * что разобрать не вышло, даёт null: цифру тогда просто не выводим.
+	 * Считаем как у подразделов — активные товары вместе с подразделами.
+	 * Кеш сутки, сбрасывается тегом инфоблока при правке товаров.
+	 *
+	 * @return int|null
+	 */
+	function ndLandingCount($href, $iBlockId)
+	{
+		$iBlockId = (int)$iBlockId;
+		$href = rtrim((string)parse_url((string)$href, PHP_URL_PATH), '/') . '/';
+		if (!$iBlockId || $href === '/')
+			return null;
+
+		$obCache = new CPHPCache();
+		$cacheDir = '/nd_landing_count';
+		if ($obCache->InitCache(86400, 'nd_lc_' . $iBlockId . '_' . md5($href), $cacheDir))
+			return $obCache->GetVars()['CNT'];
+
+		$cnt = null;
+		if ($obCache->StartDataCache()) {
+			$cnt = ndLandingCountRaw($href, $iBlockId);
+			global $CACHE_MANAGER;
+			$CACHE_MANAGER->StartTagCache($cacheDir);
+			$CACHE_MANAGER->RegisterTag('iblock_id_' . $iBlockId);
+			$CACHE_MANAGER->EndTagCache();
+			$obCache->EndDataCache(array('CNT' => $cnt));
+		}
+
+		return $cnt;
+	}
+
+	function ndLandingCountRaw($href, $iBlockId)
+	{
+		$realUrl = $href;
+		if (strpos($href, '/filter/') === false) {
+			$conn = \Bitrix\Main\Application::getConnection();
+			try {
+				$row = $conn->query(
+					"SELECT REAL_URL FROM b_sotbit_seometa_chpu WHERE ACTIVE = 'Y' AND NEW_URL = '"
+					. $conn->getSqlHelper()->forSql($href) . "' LIMIT 1"
+				)->fetch();
+			} catch (\Exception $e) {
+				$row = false;
+			}
+			if (!$row)
+				return null;
+			$realUrl = (string)$row['REAL_URL'];
+		}
+
+		if (!preg_match('#^/catalog/(.+?)/filter/(.+?)/(?:apply/)?$#', $realUrl, $m))
+			return null;
+
+		$sectionId = (int)CIBlockFindTools::GetSectionIDByCodePath($iBlockId, $m[1]);
+		if (!$sectionId)
+			return null;
+
+		$arProps = array();
+		$rsProps = CIBlockProperty::GetList(array(), array('IBLOCK_ID' => $iBlockId, 'ACTIVE' => 'Y'));
+		while ($arProp = $rsProps->Fetch())
+			$arProps[mb_strtolower($arProp['CODE'])] = $arProp;
+
+		$arFilter = array(
+			'IBLOCK_ID' => $iBlockId,
+			'ACTIVE' => 'Y',
+			'SECTION_ID' => $sectionId,
+			'INCLUDE_SUBSECTIONS' => 'Y',
+		);
+
+		foreach (explode('/', $m[2]) as $part) {
+			if (!preg_match('#^(.+?)-is-(.+)$#', $part, $mp) || !isset($arProps[$mp[1]]))
+				return null;
+			$arProp = $arProps[$mp[1]];
+			$values = explode('-or-', $mp[2]);
+			$ids = array();
+
+			if ($arProp['PROPERTY_TYPE'] === 'L') {
+				$rsEnum = CIBlockPropertyEnum::GetList(array(), array('PROPERTY_ID' => $arProp['ID']));
+				while ($arEnum = $rsEnum->Fetch()) {
+					if (in_array(mb_strtolower((string)$arEnum['XML_ID']), $values, true))
+						$ids[] = (int)$arEnum['ID'];
+				}
+			} elseif ($arProp['PROPERTY_TYPE'] === 'E' && (int)$arProp['LINK_IBLOCK_ID']) {
+				$rsLinked = CIBlockElement::GetList(array(), array('IBLOCK_ID' => $arProp['LINK_IBLOCK_ID'], 'CODE' => $values), false, false, array('ID'));
+				while ($arLinked = $rsLinked->Fetch())
+					$ids[] = (int)$arLinked['ID'];
+			} else {
+				return null;
+			}
+
+			if (count($ids) !== count($values))
+				return null;
+			$arFilter['PROPERTY_' . $arProp['ID']] = $ids;
+		}
+
+		return (int)CIBlockElement::GetList(array(), $arFilter, array());
+	}
+}
+
 if (!function_exists('ndSectionMenuLinks')) {
 	/**
 	 * Разбирает UF_MENULINK_TOP раздела в список карточек.
