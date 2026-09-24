@@ -113,6 +113,20 @@ LatitudoSchema::printGraph(LatitudoSchema::brandGraph(array(
 		</svg>
 	</button>
 </div>
+<?/* Первое сворачивание — сразу, до отрисовки: script.js шаблона приезжает
+   в общем файле страницы в конце, и до него описание успевало показаться
+   целиком и резко схлопнуться. Пороги те же, что в script.js (208 + 96),
+   он потом пересчитывает по загрузке картинок и повороту экрана. */?>
+<script>
+(function () {
+	var box = document.querySelector('.nd-brandhead__text');
+	var btn = box && box.querySelector('.nd-brandhead__more');
+	if (!btn || !window.matchMedia || !window.matchMedia('(max-width: 767px)').matches) return;
+	if (box.scrollHeight <= 208 + 96) return;
+	box.classList.add('is-collapsed');
+	btn.hidden = false;
+})();
+</script>
 
 <?/*Вывод анкоров на разделы, в зависимости от шаблона детальной*/?>
 <?foreach($arResult["DISPLAY_PROPERTIES"] as $pid=>$arProperty):?>
