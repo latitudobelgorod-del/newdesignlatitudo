@@ -312,7 +312,77 @@ if($isAjaxFilter == "Y")
 	
 	
 					<?//КМ между H1 и подразделами?>
+						<?/* Верхний SEO-текст раздела свёрнут шторкой «Показать все» — как
+						     описание в макете (Ирина, 24.09.2026): раньше картинка и две колонки
+						     текста отодвигали товары далеко вниз. Сворачиваем сразу, до отрисовки,
+						     и только если текст действительно высокий; без скрипта он виден целиком.
+						     Стили здесь же: общий newdesign-catalog.css подключается ниже по
+						     странице, и без них текст успевал показаться развёрнутым. */?>
+						<?ob_start();?>
 						<? include_once(__DIR__ . "/../include/km_mezhduh1_i_podrazdelami.php") ?>
+						<?$ndSeoTop = trim(ob_get_clean());?>
+						<?if ($ndSeoTop !== '' && trim(strip_tags($ndSeoTop, '<img>')) !== ''):?>
+							<style>
+								.nd-seotop{position:relative;margin:0 0 24px}
+								.nd-seotop.is-collapsed{max-height:260px;overflow:hidden}
+								.nd-seotop__more{display:flex;align-items:flex-end;gap:4px;margin:16px 0 0;padding:0;background:none;border:0;color:#c60000;font-size:16px;line-height:24px;font-weight:500;cursor:pointer}
+								.nd-seotop__more[hidden]{display:none}
+								.nd-seotop.is-collapsed .nd-seotop__more{position:absolute;left:0;right:0;bottom:0;height:104px;margin:0;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 80%)}
+								.nd-seotop__more svg{flex:0 0 auto;margin-bottom:3px;transform:rotate(180deg);transition:transform .2s}
+								.nd-seotop.is-collapsed .nd-seotop__more svg{transform:none}
+								@media (max-width:767px){.nd-seotop.is-collapsed{max-height:208px}}
+							</style>
+							<div class="nd-seotop">
+								<?=$ndSeoTop?>
+								<button type="button" class="nd-seotop__more" hidden>
+									<span class="nd-seotop__more-text">Показать все</span>
+									<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+								</button>
+							</div>
+							<script>
+							(function () {
+								var box = document.querySelector('.nd-seotop');
+								var btn = box && box.querySelector('.nd-seotop__more');
+								if (!btn) return;
+								var txt = btn.querySelector('.nd-seotop__more-text');
+								/* Сколько показывать свёрнутым: если текст начинается с картинки —
+								   её целиком и ещё пару строк (иначе на компьютере в 260px влезал
+								   только кусок фото и было непонятно, что ниже текст); без картинки —
+								   260 на компьютере и 208 на телефоне, как у описания бренда. */
+								function limit() {
+									var mob = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+									var img = box.querySelector('img');
+									if (img && img.offsetHeight > 40) {
+										var top = img.getBoundingClientRect().top - box.getBoundingClientRect().top;
+										if (top < 80) return Math.round(top + img.offsetHeight + (mob ? 72 : 96));
+									}
+									return mob ? 208 : 260;
+								}
+								function fit() {
+									if (box.getAttribute('data-nd-open') === 'Y') return;
+									var lim = limit();
+									var tall = box.scrollHeight > lim + 96;
+									box.style.maxHeight = tall ? lim + 'px' : '';
+									box.classList.toggle('is-collapsed', tall);
+									btn.hidden = !tall;
+								}
+								btn.addEventListener('click', function () {
+									var open = box.classList.contains('is-collapsed');
+									box.classList.toggle('is-collapsed', !open);
+									box.style.maxHeight = open ? '' : limit() + 'px';
+									box.setAttribute('data-nd-open', open ? 'Y' : 'N');
+									txt.textContent = open ? 'Свернуть' : 'Показать все';
+									if (!open) box.scrollIntoView({block: 'nearest'});
+								});
+								fit();
+								/* картинки в тексте догружаются позже — высота растёт */
+								window.addEventListener('load', fit);
+								[].forEach.call(box.querySelectorAll('img'), function (i) { if (!i.complete) i.addEventListener('load', fit); });
+							})();
+							</script>
+						<?else:?>
+							<?=$ndSeoTop?>
+						<?endif;?>
 					<?//КМ между H1 и подразделами?>
 						<?// ПОДСКАЗКА на всех городах + Москва (кроме Краснодар, Белгроод, Воронеж, Ростов); ?>
 					<?switch ($regionID) {				
