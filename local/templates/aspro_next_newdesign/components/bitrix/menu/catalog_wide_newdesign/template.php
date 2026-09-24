@@ -557,8 +557,20 @@ $ndSectionPromo = function($sectionId) {
  * у активных товаров раздела (вместе с подразделами). Считаем группировкой
  * по свойству — так это один запрос вместо выборки всех товаров.
  */
-$ndSectionBrands = function($sectionId) {
+/* Ссылка марки ведёт в каталог этого раздела с фильтром по бренду, а не на
+   страницу производителя (Ирина, 24.09.2026: в меню «Ограждения» нажали
+   POLIVAN — ждёшь ограждения Polivan, а попадаешь на страницу марки со всем
+   подряд). Если в разделе есть свой раздел бренда (все товары одной марки,
+   например «Террасная доска LATITUDO»), ведём сразу туда — тем же правилом,
+   что и 301 с фильтра (LatitudoFilterRedirect), чтобы не было лишнего перехода.
+   Нет кода бренда или раздел не из каталога — остаётся страница производителя. */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_filter_redirect.php';
+
+$ndSectionBrands = function($sectionId, $sectionLink = '') {
 	$sectionId = (int)$sectionId;
+	$sectionPath = rtrim((string)parse_url((string)$sectionLink, PHP_URL_PATH), '/').'/';
+	if(strpos($sectionPath, '/catalog/') !== 0 || $sectionPath === '/catalog/')
+		$sectionPath = '';
 	if($sectionId <= 0)
 		return array();
 
@@ -597,7 +609,7 @@ $ndSectionBrands = function($sectionId) {
 		array('ID' => array_values($arBrandIds), 'ACTIVE' => 'Y'),
 		false,
 		false,
-		array('ID', 'IBLOCK_ID', 'NAME', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'DETAIL_PAGE_URL')
+		array('ID', 'IBLOCK_ID', 'NAME', 'CODE', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'DETAIL_PAGE_URL')
 	);
 	while($arBrand = $rsBrands->GetNext())
 	{
@@ -610,9 +622,16 @@ $ndSectionBrands = function($sectionId) {
 			if(is_array($img) && $img['src'])
 				$src = $img['src'];
 		}
+		$link = $arBrand['DETAIL_PAGE_URL'];
+		$code = strtolower(trim((string)$arBrand['~CODE']));
+		if($sectionPath !== '' && preg_match('~^[a-z0-9_]+(?:-[a-z0-9_]+)*$~', $code))
+		{
+			$target = LatitudoFilterRedirect::target(substr($sectionPath, strlen('/catalog/')), $code);
+			$link = $target !== '' ? $target : $sectionPath.'filter/brand-is-'.$code.'/';
+		}
 		$arBrands[] = array(
 			'NAME' => $arBrand['NAME'],
-			'LINK' => $arBrand['DETAIL_PAGE_URL'],
+			'LINK' => $link,
 			'IMG'  => $src,
 		);
 	}
@@ -731,7 +750,7 @@ $ndSectionBrands = function($sectionId) {
 				// («Перголы») его нет — там блоков не будет.
 				$ndSectionId = $ndSectionIdByLink($arSection['LINK']);
 				$arPromo = $ndSectionId ? $ndSectionPromo($ndSectionId) : null;
-				$arBrands = $ndSectionId ? $ndSectionBrands($ndSectionId) : array();
+				$arBrands = $ndSectionId ? $ndSectionBrands($ndSectionId, $arSection['LINK']) : array();
 				?>
 				<?/* Подразделов нет — вместо пустой панели показываем картинку
 				     раздела (поле UF_IMAGE_MENU) ссылкой на сам раздел. */?>
