@@ -2803,3 +2803,85 @@ body .nd-brandhead #pagetitle {
 .nd-tags-open .nd-catlist-sort__more:hover {
     background: rgba(82, 82, 100, .05);
 }
+
+/* Страница бренда на телефоне (24.09.2026): описание сворачивается шторкой
+   «Показать все», как описание товара (css/newdesign-element.css, .nd-pd__desc),
+   якоря разделов — в три строки с «Ещё N» / «Свернуть», как теги раздела.
+   Ведёт components/bitrix/news.detail/partners/script.js. */
+.nd-brandhead__more[hidden],
+.nd-brandsect__toggle[hidden],
+.nd-brandsect__anchors .nd-brandsect__anchor.nd-tag-hidden {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .nd-brandhead__text {
+        position: relative;
+    }
+
+    .nd-brandhead__text.is-collapsed {
+        max-height: 208px;
+        overflow: hidden;
+    }
+
+    .nd-brandhead__more {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        margin: 16px 0 0;
+        padding: 0;
+        background: none;
+        border: 0;
+        color: #c60000;
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 500;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .nd-brandhead__text.is-collapsed .nd-brandhead__more {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 104px;
+        margin: 0;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #fff 80%);
+    }
+
+    .nd-brandhead__more-ico {
+        flex: 0 0 auto;
+        margin-bottom: 3px;
+        transform: rotate(180deg);
+        transition: transform .2s;
+    }
+
+    .nd-brandhead__text.is-collapsed .nd-brandhead__more-ico {
+        transform: none;
+    }
+
+    /* До работы скрипта — только три строки таблеток (36 × 3 + 8 × 2),
+       чтобы при загрузке не мелькал весь список. */
+    .nd-brandsect__anchors:not(.nd-tags-open) {
+        max-height: 124px;
+        overflow: hidden;
+    }
+
+    /* Кнопка ростом с таблетку якоря. */
+    .nd-brandsect__anchors .nd-brandsect__toggle {
+        display: inline-flex;
+        align-items: center;
+        height: 36px;
+        font-family: inherit;
+        font-size: 16px;
+        line-height: 24px;
+    }
+}
+
+@media (min-width: 768px) {
+    .nd-brandhead__more,
+    .nd-brandsect__toggle {
+        display: none;
+    }
+}

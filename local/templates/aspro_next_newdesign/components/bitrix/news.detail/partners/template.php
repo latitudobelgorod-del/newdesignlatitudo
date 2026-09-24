@@ -103,6 +103,15 @@ LatitudoSchema::printGraph(LatitudoSchema::brandGraph(array(
 	<?/* Ссылки на официальный сайт марки здесь нет намеренно: в макете
 	   «Категория производителя» её не предусмотрено. Свойство SITE у части
 	   брендов заполнено — если понадобится, вернуть недолго. */?>
+	<?/* На телефоне длинное описание сворачивается, как «Описание» в карточке
+	   товара: шторка «Показать все». Показывает её script.js шаблона и только
+	   там, где текст не помещается; без скрипта описание видно целиком. */?>
+	<button type="button" class="nd-brandhead__more" hidden>
+		<span class="nd-brandhead__more-text">Показать все</span>
+		<svg class="nd-brandhead__more-ico" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+			<path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+		</svg>
+	</button>
 </div>
 
 <?/*Вывод анкоров на разделы, в зависимости от шаблона детальной*/?>
