@@ -30,7 +30,7 @@ $ndArea = function ($file, $title) use ($ndIncDir) {
 
 		<div class="nd-about__photo">
 			<img class="nd-about__img"
-			     src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/about_team.jpg"
+			     src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/about_team.webp"
 			     alt="Команда Латитудо" loading="lazy" width="1312" height="960">
 			<? if ($arRegion && $arRegion['PROPERTY_REGION_TAG_RAITING_VALUE']): ?>
 				<div class="nd-about__rating">#REGION_TAG_RAITING#</div>

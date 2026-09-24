@@ -127,7 +127,7 @@ if(!function_exists('ndFooterMenuColumn'))
 					<?// Десктоп: то же видео звонка, что и в старом подвале, но без рамки-айфона —
 					   // в макете это просто скруглённый прямоугольник. ?>
 					<div class="nd-fpromo__phone">
-						<video class="lazy-video" playsinline autoplay loop muted poster="<?=$sImg?>promo-mobile.jpg">
+						<video class="lazy-video" playsinline autoplay loop muted poster="<?=$sImg?>promo-mobile.webp">
 							<source data-src="/files/video/videozvonok.mp4" type="video/mp4">
 						</video>
 						<?// Кнопки звонка вырезаны из накладки старого дизайна
@@ -141,7 +141,7 @@ if(!function_exists('ndFooterMenuColumn'))
 						</div>
 					</div>
 					<?// Мобильный: в макете вместо видео фотография. ?>
-					<img class="nd-fpromo__photo" src="<?=$sImg?>promo-mobile.jpg" alt="Закажите видеозвонок" loading="lazy">
+					<img class="nd-fpromo__photo" src="<?=$sImg?>promo-mobile.webp" alt="Закажите видеозвонок" loading="lazy">
 				</div>
 				<div class="nd-fpromo__content">
 					<div class="nd-fpromo__title">

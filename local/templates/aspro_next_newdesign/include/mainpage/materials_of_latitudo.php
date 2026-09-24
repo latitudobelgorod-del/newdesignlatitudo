@@ -13,6 +13,19 @@ $ndArea = function ($file, $title) use ($ndIncDir) {
     $APPLICATION->IncludeFile($ndIncDir.$file, [], ['MODE' => 'html', 'NAME' => $title]);
 };
 ?>
+<?/* Фон — WebP (241 КБ вместо 435 у JPEG, 24.09.2026). Основное правило
+     .nd-materials__bg живёт в css/newdesign.css, а тот входит в общую сборку
+     с урезанной копией (css/purged) — его правка потребовала бы пересборки
+     копии, поэтому переопределяем здесь, с теми же градиентами. */?>
+<style>
+.nd-materials__bg {
+    background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 34%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0) 88%, rgba(0, 0, 0, 0.9) 100%),
+        linear-gradient(332deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.9) 100%),
+        #2b2b2b url("<?=SITE_TEMPLATE_PATH?>/images/newdesign/materials_bg.webp") center center / cover no-repeat;
+}
+</style>
 <section class="nd-materials">
 	<?// Фон с градиентами тянется во всю ширину экрана, содержимое — в контейнере 1440 ?>
 	<div class="nd-materials__bg">

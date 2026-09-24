@@ -14,7 +14,7 @@ $ndIncDir = SITE_DIR.'include/newdesign/mainpage/';
 <section class="nd-cover">
 	<div class="nd-cover__card">
 		<img class="nd-cover__img"
-		     src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/cover_main.jpg"
+		     src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/cover_main.webp"
 		     alt="Терраса с настилом, ограждениями и фасадом из ДПК Латитудо" width="2004" height="720">
 		<div class="nd-cover__content"><?
 			$APPLICATION->IncludeFile(
