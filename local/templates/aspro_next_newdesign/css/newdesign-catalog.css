@@ -2170,21 +2170,24 @@ body .nd-brandhead #pagetitle {
 }
 
 @media (max-width: 767px) {
-    /* На узком экране логотип уходит под имя — так в мобильном макете. */
+    /* Имя марки и логотип — в одну строку, как на компьютере (Ирина,
+       24.09.2026; раньше логотип уходил под имя). Длинное имя переносится
+       внутри своей колонки, логотип справа не шире 40% строки. */
     .nd-brandhead {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         gap: 12px;
         min-height: 0;
     }
 
     .nd-brandhead__title {
-        flex: 1 1 100%;
+        flex: 1 1 auto;
+        min-width: 0;
     }
 
     .nd-brandhead__logo {
-        justify-content: flex-start;
+        justify-content: flex-end;
         width: auto;
-        max-width: 188px;
+        max-width: 40%;
         height: 40px;
     }
 }
