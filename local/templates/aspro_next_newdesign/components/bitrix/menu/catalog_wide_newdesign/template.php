@@ -90,6 +90,10 @@ if($ndTagCache)
 {
 	$ndTagCache->StartTagCache($cacheDir);
 	$ndTagCache->RegisterTag('iblock_id_'.$ndCatalogIblockId);
+	// и акций — в меню их слайдер, новая акция не должна ждать часа
+	$ndStockIblockId = (int)CNextCache::$arIBlocks[SITE_ID]['aspro_next_content']['aspro_next_stock'][0];
+	if($ndStockIblockId > 0)
+		$ndTagCache->RegisterTag('iblock_id_'.$ndStockIblockId);
 }
 
 ob_start();
@@ -492,15 +496,19 @@ $ndSectionIdByLink = function($link) {
  * родителям свойством LINK_SECT_CATALOG. Если привязка не заполнена, акция
  * общая и в меню раздела не показывается — иначе одна и та же плашка висела бы
  * во всех разделах. Учитываем регион, как остальные блоки акций.
+ *
+ * Возвращает список (до четырёх, как слайдер акций на странице раздела —
+ * km_akciya_newdesign.php): раньше брали одну, и в «Террасной доске» в меню
+ * была одна акция, а в разделе две (Ирина, 24.09.2026).
  */
 $ndSectionPromo = function($sectionId) {
 	$sectionId = (int)$sectionId;
 	if($sectionId <= 0)
-		return null;
+		return array();
 
 	$iblockId = (int)CNextCache::$arIBlocks[SITE_ID]['aspro_next_content']['aspro_next_stock'][0];
 	if($iblockId <= 0)
-		return null;
+		return array();
 
 	global $arRegion;
 
@@ -523,33 +531,43 @@ $ndSectionPromo = function($sectionId) {
 		array('SORT' => 'ASC', 'ID' => 'DESC'),
 		$arFilter,
 		false,
-		array('nTopCount' => 1),
+		false,
 		array('ID', 'IBLOCK_ID', 'NAME', 'ACTIVE_TO', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'DETAIL_PAGE_URL', 'PROPERTY_REDIRECT')
 	);
-	if(!($arPromo = $res->GetNext()))
-		return null;
 
-	$picId = (int)($arPromo['PREVIEW_PICTURE'] ? $arPromo['PREVIEW_PICTURE'] : $arPromo['DETAIL_PICTURE']);
-	if($picId <= 0)
-		return null;
-
-	$img = CFile::ResizeImageGet($picId, array('width' => 600, 'height' => 600), BX_RESIZE_IMAGE_PROPORTIONAL, true);
-	if(!is_array($img) || !$img['src'])
-		return null;
-
-	$till = '';
-	if($arPromo['ACTIVE_TO'])
+	$arItems = array();
+	while($arPromo = $res->GetNext())
 	{
-		// ConvertDateTime понимает только свои токены — иначе месяц не подставится
-		$till = ConvertDateTime($arPromo['ACTIVE_TO'], 'DD.MM.YYYY');
+		// множественные свойства в фильтре размножают строки — отбираем по ID
+		if(isset($arItems[$arPromo['ID']]))
+			continue;
+
+		$picId = (int)($arPromo['PREVIEW_PICTURE'] ? $arPromo['PREVIEW_PICTURE'] : $arPromo['DETAIL_PICTURE']);
+		if($picId <= 0)
+			continue;
+
+		$img = CFile::ResizeImageGet($picId, array('width' => 600, 'height' => 600), BX_RESIZE_IMAGE_PROPORTIONAL, true);
+		if(!is_array($img) || !$img['src'])
+			continue;
+
+		$till = '';
+		if($arPromo['ACTIVE_TO'])
+		{
+			// ConvertDateTime понимает только свои токены — иначе месяц не подставится
+			$till = ConvertDateTime($arPromo['ACTIVE_TO'], 'DD.MM.YYYY');
+		}
+
+		$arItems[$arPromo['ID']] = array(
+			'NAME' => $arPromo['NAME'],
+			'LINK' => (strlen($arPromo['PROPERTY_REDIRECT_VALUE']) ? $arPromo['PROPERTY_REDIRECT_VALUE'] : $arPromo['DETAIL_PAGE_URL']),
+			'IMG'  => $img['src'],
+			'TILL' => $till,
+		);
+		if(count($arItems) >= 4)
+			break;
 	}
 
-	return array(
-		'NAME' => $arPromo['NAME'],
-		'LINK' => (strlen($arPromo['PROPERTY_REDIRECT_VALUE']) ? $arPromo['PROPERTY_REDIRECT_VALUE'] : $arPromo['DETAIL_PAGE_URL']),
-		'IMG'  => $img['src'],
-		'TILL' => $till,
-	);
+	return array_values($arItems);
 };
 
 /**
@@ -749,7 +767,7 @@ $ndSectionBrands = function($sectionId, $sectionLink = '') {
 				// берём из параметров пункта меню; у пунктов не из каталога
 				// («Перголы») его нет — там блоков не будет.
 				$ndSectionId = $ndSectionIdByLink($arSection['LINK']);
-				$arPromo = $ndSectionId ? $ndSectionPromo($ndSectionId) : null;
+				$arPromo = $ndSectionId ? $ndSectionPromo($ndSectionId) : array();
 				$arBrands = $ndSectionId ? $ndSectionBrands($ndSectionId, $arSection['LINK']) : array();
 				?>
 				<?/* Подразделов нет — вместо пустой панели показываем картинку
@@ -784,13 +802,26 @@ $ndSectionBrands = function($sectionId, $sectionLink = '') {
 							</a>
 						<?endif;?>
 
+						<?/* Акции раздела — слайдером, как на странице раздела (.nd-akc из
+						     newdesign.css, точки ставит скрипт внизу шаблона). Мелкие
+						     поправки — инлайном: правка CSS шаблона меняет хеш сборки,
+						     и до пересборки урезанной копии телефоны грузят полную. */?>
 						<?if($arPromo):?>
-							<a class="nd-cat__promo" href="<?=htmlspecialcharsbx($arPromo['LINK'])?>">
-								<img data-nd-src="<?=htmlspecialcharsbx($arPromo['IMG'])?>" alt="<?=htmlspecialcharsbx($arPromo['NAME'])?>">
-								<?if($arPromo['TILL']):?>
-									<span class="nd-cat__promo-till">Акция до <?=htmlspecialcharsbx($arPromo['TILL'])?></span>
-								<?endif;?>
-							</a>
+							<div class="nd-cat__promo nd-akc" data-nd-cat-akc>
+								<div class="nd-akc__viewport">
+									<div class="nd-akc__track">
+										<?foreach($arPromo as $arPromoItem):?>
+											<a class="nd-akc__slide" href="<?=htmlspecialcharsbx($arPromoItem['LINK'])?>" style="position:relative">
+												<img data-nd-src="<?=htmlspecialcharsbx($arPromoItem['IMG'])?>" alt="<?=htmlspecialcharsbx($arPromoItem['NAME'])?>">
+												<?if($arPromoItem['TILL']):?>
+													<span class="nd-cat__promo-till" style="top:0;bottom:auto">Акция до <?=htmlspecialcharsbx($arPromoItem['TILL'])?></span>
+												<?endif;?>
+											</a>
+										<?endforeach;?>
+									</div>
+								</div>
+								<div class="nd-akc__dots"></div>
+							</div>
 						<?endif;?>
 					</div>
 				<?endif;?>
@@ -816,6 +847,52 @@ $ndSectionBrands = function($sectionId, $sectionLink = '') {
 	</div>
 
 </div>
+<script>
+/* Слайдеры акций в панелях меню: точки и листание — как у .nd-akc на странице
+   раздела (akciya_catalog_sections_newdesign). Одна акция — без точек. */
+(function(){
+	var roots = document.querySelectorAll('[data-nd-cat-akc]');
+	Array.prototype.forEach.call(roots, function(root){
+		if(root.getAttribute('data-nd-akc-init')) return;
+		root.setAttribute('data-nd-akc-init', 'Y');
+
+		var track = root.querySelector('.nd-akc__track'),
+			dotsBox = root.querySelector('.nd-akc__dots'),
+			total = track ? track.querySelectorAll('.nd-akc__slide').length : 0,
+			current = 0;
+
+		if(total < 2){
+			if(dotsBox) dotsBox.style.display = 'none';
+			return;
+		}
+
+		function goTo(idx){
+			current = (idx + total) % total;
+			track.style.transform = 'translateX(-' + (current * 100) + '%)';
+			Array.prototype.forEach.call(dotsBox.querySelectorAll('button'), function(dot, i){
+				dot.classList.toggle('active', i === current);
+			});
+		}
+
+		for(var i = 0; i < total; i++){
+			(function(idx){
+				var dot = document.createElement('button');
+				dot.type = 'button';
+				dot.setAttribute('aria-label', 'Акция ' + (idx + 1));
+				if(!idx) dot.className = 'active';
+				dot.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); goTo(idx); });
+				dotsBox.appendChild(dot);
+			})(i);
+		}
+
+		/* Сами листаются, пока панель на экране и курсор не на баннере */
+		setInterval(function(){
+			if(root.offsetParent === null || root.matches(':hover')) return;
+			goTo(current + 1);
+		}, 4000);
+	});
+})();
+</script>
 <?
 $html = ob_get_clean();
 
