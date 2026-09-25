@@ -1223,6 +1223,16 @@
     color: #fff !important;
     cursor: default;
     pointer-events: none;
+    user-select: none;
+}
+/* pointer-events:none пропускает наведение на обёртку чипа, а у неё курсор
+   «авто» — над текстом он становился текстовым (Ирина, 25.09.2026: «ссылку
+   убрал, а курсор остался»). Стрелка на всём чипе текущей страницы. */
+.nd-catlist-sort__tags .tag_ank:has(> a.active),
+.section_tag_bottom .tag_ank:has(> a.active),
+.landings_list_inline .item:has(> a.active) {
+    cursor: default;
+    user-select: none;
 }
 
 /* Кнопка «Заказать» (товар без цены/наличия) — красный контур на всю ширину */
