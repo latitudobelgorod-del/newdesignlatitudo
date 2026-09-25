@@ -30,7 +30,7 @@ if(!$arIDs)
 	return;
 
 $cache = new CPHPCache();
-$cacheID = 'nd_city_photos_'.md5(implode(',', $arIDs));
+$cacheID = 'nd_city_photos_v2_'.md5(implode(',', $arIDs));
 $cachePath = '/nd/city_photos/';
 
 if($cache->InitCache(3600, $cacheID, $cachePath))
@@ -72,11 +72,21 @@ else
 
 			// Кадр карточки: 217×102 на десктопе и 110×177 на мобильном —
 			// режем под больший из них, по месту обрезает object-fit.
+			//
+			// Качество 78 и размер поменьше — против чёрных квадратов в окне
+			// (Ирина, 25.09.2026). Раньше резали 440×360 с качеством по
+			// умолчанию: выходило 150–177 КБ на карточку, 5 карточек — почти
+			// 800 КБ, и пока они грузились, была видна тёмная подложка.
+			// Размер изменён ещё и затем, чтобы Битрикс сложил файлы в новую
+			// папку resize_cache: в старой лежат уже нарезанные тяжёлые.
 			$arFile = CFile::ResizeImageGet(
 				$arShop['PREVIEW_PICTURE'],
-				array('width' => 440, 'height' => 360),
+				array('width' => 400, 'height' => 328),
 				BX_RESIZE_IMAGE_EXACT,
-				true
+				true,
+				false,
+				false,
+				78
 			);
 			if($arFile['src'])
 				$arPhotos[$regionID] = $arFile['src'];

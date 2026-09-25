@@ -99,7 +99,9 @@ $imgPath = SITE_TEMPLATE_PATH.'/images/newdesign/mobile';
                     <a class="nd-citycard<?=($bCurrent ? ' is-current' : '');?>" href="<?=$url;?>" data-id="<?=$arItem['ID'];?>">
                         <span class="nd-citycard__media">
                             <?if ($arItem['ND_PHOTO']):?>
-                                <img class="nd-citycard__img" src="<?=$arItem['ND_PHOTO'];?>" alt="<?=htmlspecialcharsbx($arItem['NAME']);?>" loading="lazy">
+                                <?// loading="lazy" тут только вредит: окно приезжает ajax'ом и видно сразу,
+                                   // отложенная загрузка добавляла паузу с пустой подложкой.?>
+                                <img class="nd-citycard__img" src="<?=$arItem['ND_PHOTO'];?>" alt="<?=htmlspecialcharsbx($arItem['NAME']);?>" decoding="async">
                             <?endif;?>
                             <span class="nd-citycard__badge">
                                 <img src="<?=$imgPath;?>/star.svg" alt="" width="18" height="18">

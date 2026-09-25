@@ -145,7 +145,9 @@ div.city_chooser_frame.popup.jqmWindow {
     position: relative;
     display: block;
     height: 102px;
-    background: #101014;
+    /* Светлая подложка, а не чёрная: пока фото грузится, на её месте был
+       чёрный прямоугольник (Ирина, 25.09.2026). */
+    background: rgba(82, 82, 100, .07);
 }
 .nd-citycard__img {
     display: block;
