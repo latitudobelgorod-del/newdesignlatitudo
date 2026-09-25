@@ -30,10 +30,28 @@ $this->setFrameMode(true);?>
 						$url = $arItem["PROPERTIES"][$compare_field]["VALUE"];
 					// echo $url;
 					?>
+					<?/* Как в настольном landings_list: текущая посадочная остаётся в ряду
+					   с классом active и ведёт в раздел без фильтра (Ирина, 25.09.2026). */?>
+					<?
+					$url_tag = $arItem["PROPERTIES"]["CPY_FILTER_TAG"]["VALUE"];
+					$ndCurPath = rtrim((string)parse_url((string)$_SERVER['REQUEST_URI'], PHP_URL_PATH), '/') . '/';
+					$ndCurDir  = rtrim((string)$APPLICATION->GetCurDir(), '/') . '/';
+					$ndActive  = false;
+					foreach (array($url, $url_tag) as $ndOne) {
+						if (!strlen((string)$ndOne))
+							continue;
+						$ndOnePath = rtrim((string)parse_url((string)$ndOne, PHP_URL_PATH), '/') . '/';
+						if ($ndOnePath !== '/' && ($ndOnePath === $ndCurPath || $ndOnePath === $ndCurDir))
+							$ndActive = true;
+					}
+					$ndHref = strlen((string)$url_tag) ? $url_tag : $url;
+					if ($ndActive && !empty($GLOBALS['ND_LANDING_RESET_URL']))
+						$ndHref = $GLOBALS['ND_LANDING_RESET_URL'];
+					?>
 					<div class="item" id="<?=$this->GetEditAreaId($arItem['ID']);?>">
 						<div>
 							<?if(strlen($url)):?>
-								<a class="<?=(strpos($APPLICATION->GetCurDir(), $url) !== false ? 'active' : '')?>" href="<?=$url?>" ><?=$arItem['NAME']?></a>
+								<a class="<?=($ndActive ? 'active' : '')?>" href="<?=$ndHref?>" ><?=$arItem['NAME']?></a>
 							<?else:?>
 								<span><?=$arItem['NAME']?></span>
 							<?endif?>

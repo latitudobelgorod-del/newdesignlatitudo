@@ -652,7 +652,13 @@ $ar_res = $res->GetNext();
                        Пустое — берём раздел, в котором открыта посадочная; SORT 1000 скрыт,
                        как и на странице раздела. */
                     $ndLandingSectionId = $arSeoItem["PROPERTY_SECTION_VALUE"] ?: $arSection["ID"];
-                    $arLandingFilter = array("PROPERTY_SECTION" => ($ndLandingSectionId ?: -1), "!ID" => $arSeoItem["ID"], array("!SORT" => 1000));
+                    /* Саму посадочную из ряда больше не выбрасываем (Ирина, 25.09.2026:
+                       «выбрали тег — он со страницы пропадает»): она остаётся чипом с
+                       классом active, а нажатие на неё снимает фильтр и возвращает в
+                       раздел. Адрес возврата кладём в глобальную — шаблон чипов
+                       (news.list/landings_list) раздела не знает. */
+                    $arLandingFilter = array("PROPERTY_SECTION" => ($ndLandingSectionId ?: -1), array("!SORT" => 1000));
+                    $GLOBALS['ND_LANDING_RESET_URL'] = (string)$arSection["SECTION_PAGE_URL"];
                 } else {
                     $arLandingFilter = array("PROPERTY_SECTION" => $arSection["ID"], array("!SORT" => 1000));
                 }

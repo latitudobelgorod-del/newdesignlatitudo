@@ -1212,6 +1212,23 @@
     background: rgba(82, 82, 100, .14);
 }
 
+/* Чип посадочной, на которой сейчас стоим: тёмный, как выбранная единица
+   измерения в карточке (Ирина, 25.09.2026 — тег со своей же страницы пропадал).
+   Нажатие на него снимает фильтр и возвращает в раздел. */
+.nd-catlist-sort__tags .tag_ank a.active,
+.section_tag_bottom .tag_ank a.active,
+.landings_list_inline a.active {
+    background: #101014 !important;
+    color: #fff !important;
+}
+
+.nd-catlist-sort__tags .tag_ank a.active:hover,
+.section_tag_bottom .tag_ank a.active:hover,
+.landings_list_inline a.active:hover {
+    background: #2b2b33 !important;
+    color: #fff !important;
+}
+
 /* Кнопка «Заказать» (товар без цены/наличия) — красный контур на всю ширину */
 .nd-catlist .catalog_item_wrapp .button_block.wide {
     flex: 1 1 100% !important;

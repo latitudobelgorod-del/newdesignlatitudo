@@ -29,10 +29,31 @@ $this->setFrameMode(true);?>
 					
 //echo $url;
 					?>
+					<?/* Чип посадочной, на которой сейчас стоим, помечаем active и
+					   ведём им в раздел без фильтра — так тег не пропадает со своей же
+					   страницы и им же снимается (Ирина, 25.09.2026). Адрес раздела
+					   кладёт page_blocks/list_elements_1.php.
+
+					   Сверяем и технический адрес фильтра, и красивый: на посадочной
+					   Сотбит подменяет REQUEST_URI на первый, а в адресной строке
+					   остаётся второй. */?>
+					<?
+					$ndCurPath = rtrim((string)parse_url((string)$_SERVER['REQUEST_URI'], PHP_URL_PATH), '/') . '/';
+					$ndCurDir  = rtrim((string)$APPLICATION->GetCurDir(), '/') . '/';
+					$ndActive  = false;
+					foreach (array($url, $url_tag) as $ndOne) {
+						if (!strlen((string)$ndOne))
+							continue;
+						$ndOnePath = rtrim((string)parse_url((string)$ndOne, PHP_URL_PATH), '/') . '/';
+						if ($ndOnePath !== '/' && ($ndOnePath === $ndCurPath || $ndOnePath === $ndCurDir))
+							$ndActive = true;
+					}
+					$ndHref = ($ndActive && !empty($GLOBALS['ND_LANDING_RESET_URL'])) ? $GLOBALS['ND_LANDING_RESET_URL'] : $url_link;
+					?>
 					<div class="item" id="<?=$this->GetEditAreaId($arItem['ID']);?>">
 						<div>
 							<?if(strlen($url)):?>
-								<a class="<?=(strpos($APPLICATION->GetCurDir(), $url) !== false ? 'active' : '')?>" href="<?=$url_link?>" ><?=$arItem['NAME']?></a>
+								<a class="<?=($ndActive ? 'active' : '')?>" href="<?=$ndHref?>" ><?=$arItem['NAME']?></a>
 								
 							<?else:?>
 								<span><?=$arItem['NAME']?></span>
