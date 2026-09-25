@@ -745,6 +745,45 @@ $ar_res = $res->GetNext();
 					$ndKmTags
 				);
 			}
+			/* Тег текущей посадочной помечаем active, откуда бы он ни взялся:
+			   чипом из ИБ 21 или ссылкой, заведённой руками в тегах раздела
+			   («ДПК полнотелая»). Сравниваем адрес ссылки с адресом страницы —
+			   и техническим (Сотбит подменяет им REQUEST_URI), и красивым из
+			   той же строки ЧПУ (Ирина, 25.09.2026). */
+			if ($arSeoItem && strpos($ndKmTags, 'tag_ank') !== false) {
+				$ndHere = array();
+				$ndCurPath = rtrim((string)$APPLICATION->GetCurDir(), '/') . '/';
+				if ($ndCurPath !== '/')
+					$ndHere[$ndCurPath] = true;
+				try {
+					$ndConn = \Bitrix\Main\Application::getConnection();
+					$ndSql = $ndConn->getSqlHelper()->forSql($ndCurPath);
+					$ndRs = $ndConn->query("SELECT NEW_URL, REAL_URL FROM b_sotbit_seometa_chpu WHERE ACTIVE = 'Y' AND (REAL_URL = '".$ndSql."' OR NEW_URL = '".$ndSql."')");
+					while ($ndRow = $ndRs->fetch()) {
+						$ndHere[rtrim((string)$ndRow['NEW_URL'], '/') . '/'] = true;
+						$ndHere[rtrim((string)$ndRow['REAL_URL'], '/') . '/'] = true;
+					}
+				} catch (\Exception $e) {
+					// нет таблицы Сотбита — сверяем только сам адрес
+				}
+				$ndKmTags = preg_replace_callback(
+					'#<a[^>]*href="([^"]*)"[^>]*>#u',
+					function ($m) use ($ndHere) {
+						if (strpos($m[0], 'active') !== false)
+							return $m[0];
+						$path = rtrim((string)parse_url(htmlspecialchars_decode($m[1]), PHP_URL_PATH), '/') . '/';
+						if ($path === '/' || !isset($ndHere[$path]))
+							return $m[0];
+						$tag = $m[0];
+						if (strpos($tag, 'class="') !== false)
+							$tag = preg_replace('#class="([^"]*)"#', 'class="$1 active"', $tag, 1);
+						else
+							$tag = preg_replace('#^<a#', '<a class="active"', $tag, 1);
+						return preg_replace('#^<a#', '<a aria-current="page"', $tag, 1);
+					},
+					$ndKmTags
+				);
+			}
 			$GLOBALS['ND_CATALOG_TAGS_HTML'] = $ndKmTags;
 			echo $ndLandingTags;
 			?>
