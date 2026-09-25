@@ -787,14 +787,6 @@
                (Ирина, 23.09.2026: «нажимаем ещё — открываются и сразу прячутся»). */
             if (box.classList.contains('nd-tags-open')) return;
 
-            /* Тег текущей посадочной — первым: в конце ряда он прятался за «Ещё»,
-               и выделения не было видно (Ирина, 25.09.2026). */
-            var here = box.querySelector('.tag_ank > a.active');
-            var first = box.querySelector('.tag_ank');
-            if (here && first && here.parentNode !== first) {
-                box.insertBefore(here.parentNode, first);
-            }
-
             var chips = [].slice.call(box.querySelectorAll('.tag_ank'));
             if (!chips.length) return;
 
