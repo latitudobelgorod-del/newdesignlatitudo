@@ -13,12 +13,13 @@ $ndIncDir = SITE_DIR.'include/newdesign/mainpage/';
 ?>
 <section class="nd-cover">
 	<div class="nd-cover__card">
-		<?/* Фото обложки с 25.09.2026 — терраса с плетёной мебелью и гамаком.
-		     Прежние лежат рядом: cover_main.webp (2004×720, было до 25.09) и
-		     cover_main_20260925.webp (1334×478, терраса с диваном — пробовали). */?>
+		<?/* Фото обложки с 25.09.2026 — терраса с плетёной мебелью и гамаком
+		     (исходник 3524×1267, ужат до 1600 — 227 КБ). Прежние лежат рядом:
+		     cover_main.webp (2004×720, было до 25.09), cover_main_20260925.webp
+		     (терраса с диваном) и cover_main_20260925b.webp (это же фото, 1334). */?>
 		<img class="nd-cover__img"
-		     src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/cover_main_20260925b.webp"
-		     alt="Терраса с настилом, ограждениями и фасадом из ДПК Латитудо" width="1334" height="478">
+		     src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/cover_main_2026.webp"
+		     alt="Терраса с настилом, ограждениями и фасадом из ДПК Латитудо" width="1600" height="575">
 		<div class="nd-cover__content"><?
 			$APPLICATION->IncludeFile(
 				$ndIncDir.'cover_text.php',
