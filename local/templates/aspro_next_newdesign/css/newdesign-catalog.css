@@ -2515,6 +2515,13 @@ body .nd-brandhead #pagetitle {
     padding: 0 0 40px;
     border-bottom: 2px solid rgba(82, 82, 100, .15);
 }
+/* Поднята под плитки, в колонку рядом с баннером (плитки в одну строку):
+   черта остаётся у всего ряда, у самой строки её нет. */
+.nd-sibrow.nd-sibrow--inside {
+    margin: 24px 0 0;
+    padding: 0;
+    border-bottom: 0;
+}
 .nd-sibrow__head {
     display: flex;
     align-items: baseline;

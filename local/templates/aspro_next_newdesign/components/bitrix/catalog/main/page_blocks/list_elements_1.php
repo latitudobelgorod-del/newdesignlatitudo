@@ -704,6 +704,38 @@ if ($ndSibGroupId) {
 				<?endforeach;?>
 			</div>
 		</div>
+		<script>
+		/* Плитки серий в одну строку и справа баннер — строку соседей поднимаем
+		   под плитки, в левую колонку рядом с баннером; в две строки и больше —
+		   оставляем внизу во всю ширину (Ирина, 25.09.2026). Сколько плиток
+		   встаёт в строку, зависит от ширины экрана, поэтому считаем здесь, по
+		   факту. Без скрипта строка остаётся внизу — это и есть запасной вид. */
+		(function () {
+			var sib = document.currentScript && document.currentScript.previousElementSibling;
+			if (!sib || !sib.classList.contains('nd-sibrow')) return;
+			var row = sib.previousElementSibling;
+			if (!row || !row.classList.contains('nd-subsec-row')) return;
+			var grid = row.querySelector('.nd-subsec-row__grid');
+			var banner = row.querySelector('.nd-subsec-row__banner');
+			if (!grid || !banner) return;
+			function place() {
+				var tops = {};
+				[].forEach.call(grid.querySelectorAll('.nd-subsec__item'), function (t) { tops[t.offsetTop] = 1; });
+				var oneLine = Object.keys(tops).length === 1 && window.innerWidth >= 992;
+				if (oneLine && sib.parentNode !== grid) {
+					grid.appendChild(sib);
+					sib.classList.add('nd-sibrow--inside');
+					row.classList.remove('nd-subsec-row--withsib');
+				} else if (!oneLine && sib.parentNode === grid) {
+					row.parentNode.insertBefore(sib, row.nextSibling);
+					sib.classList.remove('nd-sibrow--inside');
+					row.classList.add('nd-subsec-row--withsib');
+				}
+			}
+			place();
+			window.addEventListener('resize', place);
+		})();
+		</script>
 		<?$ndSibHtml = ob_get_clean();
 
 		$ndRowHtml = preg_replace('/class="section_block nd-subsec-row/', 'class="section_block nd-subsec-row nd-subsec-row--withsib', $ndRowHtml, 1);
