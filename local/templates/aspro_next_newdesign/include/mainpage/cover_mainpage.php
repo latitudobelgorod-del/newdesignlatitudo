@@ -13,9 +13,12 @@ $ndIncDir = SITE_DIR.'include/newdesign/mainpage/';
 ?>
 <section class="nd-cover">
 	<div class="nd-cover__card">
+		<?/* Фото обложки заменено 25.09.2026 (Ирина). Прежнее лежит рядом —
+		     images/newdesign/cover_main.webp, 2004×720: вернуть — поменять src
+		     и размеры обратно. */?>
 		<img class="nd-cover__img"
-		     src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/cover_main.webp"
-		     alt="Терраса с настилом, ограждениями и фасадом из ДПК Латитудо" width="2004" height="720">
+		     src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/cover_main_20260925.webp"
+		     alt="Терраса с настилом, ограждениями и фасадом из ДПК Латитудо" width="1334" height="478">
 		<div class="nd-cover__content"><?
 			$APPLICATION->IncludeFile(
 				$ndIncDir.'cover_text.php',
