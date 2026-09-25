@@ -618,26 +618,37 @@ if (!empty($ndRowHtml) && preg_match_all('/class="nd-subsec__item[" ]/', $ndRowH
    «Ограждениях из ДПК», 25.09.2026): под плитками серий — строка соседних разделов родителя компактными чипами, чтобы
    серии Polivan не путались с остальными ограждениями и соседи были под рукой.
    Включается списком: у «Регулируемых опор» те же признаки (второй уровень
-   с подразделами), но там такая строка не нужна. */
-$ndSiblingRowSections = array(558);
-if (!empty($ndRowHtml) && $iSectionsCount
-	&& in_array((int) $arSection['ID'], $ndSiblingRowSections, true)
-	&& !empty($arSection['IBLOCK_SECTION_ID'])) {
+   с подразделами), но там такая строка не нужна.
 
-	$ndSibParentId = (int) $arSection['IBLOCK_SECTION_ID'];
+   Строка есть и внутри серии (Сингараджа и т.п.): там плитки показывают
+   соседние серии, а под ними — те же «Другие ограждения из ДПК». Группой
+   тогда считается родитель серии (Ирина, 25.09.2026). */
+$ndSiblingRowSections = array(558);
+$ndSibGroupId = 0;
+if (!empty($ndRowHtml)) {
+	if ($iSectionsCount && in_array((int) $arSection['ID'], $ndSiblingRowSections, true)) {
+		$ndSibGroupId = (int) $arSection['ID'];
+	} elseif (!$iSectionsCount && in_array((int) $arSection['IBLOCK_SECTION_ID'], $ndSiblingRowSections, true)) {
+		$ndSibGroupId = (int) $arSection['IBLOCK_SECTION_ID'];
+	}
+}
+if ($ndSibGroupId) {
+
 	$ndSib = array('PARENT' => null, 'ITEMS' => array());
 	$ndSibCache = new CPHPCache();
-	if ($ndSibCache->InitCache(86400, 'nd_siblings_' . $arSection['ID'] . '_' . SITE_ID, '/nd_section_siblings')) {
+	if ($ndSibCache->InitCache(86400, 'nd_siblings_' . $ndSibGroupId . '_' . SITE_ID, '/nd_section_siblings')) {
 		$ndSib = $ndSibCache->GetVars();
 	} elseif ($ndSibCache->StartDataCache()) {
 		global $CACHE_MANAGER;
 		$CACHE_MANAGER->StartTagCache('/nd_section_siblings');
 		$CACHE_MANAGER->RegisterTag('iblock_id_' . $arParams['IBLOCK_ID']);
 
-		$ndSib['PARENT'] = CIBlockSection::GetList(array(), array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'ID' => $ndSibParentId), false, array('ID', 'NAME', 'SECTION_PAGE_URL'))->GetNext();
+		$ndSibGroup = CIBlockSection::GetList(array(), array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'ID' => $ndSibGroupId), false, array('ID', 'IBLOCK_SECTION_ID'))->Fetch();
+		$ndSibParentId = (int) ($ndSibGroup['IBLOCK_SECTION_ID'] ?? 0);
+		$ndSib['PARENT'] = $ndSibParentId ? CIBlockSection::GetList(array(), array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'ID' => $ndSibParentId), false, array('ID', 'NAME', 'SECTION_PAGE_URL'))->GetNext() : null;
 		$ndSibRs = CIBlockSection::GetList(
 			array('SORT' => 'ASC', 'NAME' => 'ASC'),
-			array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'SECTION_ID' => $ndSibParentId, 'ACTIVE' => 'Y', 'GLOBAL_ACTIVE' => 'Y', '!ID' => $arSection['ID'], 'CNT_ACTIVE' => 'Y'),
+			array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'SECTION_ID' => ($ndSibParentId ?: -1), 'ACTIVE' => 'Y', 'GLOBAL_ACTIVE' => 'Y', '!ID' => $ndSibGroupId, 'CNT_ACTIVE' => 'Y'),
 			true,
 			array('ID', 'NAME', 'SECTION_PAGE_URL', 'PICTURE', 'UF_ND_ICON')
 		);
