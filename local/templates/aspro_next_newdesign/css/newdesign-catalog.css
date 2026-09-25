@@ -1212,6 +1212,19 @@
     background: rgba(82, 82, 100, .14);
 }
 
+/* Чип посадочной, на которой сейчас стоим: тёмный, как выбранная единица
+   измерения в карточке (Ирина, 25.09.2026 — тег со своей же страницы пропадал).
+   Это только пометка текущего выбора: нажатия не принимает, чтобы с посадочной
+   не уводило на раздел. */
+.nd-catlist-sort__tags .tag_ank a.active,
+.section_tag_bottom .tag_ank a.active,
+.landings_list_inline a.active {
+    background: #101014 !important;
+    color: #fff !important;
+    cursor: default;
+    pointer-events: none;
+}
+
 /* Кнопка «Заказать» (товар без цены/наличия) — красный контур на всю ширину */
 .nd-catlist .catalog_item_wrapp .button_block.wide {
     flex: 1 1 100% !important;
@@ -2437,7 +2450,9 @@ body .nd-brandhead #pagetitle {
     display: block;
     width: 100%;
     overflow: hidden;
-    border-radius: 4px;
+    /* Без закругления: баннер стоит в ячейке сетки впритык к линиям
+       соседних карточек, скруглённые углы там торчали (Ирина, 25.09.2026). */
+    border-radius: 0;
 }
 .nd-catbanner__inner a {
     display: block;

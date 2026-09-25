@@ -352,7 +352,9 @@ if($isAjaxFilter == "Y")
 								function limit() {
 									var mob = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
 									var img = box.querySelector('img');
-									if (img && img.offsetHeight > 40) {
+									/* Картинка сбоку от текста (две колонки, как у Воронежа) — не
+									   «начало»: иначе показывали её всю, и высокий текст не сворачивался. */
+									if (img && img.offsetHeight > 40 && img.offsetWidth > box.offsetWidth * 0.6) {
 										var top = img.getBoundingClientRect().top - box.getBoundingClientRect().top;
 										if (top < 80) return Math.round(top + img.offsetHeight + (mob ? 72 : 96));
 									}
@@ -652,7 +654,11 @@ $ar_res = $res->GetNext();
                        Пустое — берём раздел, в котором открыта посадочная; SORT 1000 скрыт,
                        как и на странице раздела. */
                     $ndLandingSectionId = $arSeoItem["PROPERTY_SECTION_VALUE"] ?: $arSection["ID"];
-                    $arLandingFilter = array("PROPERTY_SECTION" => ($ndLandingSectionId ?: -1), "!ID" => $arSeoItem["ID"], array("!SORT" => 1000));
+                    /* Саму посадочную из ряда больше не выбрасываем (Ирина, 25.09.2026:
+                       «выбрали тег — он со страницы пропадает»): она остаётся чипом с
+                       классом active и показывает, где мы сейчас. Никуда не ведёт —
+                       ссылка на себя же, нажатие гасит css. */
+                    $arLandingFilter = array("PROPERTY_SECTION" => ($ndLandingSectionId ?: -1), array("!SORT" => 1000));
                 } else {
                     $arLandingFilter = array("PROPERTY_SECTION" => $arSection["ID"], array("!SORT" => 1000));
                 }
@@ -684,12 +690,41 @@ $ar_res = $res->GetNext();
 				&& preg_match_all('#<a\b([^>]*)href="([^"]+)"[^>]*>(.*?)</a>#su', $ndLandingTags, $ndLm, PREG_SET_ORDER)) {
 				$ndChips = '';
 				foreach ($ndLm as $ndA) {
-					if (strpos($ndKmTags, 'href="' . $ndA[2] . '"') !== false)
+					$ndIsActive = (strpos($ndA[1], 'active') !== false);
+					if (strpos($ndKmTags, 'href="' . $ndA[2] . '"') !== false) {
+						/* Такая ссылка уже есть среди своих тегов раздела (их пишут
+						   руками в редакторе — у «Террасной доски» это «ДПК полнотелая»).
+						   Вторым чипом не дублируем, но если это та посадочная, на
+						   которой стоим, — помечаем active уже существующий тег.
+						   Иначе на посадочной выходило два чипа про одно и то же
+						   (Ирина, 25.09.2026: «почему полнотелых становится две»). */
+						if ($ndIsActive) {
+							$ndKmTags = preg_replace_callback(
+								'#<a[^>]*href="' . preg_quote($ndA[2], '#') . '"[^>]*>#u',
+								function ($m) {
+									$tag = $m[0];
+									if (strpos($tag, 'class="') !== false)
+										$tag = preg_replace('#class="([^"]*)"#', 'class="$1 active"', $tag, 1);
+									else
+										$tag = preg_replace('#^<a#', '<a class="active"', $tag, 1);
+									if (strpos($tag, 'aria-current') === false)
+										$tag = preg_replace('#^<a#', '<a aria-current="page"', $tag, 1);
+									return $tag;
+								},
+								$ndKmTags,
+								1
+							);
+						}
 						continue;
-					$ndActive = (strpos($ndA[1], 'active') !== false) ? ' class="active"' : '';
+					}
+					$ndActive = $ndIsActive ? ' class="active" aria-current="page"' : '';
 					$ndChips .= '<div class="tag_ank"><a' . $ndActive . ' href="' . $ndA[2] . '">' . trim(strip_tags($ndA[3])) . '</a></div>';
 				}
-				$ndKmTags = preg_replace('#<div class="section_tag_top">#', '<div class="section_tag_top">' . $ndChips, $ndKmTags, 1);
+				/* str_replace, а не preg_replace: в замене preg_replace «$» и «\» —
+				   служебные, а в чипах едут адреса и названия из базы. */
+				$ndPos = strpos($ndKmTags, '<div class="section_tag_top">');
+				if ($ndPos !== false)
+					$ndKmTags = substr_replace($ndKmTags, '<div class="section_tag_top">' . $ndChips, $ndPos, strlen('<div class="section_tag_top">'));
 				$ndLandingTags = '';
 			}
 			/* Посадочная, которая уже стоит плиткой над списком, тегом не дублируется
@@ -701,11 +736,83 @@ $ar_res = $res->GetNext();
 				$ndKmTags = preg_replace_callback(
 					'#<div class="tag_ank">\s*<a\b[^>]*href="([^"]+)"[^>]*>.*?</a>\s*</div>#su',
 					function ($m) use ($ndTileUrls) {
+						/* Чип текущей посадочной оставляем даже если она есть плиткой:
+						   это пометка «мы здесь», а не ещё одна ссылка туда же
+						   (Ирина, 25.09.2026). */
+						if (strpos($m[0], 'active') !== false)
+							return $m[0];
 						$path = rtrim((string)parse_url(htmlspecialchars_decode($m[1]), PHP_URL_PATH), '/') . '/';
 						return isset($ndTileUrls[$path]) ? '' : $m[0];
 					},
 					$ndKmTags
 				);
+			}
+			/* Тег текущей посадочной помечаем active, откуда бы он ни взялся:
+			   чипом из ИБ 21 или ссылкой, заведённой руками в тегах раздела
+			   («ДПК полнотелая»). Сравниваем адрес ссылки с адресом страницы —
+			   и техническим (Сотбит подменяет им REQUEST_URI), и красивым из
+			   той же строки ЧПУ (Ирина, 25.09.2026). */
+			if (strpos($ndKmTags, 'tag_ank') !== false) {
+				$ndHere = array();
+				$ndIsLanding = (bool)$arSeoItem;
+				$ndAsk = array();
+				/* Адрес страницы собираем из всех источников: GetCurDir, GetCurPage и
+				   REQUEST_URI отдают на посадочной разное — Сотбит подменяет один,
+				   Битрикс пересчитывает другой. */
+				foreach (array(
+					(string)$APPLICATION->GetCurDir(),
+					(string)$APPLICATION->GetCurPage(false),
+					(string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH),
+				) as $ndOnePath) {
+					$ndOnePath = rtrim((string)parse_url($ndOnePath, PHP_URL_PATH), '/') . '/';
+					if ($ndOnePath === '/' || substr($ndOnePath, -10) === 'index.php/')
+						continue;
+					$ndHere[$ndOnePath] = true;
+					$ndAsk[$ndOnePath] = true;
+				}
+				/* Адрес фильтра берём и у самой посадочной: GetCurDir на разных
+				   страницах отдаёт то технический адрес, то каталог, а свойство
+				   FILTER_URL — всегда то, по чему посадочная и нашлась. */
+				$ndSeoFilter = $arSeoItem ? rtrim((string)parse_url((string)$arSeoItem['PROPERTY_FILTER_URL_VALUE'], PHP_URL_PATH), '/') . '/' : '/';
+				if ($ndSeoFilter !== '/') {
+					$ndHere[$ndSeoFilter] = true;
+					$ndAsk[$ndSeoFilter] = true;
+				}
+				try {
+					$ndConn = \Bitrix\Main\Application::getConnection();
+					$ndIn = array();
+					foreach (array_keys($ndAsk) as $ndOne)
+						$ndIn[] = "'" . $ndConn->getSqlHelper()->forSql($ndOne) . "'";
+					$ndIn = implode(',', $ndIn);
+					$ndRs = $ndConn->query("SELECT NEW_URL, REAL_URL FROM b_sotbit_seometa_chpu WHERE ACTIVE = 'Y' AND (REAL_URL IN (".$ndIn.") OR NEW_URL IN (".$ndIn."))");
+					while ($ndRow = $ndRs->fetch()) {
+						/* Строка ЧПУ на этот адрес есть — значит это посадочная, даже
+						   если элемент ИБ 21 по FILTER_URL не нашёлся (у «Полнотелой»
+						   адрес фильтра у элемента и в ЧПУ разные). */
+						$ndIsLanding = true;
+						$ndHere[rtrim((string)$ndRow['NEW_URL'], '/') . '/'] = true;
+						$ndHere[rtrim((string)$ndRow['REAL_URL'], '/') . '/'] = true;
+					}
+				} catch (\Exception $e) {
+					// нет таблицы Сотбита — сверяем только сам адрес
+				}
+				$ndKmTags = $ndIsLanding ? preg_replace_callback(
+					'#<a[^>]*href="([^"]*)"[^>]*>#u',
+					function ($m) use ($ndHere) {
+						if (strpos($m[0], 'active') !== false)
+							return $m[0];
+						$path = rtrim((string)parse_url(htmlspecialchars_decode($m[1]), PHP_URL_PATH), '/') . '/';
+						if ($path === '/' || !isset($ndHere[$path]))
+							return $m[0];
+						$tag = $m[0];
+						if (strpos($tag, 'class="') !== false)
+							$tag = preg_replace('#class="([^"]*)"#', 'class="$1 active"', $tag, 1);
+						else
+							$tag = preg_replace('#^<a#', '<a class="active"', $tag, 1);
+						return preg_replace('#^<a#', '<a aria-current="page"', $tag, 1);
+					},
+					$ndKmTags
+				) : $ndKmTags;
 			}
 			$GLOBALS['ND_CATALOG_TAGS_HTML'] = $ndKmTags;
 			echo $ndLandingTags;
