@@ -753,13 +753,27 @@ $ar_res = $res->GetNext();
 			if (strpos($ndKmTags, 'tag_ank') !== false) {
 				$ndHere = array();
 				$ndIsLanding = (bool)$arSeoItem;
+				$ndAsk = array();
 				$ndCurPath = rtrim((string)$APPLICATION->GetCurDir(), '/') . '/';
-				if ($ndCurPath !== '/')
+				if ($ndCurPath !== '/') {
 					$ndHere[$ndCurPath] = true;
+					$ndAsk[$ndCurPath] = true;
+				}
+				/* Адрес фильтра берём и у самой посадочной: GetCurDir на разных
+				   страницах отдаёт то технический адрес, то каталог, а свойство
+				   FILTER_URL — всегда то, по чему посадочная и нашлась. */
+				$ndSeoFilter = $arSeoItem ? rtrim((string)parse_url((string)$arSeoItem['PROPERTY_FILTER_URL_VALUE'], PHP_URL_PATH), '/') . '/' : '/';
+				if ($ndSeoFilter !== '/') {
+					$ndHere[$ndSeoFilter] = true;
+					$ndAsk[$ndSeoFilter] = true;
+				}
 				try {
 					$ndConn = \Bitrix\Main\Application::getConnection();
-					$ndSql = $ndConn->getSqlHelper()->forSql($ndCurPath);
-					$ndRs = $ndConn->query("SELECT NEW_URL, REAL_URL FROM b_sotbit_seometa_chpu WHERE ACTIVE = 'Y' AND (REAL_URL = '".$ndSql."' OR NEW_URL = '".$ndSql."')");
+					$ndIn = array();
+					foreach (array_keys($ndAsk) as $ndOne)
+						$ndIn[] = "'" . $ndConn->getSqlHelper()->forSql($ndOne) . "'";
+					$ndIn = implode(',', $ndIn);
+					$ndRs = $ndConn->query("SELECT NEW_URL, REAL_URL FROM b_sotbit_seometa_chpu WHERE ACTIVE = 'Y' AND (REAL_URL IN (".$ndIn.") OR NEW_URL IN (".$ndIn."))");
 					while ($ndRow = $ndRs->fetch()) {
 						/* Строка ЧПУ на этот адрес есть — значит это посадочная, даже
 						   если элемент ИБ 21 по FILTER_URL не нашёлся (у «Полнотелой»
