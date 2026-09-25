@@ -208,6 +208,38 @@ if (!empty($arParams['SECTION_ID'])) {
             break;
         }
 
+        /* Остальные бренды родителя — ссылками под своим брендом, чтобы из раздела
+           бренда можно было переключиться на соседний (Ирина, 25.09.2026). */
+        $ndSibBrands = LatitudoFilterRedirect::siblingBrands($arParams['SECTION_ID'], $ndBrandId);
+        if ($ndSibBrands && $ndBrand && $ndBrand['CODE'] !== '') {
+            /* Бренд ДОБАВЛЯЕТСЯ к текущему, а не заменяет его (Ирина, 25.09.2026:
+               «выбираем ещё бренд — первый сбрасывается»): ссылка ведёт на фильтр
+               родителя «текущий или этот бренд», с остальными уже выбранными
+               пунктами фильтра этой страницы. */
+            $ndOwnCode = strtolower($ndBrand['CODE']);
+            $ndCurPath = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+            $ndKeep = array();
+            if (preg_match('~/filter/(.+?)/(?:apply/)?$~', $ndCurPath, $ndFm)) {
+                foreach (explode('/', $ndFm[1]) as $ndPart) {
+                    if ($ndPart !== '' && $ndPart !== 'clear' && $ndPart !== 'apply' && strpos($ndPart, 'brand-is-') !== 0) {
+                        $ndKeep[] = $ndPart;
+                    }
+                }
+            }
+            $ndSibLogos = $ndBrandLogos(array_column($ndSibBrands, 'ID'));
+            foreach ($ndSibBrands as $ndI => $ndSb) {
+                $ndCodes = array($ndOwnCode, strtolower($ndSb['CODE']));
+                sort($ndCodes);
+                $ndUrl = $ndSb['PARENT_URL'] . 'filter/' . implode('/', array_merge($ndKeep, array('brand-is-' . implode('-or-', $ndCodes)))) . '/apply/';
+                if (isset($ndChpu) && ($ndNew = $ndChpu($ndUrl)) !== '') {
+                    $ndUrl = $ndNew;
+                }
+                $ndSibBrands[$ndI]['URL'] = $ndUrl;
+                $ndSibBrands[$ndI]['LOGO'] = $ndSibLogos[$ndSb['ID']] ?? '';
+            }
+            $arResult['ND_BRAND_SIBLINGS'] = $ndSibBrands;
+        }
+
         list($ndSectionUrl, $ndParentUrl) = LatitudoFilterRedirect::sectionAndParentUrl($arParams['SECTION_ID']);
         if ($ndParentUrl !== '') {
             $arResult['SEF_DEL_FILTER_URL'] = htmlspecialcharsbx($ndParentUrl);

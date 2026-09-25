@@ -3336,3 +3336,13 @@ body .nd-brandhead #pagetitle {
         display: none !important;
     }
 }
+
+/* Фильтр в разделе бренда: соседние бренды родителя — ссылки в виде пустых
+   галочек (catalog.smart.filter/main_newdesign, ND_BRAND_SIBLINGS, 25.09.2026). */
+body .nd-filter a.nd-filter__brandlink {
+    text-decoration: none;
+    color: inherit;
+}
+body .nd-filter a.nd-filter__brandlink:hover .bx_filter_param_text {
+    color: #c60000;
+}

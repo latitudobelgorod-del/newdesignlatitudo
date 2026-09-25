@@ -807,6 +807,21 @@ $ndIsExpanded = function($arItem) use (&$ndBoxIndex) {
 											<?/*<div class="inner_expand_text"><span class="expand_block"><?=Loc::getMessage("FILTER_EXPAND_VALUES");?></span></div>*/?>
 									
 										<?endif;?>
+										<?/* Раздел бренда: остальные бренды родителя — ссылками в виде
+										     пустых галочек, ведут в раздел своего бренда (result_modifier,
+										     ND_BRAND_SIBLINGS; Ирина, 25.09.2026). */?>
+										<?if(($arItem["CODE"] ?? '') === 'BRAND' && !empty($arResult["ND_BRAND_SIBLINGS"])):?>
+											<?foreach($arResult["ND_BRAND_SIBLINGS"] as $ndSb):?>
+												<a class="bx_filter_param_label nd-filter__brandlink" href="<?=htmlspecialcharsbx($ndSb["URL"])?>">
+													<span class="bx_filter_input_checkbox">
+														<?if($ndSb["LOGO"]):?>
+															<img class="nd-filter__logo" src="<?=$ndSb["LOGO"]?>" width="20" height="20" alt="<?=htmlspecialcharsbx($ndSb["NAME"])?>" loading="lazy" />
+														<?endif;?>
+														<span class="bx_filter_param_text" title="<?=htmlspecialcharsbx($ndSb["NAME"])?>"><?=htmlspecialcharsbx($ndSb["NAME"])?></span>
+													</span>
+												</a>
+											<?endforeach;?>
+										<?endif;?>
 								<?}?>
 								</div>
 								<div class="clb"></div>

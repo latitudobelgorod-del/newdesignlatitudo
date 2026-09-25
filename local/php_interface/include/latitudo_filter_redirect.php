@@ -204,6 +204,79 @@ class LatitudoFilterRedirect
 		return htmlspecialcharsbx($brandSection !== '' ? $brandSection : $result);
 	}
 
+	/**
+	 * Остальные бренды родительского раздела — для фильтра в разделе бренда.
+	 * В «Ограждениях Polivan» все товары Polivan, и в блоке «Бренд» был один
+	 * пункт: переключиться на EasyDecking или Террапол из фильтра было нельзя
+	 * (Ирина, 25.09.2026). Каждый бренд ведёт туда же, куда его выбор в фильтре
+	 * родителя: в свой раздел, если он есть, иначе на фильтр родителя по бренду.
+	 * Возвращает [['ID','NAME','CODE','URL'], …] без бренда самого раздела.
+	 */
+	public static function siblingBrands($sectionId, $ownBrandId)
+	{
+		$sectionId = (int)$sectionId;
+		$ownBrandId = (int)$ownBrandId;
+		if ($sectionId <= 0 || !\Bitrix\Main\Loader::includeModule('iblock')) {
+			return array();
+		}
+
+		$cache = \Bitrix\Main\Data\Cache::createInstance();
+		if ($cache->initCache(86400, 'nd_sibling_brands2_' . $sectionId . '_' . $ownBrandId, '/nd_filter_brand')) {
+			return (array)$cache->getVars();
+		}
+		$cache->startDataCache();
+		global $CACHE_MANAGER;
+		$CACHE_MANAGER->StartTagCache('/nd_filter_brand');
+		$CACHE_MANAGER->RegisterTag('iblock_id_' . self::IBLOCK_CATALOG);
+		$CACHE_MANAGER->RegisterTag('iblock_id_' . self::IBLOCK_BRANDS);
+
+		$result = array();
+		$section = CIBlockSection::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'ID' => $sectionId, 'CHECK_PERMISSIONS' => 'N'), false, array('ID', 'IBLOCK_SECTION_ID'))->Fetch();
+		$parent = false;
+		/* Родитель тоже целиком этого бренда (серия Сингараджа → «Ограждения
+		   Polivan») — поднимаемся выше, до раздела, где есть другие бренды. */
+		for ($up = 0, $pid = $section ? (int)$section['IBLOCK_SECTION_ID'] : 0; $pid > 0 && $up < 4; $up++) {
+			$parent = CIBlockSection::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'ID' => $pid, 'CHECK_PERMISSIONS' => 'N'), false, array('ID', 'IBLOCK_SECTION_ID', 'SECTION_PAGE_URL'))->GetNext();
+			if (!$parent || self::brandOfSection($parent['ID']) !== $ownBrandId) {
+				break;
+			}
+			$pid = (int)$parent['IBLOCK_SECTION_ID'];
+		}
+		if ($parent) {
+			$ids = array();
+			$rs = CIBlockElement::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'SECTION_ID' => $parent['ID'], 'INCLUDE_SUBSECTIONS' => 'Y', 'ACTIVE' => 'Y', 'CHECK_PERMISSIONS' => 'N'), array('PROPERTY_' . self::PROP_BRAND), false, array('ID'));
+			while ($row = $rs->Fetch()) {
+				$id = (int)$row['PROPERTY_' . self::PROP_BRAND . '_VALUE'];
+				if ($id > 0 && $id !== $ownBrandId) {
+					$ids[] = $id;
+				}
+			}
+			if ($ids) {
+				$parentPath = substr((string)$parent['SECTION_PAGE_URL'], strlen('/catalog/'));
+				$rs = CIBlockElement::GetList(array('NAME' => 'ASC'), array('IBLOCK_ID' => self::IBLOCK_BRANDS, 'ID' => $ids, 'ACTIVE' => 'Y', 'CHECK_PERMISSIONS' => 'N'), false, false, array('ID', 'NAME', 'CODE'));
+				while ($brand = $rs->Fetch()) {
+					$code = trim((string)$brand['CODE']);
+					if ($code === '') {
+						continue;
+					}
+					$url = self::find($parentPath, $code);
+					$result[] = array(
+						'ID' => (int)$brand['ID'],
+						'NAME' => (string)$brand['NAME'],
+						'CODE' => $code,
+						'URL' => $url !== '' ? $url : $parent['SECTION_PAGE_URL'] . 'filter/brand-is-' . $code . '/apply/',
+						'PARENT_URL' => (string)$parent['SECTION_PAGE_URL'],
+					);
+				}
+			}
+		}
+
+		$CACHE_MANAGER->EndTagCache();
+		$cache->endDataCache($result);
+
+		return $result;
+	}
+
 	/** Адреса раздела и его родителя: ['', ''] если родителя нет. */
 	public static function sectionAndParentUrl($sectionId)
 	{
