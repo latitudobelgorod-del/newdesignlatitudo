@@ -29,10 +29,11 @@ $this->setFrameMode(true);?>
 					
 //echo $url;
 					?>
-					<?/* Чип посадочной, на которой сейчас стоим, помечаем active и
-					   ведём им в раздел без фильтра — так тег не пропадает со своей же
-					   страницы и им же снимается (Ирина, 25.09.2026). Адрес раздела
-					   кладёт page_blocks/list_elements_1.php.
+					<?/* Чип посадочной, на которой сейчас стоим, помечаем active: тег не
+					   пропадает со своей же страницы, а показывает текущий выбор. Ссылкой
+					   он никуда не уводит — адрес свой же, нажатие гасит css
+					   (pointer-events). Сначала он вёл в раздел без фильтра, но так
+					   получалось «нажал тег — ушёл на раздел» (Ирина, 25.09.2026).
 
 					   Сверяем и технический адрес фильтра, и красивый: на посадочной
 					   Сотбит подменяет REQUEST_URI на первый, а в адресной строке
@@ -48,12 +49,11 @@ $this->setFrameMode(true);?>
 						if ($ndOnePath !== '/' && ($ndOnePath === $ndCurPath || $ndOnePath === $ndCurDir))
 							$ndActive = true;
 					}
-					$ndHref = ($ndActive && !empty($GLOBALS['ND_LANDING_RESET_URL'])) ? $GLOBALS['ND_LANDING_RESET_URL'] : $url_link;
 					?>
 					<div class="item" id="<?=$this->GetEditAreaId($arItem['ID']);?>">
 						<div>
 							<?if(strlen($url)):?>
-								<a class="<?=($ndActive ? 'active' : '')?>" href="<?=$ndHref?>" ><?=$arItem['NAME']?></a>
+								<a class="<?=($ndActive ? 'active' : '')?>"<?=($ndActive ? ' aria-current="page"' : '')?> href="<?=$url_link?>" ><?=$arItem['NAME']?></a>
 								
 							<?else:?>
 								<span><?=$arItem['NAME']?></span>

@@ -553,4 +553,18 @@ if (isset($GLOBALS['ND_PAGE_HEAD_ROW'])) {
 	unset($GLOBALS['ND_PAGE_HEAD_ROW']);
 }?>
 
-
+<?/* Посадочная — последним звеном хлебных крошек (Ирина, 25.09.2026: цепочка
+     обрывалась на разделе, и со страницы казалось, что ты на разделе, а не на
+     посадочной). Здесь, в самом конце, по той же причине, что и шапка выше:
+     заголовок посадочной ставит sotbit:seo.meta уже после шаблона списка.
+     Крошки печатаются в шапке страницы, но их цепочка — отложенная функция
+     (AddBufferContent), и её шаблон (breadcrumb/newdesign) выполняется в самом
+     конце: он и добавляет наш пункт из ND_CRUMBS_APPEND. Ссылку не ставим —
+     это текущая страница. */
+if ($arSeoItem) {
+	$ndCrumb = trim((string)$APPLICATION->GetTitle(false));
+	if ($ndCrumb === '')
+		$ndCrumb = trim((string)$arSeoItem['NAME']);
+	if ($ndCrumb !== '' && $ndCrumb !== trim((string)$arSection['NAME']))
+		$GLOBALS['ND_CRUMBS_APPEND'] = $ndCrumb;
+}?>

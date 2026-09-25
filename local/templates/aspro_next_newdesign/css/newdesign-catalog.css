@@ -1214,19 +1214,15 @@
 
 /* Чип посадочной, на которой сейчас стоим: тёмный, как выбранная единица
    измерения в карточке (Ирина, 25.09.2026 — тег со своей же страницы пропадал).
-   Нажатие на него снимает фильтр и возвращает в раздел. */
+   Это только пометка текущего выбора: нажатия не принимает, чтобы с посадочной
+   не уводило на раздел. */
 .nd-catlist-sort__tags .tag_ank a.active,
 .section_tag_bottom .tag_ank a.active,
 .landings_list_inline a.active {
     background: #101014 !important;
     color: #fff !important;
-}
-
-.nd-catlist-sort__tags .tag_ank a.active:hover,
-.section_tag_bottom .tag_ank a.active:hover,
-.landings_list_inline a.active:hover {
-    background: #2b2b33 !important;
-    color: #fff !important;
+    cursor: default;
+    pointer-events: none;
 }
 
 /* Кнопка «Заказать» (товар без цены/наличия) — красный контур на всю ширину */

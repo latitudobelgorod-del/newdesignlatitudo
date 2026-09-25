@@ -34,6 +34,17 @@ if (isset($GLOBALS['ND_CRUMBS_REPLACE']) && is_array($GLOBALS['ND_CRUMBS_REPLACE
 	);
 }
 
+/* Последний пункт от страницы: посадочные каталога (ИБ 21 + ЧПУ Сотбита) в
+   цепочку сами не попадают — раздел их не знает, а AddChainItem из шаблона
+   компонента до этой цепочки не доходит. Шаблон раздела кладёт сюда название
+   посадочной (Ирина, 25.09.2026: «добавь в хлебные крошки»). */
+if (!empty($GLOBALS['ND_CRUMBS_APPEND'])) {
+	$ndLast = isset($arResult[count($arResult) - 1]['TITLE']) ? trim($arResult[count($arResult) - 1]['TITLE']) : '';
+	if ($ndLast !== trim($GLOBALS['ND_CRUMBS_APPEND'])) {
+		$arResult[] = array('TITLE' => $GLOBALS['ND_CRUMBS_APPEND'], 'LINK' => '');
+	}
+}
+
 if (!$arResult) {
 	return $strReturn;
 }

@@ -654,11 +654,9 @@ $ar_res = $res->GetNext();
                     $ndLandingSectionId = $arSeoItem["PROPERTY_SECTION_VALUE"] ?: $arSection["ID"];
                     /* Саму посадочную из ряда больше не выбрасываем (Ирина, 25.09.2026:
                        «выбрали тег — он со страницы пропадает»): она остаётся чипом с
-                       классом active, а нажатие на неё снимает фильтр и возвращает в
-                       раздел. Адрес возврата кладём в глобальную — шаблон чипов
-                       (news.list/landings_list) раздела не знает. */
+                       классом active и показывает, где мы сейчас. Никуда не ведёт —
+                       ссылка на себя же, нажатие гасит css. */
                     $arLandingFilter = array("PROPERTY_SECTION" => ($ndLandingSectionId ?: -1), array("!SORT" => 1000));
-                    $GLOBALS['ND_LANDING_RESET_URL'] = (string)$arSection["SECTION_PAGE_URL"];
                 } else {
                     $arLandingFilter = array("PROPERTY_SECTION" => $arSection["ID"], array("!SORT" => 1000));
                 }
@@ -690,12 +688,41 @@ $ar_res = $res->GetNext();
 				&& preg_match_all('#<a\b([^>]*)href="([^"]+)"[^>]*>(.*?)</a>#su', $ndLandingTags, $ndLm, PREG_SET_ORDER)) {
 				$ndChips = '';
 				foreach ($ndLm as $ndA) {
-					if (strpos($ndKmTags, 'href="' . $ndA[2] . '"') !== false)
+					$ndIsActive = (strpos($ndA[1], 'active') !== false);
+					if (strpos($ndKmTags, 'href="' . $ndA[2] . '"') !== false) {
+						/* Такая ссылка уже есть среди своих тегов раздела (их пишут
+						   руками в редакторе — у «Террасной доски» это «ДПК полнотелая»).
+						   Вторым чипом не дублируем, но если это та посадочная, на
+						   которой стоим, — помечаем active уже существующий тег.
+						   Иначе на посадочной выходило два чипа про одно и то же
+						   (Ирина, 25.09.2026: «почему полнотелых становится две»). */
+						if ($ndIsActive) {
+							$ndKmTags = preg_replace_callback(
+								'#<a[^>]*href="' . preg_quote($ndA[2], '#') . '"[^>]*>#u',
+								function ($m) {
+									$tag = $m[0];
+									if (strpos($tag, 'class="') !== false)
+										$tag = preg_replace('#class="([^"]*)"#', 'class="$1 active"', $tag, 1);
+									else
+										$tag = preg_replace('#^<a#', '<a class="active"', $tag, 1);
+									if (strpos($tag, 'aria-current') === false)
+										$tag = preg_replace('#^<a#', '<a aria-current="page"', $tag, 1);
+									return $tag;
+								},
+								$ndKmTags,
+								1
+							);
+						}
 						continue;
-					$ndActive = (strpos($ndA[1], 'active') !== false) ? ' class="active"' : '';
+					}
+					$ndActive = $ndIsActive ? ' class="active" aria-current="page"' : '';
 					$ndChips .= '<div class="tag_ank"><a' . $ndActive . ' href="' . $ndA[2] . '">' . trim(strip_tags($ndA[3])) . '</a></div>';
 				}
-				$ndKmTags = preg_replace('#<div class="section_tag_top">#', '<div class="section_tag_top">' . $ndChips, $ndKmTags, 1);
+				/* str_replace, а не preg_replace: в замене preg_replace «$» и «\» —
+				   служебные, а в чипах едут адреса и названия из базы. */
+				$ndPos = strpos($ndKmTags, '<div class="section_tag_top">');
+				if ($ndPos !== false)
+					$ndKmTags = substr_replace($ndKmTags, '<div class="section_tag_top">' . $ndChips, $ndPos, strlen('<div class="section_tag_top">'));
 				$ndLandingTags = '';
 			}
 			/* Посадочная, которая уже стоит плиткой над списком, тегом не дублируется
@@ -707,6 +734,11 @@ $ar_res = $res->GetNext();
 				$ndKmTags = preg_replace_callback(
 					'#<div class="tag_ank">\s*<a\b[^>]*href="([^"]+)"[^>]*>.*?</a>\s*</div>#su',
 					function ($m) use ($ndTileUrls) {
+						/* Чип текущей посадочной оставляем даже если она есть плиткой:
+						   это пометка «мы здесь», а не ещё одна ссылка туда же
+						   (Ирина, 25.09.2026). */
+						if (strpos($m[0], 'active') !== false)
+							return $m[0];
 						$path = rtrim((string)parse_url(htmlspecialchars_decode($m[1]), PHP_URL_PATH), '/') . '/';
 						return isset($ndTileUrls[$path]) ? '' : $m[0];
 					},
