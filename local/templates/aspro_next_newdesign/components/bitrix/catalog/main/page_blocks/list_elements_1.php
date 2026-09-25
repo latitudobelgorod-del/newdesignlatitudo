@@ -882,7 +882,11 @@ $ar_res = $res->GetNext();
 			   («ДПК полнотелая»). Сравниваем адрес ссылки с адресом страницы —
 			   и техническим (Сотбит подменяет им REQUEST_URI), и красивым из
 			   той же строки ЧПУ (Ирина, 25.09.2026). */
-			if (strpos($ndKmTags, 'tag_ank') !== false) {
+			/* Своих тегов у раздела в этом регионе может не быть (у Белгорода в
+			   «Террасной доске» редактор пустой) — тогда посадочные печатаются
+			   отдельным блоком $ndLandingTags, и пометку ставим и там (Ирина,
+			   25.09.2026: «пустотелая — тег, но он не выделился»). */
+			if (strpos($ndKmTags, 'tag_ank') !== false || trim($ndLandingTags) !== '') {
 				$ndHere = array();
 				$ndIsLanding = (bool)$arSeoItem;
 				$ndAsk = array();
@@ -926,23 +930,24 @@ $ar_res = $res->GetNext();
 				} catch (\Exception $e) {
 					// нет таблицы Сотбита — сверяем только сам адрес
 				}
-				$ndKmTags = $ndIsLanding ? preg_replace_callback(
-					'#<a[^>]*href="([^"]*)"[^>]*>#u',
-					function ($m) use ($ndHere) {
-						if (strpos($m[0], 'active') !== false)
-							return $m[0];
-						$path = rtrim((string)parse_url(htmlspecialchars_decode($m[1]), PHP_URL_PATH), '/') . '/';
-						if ($path === '/' || !isset($ndHere[$path]))
-							return $m[0];
-						$tag = $m[0];
-						if (strpos($tag, 'class="') !== false)
-							$tag = preg_replace('#class="([^"]*)"#', 'class="$1 active"', $tag, 1);
-						else
-							$tag = preg_replace('#^<a#', '<a class="active"', $tag, 1);
-						return preg_replace('#^<a#', '<a aria-current="page"', $tag, 1);
-					},
-					$ndKmTags
-				) : $ndKmTags;
+				$ndMarkHere = function ($m) use ($ndHere) {
+					if (strpos($m[0], 'active') !== false)
+						return $m[0];
+					$path = rtrim((string)parse_url(htmlspecialchars_decode($m[1]), PHP_URL_PATH), '/') . '/';
+					if ($path === '/' || !isset($ndHere[$path]))
+						return $m[0];
+					$tag = $m[0];
+					if (strpos($tag, 'class="') !== false)
+						$tag = preg_replace('#class="([^"]*)"#', 'class="$1 active"', $tag, 1);
+					else
+						$tag = preg_replace('#^<a#', '<a class="active"', $tag, 1);
+					return preg_replace('#^<a#', '<a aria-current="page"', $tag, 1);
+				};
+				if ($ndIsLanding) {
+					$ndKmTags = preg_replace_callback('#<a[^>]*href="([^"]*)"[^>]*>#u', $ndMarkHere, $ndKmTags);
+					if (trim($ndLandingTags) !== '')
+						$ndLandingTags = preg_replace_callback('#<a[^>]*href="([^"]*)"[^>]*>#u', $ndMarkHere, $ndLandingTags);
+				}
 			}
 			$GLOBALS['ND_CATALOG_TAGS_HTML'] = $ndKmTags;
 			echo $ndLandingTags;
