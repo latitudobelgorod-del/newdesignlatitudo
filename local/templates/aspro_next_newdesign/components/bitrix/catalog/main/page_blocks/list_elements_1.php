@@ -1531,7 +1531,7 @@ if($arSection["PLACE"]){
 				
 
 									<?//КМ нижние теги?>
-									<? include_once(__DIR__ . "/../include/km_bottom_tag.php") ?>
+									<?/* Нижние теги тоже помечаем: тег посадочной, на которой стоим, — тёмный (Ирина, 25.09.2026: «выбираем шоколад — внизу не выделяется»). */ob_start(); include_once(__DIR__ . "/../include/km_bottom_tag.php"); $ndBottomTags = ob_get_clean(); if (!empty($ndIsLanding) && isset($ndMarkHere)) $ndBottomTags = preg_replace_callback('#<a[^>]*href="([^"]*)"[^>]*>#u', $ndMarkHere, $ndBottomTags); echo $ndBottomTags; ?>
 									<?//КМ нижние теги?>
 
 										
@@ -1562,7 +1562,7 @@ if($arSection["PLACE"]){
 					<?/* Нижние теги раздела — и на посадочной (22.09.2026, Ирина: на «Венге»
 					     нет тегов, которые есть внизу террасной доски). Только теги: SEO-текст
 					     раздела (km_posle_tovarov) на посадочной был бы дублем. */?>
-					<? include_once(__DIR__ . "/../include/km_bottom_tag.php") ?>
+					<?/* Нижние теги тоже помечаем: тег посадочной, на которой стоим, — тёмный (Ирина, 25.09.2026: «выбираем шоколад — внизу не выделяется»). */ob_start(); include_once(__DIR__ . "/../include/km_bottom_tag.php"); $ndBottomTags = ob_get_clean(); if (!empty($ndIsLanding) && isset($ndMarkHere)) $ndBottomTags = preg_replace_callback('#<a[^>]*href="([^"]*)"[^>]*>#u', $ndMarkHere, $ndBottomTags); echo $ndBottomTags; ?>
 					<?ob_start();?>
 					<?if($arSeoItem["DETAIL_TEXT"]):?>
 						<?=$arSeoItem["DETAIL_TEXT"];?>
