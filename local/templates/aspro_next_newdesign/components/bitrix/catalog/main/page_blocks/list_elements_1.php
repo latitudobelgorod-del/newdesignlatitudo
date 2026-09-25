@@ -324,13 +324,13 @@ if($isAjaxFilter == "Y")
 						<?if ($ndSeoTop !== '' && trim(strip_tags($ndSeoTop, '<img>')) !== ''):?>
 							<style>
 								.nd-seotop{position:relative;margin:0 0 24px}
-								.nd-seotop.is-collapsed{max-height:260px;overflow:hidden}
+								.nd-seotop.is-collapsed{max-height:130px;overflow:hidden}
 								.nd-seotop__more{display:flex;align-items:flex-end;gap:4px;margin:16px 0 0;padding:0;background:none;border:0;color:#c60000;font-size:16px;line-height:24px;font-weight:500;cursor:pointer}
 								.nd-seotop__more[hidden]{display:none}
-								.nd-seotop.is-collapsed .nd-seotop__more{position:absolute;left:0;right:0;bottom:0;height:104px;margin:0;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 80%)}
+								.nd-seotop.is-collapsed .nd-seotop__more{position:absolute;left:0;right:0;bottom:0;height:64px;margin:0;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 80%)}
 								.nd-seotop__more svg{flex:0 0 auto;margin-bottom:3px;transform:rotate(180deg);transition:transform .2s}
 								.nd-seotop.is-collapsed .nd-seotop__more svg{transform:none}
-								@media (max-width:767px){.nd-seotop.is-collapsed{max-height:208px}}
+								@media (max-width:767px){.nd-seotop.is-collapsed{max-height:104px}}
 							</style>
 							<div class="nd-seotop">
 								<?=$ndSeoTop?>
@@ -348,7 +348,8 @@ if($isAjaxFilter == "Y")
 								/* Сколько показывать свёрнутым: если текст начинается с картинки —
 								   её целиком и ещё пару строк (иначе на компьютере в 260px влезал
 								   только кусок фото и было непонятно, что ниже текст); без картинки —
-								   260 на компьютере и 208 на телефоне, как у описания бренда. */
+								   130 на компьютере и 104 на телефоне (Ирина, 25.09.2026: «сверни
+								   побольше, ещё в половину» — было 260/208, как у описания бренда). */
 								function limit() {
 									var mob = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
 									var img = box.querySelector('img');
@@ -358,7 +359,7 @@ if($isAjaxFilter == "Y")
 										var top = img.getBoundingClientRect().top - box.getBoundingClientRect().top;
 										if (top < 80) return Math.round(top + img.offsetHeight + (mob ? 72 : 96));
 									}
-									return mob ? 208 : 260;
+									return mob ? 104 : 130;
 								}
 								function fit() {
 									if (box.getAttribute('data-nd-open') === 'Y') return;
@@ -611,6 +612,96 @@ if ($ndRowHtml === '' && $ndMenuLinkCards !== '') {
    столбцом в пол-экрана (Ирина, 24.09.2026, «Ступени из ДПК»). */
 if (!empty($ndRowHtml) && preg_match_all('/class="nd-subsec__item[" ]/', $ndRowHtml) <= 4) {
 	$ndRowHtml = str_replace('<div class="nd-subsec">', '<div class="nd-subsec nd-subsec--few">', $ndRowHtml);
+}
+
+/* Раздел-группа внутри раздела («Ограждения Polivan» с тремя сериями в
+   «Ограждениях из ДПК», 25.09.2026): над плитками подпись «Серии Polivan»,
+   под ними — строка соседних разделов родителя компактными чипами, чтобы
+   серии Polivan не путались с остальными ограждениями и соседи были под рукой.
+   Включается списком: у «Регулируемых опор» те же признаки (второй уровень
+   с подразделами), но там такая строка не нужна. */
+$ndSiblingRowSections = array(558);
+if (!empty($ndRowHtml) && $iSectionsCount
+	&& in_array((int) $arSection['ID'], $ndSiblingRowSections, true)
+	&& !empty($arSection['IBLOCK_SECTION_ID'])) {
+
+	$ndSibParentId = (int) $arSection['IBLOCK_SECTION_ID'];
+	$ndSib = array('PARENT' => null, 'ITEMS' => array());
+	$ndSibCache = new CPHPCache();
+	if ($ndSibCache->InitCache(86400, 'nd_siblings_' . $arSection['ID'] . '_' . SITE_ID, '/nd_section_siblings')) {
+		$ndSib = $ndSibCache->GetVars();
+	} elseif ($ndSibCache->StartDataCache()) {
+		global $CACHE_MANAGER;
+		$CACHE_MANAGER->StartTagCache('/nd_section_siblings');
+		$CACHE_MANAGER->RegisterTag('iblock_id_' . $arParams['IBLOCK_ID']);
+
+		$ndSib['PARENT'] = CIBlockSection::GetList(array(), array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'ID' => $ndSibParentId), false, array('ID', 'NAME', 'SECTION_PAGE_URL'))->GetNext();
+		$ndSibRs = CIBlockSection::GetList(
+			array('SORT' => 'ASC', 'NAME' => 'ASC'),
+			array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'SECTION_ID' => $ndSibParentId, 'ACTIVE' => 'Y', 'GLOBAL_ACTIVE' => 'Y', '!ID' => $arSection['ID'], 'CNT_ACTIVE' => 'Y'),
+			true,
+			array('ID', 'NAME', 'SECTION_PAGE_URL', 'PICTURE', 'UF_ND_ICON')
+		);
+		while ($ndS = $ndSibRs->GetNext()) {
+			if (!(int) $ndS['ELEMENT_CNT']) {
+				continue;
+			}
+			$ndImgId = (int) ($ndS['UF_ND_ICON'] ?: $ndS['PICTURE']);
+			$ndImg = $ndImgId ? CFile::ResizeImageGet($ndImgId, array('width' => 88, 'height' => 88), BX_RESIZE_IMAGE_PROPORTIONAL, false) : false;
+			$ndSib['ITEMS'][] = array(
+				'NAME' => $ndS['~NAME'],
+				'URL' => $ndS['SECTION_PAGE_URL'],
+				'CNT' => (int) $ndS['ELEMENT_CNT'],
+				'IMG' => $ndImg ? $ndImg['src'] : '',
+			);
+		}
+		$CACHE_MANAGER->EndTagCache();
+		$ndSibCache->EndDataCache($ndSib);
+	}
+
+	if ($ndSib['PARENT'] && $ndSib['ITEMS']) {
+		/* Первое слово родителя («Ограждения») в названиях соседей повторяется —
+		   убираем: «EasyDecking Вуд-Икс», «Белые EasyDecking Ко-Экструзия».
+		   То же слово даёт подпись серий: «Ограждения Polivan» → «Серии Polivan». */
+		$ndSibWord = strtok((string) $ndSib['PARENT']['~NAME'], ' ');
+		$ndSibStrip = function ($name) use ($ndSibWord) {
+			$short = trim(preg_replace('/\s+/u', ' ', preg_replace('/(^|\s)' . preg_quote($ndSibWord, '/') . '(?=\s|$)/iu', ' ', $name)));
+			return $short !== '' ? $short : $name;
+		};
+		$ndSibCntWord = function ($n) {
+			$n100 = $n % 100;
+			$n10 = $n % 10;
+			if ($n100 >= 11 && $n100 <= 14) return 'товаров';
+			if ($n10 == 1) return 'товар';
+			if ($n10 >= 2 && $n10 <= 4) return 'товара';
+			return 'товаров';
+		};
+
+		ob_start();?>
+		<div class="nd-sibrow">
+			<div class="nd-sibrow__head">
+				<div class="nd-sibrow__title">Другие <?=htmlspecialcharsbx(mb_strtolower(mb_substr($ndSib['PARENT']['~NAME'], 0, 1)) . mb_substr($ndSib['PARENT']['~NAME'], 1))?></div>
+				<a class="nd-sibrow__all" href="<?=$ndSib['PARENT']['SECTION_PAGE_URL']?>">Все <?=htmlspecialcharsbx(mb_strtolower($ndSibWord))?> <span aria-hidden="true">&rarr;</span></a>
+			</div>
+			<div class="nd-sibrow__list">
+				<?foreach ($ndSib['ITEMS'] as $ndS):?>
+					<a class="nd-sibrow__item" href="<?=$ndS['URL']?>">
+						<span class="nd-sibrow__img"><?if ($ndS['IMG']):?><img src="<?=$ndS['IMG']?>" alt="" loading="lazy" width="44" height="44"><?endif;?></span>
+						<span class="nd-sibrow__text">
+							<span class="nd-sibrow__name"><?=htmlspecialcharsbx($ndSibStrip($ndS['NAME']))?></span>
+							<span class="nd-sibrow__cnt"><?=$ndS['CNT']?> <?=$ndSibCntWord($ndS['CNT'])?></span>
+						</span>
+					</a>
+				<?endforeach;?>
+			</div>
+		</div>
+		<?$ndSibHtml = ob_get_clean();
+
+		$ndSeriesName = $ndSibStrip((string) $arSection['NAME']);
+		$ndRowHtml = preg_replace('/class="section_block nd-subsec-row/', 'class="section_block nd-subsec-row nd-subsec-row--withsib', $ndRowHtml, 1);
+		$ndRowHtml = '<div class="nd-sibrow__title nd-sibrow__title--series">Серии ' . htmlspecialcharsbx($ndSeriesName) . '</div>'
+			. $ndRowHtml . $ndSibHtml;
+	}
 }
 ?>
 

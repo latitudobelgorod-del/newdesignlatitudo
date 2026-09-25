@@ -2469,6 +2469,120 @@ body .nd-brandhead #pagetitle {
 }
 
 /* =========================================================================
+   Раздел-группа («Ограждения Polivan»): подпись «Серии …» над плитками и
+   строка соседних разделов родителя компактными чипами под ними
+   (page_blocks/list_elements_1.php, $ndSiblingRowSections). На телефоне
+   строка листается вбок, как ряд плиток.
+   ========================================================================= */
+.nd-sibrow__title {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 700;
+    color: #6b6b73;
+}
+.nd-sibrow__title--series {
+    margin: 0 0 12px;
+}
+/* Черта и отступы — те же, что у ряда плиток (.nd-subsec-row в
+   newdesign.css): при строке соседей ряд свою черту отдаёт ей, иначе
+   выходило две линии подряд. */
+.nd-subsec-row.nd-subsec-row--withsib {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+.nd-sibrow {
+    margin: 32px 0 40px;
+    padding: 0 0 40px;
+    border-bottom: 2px solid rgba(82, 82, 100, .15);
+}
+.nd-sibrow__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 12px;
+}
+.nd-sibrow__all {
+    flex: 0 0 auto;
+    font-size: 16px;
+    line-height: 24px;
+    color: #c60000;
+    text-decoration: none;
+}
+.nd-sibrow__all:hover {
+    color: #101014;
+}
+.nd-sibrow__list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.nd-sibrow__list::-webkit-scrollbar {
+    display: none;
+}
+.nd-sibrow__item {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px 8px 8px;
+    border: 1px solid #e5e5ea;
+    border-radius: 4px;
+    background: #fff;
+    color: #101014;
+    text-decoration: none;
+    transition: border-color .2s;
+}
+.nd-sibrow__item:hover {
+    border-color: #101014;
+    color: #101014;
+}
+.nd-sibrow__img {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 4px;
+    background: #f2f2f5;
+    overflow: hidden;
+}
+.nd-sibrow__img img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.nd-sibrow__text {
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+}
+.nd-sibrow__name {
+    font-size: 15px;
+    line-height: 20px;
+}
+.nd-sibrow__cnt {
+    font-size: 14px;
+    line-height: 20px;
+    color: #8e8e93;
+}
+@media (max-width: 991px) {
+    .nd-sibrow {
+        margin: 24px 0;
+        padding-bottom: 24px;
+    }
+}
+@media (max-width: 767px) {
+    .nd-sibrow__title,
+    .nd-sibrow__all {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
+/* =========================================================================
    «Смотреть полный каталог» — кнопка под списком на страницах с фильтром.
 
    Приводим к виду кнопки «Сбросить фильтры» из макета (Figma 20517:160798):
