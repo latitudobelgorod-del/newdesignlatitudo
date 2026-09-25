@@ -623,7 +623,7 @@ if (!empty($ndRowHtml) && preg_match_all('/class="nd-subsec__item[" ]/', $ndRowH
    Строка есть и внутри серии (Сингараджа и т.п.): там плитки показывают
    соседние серии, а под ними — те же «Другие ограждения из ДПК». Группой
    тогда считается родитель серии (Ирина, 25.09.2026). */
-$ndSiblingRowSections = array(558);
+$ndSiblingRowSections = array(558, 559);   // «Ограждения Polivan», «Ограждения Террапол»
 $ndSibGroupId = 0;
 if (!empty($ndRowHtml)) {
 	if ($iSectionsCount && in_array((int) $arSection['ID'], $ndSiblingRowSections, true)) {
