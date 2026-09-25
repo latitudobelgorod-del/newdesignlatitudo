@@ -754,10 +754,19 @@ $ar_res = $res->GetNext();
 				$ndHere = array();
 				$ndIsLanding = (bool)$arSeoItem;
 				$ndAsk = array();
-				$ndCurPath = rtrim((string)$APPLICATION->GetCurDir(), '/') . '/';
-				if ($ndCurPath !== '/') {
-					$ndHere[$ndCurPath] = true;
-					$ndAsk[$ndCurPath] = true;
+				/* Адрес страницы собираем из всех источников: GetCurDir, GetCurPage и
+				   REQUEST_URI отдают на посадочной разное — Сотбит подменяет один,
+				   Битрикс пересчитывает другой. */
+				foreach (array(
+					(string)$APPLICATION->GetCurDir(),
+					(string)$APPLICATION->GetCurPage(false),
+					(string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH),
+				) as $ndOnePath) {
+					$ndOnePath = rtrim((string)parse_url($ndOnePath, PHP_URL_PATH), '/') . '/';
+					if ($ndOnePath === '/' || substr($ndOnePath, -10) === 'index.php/')
+						continue;
+					$ndHere[$ndOnePath] = true;
+					$ndAsk[$ndOnePath] = true;
 				}
 				/* Адрес фильтра берём и у самой посадочной: GetCurDir на разных
 				   страницах отдаёт то технический адрес, то каталог, а свойство
