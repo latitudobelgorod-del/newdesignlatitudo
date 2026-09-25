@@ -1337,6 +1337,29 @@
     object-fit: contain;
 }
 
+/* На телефоне картинка акции/сквозного баннера ниже соседней карточки, и под
+   ней оставалась пустая полоса. Прижимаем картинку к НИЖНЕМУ краю ячейки,
+   а светлую подложку отдаём всей ячейке — запас уходит наверх и сливается
+   с фоном баннера (Ирина, 25.09.2026). На компьютере без изменений. */
+@media (max-width: 767px) {
+    .nd-catlist .nd-promo-cell {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        background: rgba(82, 82, 100, .05);
+    }
+    .nd-catlist .nd-promo-cell a,
+    .nd-catlist .nd-promo-cell .nd-promo-cell__inner,
+    .nd-catlist .nd-promo-cell .nd-catbanner__inner {
+        flex: 0 0 auto;
+        height: auto;
+        background: transparent;
+    }
+    .nd-catlist .nd-promo-cell img {
+        height: auto;
+    }
+}
+
 /* ---------------------------------------------------------------------------
    Верхняя панель: подсказка, теги, сортировка
    ------------------------------------------------------------------------ */
