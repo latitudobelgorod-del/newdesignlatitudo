@@ -560,6 +560,31 @@ div.title-search-result::-webkit-scrollbar-thumb {
     color: #101014;
     white-space: nowrap;
 }
+/* Товар по акции: под ценой — старая перечёркнутая и размер скидки. Размеры и
+   цвета те же, что у карточки товара в разделе каталога (.nd-old-row в
+   newdesign-catalog.css), чтобы подсказка и плитка читались одинаково.
+   Отрицательный margin гасит часть колоночного gap:6 у .nd-sug__body — в
+   карточке эта строка стоит вплотную к цене. */
+.nd-sug__old-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 10px;
+    margin-top: -4px;
+    font-size: 14px;
+    line-height: 20px;
+}
+.nd-sug__old {
+    color: #8f8f9a;
+    /* !important: тема гасит оформление текста у всего, что лежит в ссылке
+       подсказки (.nd-sug__item { text-decoration: none !important }). */
+    text-decoration: line-through !important;
+    white-space: nowrap;
+}
+.nd-sug__diff {
+    color: #ff4130;
+    white-space: nowrap;
+}
 
 /* Обёртке достаётся класс темы .bx_searche (зачем — в ajax.php), а с ним её
    белый фон и лишняя тень поверх нашей. Гасим. */

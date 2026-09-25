@@ -64,21 +64,41 @@ if (!$ndItems) {
 			: null;?>
 		<?if ($arElement):?>
 			<?
-			// В макете у строки одна цена. Берём цену со скидкой, если она есть,
-			// иначе первую доступную из PRICE_CODE (порядок — BASE, OPT).
-			$ndPrice = '';
+			// Цена строки: у товара с предложениями — минимальная по ним
+			// (MIN_PRICE), у товара без предложений — первая доступная из
+			// PRICE_CODE (порядок — BASE, OPT).
+			$ndRow = null;
 			if (isset($arElement["MIN_PRICE"]) && $arElement["MIN_PRICE"]) {
-				$ndPrice = $arElement["MIN_PRICE"]["DISCOUNT_VALUE"] < $arElement["MIN_PRICE"]["VALUE"]
-					? $arElement["MIN_PRICE"]["PRINT_DISCOUNT_VALUE"]
-					: $arElement["MIN_PRICE"]["PRINT_VALUE"];
+				$ndRow = $arElement["MIN_PRICE"];
 			} elseif (!empty($arElement["PRICES"])) {
 				foreach ($arElement["PRICES"] as $arPrice) {
 					if ($arPrice["CAN_ACCESS"]) {
-						$ndPrice = $arPrice["DISCOUNT_VALUE"] < $arPrice["VALUE"]
-							? $arPrice["PRINT_DISCOUNT_VALUE"]
-							: $arPrice["PRINT_VALUE"];
+						$ndRow = $arPrice;
 						break;
 					}
+				}
+			}
+
+			// Цена по акции: показываем её, а под ней — старую перечёркнутую и
+			// размер скидки, как в карточке товара в разделе каталога
+			// (.nd-old-row, newdesign-catalog.js). До 25 сентября 2026 в
+			// подсказках стояла одна цена со скидкой — по ней не было видно,
+			// что товар подешевел, и в разделе те же кресла выглядели иначе.
+			$ndPrice = $ndOldPrice = $ndDiscount = '';
+			if ($ndRow) {
+				if ($ndRow["DISCOUNT_VALUE"] < $ndRow["VALUE"]) {
+					$ndPrice = $ndRow["PRINT_DISCOUNT_VALUE"];
+					$ndOldPrice = $ndRow["PRINT_VALUE"];
+					// PRINT_DISCOUNT_DIFF кладёт сам Битрикс (GetItemPrices), но
+					// у минимальной цены из предложений он местами не доезжает —
+					// тогда считаем сами и печатаем в валюте цены.
+					if (isset($ndRow["PRINT_DISCOUNT_DIFF"]) && $ndRow["DISCOUNT_DIFF"] > 0) {
+						$ndDiscount = $ndRow["PRINT_DISCOUNT_DIFF"];
+					} elseif ($ndRow["CURRENCY"] && class_exists('CCurrencyLang')) {
+						$ndDiscount = CCurrencyLang::CurrencyFormat($ndRow["VALUE"] - $ndRow["DISCOUNT_VALUE"], $ndRow["CURRENCY"], true);
+					}
+				} else {
+					$ndPrice = $ndRow["PRINT_VALUE"];
 				}
 			}
 			?>
@@ -94,6 +114,14 @@ if (!$ndItems) {
 					<span class="nd-sug__name"><?=$arItem["NAME"]?></span>
 					<?if ($ndPrice !== ''):?>
 						<span class="nd-sug__price"><?=$ndRub($ndPrice)?></span>
+					<?endif;?>
+					<?if ($ndOldPrice !== ''):?>
+						<span class="nd-sug__old-row">
+							<span class="nd-sug__old"><?=$ndRub($ndOldPrice)?></span>
+							<?if ($ndDiscount !== ''):?>
+								<span class="nd-sug__diff">скидка <?=$ndRub($ndDiscount)?></span>
+							<?endif;?>
+						</span>
 					<?endif;?>
 				</span>
 			</a>
