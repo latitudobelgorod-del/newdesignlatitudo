@@ -615,8 +615,7 @@ if (!empty($ndRowHtml) && preg_match_all('/class="nd-subsec__item[" ]/', $ndRowH
 }
 
 /* Раздел-группа внутри раздела («Ограждения Polivan» с тремя сериями в
-   «Ограждениях из ДПК», 25.09.2026): над плитками подпись «Серии Polivan»,
-   под ними — строка соседних разделов родителя компактными чипами, чтобы
+   «Ограждениях из ДПК», 25.09.2026): под плитками серий — строка соседних разделов родителя компактными чипами, чтобы
    серии Polivan не путались с остальными ограждениями и соседи были под рукой.
    Включается списком: у «Регулируемых опор» те же признаки (второй уровень
    с подразделами), но там такая строка не нужна. */
@@ -661,8 +660,7 @@ if (!empty($ndRowHtml) && $iSectionsCount
 
 	if ($ndSib['PARENT'] && $ndSib['ITEMS']) {
 		/* Первое слово родителя («Ограждения») в названиях соседей повторяется —
-		   убираем: «EasyDecking Вуд-Икс», «Белые EasyDecking Ко-Экструзия».
-		   То же слово даёт подпись серий: «Ограждения Polivan» → «Серии Polivan». */
+		   убираем: «EasyDecking Вуд-Икс», «Белые EasyDecking Ко-Экструзия». */
 		$ndSibWord = strtok((string) $ndSib['PARENT']['~NAME'], ' ');
 		$ndSibStrip = function ($name) use ($ndSibWord) {
 			$short = trim(preg_replace('/\s+/u', ' ', preg_replace('/(^|\s)' . preg_quote($ndSibWord, '/') . '(?=\s|$)/iu', ' ', $name)));
@@ -697,10 +695,8 @@ if (!empty($ndRowHtml) && $iSectionsCount
 		</div>
 		<?$ndSibHtml = ob_get_clean();
 
-		$ndSeriesName = $ndSibStrip((string) $arSection['NAME']);
 		$ndRowHtml = preg_replace('/class="section_block nd-subsec-row/', 'class="section_block nd-subsec-row nd-subsec-row--withsib', $ndRowHtml, 1);
-		$ndRowHtml = '<div class="nd-sibrow__title nd-sibrow__title--series">Серии ' . htmlspecialcharsbx($ndSeriesName) . '</div>'
-			. $ndRowHtml . $ndSibHtml;
+		$ndRowHtml .= $ndSibHtml;
 	}
 }
 ?>
