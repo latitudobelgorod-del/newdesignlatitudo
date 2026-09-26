@@ -49,6 +49,9 @@ foreach ($ndSibs as $ndSb) {
         'name' => $ndSb['NAME'],
         'parent' => $ndSb['PARENT_URL'],
         'logo' => $ndLogo,
+        /* Хвост имени галочки в фильтре (NEXT_SMART_FILTER_134_<ctl>) — так его
+           считает catalog.smart.filter для значения-привязки. */
+        'ctl' => (string)abs(crc32((string)$ndSb['ID'])),
     );
 }
 ?>
@@ -77,6 +80,7 @@ foreach ($ndSibs as $ndSb) {
             inp.className = 'nd-filter__sibinput';
             inp.setAttribute('form', 'nd_sib_brand_none');
             inp.setAttribute('data-nd-code', it.code);
+            inp.setAttribute('data-nd-ctl', it.ctl);
             var l = document.createElement('label');
             l.className = 'bx_filter_param_label nd-filter__brandlink';
             l.setAttribute('for', id);
@@ -84,7 +88,7 @@ foreach ($ndSibs as $ndSb) {
             l.innerHTML = '<span class="bx_filter_input_checkbox">'
                 + (it.logo ? '<img class="nd-filter__logo" src="' + esc(it.logo) + '" width="20" height="20" alt="' + esc(it.name) + '" loading="lazy" />' : '')
                 + '<span class="bx_filter_param_text" title="' + esc(it.name) + '">' + esc(it.name) + '</span></span>';
-            inp.addEventListener('change', function () { showModef(l); });
+            inp.addEventListener('change', recount);
             var before = clb && clb.parentNode === box ? clb : null;
             box.insertBefore(inp, before);
             box.insertBefore(l, before);
@@ -95,33 +99,58 @@ foreach ($ndSibs as $ndSb) {
 
     function checkedSibs() { return document.querySelectorAll('input.nd-filter__sibinput:checked'); }
 
-    /* Плашка «Показать» у пункта, как после клика по обычной галочке. Без неё
-       клик по соседнему бренду ничем не отзывался, кроме галочки, — казалось,
-       что сайт завис (Ирина, 26.09.2026). Число товаров не пишем: оно считается
-       в родителе, а плашка знает только текущий раздел. */
-    function showModef(l) {
-        var modef = document.getElementById('modef');
-        if (!modef) return;
-        var any = checkedSibs().length > 0;
-        modef.classList.toggle('nd-modef--link', any);
-        if (!any) return;
-        var holder = l.closest('.bx_filter_parameters_box');
+    function ownInput() {
+        return document.querySelector('.bx_filter_parameters_box[data-prop_code=brand] input[type=checkbox]:not(.nd-filter__sibinput)');
+    }
+
+    /* Плашка «Выбрано N | Показать» у пункта, как после клика по обычной
+       галочке. Без неё клик по соседнему бренду ничем не отзывался, кроме
+       галочки, — казалось, что сайт завис (Ирина, 26.09.2026). N считаем тем же
+       запросом, что и сам фильтр, но у родителя: значения формы + галочки
+       соседних брендов. */
+    var seq = 0;
+    function recount() {
+        var modef = document.getElementById('modef'), sf = window.smartFilter, own = ownInput();
+        if (!modef || !own) return;
+        var on = checkedSibs(), my = ++seq;
+        if (!on.length) {
+            /* Соседних не осталось — возвращаем число текущего раздела. */
+            if (sf && sf.reload) sf.reload(own);
+            return;
+        }
+        var holder = own.closest('.bx_filter_parameters_box');
         holder = holder && holder.querySelector('.bx_filter_container_modef');
         if (holder && modef.parentNode !== holder) holder.appendChild(modef);
+        setNum('…');
         modef.style.display = 'inline-block';
+        if (!sf || !sf.gatherInputsValues || !window.BX || !BX.ajax) return;
+
+        var values = [{name: 'ajax', value: 'y'}];
+        sf.gatherInputsValues(values, BX.findChildren(own.form, {'tag': new RegExp('^(input|select)$', 'i')}, true));
+        values = values.filter(function (v) { return v.name; });
+        var prefix = own.name.replace(/_\d+$/, '');
+        [].forEach.call(on, function (i) { values.push({name: prefix + '_' + i.getAttribute('data-nd-ctl'), value: 'Y'}); });
+        BX.ajax.loadJSON(data.items[0].parent, sf.values2post(values), function (res) {
+            if (my !== seq || !res || res.ELEMENT_COUNT === undefined) return;
+            var n = parseInt(res.ELEMENT_COUNT, 10) || 0;
+            setNum(n);
+            if (typeof window.mobileFilterNum === 'function') window.mobileFilterNum(n);
+        });
     }
-    /* Пересчёт обычной галочкой вписывает в плашку число текущего раздела —
-       пока отмечен соседний бренд, оно неверное, снова прячем. */
+    function setNum(n) {
+        ['modef_num', 'modef_num_mobile'].forEach(function (id) { var e = document.getElementById(id); if (e) e.innerHTML = n; });
+    }
+    /* Пересчёт обычной галочкой вписывает число текущего раздела — пока
+       отмечен соседний бренд, пересчитываем у родителя. */
     if (window.BX && BX.addCustomEvent) BX.addCustomEvent('onSmartFilterAjaxCompleted', function () {
-        var m = document.getElementById('modef');
-        if (m) m.classList.toggle('nd-modef--link', checkedSibs().length > 0);
+        if (checkedSibs().length) recount();
     });
 
     function target() {
         var on = checkedSibs();
         if (!on.length) return '';
         var codes = [].map.call(on, function (i) { return i.getAttribute('data-nd-code'); });
-        var own = on[0].parentNode.querySelector('input[type=checkbox]:not(.nd-filter__sibinput)');
+        var own = ownInput();
         if (!own || own.checked) codes.push(data.own);
         codes.sort();
         /* Прочие выбранные пункты — из адреса, который компонент уже посчитал. */

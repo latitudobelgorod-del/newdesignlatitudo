@@ -3336,14 +3336,3 @@ body .nd-brandhead #pagetitle {
         display: none !important;
     }
 }
-
-/* Фильтр в разделе бренда: пока отмечен соседний бренд, в плашке «Выбрано N»
-   только кнопка «Показать» — число там от текущего раздела, а товары будут
-   из родителя (component_epilog фильтра main_newdesign, 26.09.2026). */
-body .bx_filter #modef.nd-modef--link {
-    font-size: 0;
-}
-body .bx_filter #modef.nd-modef--link a {
-    font-size: 14px;
-    margin-left: 0;
-}
