@@ -3337,12 +3337,13 @@ body .nd-brandhead #pagetitle {
     }
 }
 
-/* Фильтр в разделе бренда: соседние бренды родителя — ссылки в виде пустых
-   галочек (catalog.smart.filter/main_newdesign, ND_BRAND_SIBLINGS, 25.09.2026). */
-body .nd-filter a.nd-filter__brandlink {
-    text-decoration: none;
-    color: inherit;
+/* Фильтр в разделе бренда: пока отмечен соседний бренд, в плашке «Выбрано N»
+   только кнопка «Показать» — число там от текущего раздела, а товары будут
+   из родителя (component_epilog фильтра main_newdesign, 26.09.2026). */
+body .bx_filter #modef.nd-modef--link {
+    font-size: 0;
 }
-body .nd-filter a.nd-filter__brandlink:hover .bx_filter_param_text {
-    color: #c60000;
+body .bx_filter #modef.nd-modef--link a {
+    font-size: 14px;
+    margin-left: 0;
 }

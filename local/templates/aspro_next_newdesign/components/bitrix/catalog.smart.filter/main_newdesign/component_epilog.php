@@ -63,24 +63,65 @@ foreach ($ndSibs as $ndSb) {
         /* Ссылки прежней версии из закешированной разметки фильтра — убираем. */
         [].forEach.call(box.querySelectorAll('a.nd-filter__brandlink'), function (a) { a.parentNode.removeChild(a); });
         if (box.querySelector('label.nd-filter__brandlink')) return;
-        var clb = box.querySelector('.clb');
+        var clb = box.querySelector('.clb'), last = null;
+        /* Каждый бренд — настоящая галочка перед label, как у пунктов компонента:
+           тогда на них действуют те же стили (input + label), и свой бренд не
+           стоит особняком (Ирина, 26.09.2026). form="…" уводит галочку из формы
+           фильтра — компонент её не видит и в свой запрос не кладёт. */
+        [].forEach.call(box.querySelectorAll('label.last'), function (l) { l.classList.remove('last'); });
         data.items.forEach(function (it) {
+            var id = 'nd_sib_brand_' + it.code.replace(/[^a-z0-9_]/g, '_');
+            var inp = document.createElement('input');
+            inp.type = 'checkbox';
+            inp.id = id;
+            inp.className = 'nd-filter__sibinput';
+            inp.setAttribute('form', 'nd_sib_brand_none');
+            inp.setAttribute('data-nd-code', it.code);
             var l = document.createElement('label');
             l.className = 'bx_filter_param_label nd-filter__brandlink';
-            l.setAttribute('data-nd-code', it.code);
+            l.setAttribute('for', id);
+            l.setAttribute('data-role', 'label_' + id);
             l.innerHTML = '<span class="bx_filter_input_checkbox">'
                 + (it.logo ? '<img class="nd-filter__logo" src="' + esc(it.logo) + '" width="20" height="20" alt="' + esc(it.name) + '" loading="lazy" />' : '')
                 + '<span class="bx_filter_param_text" title="' + esc(it.name) + '">' + esc(it.name) + '</span></span>';
-            l.addEventListener('click', function (e) { e.preventDefault(); l.classList.toggle('active'); });
-            box.insertBefore(l, clb && clb.parentNode === box ? clb : null);
+            inp.addEventListener('change', function () { showModef(l); });
+            var before = clb && clb.parentNode === box ? clb : null;
+            box.insertBefore(inp, before);
+            box.insertBefore(l, before);
+            last = l;
         });
+        if (last) last.classList.add('last');
     }
 
+    function checkedSibs() { return document.querySelectorAll('input.nd-filter__sibinput:checked'); }
+
+    /* Плашка «Показать» у пункта, как после клика по обычной галочке. Без неё
+       клик по соседнему бренду ничем не отзывался, кроме галочки, — казалось,
+       что сайт завис (Ирина, 26.09.2026). Число товаров не пишем: оно считается
+       в родителе, а плашка знает только текущий раздел. */
+    function showModef(l) {
+        var modef = document.getElementById('modef');
+        if (!modef) return;
+        var any = checkedSibs().length > 0;
+        modef.classList.toggle('nd-modef--link', any);
+        if (!any) return;
+        var holder = l.closest('.bx_filter_parameters_box');
+        holder = holder && holder.querySelector('.bx_filter_container_modef');
+        if (holder && modef.parentNode !== holder) holder.appendChild(modef);
+        modef.style.display = 'inline-block';
+    }
+    /* Пересчёт обычной галочкой вписывает в плашку число текущего раздела —
+       пока отмечен соседний бренд, оно неверное, снова прячем. */
+    if (window.BX && BX.addCustomEvent) BX.addCustomEvent('onSmartFilterAjaxCompleted', function () {
+        var m = document.getElementById('modef');
+        if (m) m.classList.toggle('nd-modef--link', checkedSibs().length > 0);
+    });
+
     function target() {
-        var on = document.querySelectorAll('label.nd-filter__brandlink.active');
+        var on = checkedSibs();
         if (!on.length) return '';
-        var codes = [].map.call(on, function (l) { return l.getAttribute('data-nd-code'); });
-        var box = on[0].parentNode, own = box.querySelector('input[type=checkbox]');
+        var codes = [].map.call(on, function (i) { return i.getAttribute('data-nd-code'); });
+        var own = on[0].parentNode.querySelector('input[type=checkbox]:not(.nd-filter__sibinput)');
         if (!own || own.checked) codes.push(data.own);
         codes.sort();
         /* Прочие выбранные пункты — из адреса, который компонент уже посчитал. */
