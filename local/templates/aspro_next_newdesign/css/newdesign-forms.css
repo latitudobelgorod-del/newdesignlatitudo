@@ -788,3 +788,52 @@ body:has(.jqmOverlay) a.cbk-phone {
         line-height: 15px;
     }
 }
+
+/* ==========================================================================
+   Встроенная форма (form.result.new/inline_newdesign) — та же карточка, что
+   у окон, но стоит в потоке страницы. Первое место — низ политики обработки
+   ПД (include/policy_form_newdesign.php, 26.09.2026).
+
+   Слой .form-container у темы fixed на весь экран (styles.css) — здесь он
+   обычный блок; карточка вместо тени окна обведена рамкой, как контурные
+   карточки каталога (.nd-catlist-note: #e5e5ea, радиус 12).
+   ========================================================================== */
+.nd-policy-form {
+    margin: 48px 0 16px;
+}
+.form-container.nd-inlineform {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    padding: 0 !important;
+    justify-content: flex-start !important;
+}
+.form-container.nd-inlineform > div {
+    width: 100%;
+    max-width: 480px;
+    max-height: none;
+    overflow: visible;
+    border: 1px solid #e5e5ea;
+    box-shadow: none;
+}
+.form-container.nd-inlineform .form .form_head .formnameru {
+    font-size: 24px !important;
+    line-height: 30px;
+}
+.form-container.nd-inlineform .nd-inlineform__subtitle {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #525264;
+    text-align: left;
+}
+@media (max-width: 767px) {
+    .nd-policy-form {
+        margin-top: 32px;
+    }
+    .form-container.nd-inlineform .form .form_head .formnameru {
+        font-size: 20px !important;
+        line-height: 26px;
+    }
+}

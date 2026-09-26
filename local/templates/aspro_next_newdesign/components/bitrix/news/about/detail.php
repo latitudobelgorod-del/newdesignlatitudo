@@ -36,6 +36,12 @@ $arElement = CNextCache::CIblockElement_GetList(array('CACHE' => array('TAG' => 
 		<?//element?>
 		<?@include_once('page_blocks/'.$arParams["ELEMENT_TYPE_VIEW"].'.php');?>
 
+		<?// Политика обработки ПД: внизу — форма вопроса со встроенным согласием
+		   // (include/policy_form_newdesign.php, 26.09.2026).?>
+		<?if(($arResult['VARIABLES']['ELEMENT_CODE'] ?? '') === 'licenses_detail'):?>
+			<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/policy_form_newdesign.php';?>
+		<?endif;?>
+
 	</div>
 
 <?endif;?>
