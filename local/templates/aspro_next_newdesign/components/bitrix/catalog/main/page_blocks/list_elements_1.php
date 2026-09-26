@@ -324,13 +324,13 @@ if($isAjaxFilter == "Y")
 						<?if ($ndSeoTop !== '' && trim(strip_tags($ndSeoTop, '<img>')) !== ''):?>
 							<style>
 								.nd-seotop{position:relative;margin:0 0 24px}
-								.nd-seotop.is-collapsed{max-height:260px;overflow:hidden}
+								.nd-seotop.is-collapsed{max-height:130px;overflow:hidden}
 								.nd-seotop__more{display:flex;align-items:flex-end;gap:4px;margin:16px 0 0;padding:0;background:none;border:0;color:#c60000;font-size:16px;line-height:24px;font-weight:500;cursor:pointer}
 								.nd-seotop__more[hidden]{display:none}
-								.nd-seotop.is-collapsed .nd-seotop__more{position:absolute;left:0;right:0;bottom:0;height:104px;margin:0;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 80%)}
+								.nd-seotop.is-collapsed .nd-seotop__more{position:absolute;left:0;right:0;bottom:0;height:64px;margin:0;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 80%)}
 								.nd-seotop__more svg{flex:0 0 auto;margin-bottom:3px;transform:rotate(180deg);transition:transform .2s}
 								.nd-seotop.is-collapsed .nd-seotop__more svg{transform:none}
-								@media (max-width:767px){.nd-seotop.is-collapsed{max-height:208px}}
+								@media (max-width:767px){.nd-seotop.is-collapsed{max-height:104px}}
 							</style>
 							<div class="nd-seotop">
 								<?=$ndSeoTop?>
@@ -348,15 +348,18 @@ if($isAjaxFilter == "Y")
 								/* Сколько показывать свёрнутым: если текст начинается с картинки —
 								   её целиком и ещё пару строк (иначе на компьютере в 260px влезал
 								   только кусок фото и было непонятно, что ниже текст); без картинки —
-								   260 на компьютере и 208 на телефоне, как у описания бренда. */
+								   130 на компьютере и 104 на телефоне (Ирина, 25.09.2026: «сверни
+								   побольше, ещё в половину» — было 260/208, как у описания бренда). */
 								function limit() {
 									var mob = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
 									var img = box.querySelector('img');
-									if (img && img.offsetHeight > 40) {
+									/* Картинка сбоку от текста (две колонки, как у Воронежа) — не
+									   «начало»: иначе показывали её всю, и высокий текст не сворачивался. */
+									if (img && img.offsetHeight > 40 && img.offsetWidth > box.offsetWidth * 0.6) {
 										var top = img.getBoundingClientRect().top - box.getBoundingClientRect().top;
 										if (top < 80) return Math.round(top + img.offsetHeight + (mob ? 72 : 96));
 									}
-									return mob ? 208 : 260;
+									return mob ? 104 : 130;
 								}
 								function fit() {
 									if (box.getAttribute('data-nd-open') === 'Y') return;
@@ -610,6 +613,135 @@ if ($ndRowHtml === '' && $ndMenuLinkCards !== '') {
 if (!empty($ndRowHtml) && preg_match_all('/class="nd-subsec__item[" ]/', $ndRowHtml) <= 4) {
 	$ndRowHtml = str_replace('<div class="nd-subsec">', '<div class="nd-subsec nd-subsec--few">', $ndRowHtml);
 }
+
+/* Раздел-группа внутри раздела («Ограждения Polivan» с тремя сериями в
+   «Ограждениях из ДПК», 25.09.2026): под плитками серий — строка соседних разделов родителя компактными чипами, чтобы
+   серии Polivan не путались с остальными ограждениями и соседи были под рукой.
+   Включается списком: у «Регулируемых опор» те же признаки (второй уровень
+   с подразделами), но там такая строка не нужна.
+
+   Строка есть и внутри серии (Сингараджа и т.п.): там плитки показывают
+   соседние серии, а под ними — те же «Другие ограждения из ДПК». Группой
+   тогда считается родитель серии (Ирина, 25.09.2026). */
+$ndSiblingRowSections = array(558, 559, 560, 561);   // «Ограждения» Polivan, Террапол, NEXTWOOD, EasyDecking
+$ndSibGroupId = 0;
+if (!empty($ndRowHtml)) {
+	if ($iSectionsCount && in_array((int) $arSection['ID'], $ndSiblingRowSections, true)) {
+		$ndSibGroupId = (int) $arSection['ID'];
+	} elseif (!$iSectionsCount && in_array((int) $arSection['IBLOCK_SECTION_ID'], $ndSiblingRowSections, true)) {
+		$ndSibGroupId = (int) $arSection['IBLOCK_SECTION_ID'];
+	}
+}
+if ($ndSibGroupId) {
+
+	$ndSib = array('PARENT' => null, 'ITEMS' => array());
+	$ndSibCache = new CPHPCache();
+	if ($ndSibCache->InitCache(86400, 'nd_siblings_' . $ndSibGroupId . '_' . SITE_ID, '/nd_section_siblings')) {
+		$ndSib = $ndSibCache->GetVars();
+	} elseif ($ndSibCache->StartDataCache()) {
+		global $CACHE_MANAGER;
+		$CACHE_MANAGER->StartTagCache('/nd_section_siblings');
+		$CACHE_MANAGER->RegisterTag('iblock_id_' . $arParams['IBLOCK_ID']);
+
+		$ndSibGroup = CIBlockSection::GetList(array(), array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'ID' => $ndSibGroupId), false, array('ID', 'IBLOCK_SECTION_ID'))->Fetch();
+		$ndSibParentId = (int) ($ndSibGroup['IBLOCK_SECTION_ID'] ?? 0);
+		$ndSib['PARENT'] = $ndSibParentId ? CIBlockSection::GetList(array(), array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'ID' => $ndSibParentId), false, array('ID', 'NAME', 'SECTION_PAGE_URL'))->GetNext() : null;
+		$ndSibRs = CIBlockSection::GetList(
+			array('SORT' => 'ASC', 'NAME' => 'ASC'),
+			array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'SECTION_ID' => ($ndSibParentId ?: -1), 'ACTIVE' => 'Y', 'GLOBAL_ACTIVE' => 'Y', '!ID' => $ndSibGroupId, 'CNT_ACTIVE' => 'Y'),
+			true,
+			array('ID', 'NAME', 'SECTION_PAGE_URL', 'PICTURE', 'UF_ND_ICON')
+		);
+		while ($ndS = $ndSibRs->GetNext()) {
+			if (!(int) $ndS['ELEMENT_CNT']) {
+				continue;
+			}
+			$ndImgId = (int) ($ndS['UF_ND_ICON'] ?: $ndS['PICTURE']);
+			$ndImg = $ndImgId ? CFile::ResizeImageGet($ndImgId, array('width' => 88, 'height' => 88), BX_RESIZE_IMAGE_PROPORTIONAL, false) : false;
+			$ndSib['ITEMS'][] = array(
+				'NAME' => $ndS['~NAME'],
+				'URL' => $ndS['SECTION_PAGE_URL'],
+				'CNT' => (int) $ndS['ELEMENT_CNT'],
+				'IMG' => $ndImg ? $ndImg['src'] : '',
+			);
+		}
+		$CACHE_MANAGER->EndTagCache();
+		$ndSibCache->EndDataCache($ndSib);
+	}
+
+	if ($ndSib['PARENT'] && $ndSib['ITEMS']) {
+		/* Первое слово родителя («Ограждения») в названиях соседей повторяется —
+		   убираем: «EasyDecking Вуд-Икс», «Белые EasyDecking Ко-Экструзия». */
+		$ndSibWord = strtok((string) $ndSib['PARENT']['~NAME'], ' ');
+		$ndSibStrip = function ($name) use ($ndSibWord) {
+			$short = trim(preg_replace('/\s+/u', ' ', preg_replace('/(^|\s)' . preg_quote($ndSibWord, '/') . '(?=\s|$)/iu', ' ', $name)));
+			return $short !== '' ? $short : $name;
+		};
+		$ndSibCntWord = function ($n) {
+			$n100 = $n % 100;
+			$n10 = $n % 10;
+			if ($n100 >= 11 && $n100 <= 14) return 'товаров';
+			if ($n10 == 1) return 'товар';
+			if ($n10 >= 2 && $n10 <= 4) return 'товара';
+			return 'товаров';
+		};
+
+		ob_start();?>
+		<div class="nd-sibrow">
+			<div class="nd-sibrow__head">
+				<div class="nd-sibrow__title">Другие <?=htmlspecialcharsbx(mb_strtolower(mb_substr($ndSib['PARENT']['~NAME'], 0, 1)) . mb_substr($ndSib['PARENT']['~NAME'], 1))?></div>
+				<a class="nd-sibrow__all" href="<?=$ndSib['PARENT']['SECTION_PAGE_URL']?>">Все <?=htmlspecialcharsbx(mb_strtolower($ndSibWord))?> <span aria-hidden="true">&rarr;</span></a>
+			</div>
+			<div class="nd-sibrow__list">
+				<?foreach ($ndSib['ITEMS'] as $ndS):?>
+					<a class="nd-sibrow__item" href="<?=$ndS['URL']?>">
+						<span class="nd-sibrow__img"><?if ($ndS['IMG']):?><img src="<?=$ndS['IMG']?>" alt="" loading="lazy" width="44" height="44"><?endif;?></span>
+						<span class="nd-sibrow__text">
+							<span class="nd-sibrow__name"><?=htmlspecialcharsbx($ndSibStrip($ndS['NAME']))?></span>
+							<span class="nd-sibrow__cnt"><?=$ndS['CNT']?> <?=$ndSibCntWord($ndS['CNT'])?></span>
+						</span>
+					</a>
+				<?endforeach;?>
+			</div>
+		</div>
+		<script>
+		/* Плитки серий в одну строку и справа баннер — строку соседей поднимаем
+		   под плитки, в левую колонку рядом с баннером; в две строки и больше —
+		   оставляем внизу во всю ширину (Ирина, 25.09.2026). Сколько плиток
+		   встаёт в строку, зависит от ширины экрана, поэтому считаем здесь, по
+		   факту. Без скрипта строка остаётся внизу — это и есть запасной вид. */
+		(function () {
+			var sib = document.currentScript && document.currentScript.previousElementSibling;
+			if (!sib || !sib.classList.contains('nd-sibrow')) return;
+			var row = sib.previousElementSibling;
+			if (!row || !row.classList.contains('nd-subsec-row')) return;
+			var grid = row.querySelector('.nd-subsec-row__grid');
+			var banner = row.querySelector('.nd-subsec-row__banner');
+			if (!grid || !banner) return;
+			function place() {
+				var tops = {};
+				[].forEach.call(grid.querySelectorAll('.nd-subsec__item'), function (t) { tops[t.offsetTop] = 1; });
+				var oneLine = Object.keys(tops).length === 1 && window.innerWidth >= 992;
+				if (oneLine && sib.parentNode !== grid) {
+					grid.appendChild(sib);
+					sib.classList.add('nd-sibrow--inside');
+					row.classList.remove('nd-subsec-row--withsib');
+				} else if (!oneLine && sib.parentNode === grid) {
+					row.parentNode.insertBefore(sib, row.nextSibling);
+					sib.classList.remove('nd-sibrow--inside');
+					row.classList.add('nd-subsec-row--withsib');
+				}
+			}
+			place();
+			window.addEventListener('resize', place);
+		})();
+		</script>
+		<?$ndSibHtml = ob_get_clean();
+
+		$ndRowHtml = preg_replace('/class="section_block nd-subsec-row/', 'class="section_block nd-subsec-row nd-subsec-row--withsib', $ndRowHtml, 1);
+		$ndRowHtml .= $ndSibHtml;
+	}
+}
 ?>
 
 <?
@@ -750,7 +882,11 @@ $ar_res = $res->GetNext();
 			   («ДПК полнотелая»). Сравниваем адрес ссылки с адресом страницы —
 			   и техническим (Сотбит подменяет им REQUEST_URI), и красивым из
 			   той же строки ЧПУ (Ирина, 25.09.2026). */
-			if (strpos($ndKmTags, 'tag_ank') !== false) {
+			/* Своих тегов у раздела в этом регионе может не быть (у Белгорода в
+			   «Террасной доске» редактор пустой) — тогда посадочные печатаются
+			   отдельным блоком $ndLandingTags, и пометку ставим и там (Ирина,
+			   25.09.2026: «пустотелая — тег, но он не выделился»). */
+			if (strpos($ndKmTags, 'tag_ank') !== false || trim($ndLandingTags) !== '') {
 				$ndHere = array();
 				$ndIsLanding = (bool)$arSeoItem;
 				$ndAsk = array();
@@ -794,23 +930,24 @@ $ar_res = $res->GetNext();
 				} catch (\Exception $e) {
 					// нет таблицы Сотбита — сверяем только сам адрес
 				}
-				$ndKmTags = $ndIsLanding ? preg_replace_callback(
-					'#<a[^>]*href="([^"]*)"[^>]*>#u',
-					function ($m) use ($ndHere) {
-						if (strpos($m[0], 'active') !== false)
-							return $m[0];
-						$path = rtrim((string)parse_url(htmlspecialchars_decode($m[1]), PHP_URL_PATH), '/') . '/';
-						if ($path === '/' || !isset($ndHere[$path]))
-							return $m[0];
-						$tag = $m[0];
-						if (strpos($tag, 'class="') !== false)
-							$tag = preg_replace('#class="([^"]*)"#', 'class="$1 active"', $tag, 1);
-						else
-							$tag = preg_replace('#^<a#', '<a class="active"', $tag, 1);
-						return preg_replace('#^<a#', '<a aria-current="page"', $tag, 1);
-					},
-					$ndKmTags
-				) : $ndKmTags;
+				$ndMarkHere = function ($m) use ($ndHere) {
+					if (strpos($m[0], 'active') !== false)
+						return $m[0];
+					$path = rtrim((string)parse_url(htmlspecialchars_decode($m[1]), PHP_URL_PATH), '/') . '/';
+					if ($path === '/' || !isset($ndHere[$path]))
+						return $m[0];
+					$tag = $m[0];
+					if (strpos($tag, 'class="') !== false)
+						$tag = preg_replace('#class="([^"]*)"#', 'class="$1 active"', $tag, 1);
+					else
+						$tag = preg_replace('#^<a#', '<a class="active"', $tag, 1);
+					return preg_replace('#^<a#', '<a aria-current="page"', $tag, 1);
+				};
+				if ($ndIsLanding) {
+					$ndKmTags = preg_replace_callback('#<a[^>]*href="([^"]*)"[^>]*>#u', $ndMarkHere, $ndKmTags);
+					if (trim($ndLandingTags) !== '')
+						$ndLandingTags = preg_replace_callback('#<a[^>]*href="([^"]*)"[^>]*>#u', $ndMarkHere, $ndLandingTags);
+				}
 			}
 			$GLOBALS['ND_CATALOG_TAGS_HTML'] = $ndKmTags;
 			echo $ndLandingTags;
@@ -1394,7 +1531,7 @@ if($arSection["PLACE"]){
 				
 
 									<?//КМ нижние теги?>
-									<? include_once(__DIR__ . "/../include/km_bottom_tag.php") ?>
+									<?/* Нижние теги тоже помечаем: тег посадочной, на которой стоим, — тёмный (Ирина, 25.09.2026: «выбираем шоколад — внизу не выделяется»). */ob_start(); include_once(__DIR__ . "/../include/km_bottom_tag.php"); $ndBottomTags = ob_get_clean(); if (!empty($ndIsLanding) && isset($ndMarkHere)) $ndBottomTags = preg_replace_callback('#<a[^>]*href="([^"]*)"[^>]*>#u', $ndMarkHere, $ndBottomTags); echo $ndBottomTags; ?>
 									<?//КМ нижние теги?>
 
 										
@@ -1425,7 +1562,7 @@ if($arSection["PLACE"]){
 					<?/* Нижние теги раздела — и на посадочной (22.09.2026, Ирина: на «Венге»
 					     нет тегов, которые есть внизу террасной доски). Только теги: SEO-текст
 					     раздела (km_posle_tovarov) на посадочной был бы дублем. */?>
-					<? include_once(__DIR__ . "/../include/km_bottom_tag.php") ?>
+					<?/* Нижние теги тоже помечаем: тег посадочной, на которой стоим, — тёмный (Ирина, 25.09.2026: «выбираем шоколад — внизу не выделяется»). */ob_start(); include_once(__DIR__ . "/../include/km_bottom_tag.php"); $ndBottomTags = ob_get_clean(); if (!empty($ndIsLanding) && isset($ndMarkHere)) $ndBottomTags = preg_replace_callback('#<a[^>]*href="([^"]*)"[^>]*>#u', $ndMarkHere, $ndBottomTags); echo $ndBottomTags; ?>
 					<?ob_start();?>
 					<?if($arSeoItem["DETAIL_TEXT"]):?>
 						<?=$arSeoItem["DETAIL_TEXT"];?>
