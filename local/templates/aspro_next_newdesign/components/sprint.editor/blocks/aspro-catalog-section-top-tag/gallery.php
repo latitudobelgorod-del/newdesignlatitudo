@@ -16,7 +16,7 @@ $images = Sprint\Editor\Blocks\Gallery::getImages($block, array(
         <?foreach ($images as $image):?>
         <li class="sp-gallery-item" itemscope itemtype="https://schema.org/ImageObject">
             <a itemprop="contentUrl" data-fancybox="gallery" data-caption="<?=$image['DESCRIPTION']?>"  class="sp-gallery-item-img-wrapper fancy fancybox" rel="media-gallery" href="<?=$image['DETAIL_SRC']?>">
-                <img itemprop="image" alt="<?=$image['DESCRIPTION']?>"  src="<?=$image['SRC']?>" title="<?=$image['DESCRIPTION']?>" >
+                <img loading="lazy" decoding="async" itemprop="image" alt="<?=$image['DESCRIPTION']?>"  src="<?=$image['SRC']?>" title="<?=$image['DESCRIPTION']?>" >
                 <meta itemprop="name" content="<?=$image['DESCRIPTION']?>" />
                 <div class="sp-gallery-item-text">
                     <div class="sp-gallery-item-text-content"><?=$image['DESCRIPTION']?></div>

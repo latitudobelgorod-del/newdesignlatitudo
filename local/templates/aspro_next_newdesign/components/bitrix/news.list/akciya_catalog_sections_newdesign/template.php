@@ -14,6 +14,13 @@
 				<?foreach($arResult['ITEMS'] as $arItem):?>
 					<?
 					$imageSrc = $arItem['FIELDS']['PREVIEW_PICTURE']['SRC'];
+					/* Колонка 350px (на телефоне — во всю ширину), а анонс акции лежит
+					   исходником по 200–300 КБ. Копия 740px по ширине — с запасом на
+					   ретину (27.09.2026). */
+					if (!empty($arItem['FIELDS']['PREVIEW_PICTURE']['ID'])) {
+						$ndAkcThumb = CFile::ResizeImageGet($arItem['FIELDS']['PREVIEW_PICTURE']['ID'], array('width' => 740, 'height' => 1480), BX_RESIZE_IMAGE_PROPORTIONAL, false);
+						if (!empty($ndAkcThumb['src'])) $imageSrc = $ndAkcThumb['src'];
+					}
 					$alt = ($arItem['FIELDS']['PREVIEW_PICTURE']['ALT'] ? $arItem['FIELDS']['PREVIEW_PICTURE']['ALT'] : $arItem['NAME']);
 					$title = ($arItem['FIELDS']['PREVIEW_PICTURE']['TITLE'] ? $arItem['FIELDS']['PREVIEW_PICTURE']['TITLE'] : $arItem['NAME']);
 					?>

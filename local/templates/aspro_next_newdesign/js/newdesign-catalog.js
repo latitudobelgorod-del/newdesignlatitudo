@@ -561,6 +561,21 @@
         } catch (e) { }
     }
 
+    /* Писать в DOM только изменения. За карточкой следит MutationObserver
+       (см. run), и любая запись innerHTML — даже того же текста — будила его,
+       он через 60 мс звал syncState, тот снова писал… Цикл не кончался:
+       на странице раздела 25 карточек переписывали строки цен ~400 раз
+       в секунду, пока открыта вкладка (замер 27.09.2026). */
+    function setHtml(el, html) {
+        if (!el || el.__ndHtml === html) return;
+        el.innerHTML = html;
+        el.__ndHtml = html;
+    }
+
+    function setDisplay(el, value) {
+        if (el && el.style.display !== value) el.style.display = value;
+    }
+
     /* Значение строки «Общая стоимость»: как в теме (updateTotalSumm) —
        цена из data-value кнопки корзины × количество в базовых единицах.
        Базовое количество лежит в скрытом штатном счётчике .counter_block,
@@ -573,14 +588,14 @@
             var btn = card.querySelector('.to-cart');
             var qtyInput = card.querySelector('.counter_block input.text') || card.querySelector('.measure-field');
             if (!btn || !qtyInput) {
-                box.style.display = 'none';
+                setDisplay(box, 'none');
                 return;
             }
 
             var value = parseFloat(btn.getAttribute('data-value'));
             var qty = parseFloat(String(qtyInput.value).replace(',', '.'));
             if (!value || !qty || qty < 0) {
-                box.style.display = 'none';
+                setDisplay(box, 'none');
                 return;
             }
 
@@ -591,8 +606,8 @@
             } catch (e) {
                 text = Math.round(sum) + ' ₽';
             }
-            box.querySelector('.nd-total__value').innerHTML = text;
-            box.style.display = '';
+            setHtml(box.querySelector('.nd-total__value'), text);
+            setDisplay(box, '');
         } catch (e) { }
     }
 
@@ -623,14 +638,14 @@
                 }
             }
             if (!prices) {
-                row.style.display = 'none';
+                setDisplay(row, 'none');
                 return;
             }
 
             var base = parseFloat(prices.RATIO_BASE_PRICE || prices.BASE_PRICE || 0);
             var now = parseFloat(prices.RATIO_PRICE || prices.PRICE || 0);
             if (!base || !now || base <= now) {
-                row.style.display = 'none';
+                setDisplay(row, 'none');
                 return;
             }
 
@@ -654,9 +669,9 @@
             }
             /* Округляем до рубля: после умножения на коэффициент выходят копейки
                (6 233.33), а тема в своей строке показывает целые. */
-            row.querySelector('.nd-old-row__old').innerHTML = fmt(Math.round(base * ndKoef));
-            row.querySelector('.nd-old-row__diff').innerHTML = 'скидка ' + fmt(Math.round((base - now) * ndKoef));
-            row.style.display = '';
+            setHtml(row.querySelector('.nd-old-row__old'), fmt(Math.round(base * ndKoef)));
+            setHtml(row.querySelector('.nd-old-row__diff'), 'скидка ' + fmt(Math.round((base - now) * ndKoef)));
+            setDisplay(row, '');
         } catch (e) { }
     }
 

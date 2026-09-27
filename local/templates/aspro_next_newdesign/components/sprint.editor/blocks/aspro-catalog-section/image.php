@@ -18,7 +18,7 @@ $page_url_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST']. $_SER
     <div class="sp-image" style="text-align: center"  itemscope itemtype="https://schema.org/ImageObject">
         <meta itemprop="name" content="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" />
 		<link itemprop="url" href="<?=$page_url_itemprop?>" />
-	<img itemprop="contentUrl"  src="<?=$image['SRC'] ?>" class="img-responsive" alt="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" title="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>">
+	<img loading="lazy" decoding="async" itemprop="contentUrl"  src="<?=$image['SRC'] ?>" class="img-responsive" alt="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" title="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>">
     </div>
 <? endif; ?>
 

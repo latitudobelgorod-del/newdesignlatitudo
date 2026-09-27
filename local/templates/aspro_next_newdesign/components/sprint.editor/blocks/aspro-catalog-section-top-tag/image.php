@@ -14,7 +14,7 @@ $renderImg = Sprint\Editor\Blocks\Image::getImage($block, array(
 
 <? if ($image): ?>
     <div class="sp-image" style="text-align: center">
-        <img itemprop="image" alt="<?=$image['DESCRIPTION'] ?>"  src="<?=$image['SRC'] ?>" class="img-responsive" title="<?=$image['DESCRIPTION'] ?>">
+        <img loading="lazy" decoding="async" itemprop="image" alt="<?=$image['DESCRIPTION'] ?>"  src="<?=$image['SRC'] ?>" class="img-responsive" title="<?=$image['DESCRIPTION'] ?>">
     </div>
 <? endif; ?>
 

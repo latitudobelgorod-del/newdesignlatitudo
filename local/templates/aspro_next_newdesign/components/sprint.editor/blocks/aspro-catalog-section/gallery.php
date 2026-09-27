@@ -23,7 +23,7 @@ $page_url_itemprop = CMain::IsHTTPS() ? 'https://'. $_SERVER['HTTP_HOST']. $_SER
                  <meta itemprop="name" content="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" />
 				<link itemprop="url" href="<?=$page_url_itemprop?>" />
 
-				<img  alt="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>"  src="<?=$image['SRC']?>" title="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" >
+				<img loading="lazy" decoding="async"  alt="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>"  src="<?=$image['SRC']?>" title="<?=$image['DESCRIPTION'] ? : $this->arParams['NEWS_NAME'] ?>" >
                 
                  <div class="sp-gallery-item-text">
                     <div class="sp-gallery-item-text-content"><?=$image['DESCRIPTION']?></div>

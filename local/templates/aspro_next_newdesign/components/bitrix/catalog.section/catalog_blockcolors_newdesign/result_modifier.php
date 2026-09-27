@@ -716,6 +716,22 @@ if (!empty($arResult['ITEMS'])){
 					$arItem['PREVIEW_PICTURE'] = $arMatrix[$intSelected]['PREVIEW_PICTURE'];
 					$arItem['PREVIEW_PICTURE_SECOND'] = $arMatrix[$intSelected]['PREVIEW_PICTURE_SECOND'];
 				}
+				/* Скрипт плитки (script.js, setCurrent) при старте ставит картинку
+				   выбранного предложения из JS_OFFERS — а там лежал исходник, до
+				   1920×1280 и 365 КБ, хотя сервер уже нарисовал плитку копией 480×480
+				   (27.09.2026). Подставляем ту же копию: браузер возьмёт её из кеша. */
+				foreach ($arMatrix as &$ndJsOffer) {
+					foreach (array('PREVIEW_PICTURE', 'PREVIEW_PICTURE_SECOND') as $ndPictKey) {
+						if (empty($ndJsOffer[$ndPictKey]['ID'])) continue;
+						$ndThumb = CFile::ResizeImageGet($ndJsOffer[$ndPictKey]['ID'], array('width' => 480, 'height' => 480), BX_RESIZE_IMAGE_PROPORTIONAL, true);
+						if (!empty($ndThumb['src'])) {
+							$ndJsOffer[$ndPictKey]['SRC'] = $ndThumb['src'];
+							$ndJsOffer[$ndPictKey]['WIDTH'] = $ndThumb['width'];
+							$ndJsOffer[$ndPictKey]['HEIGHT'] = $ndThumb['height'];
+						}
+					}
+				}
+				unset($ndJsOffer, $ndPictKey, $ndThumb);
 				$arItem['JS_OFFERS'] = $arMatrix;
 				$arItem['OFFERS_SELECTED'] = $intSelected;
 				$arItem['OFFERS_PROPS_DISPLAY'] = $boolSKUDisplayProperties;
