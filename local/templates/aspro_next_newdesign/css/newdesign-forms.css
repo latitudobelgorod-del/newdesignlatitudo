@@ -842,10 +842,13 @@ body:has(.jqmOverlay) a.cbk-phone {
         grid-column: 1 / -1;
     }
     /* Капча 400px шириной: SmartCaptcha в таком блоке хватает ~102px,
-       130px из окна давали пустую полосу под виджетом. */
+       130px из окна давали пустую полосу под виджетом. Но при 110px в
+       Яндекс Браузере (масштаб 67%) у карточки капчи срезалась нижняя
+       рамка (Ирина, 27.09.2026, /info/licenses_detail/) — запас как в окне,
+       пустая полоса лучше обрезанной рамки. */
     .form-container.nd-inlineform .form_body > .captcha-row,
     .form-container.nd-inlineform .smart-captcha {
-        min-height: 110px;
+        min-height: 130px;
     }
     .form-container.nd-inlineform .form_body > .captcha-row {
         grid-column: 1 / -1;
