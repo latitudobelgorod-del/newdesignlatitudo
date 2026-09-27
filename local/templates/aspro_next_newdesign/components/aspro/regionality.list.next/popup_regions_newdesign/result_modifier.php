@@ -29,8 +29,40 @@ foreach($arResult['FAVORITS'] as $arItem)
 if(!$arIDs)
 	return;
 
+/* Битрикс режет картинку в её исходном формате. Фото Ростова лежит PNG (с
+   расширением .jpg), и кадр 400×328 выходил PNG на 242 КБ против 32–42 КБ у
+   остальных — в окне он грузился почти три секунды (Ирина, 27.09.2026).
+   Если нарезка получилась PNG — делаем рядом JPEG тем же качеством 78. */
+$ndJpegThumb = function($src) {
+	$abs = $_SERVER['DOCUMENT_ROOT'].$src;
+	$info = @getimagesize($abs);
+	if(!$info || $info[2] !== IMAGETYPE_PNG || !function_exists('imagecreatefrompng'))
+		return $src;
+
+	$jpgSrc = preg_replace('~\.[a-z]+$~i', '', $src).'.nd.jpg';
+	$jpgAbs = $_SERVER['DOCUMENT_ROOT'].$jpgSrc;
+	if(!is_file($jpgAbs) || filemtime($jpgAbs) < filemtime($abs))
+	{
+		$png = @imagecreatefrompng($abs);
+		if(!$png)
+			return $src;
+		// прозрачность — на белый фон, иначе в JPEG она станет чёрной
+		$jpg = imagecreatetruecolor(imagesx($png), imagesy($png));
+		imagefill($jpg, 0, 0, imagecolorallocate($jpg, 255, 255, 255));
+		imagecopy($jpg, $png, 0, 0, 0, 0, imagesx($png), imagesy($png));
+		$ok = imagejpeg($jpg, $jpgAbs, 78);
+		imagedestroy($png);
+		imagedestroy($jpg);
+		if(!$ok)
+			return $src;
+	}
+
+	return $jpgSrc;
+};
+
 $cache = new CPHPCache();
-$cacheID = 'nd_city_photos_v2_'.md5(implode(',', $arIDs));
+// v3: у PNG-нарезок теперь JPEG-копия — старый кеш держал адрес тяжёлого PNG
+$cacheID = 'nd_city_photos_v3_'.md5(implode(',', $arIDs));
 $cachePath = '/nd/city_photos/';
 
 if($cache->InitCache(3600, $cacheID, $cachePath))
@@ -89,7 +121,7 @@ else
 				78
 			);
 			if($arFile['src'])
-				$arPhotos[$regionID] = $arFile['src'];
+				$arPhotos[$regionID] = $ndJpegThumb($arFile['src']);
 		}
 	}
 

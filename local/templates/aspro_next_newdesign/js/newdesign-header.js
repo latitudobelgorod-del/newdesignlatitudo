@@ -404,3 +404,40 @@
 	});
 
 })();
+
+/* Окно «Выберите город»: фото офисов заранее.
+   Окно приезжает ajax'ом по клику, и только тогда браузер начинал качать пять
+   фото — карточки какое-то время стояли пустыми (Ирина, 27.09.2026). Когда
+   посетитель наводит курсор на выбор города (или касается его), один раз
+   спрашиваем окно и загружаем его фото в кеш браузера: к клику они уже там.
+   HTML окна не кешируется, поэтому берём из ответа только адреса картинок. */
+(function () {
+	'use strict';
+
+	var warmed = false;
+
+	function warm() {
+		if (warmed || !window.fetch) return;
+		warmed = true;
+		fetch('/ajax/city_chooser.php?url=' + encodeURIComponent(location.pathname), { credentials: 'same-origin' })
+			.then(function (r) { return r.ok ? r.text() : ''; })
+			.then(function (html) {
+				var re = /nd-citycard__img"\s+src="([^"]+)"/g, m;
+				while ((m = re.exec(html))) {
+					var img = new Image();
+					img.decoding = 'async';
+					img.src = m[1];
+				}
+			})
+			.catch(function () { });
+	}
+
+	function onIntent(e) {
+		var t = e.target;
+		if (t && t.closest && t.closest('.js_city_chooser')) warm();
+	}
+
+	document.addEventListener('pointerover', onIntent, { passive: true });
+	document.addEventListener('touchstart', onIntent, { passive: true });
+	document.addEventListener('focusin', onIntent);
+})();
