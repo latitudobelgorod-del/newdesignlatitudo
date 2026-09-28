@@ -248,7 +248,9 @@ if (is_array($ndDcSaved)
 			sum.parentNode.insertBefore(box, sum.nextSibling);
 		}
 		/* «Доставка: Белгород → Воронеж» — откуда и куда (Ирина, 28.09.2026). */
-		var route = [quote.from, quote.to].filter(Boolean).join(' → ');
+		var fromName = String(quote.from || '').replace(/\s*\(.*\)$/, '');
+		var toName = String(quote.to || '').replace(/,\s*Россия(?=,|$)/, '');
+		var route = [fromName ? 'склад ' + fromName : '', toName].filter(Boolean).join(' → ');
 		setText(box.querySelector('.nd-total__row-name'), 'Доставка' + (route ? ': ' + route : ''));
 		setText(box.querySelector('.nd-total__row-value'), money(quote.price));
 		var check = box.querySelector('input');
@@ -282,8 +284,14 @@ if (is_array($ndDcSaved)
 		var notes = [];
 		if (d.unparsedPositions && d.unparsedPositions.length) notes.push('Не распознаны позиции: ' + d.unparsedPositions.join(', '));
 		(d.warnings || []).forEach(function (w) { notes.push(String(w)); });
+		/* Склад фрейм называет точкой, где он стоит («с. Таврово»), а не как в
+		   списке «Склад отгрузки». Название возвращаем по коду города ATI —
+		   сверено с API фрейма 28.09.2026. Незнакомый склад — как прислал фрейм. */
+		var WAREHOUSES = { 22549: 'Москва', 24942: 'Краснодар', 13033: 'Белгород', 40: 'Воронеж' };
+		var fromText = d.from && d.from.text ? String(d.from.text) : '';
+		var fromName = d.from && WAREHOUSES[d.from.atiCityId] || '';
 		return {
-			from: d.from && d.from.text ? String(d.from.text) : '',
+			from: fromName ? fromName + (fromText ? ' (' + fromText + ')' : '') : fromText,
 			to: d.to && d.to.text ? String(d.to.text) : '',
 			distance: d.distanceKm != null ? Math.round(d.distanceKm) + ' км' : '',
 			truck: truck.name ? truck.name + (truck.count > 1 ? ' × ' + truck.count : '') : '',
