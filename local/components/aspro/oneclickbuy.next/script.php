@@ -1000,7 +1000,10 @@ $ParamLid = http_build_query(array(
 	'UF_CRM_1674473526' => $utm_medium,//utm-medium
 	'UF_CRM_1674473518' => $utm_geo,//utm-geo
 	'OPPORTUNITY' => $strsummacopy1,
-	'COMMENTS' =>  "<b><font color=red size=4>Сообщение клиента:</font></b>\n" .$commentcopy. "\n<b>Состав заказа:</b>\n" .$commentscopy, // состав заказа заносим в поле комментарий
+	'COMMENTS' =>  "<b><font color=red size=4>Сообщение клиента:</font></b>\n" .$commentcopy. "\n<b>Состав заказа:</b>\n" .$commentscopy // состав заказа заносим в поле комментарий
+		// Расчёт доставки из корзины с галочкой «С доставкой» (28.09.2026) — текст
+		// кладёт обработчик заказа, local/php_interface/include/latitudo_delivery_quote.php.
+		. (!empty($GLOBALS['ND_DELIVERY_QUOTE_TEXT']) ? "\n<b>Доставка:</b>\n" . htmlspecialcharsbx($GLOBALS['ND_DELIVERY_QUOTE_TEXT']) : ''),
 	 'PHONE' => Array(
            "n0" => Array(
                "VALUE" => $strWithoutChars,

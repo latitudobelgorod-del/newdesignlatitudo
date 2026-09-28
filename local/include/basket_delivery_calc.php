@@ -70,9 +70,16 @@ if (is_array($ndDcSaved)
 	&& time() - (int)($ndDcSaved['TIME'] ?? 0) <= 86400
 	&& (string)($ndDcSaved['KEY'] ?? '') === ndDeliveryQuoteBasketKey($ndDcBasket->getOrderableItems())) {
 	$ndDcQuote = array(
-		'to'    => (string)$ndDcSaved['TO'],
-		'price' => (float)$ndDcSaved['PRICE'],
-		'with'  => !empty($ndDcSaved['WITH']),
+		'from'     => (string)($ndDcSaved['FROM'] ?? ''),
+		'to'       => (string)($ndDcSaved['TO'] ?? ''),
+		'distance' => (string)($ndDcSaved['DISTANCE'] ?? ''),
+		'truck'    => (string)($ndDcSaved['TRUCK'] ?? ''),
+		'weight'   => (string)($ndDcSaved['WEIGHT'] ?? ''),
+		'items'    => (string)($ndDcSaved['ITEMS'] ?? ''),
+		'notes'    => (string)($ndDcSaved['NOTES'] ?? ''),
+		'vat'      => !empty($ndDcSaved['VAT']),
+		'price'    => (float)$ndDcSaved['PRICE'],
+		'with'     => !empty($ndDcSaved['WITH']),
 	);
 }
 ?>
@@ -177,7 +184,10 @@ if (is_array($ndDcSaved)
 		body.append('sessid', SESSID);
 		if (quote) {
 			body.append('action', 'save');
-			body.append('to', quote.to || '');
+			['from', 'to', 'distance', 'truck', 'weight', 'items', 'notes'].forEach(function (k) {
+				body.append(k, quote[k] || '');
+			});
+			body.append('vat', quote.vat ? 'Y' : 'N');
 			body.append('price', String(quote.price));
 			body.append('with', quote['with'] ? 'Y' : 'N');
 		} else {
@@ -230,7 +240,9 @@ if (is_array($ndDcSaved)
 			});
 			sum.parentNode.insertBefore(box, sum.nextSibling);
 		}
-		setText(box.querySelector('.nd-total__row-name'), 'Доставка' + (quote.to ? ' — ' + quote.to : ''));
+		/* «Доставка: Белгород → Воронеж» — откуда и куда (Ирина, 28.09.2026). */
+		var route = [quote.from, quote.to].filter(Boolean).join(' → ');
+		setText(box.querySelector('.nd-total__row-name'), 'Доставка' + (route ? ': ' + route : ''));
 		setText(box.querySelector('.nd-total__row-value'), money(quote.price));
 		var check = box.querySelector('input');
 		if (check.checked !== !!quote['with']) check.checked = !!quote['with'];
@@ -247,6 +259,35 @@ if (is_array($ndDcSaved)
 			if (own) own.parentNode.removeChild(own);
 			if (orig.hidden) orig.hidden = false;
 		}
+	}
+
+	/* Всё, что фрейм показал под ценой, — для комментария заказа и лида:
+	   склад отгрузки, куда, расстояние, машина (по ней же схема загрузки —
+	   саму 3D-схему фрейм наружу не отдаёт), вес, состав, предупреждения. */
+	function quoteFromFrame(d, price) {
+		var truck = d.truck || {}, cargo = d.cargo || {};
+		var names = {};
+		items.forEach(function (it) { names[String(it.id)] = it.name; });
+		var list = (d.items && d.items.length ? d.items : currentItems()).map(function (it) {
+			var name = names[String(it.id)] || it.name || '';
+			return name ? name + ' — ' + parseFloat(it.qty) + ' ' + (it.unit || 'шт') : '';
+		}).filter(Boolean);
+		var notes = [];
+		if (d.unparsedPositions && d.unparsedPositions.length) notes.push('Не распознаны позиции: ' + d.unparsedPositions.join(', '));
+		(d.warnings || []).forEach(function (w) { notes.push(String(w)); });
+		return {
+			from: d.from && d.from.text ? String(d.from.text) : '',
+			to: d.to && d.to.text ? String(d.to.text) : '',
+			distance: d.distanceKm != null ? Math.round(d.distanceKm) + ' км' : '',
+			truck: truck.name ? truck.name + (truck.count > 1 ? ' × ' + truck.count : '') : '',
+			weight: cargo.weightKg != null ? Math.round(cargo.weightKg) + ' кг' : '',
+			items: list.join('; '),
+			notes: notes.join(' '),
+			vat: !!(d.price && d.price.costWithVAT != null),
+			price: parseFloat(price),
+			'with': true,
+			key: itemsKey(currentItems())
+		};
 	}
 
 	function dropQuote() {
@@ -314,7 +355,7 @@ if (is_array($ndDcSaved)
 		} else if (d.type === 'LATITUDO_QUOTE') {
 			var price = d.ok && d.price ? (d.price.costWithVAT != null ? d.price.costWithVAT : d.price.cost) : null;
 			if (price != null) {
-				quote = { to: d.to && d.to.text ? String(d.to.text) : '', price: parseFloat(price), 'with': true, key: itemsKey(currentItems()) };
+				quote = quoteFromFrame(d, price);
 				applyTotal();
 				saveQuote();
 				var to = d.to && d.to.text ? ' — ' + String(d.to.text) : '';

@@ -11,7 +11,10 @@
    Цена приходит из браузера, поэтому в сумму заказа она не идёт: это только
    текст для менеджера с пометкой «предварительно».
 
-   POST: sessid, action=save|clear; для save — to (куда), price (₽), with (Y|N).
+   POST: sessid, action=save|clear; для save — price (₽), vat (Y — цена с НДС),
+   with (Y|N) и текстом для комментария: from (склад отгрузки), to (куда),
+   distance, truck (машина, по ней схема загрузки), weight, items (состав),
+   notes (нераспознанные позиции и предупреждения фрейма).
    Ответ — JSON {ok: true|false}. */
 
 define('STOP_STATISTICS', true);
@@ -48,10 +51,6 @@ if ($ndDqPrice <= 0 || $ndDqPrice >= 10000000) {
 	$ndDqAnswer(false);
 }
 
-/* Текст «куда» — только для комментария: без тегов и переводов строк, не длиннее 200. */
-$ndDqTo = trim(preg_replace('/\s+/u', ' ', strip_tags((string)($_POST['to'] ?? ''))));
-$ndDqTo = mb_substr($ndDqTo, 0, 200);
-
 require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_delivery_quote.php';
 
 $ndDqBasket = \Bitrix\Sale\Basket::loadItemsForFUser(
@@ -63,8 +62,16 @@ if ($ndDqKey === '') {
 	$ndDqAnswer(false);
 }
 
+/* Всё, кроме цены, — только текст для комментария: без тегов и переводов строк. */
 $_SESSION['ND_DELIVERY_QUOTE'] = array(
-	'TO'    => $ndDqTo,
+	'FROM'     => ndDeliveryQuoteClean($_POST['from'] ?? ''),
+	'TO'       => ndDeliveryQuoteClean($_POST['to'] ?? ''),
+	'DISTANCE' => ndDeliveryQuoteClean($_POST['distance'] ?? '', 50),
+	'TRUCK'    => ndDeliveryQuoteClean($_POST['truck'] ?? '', 100),
+	'WEIGHT'   => ndDeliveryQuoteClean($_POST['weight'] ?? '', 50),
+	'ITEMS'    => ndDeliveryQuoteClean($_POST['items'] ?? '', 3000),
+	'NOTES'    => ndDeliveryQuoteClean($_POST['notes'] ?? '', 1000),
+	'VAT'      => (($_POST['vat'] ?? '') === 'Y'),
 	'PRICE' => $ndDqPrice,
 	'WITH'  => (($_POST['with'] ?? '') === 'Y'),
 	'KEY'   => $ndDqKey,
