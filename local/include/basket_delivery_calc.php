@@ -76,7 +76,7 @@ if (!$ndDcItems) {
 	<p class="nd-delivery-calc__note">Укажите город или адрес — посчитаем доставку товаров из корзины. Точную стоимость подтвердит менеджер.</p>
 	<?/* src ставит скрипт ниже, уже на новом месте блока: перенос iframe в DOM
 	     перезагружает его, и фрейм грузился бы дважды. */?>
-	<iframe class="nd-delivery-calc__frame" id="ndDeliveryCalcFrame" data-src="https://monitor.latitudo-scrum.ru/delivery-frame/" title="Расчёт доставки" loading="lazy"></iframe>
+	<iframe class="nd-delivery-calc__frame" id="ndDeliveryCalcFrame" data-src="https://monitor.latitudo-scrum.ru/delivery-frame/" title="Расчёт доставки" loading="lazy" scrolling="no"></iframe>
 	<div class="nd-delivery-calc__result" id="ndDeliveryCalcResult" hidden></div>
 </div>
 <script>
@@ -105,6 +105,17 @@ if (!$ndDcItems) {
 		}
 	})();
 	frame.src = frame.getAttribute('data-src');
+
+	/* Своей прокрутки у фрейма нет (scrolling="no"): высоту он задаёт сам
+	   сообщением LATITUDO_HEIGHT. Со стартовыми 320px, пока сообщение не
+	   пришло, внутри мелькала полоса прокрутки (Ирина, 28.09.2026). Не пришла
+	   высота за 4 с после загрузки — ставим с запасом, чтобы не обрезать. */
+	var gotHeight = false;
+	frame.addEventListener('load', function () {
+		setTimeout(function () {
+			if (!gotHeight) frame.style.height = '900px';
+		}, 4000);
+	});
 	var result = document.getElementById('ndDeliveryCalcResult');
 	var ready = false;
 	var sentKey = '';
@@ -148,6 +159,7 @@ if (!$ndDcItems) {
 			ready = true;
 			pushOrder(true);
 		} else if (d.type === 'LATITUDO_HEIGHT' && d.px) {
+			gotHeight = true;
 			frame.style.height = d.px + 'px';
 		} else if (d.type === 'LATITUDO_QUOTE') {
 			var price = d.ok && d.price ? (d.price.costWithVAT != null ? d.price.costWithVAT : d.price.cost) : null;
