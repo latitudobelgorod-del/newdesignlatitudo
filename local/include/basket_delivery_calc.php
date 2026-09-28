@@ -66,6 +66,12 @@ if (!$ndDcItems) {
 .nd-delivery-calc__title { margin: 0 0 6px; font-size: 20px; font-weight: 700; line-height: 1.3; }
 .nd-delivery-calc__note { margin: 0 0 14px; color: #777; font-size: 14px; line-height: 1.4; }
 .nd-delivery-calc__frame { display: block; width: 100%; min-height: 320px; border: 0; }
+/* Пока фрейм не прислал высоту — его не видно: пустой фрейм давал серое окно,
+   а в стартовой высоте мелькал скролл. На его месте — надпись загрузки. */
+/* Ширина — полная: по ней фрейм считает свою высоту. */
+.nd-delivery-calc__frame.is-loading { height: 0 !important; min-height: 0; visibility: hidden; }
+.nd-delivery-calc__loading { display: flex; align-items: center; justify-content: center; min-height: 120px; color: #777; font-size: 14px; }
+.nd-delivery-calc__loading[hidden] { display: none; }
 .nd-delivery-calc__result { margin-top: 12px; font-size: 16px; line-height: 1.4; }
 .nd-delivery-calc__result[hidden] { display: none; }
 .nd-delivery-calc__price { font-weight: 700; }
@@ -76,7 +82,8 @@ if (!$ndDcItems) {
 	<p class="nd-delivery-calc__note">Укажите город или адрес — посчитаем доставку товаров из корзины. Точную стоимость подтвердит менеджер.</p>
 	<?/* src ставит скрипт ниже, уже на новом месте блока: перенос iframe в DOM
 	     перезагружает его, и фрейм грузился бы дважды. */?>
-	<iframe class="nd-delivery-calc__frame" id="ndDeliveryCalcFrame" data-src="https://monitor.latitudo-scrum.ru/delivery-frame/" title="Расчёт доставки" loading="lazy" scrolling="no"></iframe>
+	<iframe id="ndDeliveryCalcFrame" data-src="https://monitor.latitudo-scrum.ru/delivery-frame/" title="Расчёт доставки" scrolling="no" class="nd-delivery-calc__frame is-loading"></iframe>
+	<div class="nd-delivery-calc__loading" id="ndDeliveryCalcLoading">Загружаем расчёт доставки…</div>
 	<div class="nd-delivery-calc__result" id="ndDeliveryCalcResult" hidden></div>
 </div>
 <script>
@@ -111,9 +118,14 @@ if (!$ndDcItems) {
 	   пришло, внутри мелькала полоса прокрутки (Ирина, 28.09.2026). Не пришла
 	   высота за 4 с после загрузки — ставим с запасом, чтобы не обрезать. */
 	var gotHeight = false;
+	var loading = document.getElementById('ndDeliveryCalcLoading');
+	function showFrame() {
+		frame.classList.remove('is-loading');
+		loading.hidden = true;
+	}
 	frame.addEventListener('load', function () {
 		setTimeout(function () {
-			if (!gotHeight) frame.style.height = '900px';
+			if (!gotHeight) { frame.style.height = '900px'; showFrame(); }
 		}, 4000);
 	});
 	var result = document.getElementById('ndDeliveryCalcResult');
@@ -161,6 +173,7 @@ if (!$ndDcItems) {
 		} else if (d.type === 'LATITUDO_HEIGHT' && d.px) {
 			gotHeight = true;
 			frame.style.height = d.px + 'px';
+			showFrame();
 		} else if (d.type === 'LATITUDO_QUOTE') {
 			var price = d.ok && d.price ? (d.price.costWithVAT != null ? d.price.costWithVAT : d.price.cost) : null;
 			if (price != null) {
