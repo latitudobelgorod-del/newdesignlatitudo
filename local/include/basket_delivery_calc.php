@@ -74,7 +74,9 @@ if (!$ndDcItems) {
 <div class="nd-delivery-calc" id="ndDeliveryCalc">
 	<h2 class="nd-delivery-calc__title">Расчёт доставки</h2>
 	<p class="nd-delivery-calc__note">Укажите город или адрес — посчитаем доставку товаров из корзины. Точную стоимость подтвердит менеджер.</p>
-	<iframe class="nd-delivery-calc__frame" id="ndDeliveryCalcFrame" src="https://monitor.latitudo-scrum.ru/delivery-frame/" title="Расчёт доставки" loading="lazy"></iframe>
+	<?/* src ставит скрипт ниже, уже на новом месте блока: перенос iframe в DOM
+	     перезагружает его, и фрейм грузился бы дважды. */?>
+	<iframe class="nd-delivery-calc__frame" id="ndDeliveryCalcFrame" data-src="https://monitor.latitudo-scrum.ru/delivery-frame/" title="Расчёт доставки" loading="lazy"></iframe>
 	<div class="nd-delivery-calc__result" id="ndDeliveryCalcResult" hidden></div>
 </div>
 <script>
@@ -82,6 +84,27 @@ if (!$ndDcItems) {
 	var ORIGIN = 'https://monitor.latitudo-scrum.ru';
 	var items = <?=CUtil::PhpToJSObject($ndDcItems)?>;
 	var frame = document.getElementById('ndDeliveryCalcFrame');
+
+	/* Место блока — под товарами в левой колонке корзины (Ирина, 28.09.2026).
+	   Шаблон корзины не трогаем: блок подключается из /basket/index.php после
+	   компонента и сам переезжает в .basket-items-list-outer. На узком экране
+	   (≤991px, колонки стоят друг под другом) — после итогов с кнопкой
+	   «Заказать», чтобы не отодвигать её вниз. Нет разметки корзины — блок
+	   остаётся, где подключён. Место выбираем один раз: при повороте экрана
+	   не двигаем, иначе фрейм перезагрузится и расчёт сбросится. */
+	(function () {
+		var calc = document.getElementById('ndDeliveryCalc');
+		var root = document.getElementById('basket-root');
+		var row = root && root.querySelector('.basket-items-list.flexbox--row');
+		var left = row && row.querySelector('.basket-items-list-outer');
+		if (!row || !left) return;
+		if (window.matchMedia && window.matchMedia('(max-width: 991px)').matches) {
+			row.parentNode.insertBefore(calc, row.nextSibling);
+		} else {
+			left.appendChild(calc);
+		}
+	})();
+	frame.src = frame.getAttribute('data-src');
 	var result = document.getElementById('ndDeliveryCalcResult');
 	var ready = false;
 	var sentKey = '';
