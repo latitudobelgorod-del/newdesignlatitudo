@@ -172,7 +172,14 @@ if (is_array($ndDcSaved)
 	   изменился — расчёт сбрасываем и тут, и в сессии. */
 	var SESSID = <?=CUtil::PhpToJSObject(bitrix_sessid())?>;
 	var quote = <?=CUtil::PhpToJSObject($ndDcQuote)?>;
-	if (quote) quote.key = itemsKey(currentItems());
+	/* PhpToJSObject отдаёт числа строками: '8737' + сумма товаров давало
+	   склейку «345 708 737 ₽» вместо сложения (Ирина, 28.09.2026). */
+	if (quote) {
+		quote.price = parseFloat(quote.price) || 0;
+		quote['with'] = quote['with'] === true || quote['with'] === 'true' || quote['with'] === '1' || quote['with'] === 1;
+		quote.vat = quote.vat === true || quote.vat === 'true' || quote.vat === '1' || quote.vat === 1;
+		quote.key = itemsKey(currentItems());
+	}
 
 	function itemsKey(list) {
 		/* Количество из PHP приходит строкой, из компонента — числом: приводим. */
@@ -253,7 +260,7 @@ if (is_array($ndDcSaved)
 				own.className = 'nd-total__sum-value nd-dq-total';
 				sum.appendChild(own);
 			}
-			setText(own, money(goods + quote.price));
+			setText(own, money(goods + (parseFloat(quote.price) || 0)));
 			if (!orig.hidden) orig.hidden = true;
 		} else {
 			if (own) own.parentNode.removeChild(own);
