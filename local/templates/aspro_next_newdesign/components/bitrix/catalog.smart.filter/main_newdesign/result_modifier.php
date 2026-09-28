@@ -109,6 +109,28 @@ foreach ($arResult['ITEMS'] as $key => $arItem) {
 	}
 }
 
+/* Кружок цвета перед названием у свойства «Цвет» (COLOR, 28.09.2026) — как в
+   фильтре портфолио. Значения те же шесть, что в справочнике портфолио, и
+   цвета кружков те же (news/projects_newdesign/page_blocks/list_elements_newdesign.php,
+   $ndColorDots); ключ здесь — XML_ID значения списка. */
+$ndColorDots = array(
+	'bright' => '#ff9500', // Яркий
+	'brown'  => '#8b5a2b', // Коричневый
+	'grey'   => '#9a9a9a', // Серый
+	'black'  => '#1a1a1a', // Черный
+	'light'  => '#e8dcc8', // Светлый
+	'white'  => '#ffffff', // Белый
+);
+foreach ($arResult['ITEMS'] as $key => $arItem) {
+	if (($arItem['CODE'] ?? '') !== 'COLOR' || empty($arItem['VALUES']) || !is_array($arItem['VALUES']))
+		continue;
+	foreach ($arItem['VALUES'] as $val => $ar) {
+		$xml = strtolower((string)($ar['URL_ID'] ?? ''));
+		if (isset($ndColorDots[$xml]))
+			$arResult['ITEMS'][$key]['VALUES'][$val]['ND_DOT'] = $ndColorDots[$xml];
+	}
+}
+
 \Bitrix\Main\Localization\Loc::loadLanguageFile(__FILE__);
 
 // sort

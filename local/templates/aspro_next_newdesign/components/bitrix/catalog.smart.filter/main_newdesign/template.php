@@ -792,6 +792,10 @@ $ndIsExpanded = function($arItem) use (&$ndBoxIndex) {
 													<?if(!empty($ar["ND_LOGO"])):?>
 														<img class="nd-filter__logo" src="<?=$ar["ND_LOGO"]?>" width="20" height="20" alt="<?=$ar["VALUE"];?>" loading="lazy" />
 													<?endif;?>
+													<?// Кружок цвета у свойства «Цвет» — как в фильтре портфолио (result_modifier).?>
+													<?if(!empty($ar["ND_DOT"])):?>
+														<span class="nd-filter__dot" style="background: <?=$ar["ND_DOT"]?>" aria-hidden="true"></span>
+													<?endif;?>
 
 													<span class="bx_filter_param_text" title="<?=$ar["VALUE"];?>"><?=$ar["VALUE"];?><?
 													if ($arParams["DISPLAY_ELEMENT_COUNT"] !== "N" && isset($ar["ELEMENT_COUNT"]) && !$isSize):
