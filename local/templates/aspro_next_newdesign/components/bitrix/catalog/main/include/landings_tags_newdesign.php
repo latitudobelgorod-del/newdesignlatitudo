@@ -8,6 +8,8 @@
                         "IBLOCK_ID" => CNextCache::$arIBlocks[SITE_ID]["aspro_next_catalog"]["aspro_next_catalog_info"][0],
                         "NEWS_COUNT" => "999",
                         "SHOW_COUNT" => $arParams["LANDING_SECTION_COUNT"],
+                        // шаблон отмечает тег текущей страницы — адрес в ключ кеша (latitudo_catalog_cache.php)
+                        "ND_CUR_PATH" => ndCurrentPathKey(),
                         "COMPARE_FIELD" => "FILTER_URL",
                         "COMPARE_PROP" => "Y",
                         "SORT_BY1" => "SORT",

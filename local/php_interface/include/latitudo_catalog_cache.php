@@ -47,6 +47,22 @@ function ndRegionStoreId(): int
 }
 
 /**
+ * Текущий адрес страницы — параметром компонента, чей шаблон что-то отмечает
+ * по адресу (текущий тег посадочной в landings_list): так адрес входит в ключ
+ * кеша. Без этого первый открытый тег застревал «текущим» на всех соседних
+ * посадочных (28.09.2026, «Черные» горели на «Коричневых»). Путь и из
+ * REQUEST_URI, и GetCurDir — как сверяет шаблон: на посадочной Сотбит
+ * подменяет REQUEST_URI техническим адресом фильтра.
+ */
+function ndCurrentPathKey(): string
+{
+    global $APPLICATION;
+    $path = rtrim((string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH), '/') . '/';
+    $dir = is_object($APPLICATION) ? rtrim((string)$APPLICATION->GetCurDir(), '/') . '/' : '';
+    return $path . '|' . $dir;
+}
+
+/**
  * Хост текущего поддомена — для меток #ND_HOST#. Из заголовка берём только
  * допустимые символы: он уходит в разметку.
  */
