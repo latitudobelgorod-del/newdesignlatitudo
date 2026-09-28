@@ -63,6 +63,29 @@ function ndCurrentPathKey(): string
 }
 
 /**
+ * Признак «посетитель с utm-меткой» + город — параметром компонента, чей шаблон
+ * подменяет контакты по метке (showrooms_newdesign на «О компании»). Иначе
+ * кеш, собранный посетителем с меткой, показал бы подменные телефон и почту
+ * всем остальным, а обратной замены на выходе нет. Город — потому что
+ * подменная почта у каждого региона своя.
+ */
+function ndUtmCacheKey(): string
+{
+    if (!function_exists('ndIsUtmVisit') || !ndIsUtmVisit()) {
+        return 'n';
+    }
+    global $arRegion;
+    return 'utm-' . (is_array($arRegion) ? (int)($arRegion['ID'] ?? 0) : 0);
+}
+
+/** ID текущего региона — в ключ кеша компонентов, чей шаблон выводит что-то своё для города. */
+function ndRegionCacheKey(): int
+{
+    global $arRegion;
+    return is_array($arRegion) ? (int)($arRegion['ID'] ?? 0) : 0;
+}
+
+/**
  * Хост текущего поддомена — для меток #ND_HOST#. Из заголовка берём только
  * допустимые символы: он уходит в разметку.
  */

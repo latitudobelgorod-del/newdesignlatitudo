@@ -149,6 +149,8 @@ $ndCoProIcon = static function ($key) {
 			'IBLOCK_ID' => '10',
 			'NEWS_COUNT' => '10',
 			'FILTER_NAME' => 'ndCoShowroomsFilter',
+			// шаблон подменяет контакты по utm-метке — метка и город в ключ кеша (latitudo_catalog_cache.php)
+			'ND_UTM_KEY' => ndUtmCacheKey(),
 			'SORT_BY1' => 'SORT',
 			'SORT_ORDER1' => 'ASC',
 			'SORT_BY2' => 'ID',

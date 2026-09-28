@@ -122,6 +122,8 @@ $APPLICATION->IncludeComponent(
 		'FIELD_CODE' => $arNdReviewFields,
 		'PROPERTY_CODE' => $arNdReviewProps,
 		'FILTER_NAME' => 'arNdReviewsFilter',
+		// кнопка «Оставить отзыв» ведёт на карту своего города — город в ключ кеша (latitudo_catalog_cache.php)
+		'ND_REGION_KEY' => ndRegionCacheKey(),
 		'AJAX_MODE' => 'N',
 		'AJAX_OPTION_JUMP' => 'N',
 		'AJAX_OPTION_STYLE' => 'Y',
