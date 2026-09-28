@@ -60,6 +60,21 @@ foreach ($ndDcBasket->getOrderableItems() as $ndDcItem) {
 if (!$ndDcItems) {
 	return;
 }
+
+/* Расчёт, уже сохранённый для этого же состава корзины (перезагрузили
+   страницу) — показываем его в итогах сразу, фрейм не ждём. */
+require_once $_SERVER['DOCUMENT_ROOT'] . '/local/php_interface/include/latitudo_delivery_quote.php';
+$ndDcQuote = null;
+$ndDcSaved = $_SESSION['ND_DELIVERY_QUOTE'] ?? null;
+if (is_array($ndDcSaved)
+	&& time() - (int)($ndDcSaved['TIME'] ?? 0) <= 86400
+	&& (string)($ndDcSaved['KEY'] ?? '') === ndDeliveryQuoteBasketKey($ndDcBasket->getOrderableItems())) {
+	$ndDcQuote = array(
+		'to'    => (string)$ndDcSaved['TO'],
+		'price' => (float)$ndDcSaved['PRICE'],
+		'with'  => !empty($ndDcSaved['WITH']),
+	);
+}
 ?>
 <style>
 .nd-delivery-calc { margin: 32px 0 8px; padding: 20px; border: 1px solid #e6e6e6; border-radius: 4px; background: #fafafa; }
@@ -76,6 +91,12 @@ if (!$ndDcItems) {
 .nd-delivery-calc__result[hidden] { display: none; }
 .nd-delivery-calc__price { font-weight: 700; }
 @media (max-width: 600px) { .nd-delivery-calc { padding: 14px; } }
+/* Доставка в панели «Итого»: строка и галочка под суммой. Классы строки и
+   галочки — те же, что у панели (.nd-total__row, .nd-total__check). */
+#basket-root .nd-dq { margin: 16px 0 0; }
+#basket-root .nd-total__sum-value[hidden] { display: none; }
+#basket-root .nd-dq .nd-total__row-name { white-space: normal; }
+#basket-root .nd-dq .nd-total__check { margin-top: 8px; }
 </style>
 <div class="nd-delivery-calc" id="ndDeliveryCalc">
 	<h2 class="nd-delivery-calc__title">Расчёт доставки</h2>
@@ -132,6 +153,122 @@ if (!$ndDcItems) {
 	var ready = false;
 	var sentKey = '';
 
+	/* ---- Доставка в панели «Итого» (Ирина, 28.09.2026) ----------------------
+	   После расчёта в панели итогов под суммой — строка «Доставка — куда: N ₽»
+	   и галочка «С доставкой»: с ней сумма доставки прибавляется к «Итого».
+	   Панель — мустач-шаблон, корзина перерисовывает её при каждом пересчёте,
+	   поэтому строку возвращает MutationObserver. Сумму «Итого» компонент
+	   анимирует, пересчитывая цифры в [data-entity="basket-total-price"]: её не
+	   переписываем, а при включённой доставке прячем и показываем рядом свою.
+	   Расчёт и галочка уходят в сессию (/local/ajax/nd_delivery_quote.php),
+	   при оформлении они попадут в комментарий заказа. Состав корзины
+	   изменился — расчёт сбрасываем и тут, и в сессии. */
+	var SESSID = <?=CUtil::PhpToJSObject(bitrix_sessid())?>;
+	var quote = <?=CUtil::PhpToJSObject($ndDcQuote)?>;
+	if (quote) quote.key = itemsKey(currentItems());
+
+	function itemsKey(list) {
+		/* Количество из PHP приходит строкой, из компонента — числом: приводим. */
+		return JSON.stringify(list.map(function (it) { return [String(it.id), parseFloat(it.qty)]; }));
+	}
+
+	function saveQuote() {
+		var body = new URLSearchParams();
+		body.append('sessid', SESSID);
+		if (quote) {
+			body.append('action', 'save');
+			body.append('to', quote.to || '');
+			body.append('price', String(quote.price));
+			body.append('with', quote['with'] ? 'Y' : 'N');
+		} else {
+			body.append('action', 'clear');
+		}
+		fetch('/local/ajax/nd_delivery_quote.php', { method: 'POST', body: body, credentials: 'same-origin' })
+			.catch(function () {});
+	}
+
+	function goodsSum() {
+		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+		var t = bc && bc.result && bc.result.TOTAL_RENDER_DATA;
+		var v = t ? parseFloat(t.PRICE) : NaN;
+		return isNaN(v) ? null : v;
+	}
+
+	function setText(node, text) {
+		if (node.textContent !== text) node.textContent = text;
+	}
+
+	function applyTotal() {
+		var root = document.getElementById('basket-root');
+		var card = root && root.querySelector('[data-entity="basket-total-block"] .nd-total__card');
+		if (!card) return;
+		var sum = card.querySelector('.nd-total__sum');
+		var orig = sum && sum.querySelector('[data-entity="basket-total-price"]');
+		if (!sum || !orig) return;
+		var box = card.querySelector('.nd-dq');
+		var own = sum.querySelector('.nd-dq-total');
+		var goods = goodsSum();
+
+		if (!quote || goods === null) {
+			if (box) box.parentNode.removeChild(box);
+			if (own) own.parentNode.removeChild(own);
+			if (orig.hidden) orig.hidden = false;
+			return;
+		}
+
+		if (!box) {
+			box = document.createElement('div');
+			box.className = 'nd-dq';
+			box.innerHTML = '<div class="nd-total__row"><span class="nd-total__row-name"></span><span class="nd-total__row-value"></span></div>'
+				+ '<label class="nd-total__check"><input type="checkbox" class="nd-total__check-input">'
+				+ '<span class="nd-total__check-box"></span><span class="nd-total__check-text">С доставкой</span></label>';
+			box.querySelector('input').addEventListener('change', function () {
+				if (!quote) return;
+				quote['with'] = this.checked;
+				applyTotal();
+				saveQuote();
+			});
+			sum.parentNode.insertBefore(box, sum.nextSibling);
+		}
+		setText(box.querySelector('.nd-total__row-name'), 'Доставка' + (quote.to ? ' — ' + quote.to : ''));
+		setText(box.querySelector('.nd-total__row-value'), money(quote.price));
+		var check = box.querySelector('input');
+		if (check.checked !== !!quote['with']) check.checked = !!quote['with'];
+
+		if (quote['with']) {
+			if (!own) {
+				own = document.createElement('span');
+				own.className = 'nd-total__sum-value nd-dq-total';
+				sum.appendChild(own);
+			}
+			setText(own, money(goods + quote.price));
+			if (!orig.hidden) orig.hidden = true;
+		} else {
+			if (own) own.parentNode.removeChild(own);
+			if (orig.hidden) orig.hidden = false;
+		}
+	}
+
+	function dropQuote() {
+		if (!quote) return;
+		quote = null;
+		applyTotal();
+		saveQuote();
+	}
+
+	(function () {
+		var root = document.getElementById('basket-root');
+		var block = root && root.querySelector('[data-entity="basket-total-block"]');
+		if (!block || !window.MutationObserver) return;
+		var queued = false;
+		new MutationObserver(function () {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(function () { queued = false; applyTotal(); });
+		}).observe(block, { childList: true, subtree: true });
+	})();
+	applyTotal();
+
 	/* Количество в корзине меняют без перезагрузки: берём актуальное из
 	   BX.Sale.BasketComponent. Удалённая позиция там либо с SHOW_RESTORE
 	   («Восстановить»), либо уже не в sortedItems. По DOM не судим: корзина
@@ -177,6 +314,9 @@ if (!$ndDcItems) {
 		} else if (d.type === 'LATITUDO_QUOTE') {
 			var price = d.ok && d.price ? (d.price.costWithVAT != null ? d.price.costWithVAT : d.price.cost) : null;
 			if (price != null) {
+				quote = { to: d.to && d.to.text ? String(d.to.text) : '', price: parseFloat(price), 'with': true, key: itemsKey(currentItems()) };
+				applyTotal();
+				saveQuote();
 				var to = d.to && d.to.text ? ' — ' + String(d.to.text) : '';
 				result.textContent = '';
 				result.appendChild(document.createTextNode('Доставка' + to + ': '));
@@ -185,12 +325,16 @@ if (!$ndDcItems) {
 				b.textContent = money(price);
 				result.appendChild(b);
 			} else {
+				dropQuote();
 				result.textContent = 'Не удалось рассчитать доставку автоматически — менеджер посчитает её при оформлении заказа.';
 			}
 			result.hidden = false;
 		}
 	});
 
-	setInterval(function () { pushOrder(false); }, 1500);
+	setInterval(function () {
+		if (quote && itemsKey(currentItems()) !== quote.key) dropQuote();
+		pushOrder(false);
+	}, 1500);
 })();
 </script>

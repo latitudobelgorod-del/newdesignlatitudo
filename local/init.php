@@ -294,6 +294,19 @@ AddEventHandler('main', 'OnEndBufferContent', 'ndCatalogCacheTokens', 10030);
 AddEventHandler('main', 'OnEndBufferContent', 'ndDedupNewdesignAssets', 10070);
 
 /**
+ * Расчёт доставки из корзины (фрейм LATITUDO, галочка «С доставкой») —
+ * в комментарий нового заказа, если состав с расчёта не менялся. Сумма
+ * заказа не меняется: цена из браузера, для менеджера — «предварительно».
+ * Файл подключаем только на сохранении заказа.
+ *
+ * Логика в local/php_interface/include/latitudo_delivery_quote.php.
+ */
+\Bitrix\Main\EventManager::getInstance()->addEventHandler('sale', 'OnSaleOrderBeforeSaved', function (\Bitrix\Main\Event $event) {
+    require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_delivery_quote.php';
+    ndDeliveryQuoteToOrder($event);
+});
+
+/**
  * «Полный товарный фид <город>» в модуле «Маркет для продавцов»: наполнение
  * карточки — доп. фото, видео, характеристики, описание, бренд латиницей.
  *
