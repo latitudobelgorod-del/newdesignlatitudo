@@ -89,20 +89,12 @@ global $imya_sayta;
 	<?
 
 
-// ID склада по умолчанию (если регион не определён или нет соответствия)
-$regionStoreId = 1;
-
-// Соответствие ID региона -> ID склада
-$regionToStoreMap = [
-    9277 => 1,  // Белгород
-    9278 => 2,  // Воронеж
-    9568 => 4,  // Краснодар
-    10039 => 3, // Москва
-];
-
-if ($arRegion && !empty($arRegion['ID']) && isset($regionToStoreMap[$arRegion['ID']])) {
-    $regionStoreId = $regionToStoreMap[$arRegion['ID']];
-}
+/* Склад города для блока наличия. Приходит параметром ND_STORE_ID
+   (page_blocks/element_newdesign.php), чтобы входить в ключ кеша: шаблон,
+   попавший в кеш, не выполняется, и склад, посчитанный здесь, приехал бы
+   от того города, кто открыл товар первым. Таблица «регион → склад» —
+   ndRegionStoreId() в local/php_interface/include/latitudo_catalog_cache.php. */
+$regionStoreId = (int)($arParams['ND_STORE_ID'] ?? 0) ?: ndRegionStoreId();
 ?>
 <?if($arResult["IPROPERTY_VALUES"]["ELEMENT_PAGE_TITLE"])
 {
@@ -120,9 +112,8 @@ else {
 ?>
 <?//file_put_contents($_SERVER['DOCUMENT_ROOT'].'/xxx-5555.txt', print_r($arResult["IPROPERTY_VALUES"], 1));?>
 
-<?if ($_SERVER['REQUEST_URI'] !== $arResult['DETAIL_PAGE_URL']):?>
- <?$APPLICATION->SetPageProperty("robots", "noindex, nofollow"); ?>
-<?endif;?>
+<?/* robots noindex для адреса с параметрами ставит component_epilog.php:
+     шаблон на попадании в кеш не выполняется. */?>
 <?/* Панель мобильной карточки (макет «Карточка товара» 20512:84167, фрейм
       «Catalog»): стрелка «назад», свёрнутые крошки «⋯ раздел» и артикул справа.
       На телефоне она заменяет шапку сайта — так в макете; навигация остаётся в
@@ -301,59 +292,22 @@ setViewedProduct(<?=$arResult['ID']?>, <?=CUtil::PhpToJSObject($arViewedData, fa
 </script>
 
 <?
-$detail_URL = 'https://' . $_SERVER['HTTP_HOST'] . $arResult["DETAIL_PAGE_URL"];
-?>
+/* Хост — меткой #ND_HOST#: у каждого города свой поддомен, а шаблон уходит в
+   кеш. Метку подставляет ndCatalogCacheTokens (latitudo_catalog_cache.php). */
+$detail_URL = 'https://#ND_HOST#' . $arResult["DETAIL_PAGE_URL"];
 
-
-
-<?
-// Добавляем OG теги для товара
-
-$APPLICATION->AddHeadString('<meta property="og:type" content="website" />');
-$APPLICATION->AddHeadString('<meta property="og:site_name" content="Латитудо - изделия из ДПК от производителя" />');
-
-$APPLICATION->AddHeadString('<meta property="og:logo" content="' . (CMain::IsHTTPS() ? 'https://' : 'http://') . SITE_SERVER_NAME. '/images/company/logo.png" />');
-
-$APPLICATION->AddHeadString('<meta property="og:title" content="' . htmlspecialcharsbx($arResult['NAME']) . '" />');
-if ($arResult['PREVIEW_TEXT']) {
-  // $APPLICATION->AddHeadString('<meta property="og:description" content="' . htmlspecialcharsbx(truncateText($arResult['PREVIEW_TEXT'], 200)) . '" />');
-}
-
-$APPLICATION->AddHeadString('<meta property="og:url" content="' . (CMain::IsHTTPS() ? 'https://' : 'http://') . SITE_SERVER_NAME . $APPLICATION->GetCurPage() . '" />');
-
-if ($arResult['DETAIL_PICTURE']['SRC']) {
-    $APPLICATION->AddHeadString('<meta property="og:image" content="' . (CMain::IsHTTPS() ? 'https://' : 'http://') . SITE_SERVER_NAME . $arResult['DETAIL_PICTURE']['SRC'] . ' " />');
-}
-	$APPLICATION->AddHeadString('<meta property="og:image:width" content="500" />');	
-	$APPLICATION->AddHeadString('<meta property="og:image:height" content="500" />');
-	$APPLICATION->AddHeadString('<meta property="og:image:alt" content="' . htmlspecialcharsbx($arResult['NAME']) . '" />');
-	$APPLICATION->AddHeadString('<meta property="og:image:type" content="image/jpeg" />');
-	
-	
-								
-if ($arResult['CATEGORY_PATH']) {
-    $APPLICATION->AddHeadString('<meta property="product:category" content="' . htmlspecialcharsbx($arResult['CATEGORY_PATH']) . '" />');
-}
-
-
-if ($arResult["BRAND_ITEM"]["NAME"]) {
-    $APPLICATION->AddHeadString('<meta property="product:brand" content="' . htmlspecialcharsbx($arResult["BRAND_ITEM"]["NAME"]) . '" />');
-}
-
-
-$APPLICATION->AddHeadString('<meta property="product:retailer_item_id" content="' . htmlspecialcharsbx($arResult["ID"]) . '">');
-$APPLICATION->AddHeadString('<meta property="product:availability" content="in stock">');
-
-
-if ($arResult['MIN_PRICE']['DISCOUNT_VALUE']) {
-  $APPLICATION->AddHeadString('<meta property="price:amount" content="' . htmlspecialcharsbx($arResult['MIN_PRICE']['DISCOUNT_VALUE']) . '" />');
-}
-else{
-$APPLICATION->AddHeadString('<meta property="price:amount" content="' . htmlspecialcharsbx($arResult['MIN_PRICE']['VALUE']) . '" />');
-	}
-
-$APPLICATION->AddHeadString('<meta property="price:currency" content="' . htmlspecialcharsbx($arResult['MIN_PRICE']['CURRENCY']) . '" />');
-
+/* OG-теги товара печатает component_epilog.php: AddHeadString отсюда на
+   попадании в кеш пропадал (проверка 28 сентября 2026). Здесь только данные
+   для них — $templateData кешируется вместе с шаблоном. */
+$templateData['ND_OG'] = array(
+	'NAME' => $arResult['NAME'],
+	'PICTURE' => $arResult['DETAIL_PICTURE']['SRC'] ?? '',
+	'CATEGORY_PATH' => $arResult['CATEGORY_PATH'] ?? '',
+	'BRAND' => $arResult['BRAND_ITEM']['NAME'] ?? '',
+	'ID' => $arResult['ID'],
+	'PRICE' => ($arResult['MIN_PRICE']['DISCOUNT_VALUE'] ?? '') ?: ($arResult['MIN_PRICE']['VALUE'] ?? ''),
+	'CURRENCY' => $arResult['MIN_PRICE']['CURRENCY'] ?? '',
+);
 ?>
 
 
@@ -2460,47 +2414,10 @@ $ndColorItems = array_values(array_filter(
    выводим: разметку переносит сюда newdesign-element.js, как плашки товара в
    галерею. Тексты доставки — включаемая область, чтобы правились из публички.
    ========================================================================= */
-$ndSales = [];
-if (CModule::IncludeModule('iblock')) {
-	$arSalesFilter = [
-		'IBLOCK_ID' => 17,
-		'ACTIVE' => 'Y',
-		'ACTIVE_DATE' => 'Y',
-		'PROPERTY_LINK_GOODS' => $arResult['ID'],
-	];
-	/* Регион: акция без привязки — общая. ИЛИ обязательно подгруппой, иначе оно
-	   распространится на весь фильтр вместе с IBLOCK_ID (та же грабля, что на главной). */
-	if (class_exists('CNextRegionality')) {
-		$ndRegion = CNextRegionality::getCurrentRegion();
-		$ndRegionId = is_array($ndRegion) ? (int) $ndRegion['ID'] : 0;
-		if ($ndRegionId) {
-			$arSalesFilter[] = [
-				'LOGIC' => 'OR',
-				['PROPERTY_LINK_REGION' => $ndRegionId],
-				['PROPERTY_LINK_REGION' => false],
-			];
-		}
-	}
-	$rsSales = CIBlockElement::GetList(
-		['SORT' => 'ASC', 'ID' => 'DESC'],
-		$arSalesFilter,
-		false,
-		['nTopCount' => 6],
-		['ID', 'NAME', 'DETAIL_PAGE_URL', 'PREVIEW_PICTURE', 'PROPERTY_IMAGE_FOR_CATALOG']
-	);
-	/* GetNext, а не Fetch: подстановку #SITE_DIR#/#ELEMENT_CODE# в
-	   DETAIL_PAGE_URL делает только он — с Fetch ссылки на акции уходили
-	   с неразобранным шаблоном адреса и не открывались. */
-	while ($arSale = $rsSales->GetNext(false, false)) {
-		/* Берём обычный баннер акции (как на /sale/), а не IMAGE_FOR_CATALOG:
-		   тот нарисован вертикальным — под вставку в сетку каталога. */
-		$picId = (int) ($arSale['PREVIEW_PICTURE'] ?: $arSale['PROPERTY_IMAGE_FOR_CATALOG_VALUE']);
-		/* Качество 82 седьмым параметром: в настройках модуля стоит 100, и баннер
-		   акции весил под 200 КБ. Размер сдвинут на пиксель — за новым кешем. */
-		$arSale['ND_PIC'] = $picId ? CFile::ResizeImageGet($picId, ['width' => 620, 'height' => 620], BX_RESIZE_IMAGE_PROPORTIONAL, true, false, false, 82) : false;
-		$ndSales[] = $arSale;
-	}
-}
+/* Акции свои у каждого города и у каждой даты, а шаблон уходит в кеш. Поэтому
+   их считает component_epilog.php (ndProductSalesHtml), а здесь стоят метки
+   #ND_PD_SALES# и #ND_PD_NOSALES# — их подставляет ndCatalogCacheTokens
+   (local/php_interface/include/latitudo_catalog_cache.php). */
 ?>
 <? /* Акции — отдельный элемент сетки, а не часть левой колонки: в макете их
       место зависит от того, есть ли у товара характеристики.
@@ -2515,8 +2432,8 @@ if (CModule::IncludeModule('iblock')) {
       левую клетку занять нечем, и документы с доставкой встают друг под друга
       слева против пустой правой половины. Тогда разводим их по колонкам —
       документы слева, доставка справа (Ирина, 2 сентября 2026). Про акции
-      здесь знает шаблон, поэтому класс печатаем сразу. */ ?>
-<div class="nd-pd__bottom<?= $ndSales ? '' : ' nd-pd__bottom--nosales' ?>">
+      знает сервер, поэтому класс приходит сразу — меткой #ND_PD_NOSALES#. */ ?>
+<div class="nd-pd__bottom#ND_PD_NOSALES#">
 	<div class="nd-pd__bottom-col nd-pd__bottom-col--chars">
 		<? /* Сюда newdesign-element.js переносит характеристики: по макету они
 		      стоят слева в одной строке с документами, а не отдельным рядом. */ ?>
@@ -2540,22 +2457,7 @@ if (CModule::IncludeModule('iblock')) {
 		</div>
 	</div>
 
-	<? if ($ndSales): ?>
-		<div class="nd-pd__sales-block">
-			<h2 class="nd-pd__h2">Акции</h2>
-			<div class="nd-pd__sales">
-				<? foreach ($ndSales as $arSale): ?>
-					<a class="nd-pd__sale" href="<?= $arSale['DETAIL_PAGE_URL'] ?>">
-						<? if ($arSale['ND_PIC']): ?>
-							<img src="<?= $arSale['ND_PIC']['src'] ?>" alt="<?= htmlspecialcharsbx($arSale['NAME']) ?>" loading="lazy">
-						<? else: ?>
-							<span class="nd-pd__sale-name"><?= htmlspecialcharsbx($arSale['NAME']) ?></span>
-						<? endif; ?>
-					</a>
-				<? endforeach; ?>
-			</div>
-		</div>
-	<? endif; ?>
+	#ND_PD_SALES#
 </div>
 
 <?/*С этим товаром покупают*/?>

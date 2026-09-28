@@ -281,6 +281,19 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_se
 AddEventHandler('main', 'OnEndBufferContent', 'ndPriceFromTokens', 10040);
 
 /**
+ * Кеш каталога (включён 28 сентября 2026): что остаётся живым поверх него —
+ * хост поддомена и акции карточки метками, склад города в ключе кеша, сброс
+ * кеша по остаткам из 1С (не чаще раза в 10 минут), без двойного подключения
+ * стилей и скриптов нового дизайна. Функции зовут шаблоны — подключаем сразу.
+ *
+ * Логика в local/php_interface/include/latitudo_catalog_cache.php.
+ */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_catalog_cache.php';
+AddEventHandler('main', 'OnPageStart', 'ndStockCacheFlush');
+AddEventHandler('main', 'OnEndBufferContent', 'ndCatalogCacheTokens', 10030);
+AddEventHandler('main', 'OnEndBufferContent', 'ndDedupNewdesignAssets', 10070);
+
+/**
  * «Полный товарный фид <город>» в модуле «Маркет для продавцов»: наполнение
  * карточки — доп. фото, видео, характеристики, описание, бренд латиницей.
  *

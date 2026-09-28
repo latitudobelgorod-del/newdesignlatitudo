@@ -20,7 +20,9 @@
    есть, а второй такой же сбил бы нумерацию. */?>
 <?if(!$ldItemsOnly && ($arParams['ND_SECTION_LISTING'] ?? '') === 'Y' && !empty($arResult['ITEMS'])):?>
 	<?
-	$ndListHost = 'https://'.$_SERVER['HTTP_HOST'];
+	// Хост меткой: у каждого города свой поддомен, а список уходит в кеш
+	// (подставляет ndCatalogCacheTokens, latitudo_catalog_cache.php).
+	$ndListHost = 'https://#ND_HOST#';
 	$ndListElements = array();
 	$ndListPos = 0;
 	foreach($arResult['ITEMS'] as $ndListItem){

@@ -4,6 +4,8 @@
 	Array(
 	 "SELECTED_OFFER_ID" => $arParams["SELECTED_OFFER_ID"],
 		"USE_REGION" => ($arRegion ? "Y" : "N"),
+		// Склад города — параметром, чтобы входил в ключ кеша (см. latitudo_catalog_cache.php).
+		"ND_STORE_ID" => ndRegionStoreId(),
 		"SECTION_TIZER"=>$arSection["UF_TIZERS"],
 		"SHOW_UNABLE_SKU_PROPS"=>$arParams["SHOW_UNABLE_SKU_PROPS"],
 		"SHOW_DISCOUNT_TIME_EACH_SKU" => $arParams["SHOW_DISCOUNT_TIME_EACH_SKU"],

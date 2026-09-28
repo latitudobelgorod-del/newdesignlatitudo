@@ -22,6 +22,52 @@ global $arTheme, $arRegion;
 	<? $APPLICATION->AddHeadString('<link href="https://'.$_SERVER['HTTP_HOST'].$arResult['DETAIL_PAGE_URL'].'" rel="canonical" />', true); ?>
 <? endif; ?>
 
+<?/* Всё ниже раньше делал template.php, но с 28 сентября 2026 каталог кешируется,
+     и на попадании в кеш шаблон не выполняется — выполняется только этот файл. */?>
+<?
+// Адрес с параметрами (?pid=, utm, короткие ссылки) — не индексировать.
+if ($arResult['DETAIL_PAGE_URL'] && $_SERVER['REQUEST_URI'] !== $arResult['DETAIL_PAGE_URL']) {
+	$APPLICATION->SetPageProperty('robots', 'noindex, nofollow');
+}
+
+// OG-теги товара. Данные собирает template.php в $templateData['ND_OG'].
+if (!empty($templateData['ND_OG'])) {
+	$ndOg = $templateData['ND_OG'];
+	$ndOgBase = (CMain::IsHTTPS() ? 'https://' : 'http://') . SITE_SERVER_NAME;
+	$ndOgTags = array(
+		'<meta property="og:type" content="website" />',
+		'<meta property="og:site_name" content="Латитудо - изделия из ДПК от производителя" />',
+		'<meta property="og:logo" content="' . $ndOgBase . '/images/company/logo.png" />',
+		'<meta property="og:title" content="' . htmlspecialcharsbx($ndOg['NAME']) . '" />',
+		'<meta property="og:url" content="' . $ndOgBase . $APPLICATION->GetCurPage() . '" />',
+	);
+	if ($ndOg['PICTURE']) {
+		$ndOgTags[] = '<meta property="og:image" content="' . $ndOgBase . $ndOg['PICTURE'] . '" />';
+	}
+	$ndOgTags[] = '<meta property="og:image:width" content="500" />';
+	$ndOgTags[] = '<meta property="og:image:height" content="500" />';
+	$ndOgTags[] = '<meta property="og:image:alt" content="' . htmlspecialcharsbx($ndOg['NAME']) . '" />';
+	$ndOgTags[] = '<meta property="og:image:type" content="image/jpeg" />';
+	if ($ndOg['CATEGORY_PATH']) {
+		$ndOgTags[] = '<meta property="product:category" content="' . htmlspecialcharsbx($ndOg['CATEGORY_PATH']) . '" />';
+	}
+	if ($ndOg['BRAND']) {
+		$ndOgTags[] = '<meta property="product:brand" content="' . htmlspecialcharsbx($ndOg['BRAND']) . '" />';
+	}
+	$ndOgTags[] = '<meta property="product:retailer_item_id" content="' . htmlspecialcharsbx($ndOg['ID']) . '">';
+	$ndOgTags[] = '<meta property="product:availability" content="in stock">';
+	$ndOgTags[] = '<meta property="price:amount" content="' . htmlspecialcharsbx($ndOg['PRICE']) . '" />';
+	$ndOgTags[] = '<meta property="price:currency" content="' . htmlspecialcharsbx($ndOg['CURRENCY']) . '" />';
+	foreach ($ndOgTags as $ndOgTag) {
+		$APPLICATION->AddHeadString($ndOgTag);
+	}
+	unset($ndOg, $ndOgBase, $ndOgTags, $ndOgTag);
+}
+
+// Акции товара — в метку #ND_PD_SALES# шаблона (см. latitudo_catalog_cache.php).
+$GLOBALS['ND_PD_SALES_HTML'] = ndProductSalesHtml((int)$arResult['ID']);
+?>
+
 <?if($arResult["ID"]):?>
 	<?
 	// cross sales for product

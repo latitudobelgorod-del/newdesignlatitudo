@@ -149,6 +149,11 @@ function update_stock(PDO $pdo, int $offer_id, int $store_id, int $quantity): vo
          WHERE ID = ?"
     );
     $stmt->execute([$offer_id, $offer_id]);
+
+    // Остатки пишем мимо Битрикса, и кеш каталога о них не знает. Отметка
+    // «остатки менялись» — по ней сайт сбрасывает кеш каталога, не чаще раза
+    // в 10 минут (ndStockCacheFlush, local/php_interface/include/latitudo_catalog_cache.php).
+    @touch(__DIR__ . '/logs/cache_dirty.flag');
 }
 
 function json_input(): array {
