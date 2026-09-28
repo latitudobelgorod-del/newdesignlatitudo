@@ -41,7 +41,9 @@ $ndTel = static function ($phone) {
 	return 'tel:'.preg_replace('/[^0-9+]/', '', $phone);
 };
 ?>
-<div class="nd-contacts">
+<?/* nd-contacts--page: те же классы (.nd-contacts, __row, __ico) у мобильной шторки
+     «Связаться с нами» (css/newdesign-mobile.css) — модификатор отделяет страницу. */?>
+<div class="nd-contacts nd-contacts--page">
 	<? foreach ($arResult['ITEMS'] as $arItem): ?>
 		<?
 		$this->AddEditAction($arItem['ID'], $arItem['EDIT_LINK'], CIBlock::GetArrayByID($arItem['IBLOCK_ID'], 'ELEMENT_EDIT'));

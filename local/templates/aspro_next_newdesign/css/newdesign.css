@@ -2812,6 +2812,49 @@ body .maxwidth-theme .maxwidth-theme {
     min-width: 0;
     padding: 24px;
 }
+/* Те же имена классов у мобильной шторки «Связаться с нами»
+   (css/newdesign-mobile.css, до 991px): там .nd-contacts — колонка с полями и
+   прокруткой, .nd-contacts__row — по центру с полями 8px, значки 24px. Файл
+   подключается позже этого, и на телефоне карточки страницы контактов
+   разъезжались (28.09.2026). Возвращаем свои правила более точными
+   селекторами — шторку не трогаем. */
+.nd-contacts.nd-contacts--page {
+    display: grid;
+    flex: none;
+    gap: 24px;
+    padding: 0;
+    overflow: visible;
+}
+.nd-contacts__item .nd-contacts__row {
+    align-items: flex-start;
+    padding: 0;
+}
+.nd-contacts__item .nd-contacts__ico {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+}
+@media (max-width: 1199px) {
+    .nd-contacts.nd-contacts--page {
+        gap: 16px;
+    }
+}
+/* На телефоне фото под текстом — горизонтальное 4:3, как в мобильном фрейме
+   «Контакты»; без этого оно вставало во всю высоту снимка (~580px). */
+@media (max-width: 767px) {
+    .nd-contacts__item .nd-contacts__media {
+        min-height: 0;
+        aspect-ratio: 4 / 3;
+    }
+}
+/* Микроразметка координат (<span itemprop="geo"> с meta внутри) лежит прямо в
+   сетке карточки: пустой span становился первой ячейкой, и колонка с адресом
+   уезжала в узкую правую, а фото — на новую строку (контакты прочих городов,
+   28.09.2026). Поисковики читают разметку и в скрытом элементе. */
+.nd-contacts__item > [itemprop="geo"] {
+    display: none;
+}
 .nd-contacts__city {
     font-size: 28px;
     line-height: 34px;
