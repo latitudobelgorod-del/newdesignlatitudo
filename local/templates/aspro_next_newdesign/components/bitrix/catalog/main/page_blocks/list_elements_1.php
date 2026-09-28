@@ -399,7 +399,11 @@ if($arSection["PLACE"]){
    родителя (лист дерева показывает соседей) ссылки родителя здесь не к месту. */
 $ndMenuLinkCards = '';
 $ndMenuLinkHrefs = array();
-if (!IsSeoDisrupting($arParams)) {
+/* Плитки — навигация, а не содержимое: показываем и на страницах пагинации
+   (?PAGEN_1=2 и дальше), SEO_DEOPTIMIZING их больше не прячет (28.09.2026:
+   листая до 3-й страницы, посетитель терял выбор подразделов). SEO-тексты
+   на пагинации по-прежнему скрыты своими проверками. */
+if (true) {
 	require_once $_SERVER['DOCUMENT_ROOT'] . SITE_TEMPLATE_PATH . '/include/parts/section_menulinks.php';
 	foreach (ndSectionMenuLinks($arSection, $arParams['IBLOCK_ID']) as $ndCard) {
 		$ndMenuLinkHrefs[] = $ndCard['LINK'];
@@ -471,7 +475,8 @@ $ndAkciyaHtml = $ndAkciyaHtml ?? '';
 	}
 
 	$ndSubsecHtml = '';
-	if ($ndSubsecCount && !IsSeoDisrupting($arParams)) {
+	/* и на пагинации — см. выше про $ndMenuLinkCards */
+	if ($ndSubsecCount) {
 		ob_start();
 		$APPLICATION->IncludeComponent(
 			"bitrix:catalog.section.list",
