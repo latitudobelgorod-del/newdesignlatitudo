@@ -6,8 +6,9 @@
  * Порядок карточек задаём списком ID из фильтра — сортировка инфоблока
  * контактов рассчитана на раздел /contacts/ и здесь не подходит.
  * Город берём из связанного региона (ИБ 7, свойство LINK_REGION) — так же,
- * как в contacts_region_newdesign. Фото офиса — первый кадр галереи
- * MORE_PHOTOS, режем под 488x395 из макета с двойной плотностью.
+ * как в contacts_region_newdesign. Фото офиса — своё свойство ND_ABOUT_PHOTO
+ * «Фото для слайдера на странице О компании» (с 01.10.2026), без него — первый
+ * кадр галереи MORE_PHOTOS; режем под 488x395 из макета с двойной плотностью.
  */
 
 global $ndCoShowroomsFilter;
@@ -43,8 +44,11 @@ foreach ($arResult['ITEMS'] as &$arItem) {
 	}
 
 	$arItem['ND_PHOTO'] = '';
-	$photos = $arItem['PROPERTIES']['MORE_PHOTOS']['VALUE'] ?? array();
-	foreach ((array) $photos as $fileId) {
+	$photos = array_merge(
+		array_filter((array) ($arItem['PROPERTIES']['ND_ABOUT_PHOTO']['VALUE'] ?? array())),
+		(array) ($arItem['PROPERTIES']['MORE_PHOTOS']['VALUE'] ?? array())
+	);
+	foreach ($photos as $fileId) {
 		$img = CFile::ResizeImageGet((int) $fileId, array('width' => 976, 'height' => 790), BX_RESIZE_IMAGE_EXACT, true);
 		if (!empty($img['src'])) {
 			$arItem['ND_PHOTO'] = $img['src'];

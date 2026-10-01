@@ -84,7 +84,7 @@ $ndCoProIcon = static function ($key) {
 
 	<?// Обложка: фото команды, затемнение градиентом и кнопка презентации.?>
 	<section class="nd-co__hero">
-		<img class="nd-co__hero-img" src="<?=$ndCoImg?>hero-team.jpg" alt="Команда Латитудо" width="1024" height="682">
+		<img class="nd-co__hero-img" src="<?=$ndCoImg?>about-hero.jpg" alt="Монтаж фасада Латитудо" width="1920" height="909">
 		<div class="nd-co__hero-body">
 			<div class="nd-co__hero-text">
 				<div class="nd-co__hero-title">О компании Латитудо</div>
@@ -156,7 +156,7 @@ $ndCoProIcon = static function ($key) {
 			'SORT_BY2' => 'ID',
 			'SORT_ORDER2' => 'ASC',
 			'FIELD_CODE' => array('NAME', 'ID', ''),
-			'PROPERTY_CODE' => array('ADDRESS', 'PHONE', 'PHONE_PODMENA', 'EMAIL', 'SCHEDULE', 'ADDRESS_SKLAD', 'MORE_PHOTOS', 'VIDEO_OFFICE', 'LINK_CONTACT', 'LINK_REGION', ''),
+			'PROPERTY_CODE' => array('ADDRESS', 'PHONE', 'PHONE_PODMENA', 'EMAIL', 'SCHEDULE', 'ADDRESS_SKLAD', 'ND_ABOUT_PHOTO', 'MORE_PHOTOS', 'VIDEO_OFFICE', 'LINK_CONTACT', 'LINK_REGION', ''),
 			'CHECK_DATES' => 'Y',
 			'DETAIL_URL' => '',
 			'AJAX_MODE' => 'N',
@@ -194,7 +194,7 @@ $ndCoProIcon = static function ($key) {
 			<p class="nd-co__promo-desc">Также, вы можете заказать современные решения для экстерьера: террасный керамогранит, системы регулируемых опор, алюминиевые перголы, раздвижное остекление, навесные фасадные системы, сталь COR-TEN.</p>
 			<a class="nd-co__btn nd-co__btn--ghost" href="/catalog/"><span>Каталог продукции</span></a>
 		</div>
-		<img class="nd-co__promo-img" src="<?=$ndCoImg?>catalog-promo.jpg" alt="Продукция Латитудо" width="1000" height="562" loading="lazy">
+		<img class="nd-co__promo-img" src="<?=$ndCoImg?>catalog-promo-2.jpg" alt="Терраса у бассейна из продукции Латитудо" width="1920" height="1440" loading="lazy">
 	</section>
 
 	<section class="nd-co__sec">
