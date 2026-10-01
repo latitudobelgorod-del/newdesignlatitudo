@@ -952,6 +952,11 @@ if ($val=='utm_geo')
 			"UTM_TERM" => $utm_term,
 			"UTM_GEO" => $utm_geo,
 			"CONTACT_ADDRESS"=> $_POST["ONE_CLICK_BUY"]["CONTACT_ADDRESS"],
+			// Расчёт доставки из корзины (галочка «С доставкой») — в письмо менеджерам,
+			// макрос #DELIVERY_QUOTE# в шаблоне NEW_ONE_CLICK_BUY (01.10.2026). Нет расчёта — пусто.
+			"DELIVERY_QUOTE" => !empty($GLOBALS['ND_DELIVERY_QUOTE_TEXT'])
+				? '<br /><b>Доставка:</b><br />' . nl2br(htmlspecialcharsbx($GLOBALS['ND_DELIVERY_QUOTE_TEXT']), false) . '<br /><br />'
+				: '',
 		);
 		if($_POST['ONE_CLICK_BUY']['EMAIL']){
 			$arMessageFields["EMAIL_BUYER"]=$_POST['ONE_CLICK_BUY']['EMAIL'];
