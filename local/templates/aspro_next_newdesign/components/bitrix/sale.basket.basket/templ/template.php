@@ -1151,6 +1151,19 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 if (!empty($arResult['GRID']['ROWS'])):
 ?>
 <div class="nd-basket-bar" hidden>
+	<?/* Доставка из блока «Расчёт доставки» (local/include/basket_delivery_calc.php,
+	     Ирина, 01.10.2026): расчёта нет — ссылка к калькулятору, есть — галочка
+	     «С доставкой» с ценой, она нажимает такую же в карточке итогов. Блока
+	     расчёта на странице нет — строка не показывается. */?>
+	<div class="nd-basket-bar__dc" data-nd-bar-dc hidden>
+		<a class="nd-basket-bar__dc-link" href="#ndDeliveryCalc" data-nd-bar-dc-link>Рассчитать доставку</a>
+		<label class="nd-basket-bar__dc-check" data-nd-bar-dc-check hidden>
+			<input type="checkbox" class="nd-basket-bar__dc-input">
+			<span class="nd-basket-bar__dc-box"></span>
+			<span class="nd-basket-bar__dc-text">С доставкой</span>
+			<span class="nd-basket-bar__dc-price" data-nd-bar-dc-price></span>
+		</label>
+	</div>
 	<button type="button" class="nd-basket-bar__btn"><?=Loc::getMessage('SBB_ORDER')?></button>
 	<div class="nd-basket-bar__row">
 		<span class="nd-basket-bar__label"><?=Loc::getMessage('SBB_TOTAL')?></span>
@@ -1166,10 +1179,60 @@ if (!empty($arResult['GRID']['ROWS'])):
 	if (!bar) return;
 
 	var valueNode = bar.querySelector('[data-nd-bar-total]');
+	var labelNode = bar.querySelector('.nd-basket-bar__label');
+	var dcRow = bar.querySelector('[data-nd-bar-dc]');
+	var dcLink = bar.querySelector('[data-nd-bar-dc-link]');
+	var dcCheck = bar.querySelector('[data-nd-bar-dc-check]');
+	var dcInput = dcCheck.querySelector('input');
+	var dcPrice = bar.querySelector('[data-nd-bar-dc-price]');
 
-	function totalNode() {
-		return document.querySelector('[data-entity="basket-total-price"]');
+	function card() {
+		return document.querySelector('[data-entity="basket-total-block"] .nd-total__card');
 	}
+
+	/* Итог из карточки. С галочкой «С доставкой» штатная сумма спрятана,
+	   а рядом стоит своя — товары плюс доставка (.nd-dq-total). */
+	function totalNode() {
+		var c = card();
+		var own = c && c.querySelector('.nd-dq-total');
+		return own || (c && c.querySelector('[data-entity="basket-total-price"]'))
+			|| document.querySelector('[data-entity="basket-total-price"]');
+	}
+
+	function syncDelivery() {
+		var c = card();
+		var dq = c && c.querySelector('.nd-dq');
+		var calc = document.getElementById('ndDeliveryCalc');
+		labelNode.textContent = <?=CUtil::PhpToJSObject(Loc::getMessage('SBB_TOTAL'))?>;
+		if (!dq && !calc) {
+			dcRow.hidden = true;
+			return;
+		}
+		dcRow.hidden = false;
+		dcLink.hidden = !!dq;
+		dcCheck.hidden = !dq;
+		if (dq) {
+			var check = dq.querySelector('input');
+			var price = dq.querySelector('.nd-total__row-value');
+			dcInput.checked = !!(check && check.checked);
+			dcPrice.textContent = price ? price.textContent.trim() : '';
+			labelNode.textContent = dcInput.checked ? 'Итого с доставкой' : 'Итого без доставки';
+		}
+	}
+
+	dcInput.addEventListener('change', function () {
+		var c = card();
+		var check = c && c.querySelector('.nd-dq input');
+		if (check && check.checked !== dcInput.checked) check.click();
+	});
+
+	dcLink.addEventListener('click', function (e) {
+		var calc = document.getElementById('ndDeliveryCalc');
+		if (!calc) return;
+		e.preventDefault();
+		var top = calc.getBoundingClientRect().top + window.pageYOffset - 80;
+		window.scrollTo({ top: top, behavior: 'smooth' });
+	});
 
 	/* Высоту панели отдаём в CSS: над ней поднимается кнопка обратного
 	   звонка (виджет callbackkiller, правило в css/newdesign-mobile.css).
@@ -1189,11 +1252,13 @@ if (!empty($arResult['GRID']['ROWS'])):
 			return;
 		}
 		valueNode.textContent = src.textContent.trim();
+		syncDelivery();
 		bar.hidden = false;
 		publishHeight();
 	}
 
 	window.addEventListener('resize', publishHeight);
+	window.addEventListener('ndDeliveryCalcChange', sync);
 
 	bar.querySelector('.nd-basket-bar__btn').addEventListener('click', function () {
 		var btn = document.querySelector('[data-entity="basket-checkout-button"]');

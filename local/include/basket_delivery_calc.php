@@ -128,7 +128,12 @@ if (is_array($ndDcSaved)
 		var left = row && row.querySelector('.basket-items-list-outer');
 		if (!row || !left) return;
 		if (window.matchMedia && window.matchMedia('(max-width: 991px)').matches) {
-			row.parentNode.insertBefore(calc, row.nextSibling);
+			/* Прямо под карточкой итогов: после блока «Доставка» (самовывоз/ТК)
+			   его на телефоне не находили (Ирина, 01.10.2026). Кнопка «Заказать»
+			   на телефоне — в прибитой панели, вниз её это не отодвигает. */
+			var total = row.querySelector('[data-entity="basket-total-block"]');
+			if (total) total.parentNode.insertBefore(calc, total.nextSibling);
+			else row.parentNode.insertBefore(calc, row.nextSibling);
 		} else {
 			left.appendChild(calc);
 		}
@@ -153,6 +158,8 @@ if (is_array($ndDcSaved)
 		if (ready) return;
 		var calc = document.getElementById('ndDeliveryCalc');
 		calc && calc.parentNode && calc.parentNode.removeChild(calc);
+		/* Прибитая панель корзины на телефоне прячет ссылку «Рассчитать доставку». */
+		try { window.dispatchEvent(new Event('ndDeliveryCalcChange')); } catch (e) {}
 	}, 10000);
 	var result = document.getElementById('ndDeliveryCalcResult');
 	var sentKey = '';
@@ -204,7 +211,11 @@ if (is_array($ndDcSaved)
 	function goodsSum() {
 		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
 		var t = bc && bc.result && bc.result.TOTAL_RENDER_DATA;
-		var v = t ? parseFloat(t.PRICE) : NaN;
+		/* Сумма уменьшилась (убрали товар, меньше штук) — компонент до конца
+		   анимации цифр держит в PRICE прежнюю, а новую кладёт в PRICE_NEW.
+		   Брали PRICE — «Итого с доставкой» считалось от старой суммы
+		   (Ирина, 01.10.2026). */
+		var v = t ? parseFloat(t.PRICE_NEW != null ? t.PRICE_NEW : t.PRICE) : NaN;
 		return isNaN(v) ? null : v;
 	}
 

@@ -1531,9 +1531,63 @@
         color: #101014;
         white-space: nowrap;
     }
+    /* Строка доставки над кнопкой (Ирина, 01.10.2026): ссылка к калькулятору
+       или галочка «С доставкой» с ценой — та же, что в карточке итогов. */
+    .nd-basket-bar__dc {
+        display: flex;
+        align-items: center;
+        min-height: 24px;
+        margin-bottom: 5px;
+        font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+    }
+    .nd-basket-bar__dc[hidden],
+    .nd-basket-bar__dc-link[hidden],
+    .nd-basket-bar__dc-check[hidden] {
+        display: none;
+    }
+    .nd-basket-bar__dc-link {
+        color: #c60000;
+        font-weight: 700;
+        text-decoration: none;
+        border: 0;
+    }
+    .nd-basket-bar__dc-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        margin: 0;
+        font-weight: 400;
+        color: #101014;
+        cursor: pointer;
+    }
+    .nd-basket-bar__dc-input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .nd-basket-bar__dc-box {
+        flex: 0 0 20px;
+        width: 20px;
+        height: 20px;
+        border: 1px solid rgba(82, 82, 100, .45);
+        border-radius: 4px;
+        background: #fff;
+    }
+    .nd-basket-bar__dc-input:checked + .nd-basket-bar__dc-box {
+        border-color: #c60000;
+        background: #c60000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='m5 10.5 3.2 3L15 6.5' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / 20px;
+    }
+    .nd-basket-bar__dc-price {
+        margin-left: auto;
+        font-weight: 700;
+        white-space: nowrap;
+    }
     /* Панель не должна накрывать конец страницы. */
     #basket-root {
-        padding-bottom: 116px;
+        padding-bottom: 146px;
     }
 }
 

@@ -61,12 +61,16 @@ use Bitrix\Main\Localization\Loc;
 				   случае присылает пустой COUNT_ITEMS, но прежнюю сумму до скидки —
 				   рядом с «Итого 0 руб» висело «Товары () 12 130 руб»
 				   (Ирина, 7 сентября 2026). */?>
+				<?/* Сумма уменьшилась — компонент кладёт в PRICE_FORMATED прежнюю, новую
+				   в PRICE_FORMATED_NEW и «докручивает» к ней только «Итого» анимацией
+				   цифр. Строку «Товары» анимация не трогает: после удаления товара в ней
+				   оставалась старая сумма (Ирина, 01.10.2026) — берём новую сразу. */?>
 				{{#COUNT_ITEMS}}
 				<div class="nd-total__row">
 					<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_ITEMS')?> ({{COUNT_ITEMS}})</span>
 					<span class="nd-total__row-value">
 						{{#DISCOUNT_PRICE_FORMATED}}{{{PRICE_WITHOUT_DISCOUNT_FORMATED}}}{{/DISCOUNT_PRICE_FORMATED}}
-						{{^DISCOUNT_PRICE_FORMATED}}{{{PRICE_FORMATED}}}{{/DISCOUNT_PRICE_FORMATED}}
+						{{^DISCOUNT_PRICE_FORMATED}}{{#PRICE_FORMATED_NEW}}{{{PRICE_FORMATED_NEW}}}{{/PRICE_FORMATED_NEW}}{{^PRICE_FORMATED_NEW}}{{{PRICE_FORMATED}}}{{/PRICE_FORMATED_NEW}}{{/DISCOUNT_PRICE_FORMATED}}
 					</span>
 				</div>
 				{{/COUNT_ITEMS}}
