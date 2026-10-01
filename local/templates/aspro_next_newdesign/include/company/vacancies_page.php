@@ -164,7 +164,7 @@ if (!defined('ND_VACANCIES_ASSETS')) {
 
 	<?// Обложка: фото шоу-рума, затемнение градиентом, телефон и две кнопки.?>
 	<section class="nd-vac__hero">
-		<img class="nd-vac__hero-img" src="<?=$ndVacImg?>hero-2.jpg" alt="Дом с террасой и фасадом от Латитудо" width="1920" height="859">
+		<img class="nd-vac__hero-img" src="<?=$ndVacImg?>hero-3.jpg" alt="Дом с террасой и фасадом от Латитудо" width="1920" height="859">
 		<div class="nd-vac__hero-body">
 			<div class="nd-vac__hero-text">
 				<div class="nd-vac__hero-title">Стройте с нами<br>красивую жизнь</div>
