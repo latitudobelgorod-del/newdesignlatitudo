@@ -135,15 +135,14 @@ $arNdVacValues = array(
 	array('ICO' => 'heart.svg',  'NAME' => 'Доверие и поддержка','DESC' => 'Создаем атмосферу сотрудничества, взаимопомощи и открытости, поддерживая друг друга и наших клиентов'),
 );
 
-/* Лента «Наша жизнь». Первые три кадра — те, что стоят в макете, остальные
-   добрали из фотографий той же подборки, чтобы у ленты была прокрутка. */
+/* Лента «Наша жизнь». Первые три кадра — те, что стоят в макете; 4–6 кадры
+   заменены двумя фото с выставки (Ирина, 01.10.2026). */
 $arNdVacLife = array(
 	array('FILE' => 'life-1.jpg', 'ALT' => 'Команда Латитудо в шоу-руме'),
 	array('FILE' => 'life-2.jpg', 'ALT' => 'Сотрудники Латитудо на отраслевой выставке'),
 	array('FILE' => 'life-3.jpg', 'ALT' => 'Работа с клиентом в офисе Латитудо'),
-	array('FILE' => 'life-4.jpg', 'ALT' => 'Коллектив офиса Латитудо'),
-	array('FILE' => 'life-5.jpg', 'ALT' => 'Менеджеры Латитудо с образцами продукции'),
-	array('FILE' => 'life-6.jpg', 'ALT' => 'Рабочий день в офисе Латитудо'),
+	array('FILE' => 'life-7.jpg', 'ALT' => 'Команда Латитудо на выставке'),
+	array('FILE' => 'life-8.jpg', 'ALT' => 'Менеджер Латитудо показывает образцы на выставке'),
 );
 
 /* Стили и скрипт страницы — отдельными файлами. Включаемая область попадает
@@ -165,7 +164,7 @@ if (!defined('ND_VACANCIES_ASSETS')) {
 
 	<?// Обложка: фото шоу-рума, затемнение градиентом, телефон и две кнопки.?>
 	<section class="nd-vac__hero">
-		<img class="nd-vac__hero-img" src="<?=$ndVacImg?>hero.jpg" alt="Шоу-рум Латитудо" width="1280" height="960">
+		<img class="nd-vac__hero-img" src="<?=$ndVacImg?>hero-2.jpg" alt="Дом с террасой и фасадом от Латитудо" width="1920" height="859">
 		<div class="nd-vac__hero-body">
 			<div class="nd-vac__hero-text">
 				<div class="nd-vac__hero-title">Стройте с нами<br>красивую жизнь</div>
@@ -210,7 +209,7 @@ if (!defined('ND_VACANCIES_ASSETS')) {
 
 	<?// «Миссия компании»: фото с затемнением и текстом поверх.?>
 	<section class="nd-vac__mission">
-		<img class="nd-vac__mission-img" src="<?=$ndVacImg?>mission.jpg" alt="Терраса Латитудо" width="1920" height="1440" loading="lazy">
+		<img class="nd-vac__mission-img" src="<?=$ndVacImg?>mission-2.jpg" alt="Терраса у бассейна от Латитудо" width="1920" height="1080" loading="lazy">
 		<div class="nd-vac__mission-body">
 			<h2 class="nd-vac__h1">Миссия компании</h2>
 			<p class="nd-vac__mission-text">Создаем красивые и уютные пространства для жизни, воплощая мечты клиентов в реальность с помощью инновационных технологий, экологичных материалов и безупречного сервиса</p>
