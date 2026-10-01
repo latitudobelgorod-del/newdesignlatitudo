@@ -49,7 +49,9 @@ foreach ($arResult['ITEMS'] as &$arItem) {
 		(array) ($arItem['PROPERTIES']['MORE_PHOTOS']['VALUE'] ?? array())
 	);
 	foreach ($photos as $fileId) {
-		$img = CFile::ResizeImageGet((int) $fileId, array('width' => 976, 'height' => 790), BX_RESIZE_IMAGE_EXACT, true);
+		// Качество 82: по умолчанию Битрикс жмёт почти без потерь, и нарезка
+		// 976x790 весила 500–700 КБ — больше исходника 1920 px (01.10.2026).
+		$img = CFile::ResizeImageGet((int) $fileId, array('width' => 976, 'height' => 790), BX_RESIZE_IMAGE_EXACT, true, false, false, 82);
 		if (!empty($img['src'])) {
 			$arItem['ND_PHOTO'] = $img['src'];
 			break;
