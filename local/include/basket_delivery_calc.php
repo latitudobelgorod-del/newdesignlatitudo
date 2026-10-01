@@ -8,11 +8,11 @@
  * Протокол postMessage взят из его order/index.php:
  *   фрейм → LATITUDO_READY, LATITUDO_HEIGHT {px}, LATITUDO_QUOTE {ok, price, to}
  *   страница → LATITUDO_ORDER {items: [{id, name, qty, unit}]}
- * Фрейм разрешает встраивание только на latitudo.ru / www.latitudo.ru
- * (CSP frame-ancestors): на региональных поддоменах и локальной копии он
- * не откроется, поэтому там блок не выводим.
- *
- * Пока блок в проверке — только с ?delivery_calc=Y (кука на сутки) (22.09.2026).
+ * Выводим на latitudo.ru и всех городах-поддоменах *.latitudo.ru, без метки
+ * ?delivery_calc=Y (с 01.10.2026; до этого — только latitudo.ru по метке).
+ * Встраивание фрейм разрешает сам (CSP frame-ancestors и список адресов в
+ * его скрипте). Где не разрешил — LATITUDO_READY не приходит, и скрипт ниже
+ * убирает блок целиком, а не оставляет пустое окно.
  */
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
@@ -22,17 +22,11 @@ if (SITE_TEMPLATE_ID !== 'aspro_next_newdesign') {
 }
 
 $ndDcHost = strtolower(preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? '')));
-if ($ndDcHost !== 'latitudo.ru' && $ndDcHost !== 'www.latitudo.ru') {
+if ($ndDcHost !== 'latitudo.ru' && substr($ndDcHost, -12) !== '.latitudo.ru') {
 	return;
 }
 
-if (isset($_GET['delivery_calc'])) {
-	$ndDcOn = ($_GET['delivery_calc'] === 'Y');
-	headers_sent() || setcookie('ND_DELIVERY_CALC', $ndDcOn ? 'Y' : '', $ndDcOn ? time() + 86400 : time() - 3600, '/');
-} else {
-	$ndDcOn = (($_COOKIE['ND_DELIVERY_CALC'] ?? '') === 'Y');
-}
-if (!$ndDcOn || !\Bitrix\Main\Loader::includeModule('sale')) {
+if (!\Bitrix\Main\Loader::includeModule('sale')) {
 	return;
 }
 
@@ -144,20 +138,23 @@ if (is_array($ndDcSaved)
 	/* Своей прокрутки у фрейма нет (scrolling="no"): высоту он задаёт сам
 	   сообщением LATITUDO_HEIGHT. Со стартовыми 320px, пока сообщение не
 	   пришло, внутри мелькала полоса прокрутки (Ирина, 28.09.2026). Не пришла
-	   высота за 4 с после загрузки — ставим с запасом, чтобы не обрезать. */
+	   высота за 4 с после LATITUDO_READY — ставим с запасом, чтобы не обрезать. */
 	var gotHeight = false;
 	var loading = document.getElementById('ndDeliveryCalcLoading');
 	function showFrame() {
 		frame.classList.remove('is-loading');
 		loading.hidden = true;
 	}
-	frame.addEventListener('load', function () {
-		setTimeout(function () {
-			if (!gotHeight) { frame.style.height = '900px'; showFrame(); }
-		}, 4000);
-	});
-	var result = document.getElementById('ndDeliveryCalcResult');
+	/* Фрейм не пустил к себе этот адрес (город-поддомен ещё не в его списке)
+	   или не загрузился — LATITUDO_READY нет. Тогда убираем весь блок, иначе
+	   после 4 с ниже вместо расчёта открылось бы пустое окно на 900px. */
 	var ready = false;
+	setTimeout(function () {
+		if (ready) return;
+		var calc = document.getElementById('ndDeliveryCalc');
+		calc && calc.parentNode && calc.parentNode.removeChild(calc);
+	}, 10000);
+	var result = document.getElementById('ndDeliveryCalcResult');
 	var sentKey = '';
 
 	/* ---- Доставка в панели «Итого» (Ирина, 28.09.2026) ----------------------
@@ -361,6 +358,11 @@ if (is_array($ndDcSaved)
 		if (e.origin !== ORIGIN) return;
 		var d = e.data || {};
 		if (d.type === 'LATITUDO_READY') {
+			if (!ready) {
+				setTimeout(function () {
+					if (!gotHeight) { frame.style.height = '900px'; showFrame(); }
+				}, 4000);
+			}
 			ready = true;
 			pushOrder(true);
 		} else if (d.type === 'LATITUDO_HEIGHT' && d.px) {
