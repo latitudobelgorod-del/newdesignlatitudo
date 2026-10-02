@@ -46,4 +46,5 @@ $MESS["SBB_ND_RELATED_TITLE"] = "Может пригодиться";
 $MESS["SBB_ND_IN_STOCK"] = "В наличии";
 $MESS["SBB_ND_PIECES"] = "шт";
 $MESS["SBB_ND_ON_ORDER"] = "под заказ";
+$MESS["SBB_ND_ON_ORDER_CAP"] = "Под заказ";
 ?>

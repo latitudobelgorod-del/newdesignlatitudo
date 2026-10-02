@@ -70,22 +70,6 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 		{{^SHOW_RESTORE}}
 			<td class="basket-items-list-item-descriptions" style="display: table-cell;vertical-align: middle;">
 				<div class="basket-items-list-item-descriptions-inner" id="basket-item-height-aligner-{{ID}}">
-					<?// Плашка наличия над фото — как в карточке каталога. Список
-					   // складов раскрывается по клику, обработчик ниже в шаблоне
-					   // корзины (делегирование, переживает ajax-перерисовку).?>
-					{{#SHOW_STORES}}
-						<div class="nd-basket-stores">
-							<div class="nd-basket-stores__trigger">
-								<?=Loc::getMessage('SBB_ND_IN_STOCK')?>
-								<span class="nd-basket-stores__arrow">▼</span>
-							</div>
-							<div class="nd-basket-stores__list">
-								{{#STORES}}
-									<span class="store-badge store-badge-{{CLASS}}">{{NAME}}: {{#HAS_AMOUNT}}{{AMOUNT}} <?=Loc::getMessage('SBB_ND_PIECES')?>{{/HAS_AMOUNT}}{{^HAS_AMOUNT}}<?=Loc::getMessage('SBB_ND_ON_ORDER')?>{{/HAS_AMOUNT}}</span>
-								{{/STORES}}
-							</div>
-						</div>
-					{{/SHOW_STORES}}
 					<?
 					if (in_array('PREVIEW_PICTURE', $arParams['COLUMNS_LIST']))
 					{
@@ -144,6 +128,21 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 								</a>
 							{{/DETAIL_PAGE_URL}}
 						</h2>
+						<?// Наличие под названием (Ирина, 02.10.2026): плашки всех складов
+						   // сразу, без выпадашки «В наличии ▼» над фото. Нет остатка ни на
+						   // одном складе — одна серая «Под заказ». Данные — STORES/SHOW_STORES
+						   // из mutator.php (цвет: зелёный от 30 шт, оранжевый — меньше,
+						   // серый — нет на этом складе).?>
+						<div class="nd-basket-stock">
+							{{#SHOW_STORES}}
+								{{#STORES}}
+									<span class="nd-basket-stock__chip is-{{CLASS}}">{{NAME}}: {{#HAS_AMOUNT}}{{AMOUNT}} <?=Loc::getMessage('SBB_ND_PIECES')?>{{/HAS_AMOUNT}}{{^HAS_AMOUNT}}<?=Loc::getMessage('SBB_ND_ON_ORDER')?>{{/HAS_AMOUNT}}</span>
+								{{/STORES}}
+							{{/SHOW_STORES}}
+							{{^SHOW_STORES}}
+								<span class="nd-basket-stock__chip is-gray"><?=Loc::getMessage('SBB_ND_ON_ORDER_CAP')?></span>
+							{{/SHOW_STORES}}
+						</div>
 						{{#NOT_AVAILABLE}}
 							<div class="basket-items-list-item-warning-container">
 								<div class="alert alert-warning text-center">

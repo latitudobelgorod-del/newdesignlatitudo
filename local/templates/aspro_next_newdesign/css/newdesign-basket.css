@@ -189,7 +189,7 @@
    тоже сетка: кадр 203×203 и текст рядом. */
 #basket-root .basket-items-list-item-descriptions-inner {
     display: grid;
-    grid-template-columns: 203px minmax(0, 1fr);
+    grid-template-columns: 120px minmax(0, 1fr);
     /* Одна строка: плашка наличия лежит в той же ячейке, что и кадр, поверх
        его угла (см. ниже) — своей строки ей не нужно. */
     grid-template-rows: auto;
@@ -206,7 +206,7 @@
     /* Кадр держим у верха ячейки: строка бывает выше 203, когда у товара
        длинное название, — плашка наличия ориентируется на верх кадра. */
     align-self: start;
-    width: 203px;
+    width: 120px;
     margin: 0;
 }
 /* Кадр начинается ровно с верха ячейки: тема даёт обёртке значения поле
@@ -221,8 +221,8 @@
 /* Рамки вокруг фото в макете нет — тема рисует её на самом кадре. */
 #basket-root .basket-item-custom-block-photo-item {
     display: block;
-    width: 203px;
-    height: 203px;
+    width: 120px;
+    height: 120px;
     object-fit: cover;
     border: 0;
     border-radius: 12px;
@@ -898,7 +898,39 @@
     outline-offset: 2px;
 }
 
-/* ---- плашка наличия над фото -------------------------------------------- */
+/* ---- наличие под названием (02.10.2026) ----------------------------------
+   Кадр уменьшен до 120px (был 203 — «сильно огромная», Ирина). Плашки всех
+   складов — сразу под названием, на цветном фоне; выпадашку «В наличии ▼»
+   над фото убрали. Цвета — те же, что были у списка складов. */
+#basket-root .nd-basket-stock {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0 4px;
+}
+#basket-root .nd-basket-stock__chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+    white-space: nowrap;
+}
+#basket-root .nd-basket-stock__chip.is-green {
+    background: #ebfaef;
+    color: #2ca94c;
+}
+#basket-root .nd-basket-stock__chip.is-orange {
+    background: #fff5e6;
+    color: #e08600;
+}
+#basket-root .nd-basket-stock__chip.is-gray {
+    background: #eeeef0;
+    color: #8f8f9a;
+}
+
+/* ---- плашка наличия над фото (до 02.10.2026, разметки больше нет) -------- */
 /* Оформление то же, что у карточки каталога (.stores-trigger/.store-badge в
    catalog_blockcolors_newdesign), но свои классы: стили каталога приезжают на
    страницу только вместе с лентой «Может пригодиться», а её может не быть. */
@@ -1054,14 +1086,14 @@
         column-gap: 24px;
     }
     #basket-root .basket-items-list-item-descriptions-inner {
-        grid-template-columns: 150px minmax(0, 1fr);
+        grid-template-columns: 110px minmax(0, 1fr);
     }
     #basket-root .basket-item-property-custom-photo,
     #basket-root .basket-item-custom-block-photo-item {
-        width: 150px;
+        width: 110px;
     }
     #basket-root .basket-item-custom-block-photo-item {
-        height: 150px;
+        height: 110px;
     }
     #basket-root .basket-total-outer {
         flex-basis: 340px;
@@ -1093,15 +1125,15 @@
         column-gap: 20px;
     }
     #basket-root .basket-items-list-item-descriptions-inner {
-        grid-template-columns: 140px minmax(0, 1fr);
+        grid-template-columns: 100px minmax(0, 1fr);
         column-gap: 20px;
     }
     #basket-root .basket-item-property-custom-photo,
     #basket-root .basket-item-custom-block-photo-item {
-        width: 140px;
+        width: 100px;
     }
     #basket-root .basket-item-custom-block-photo-item {
-        height: 140px;
+        height: 100px;
     }
 }
 
