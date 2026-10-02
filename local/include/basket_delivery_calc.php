@@ -97,7 +97,6 @@ if (is_array($ndDcSaved)
    «Заказать» (.nd-total__meta). Классы — те же, что у панели. */
 #basket-root .nd-dq { margin: 12px 0 0; }
 #basket-root .nd-dq .nd-total__row { align-items: center; }
-#basket-root .nd-dq-route[hidden] { display: none; }
 #basket-root .nd-total__sum-value[hidden] { display: none; }
 #basket-root .nd-dq .nd-total__check { margin: 0; gap: 8px; color: #8f8f9a; }
 </style>
@@ -259,8 +258,8 @@ if (is_array($ndDcSaved)
 			});
 			sum.parentNode.insertBefore(box, sum);
 		}
-		/* Под кнопкой: «Доставка: склад Белгород → Ростов-на-Дону». Без
-		   галочки строки нет (Ирина, 02.10.2026). */
+		/* Под кнопкой: «Доставка: склад Белгород → Ростов-на-Дону», без
+		   галочки — «Самовывоз со склада» (Ирина, 02.10.2026). */
 		var meta = card.querySelector('.nd-total__meta');
 		if (meta && !route) {
 			route = document.createElement('div');
@@ -270,10 +269,7 @@ if (is_array($ndDcSaved)
 		var fromName = String(quote.from || '').replace(/\s*\(.*\)$/, '');
 		var toName = String(quote.to || '').replace(/,\s*Россия(?=,|$)/, '');
 		var path = [fromName ? 'склад ' + fromName : '', toName].filter(Boolean).join(' → ');
-		if (route) {
-			setText(route, 'Доставка' + (path ? ': ' + path : ''));
-			if (route.hidden !== !quote['with']) route.hidden = !quote['with'];
-		}
+		if (route) setText(route, quote['with'] ? 'Доставка' + (path ? ': ' + path : '') : 'Самовывоз со склада');
 		setText(box.querySelector('.nd-total__row-value'), money(quote.price));
 		var check = box.querySelector('input');
 		if (check.checked !== !!quote['with']) check.checked = !!quote['with'];
