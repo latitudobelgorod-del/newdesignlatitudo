@@ -1,18 +1,15 @@
 <?php
 /**
  * Расчёт доставки LATITUDO на странице корзины (/basket/index.php) — только
- * справка: цена доставки не пишется ни в корзину, ни в заказ, оплаты нет.
+ * справка: цена доставки не пишется ни в корзину, ни в сумму заказа, оплаты нет.
  *
- * Сам расчёт — фрейм https://monitor.latitudo-scrum.ru/delivery-frame/
- * (разработчик доставки, архивы latitudo_korzina / latitudo_oformlenie_zakaza).
- * Протокол postMessage взят из его order/index.php:
- *   фрейм → LATITUDO_READY, LATITUDO_HEIGHT {px}, LATITUDO_QUOTE {ok, price, to}
- *   страница → LATITUDO_ORDER {items: [{id, name, qty, unit}]}
- * Выводим на latitudo.ru и всех городах-поддоменах *.latitudo.ru, без метки
- * ?delivery_calc=Y (с 01.10.2026; до этого — только latitudo.ru по метке).
- * Встраивание фрейм разрешает сам (CSP frame-ancestors и список адресов в
- * его скрипте). Где не разрешил — LATITUDO_READY не приходит, и скрипт ниже
- * убирает блок целиком, а не оставляет пустое окно.
+ * С 02.10.2026 считаем через API калькулятора, а не фреймом
+ * monitor.latitudo-scrum.ru/delivery-frame/: форма своя и короткая — склад,
+ * город (подсказки ATI), кнопка. Состав — то, что лежит в корзине, его в
+ * форме не правят; «По габаритам», улица/дом и 3D-схема убраны (схема
+ * Ирины 02.10.2026). Запросы к API — с сервера, /local/ajax/nd_delivery_calc.php
+ * (ключ в браузер не попадает), он же кладёт расчёт в сессию для заказа и
+ * лида. Нет ключа (локальная сборка) — блока нет.
  */
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
@@ -21,12 +18,10 @@ if (SITE_TEMPLATE_ID !== 'aspro_next_newdesign') {
 	return;
 }
 
-$ndDcHost = strtolower(preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? '')));
-if ($ndDcHost !== 'latitudo.ru' && substr($ndDcHost, -12) !== '.latitudo.ru') {
-	return;
-}
+require_once $_SERVER['DOCUMENT_ROOT'] . '/local/php_interface/include/latitudo_delivery_api.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/local/php_interface/include/latitudo_delivery_quote.php';
 
-if (!\Bitrix\Main\Loader::includeModule('sale')) {
+if (ndDeliveryApiKey() === '' || !\Bitrix\Main\Loader::includeModule('sale')) {
 	return;
 }
 
@@ -36,62 +31,71 @@ $ndDcBasket = \Bitrix\Sale\Basket::loadItemsForFUser(
 	\Bitrix\Main\Context::getCurrent()->getSite()
 );
 foreach ($ndDcBasket->getOrderableItems() as $ndDcItem) {
-	$ndDcUnitRaw = mb_strtolower(trim((string)$ndDcItem->getField('MEASURE_NAME')));
-	if ($ndDcUnitRaw === 'м' || mb_strpos($ndDcUnitRaw, 'метр') !== false || mb_strpos($ndDcUnitRaw, 'пог') !== false) {
-		$ndDcUnit = 'м';
-	} elseif (mb_strpos($ndDcUnitRaw, 'упак') !== false || mb_strpos($ndDcUnitRaw, 'уп.') !== false) {
-		$ndDcUnit = 'упак';
-	} else {
-		$ndDcUnit = 'шт';
-	}
-	$ndDcItems[] = array(
-		'id'   => (int)$ndDcItem->getId(),
-		'name' => (string)$ndDcItem->getField('NAME'),
-		'qty'  => (float)$ndDcItem->getQuantity(),
-		'unit' => $ndDcUnit,
-	);
+	$ndDcItems[] = array('id' => (int)$ndDcItem->getId(), 'qty' => (float)$ndDcItem->getQuantity());
 }
 if (!$ndDcItems) {
 	return;
 }
 
 /* Расчёт, уже сохранённый для этого же состава корзины (перезагрузили
-   страницу) — показываем его в итогах сразу, фрейм не ждём. */
-require_once $_SERVER['DOCUMENT_ROOT'] . '/local/php_interface/include/latitudo_delivery_quote.php';
+   страницу) — показываем сразу. */
 $ndDcQuote = null;
 $ndDcSaved = $_SESSION['ND_DELIVERY_QUOTE'] ?? null;
 if (is_array($ndDcSaved)
 	&& time() - (int)($ndDcSaved['TIME'] ?? 0) <= 86400
 	&& (string)($ndDcSaved['KEY'] ?? '') === ndDeliveryQuoteBasketKey($ndDcBasket->getOrderableItems())) {
-	$ndDcQuote = array(
-		'from'     => (string)($ndDcSaved['FROM'] ?? ''),
-		'to'       => (string)($ndDcSaved['TO'] ?? ''),
-		'distance' => (string)($ndDcSaved['DISTANCE'] ?? ''),
-		'truck'    => (string)($ndDcSaved['TRUCK'] ?? ''),
-		'weight'   => (string)($ndDcSaved['WEIGHT'] ?? ''),
-		'items'    => (string)($ndDcSaved['ITEMS'] ?? ''),
-		'notes'    => (string)($ndDcSaved['NOTES'] ?? ''),
-		'vat'      => !empty($ndDcSaved['VAT']),
-		'price'    => (float)$ndDcSaved['PRICE'],
-		'with'     => !empty($ndDcSaved['WITH']),
-	);
+	$ndDcQuote = ndDeliveryQuoteForJs($ndDcSaved);
+}
+
+/* Склад по умолчанию — по городу сайта: krasnodar.latitudo.ru → Краснодар,
+   belgorod → Белгород, vrn → Воронеж.
+   Остальные города и основной домен — Москва. Покупатель может сменить. */
+$ndDcHost = strtolower(preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? '')));
+$ndDcSub = strpos($ndDcHost, '.') !== false ? substr($ndDcHost, 0, strpos($ndDcHost, '.')) : '';
+$ndDcDefault = array('krasnodar' => 'krd', 'krd' => 'krd', 'belgorod' => 'bel', 'vrn' => 'vrn')[$ndDcSub] ?? 'msk';
+if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
+	$ndDcDefault = $ndDcQuote['warehouse'];
 }
 ?>
 <style>
-.nd-delivery-calc { margin: 32px 0 8px; padding: 20px; border: 1px solid #e6e6e6; border-radius: 4px; background: #fafafa; }
+.nd-delivery-calc { margin: 32px 0 8px; padding: 24px; border: 1px solid rgba(82, 82, 100, .15); border-radius: 8px; background: #fff; font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif; color: #101014; }
 .nd-delivery-calc__title { margin: 0 0 6px; font-size: 20px; font-weight: 700; line-height: 1.3; }
-.nd-delivery-calc__note { margin: 0 0 14px; color: #777; font-size: 14px; line-height: 1.4; }
-.nd-delivery-calc__frame { display: block; width: 100%; min-height: 320px; border: 0; }
-/* Пока фрейм не прислал высоту — его не видно: пустой фрейм давал серое окно,
-   а в стартовой высоте мелькал скролл. На его месте — надпись загрузки. */
-/* Ширина — полная: по ней фрейм считает свою высоту. */
-.nd-delivery-calc__frame.is-loading { height: 0 !important; min-height: 0; visibility: hidden; }
-.nd-delivery-calc__loading { display: flex; align-items: center; justify-content: center; min-height: 120px; color: #777; font-size: 14px; }
-.nd-delivery-calc__loading[hidden] { display: none; }
-.nd-delivery-calc__result { margin-top: 12px; font-size: 16px; line-height: 1.4; }
+.nd-delivery-calc__note { margin: 0 0 16px; color: #8f8f9a; font-size: 14px; line-height: 1.4; }
+.nd-delivery-calc__fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; }
+.nd-delivery-calc__field { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+#ndDeliveryCalc .nd-delivery-calc__label { display: block; margin: 0; padding: 0; font-size: 13px; font-weight: 400; line-height: 18px; color: #8f8f9a; }
+.nd-delivery-calc__input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid rgba(82, 82, 100, .3); border-radius: 4px; background: #fff; font: inherit; font-size: 16px; color: #101014; box-sizing: border-box; }
+.nd-delivery-calc__input:focus { outline: none; border-color: #c60000; }
+.nd-delivery-calc__input.is-error { border-color: #c60000; }
+.nd-delivery-calc__list { position: absolute; z-index: 20; top: 100%; left: 0; right: 0; margin: 4px 0 0; padding: 4px 0; list-style: none; max-height: 280px; overflow-y: auto; border: 1px solid rgba(82, 82, 100, .2); border-radius: 4px; background: #fff; box-shadow: 0 8px 24px rgba(16, 16, 20, .12); }
+.nd-delivery-calc__list[hidden] { display: none; }
+.nd-delivery-calc__option { margin: 0; padding: 8px 14px; cursor: pointer; font-size: 15px; line-height: 20px; }
+.nd-delivery-calc__option small { display: block; color: #8f8f9a; font-size: 13px; }
+.nd-delivery-calc__option.is-active, .nd-delivery-calc__option:hover { background: #f4f4f6; }
+.nd-delivery-calc__btn { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; margin: 16px 0 0; border: 0; border-radius: 2px; background: #c60000; color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; transition: background-color .2s; }
+.nd-delivery-calc__btn:hover { background: #a80000; }
+.nd-delivery-calc__btn[disabled] { opacity: .6; cursor: default; }
+.nd-delivery-calc__result { margin: 16px 0 0; padding: 16px; border-radius: 4px; background: #f6f6f8; }
 .nd-delivery-calc__result[hidden] { display: none; }
-.nd-delivery-calc__price { font-weight: 700; }
-@media (max-width: 600px) { .nd-delivery-calc { padding: 14px; } }
+.nd-delivery-calc__price { font-size: 24px; font-weight: 800; line-height: 32px; }
+.nd-delivery-calc__price small { font-size: 14px; font-weight: 500; color: #8f8f9a; }
+.nd-delivery-calc__facts { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: #525264; }
+.nd-delivery-calc__warn { margin: 8px 0 0; font-size: 14px; line-height: 20px; color: #a85a00; }
+.nd-delivery-calc__error { font-size: 15px; line-height: 22px; color: #525264; }
+.nd-delivery-calc__disclaimer { margin: 12px 0 0; font-size: 12px; line-height: 16px; color: #8f8f9a; }
+/* Тема красит поля и списки своими правилами (select ниже и серый, у li —
+   точка-маркер): поля — через id блока, чтобы перебить. */
+#ndDeliveryCalc .nd-delivery-calc__input { height: 48px; margin: 0; padding: 0 14px; border: 1px solid rgba(82, 82, 100, .3); border-radius: 4px; background-color: #fff; box-shadow: none; font-size: 16px; line-height: 46px; color: #101014; }
+#ndDeliveryCalc select.nd-delivery-calc__input { padding-right: 36px; -webkit-appearance: none; appearance: none; cursor: pointer;
+	background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23525264' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 14px center; }
+#ndDeliveryCalc .nd-delivery-calc__input:focus,
+#ndDeliveryCalc .nd-delivery-calc__input.is-error { border-color: #c60000; }
+#ndDeliveryCalc .nd-delivery-calc__option { list-style: none; padding: 8px 14px; }
+#ndDeliveryCalc .nd-delivery-calc__option:before { content: none; display: none; }
+@media (max-width: 600px) {
+	.nd-delivery-calc { padding: 16px; }
+	.nd-delivery-calc__fields { grid-template-columns: 1fr; }
+}
 /* Доставка в панели «Итого» (схема Ирины 02.10.2026): строка с галочкой
    «Доставка» и ценой — под «Товары», над «Итого»; куда везём — под кнопкой
    «Заказать» (.nd-total__meta). Классы — те же, что у панели. */
@@ -102,26 +106,64 @@ if (is_array($ndDcSaved)
 </style>
 <div class="nd-delivery-calc" id="ndDeliveryCalc">
 	<h2 class="nd-delivery-calc__title">Расчёт доставки</h2>
-	<p class="nd-delivery-calc__note">Укажите город или адрес — посчитаем доставку товаров из корзины. Точную стоимость подтвердит менеджер.</p>
-	<?/* src ставит скрипт ниже, уже на новом месте блока: перенос iframe в DOM
-	     перезагружает его, и фрейм грузился бы дважды. */?>
-	<iframe id="ndDeliveryCalcFrame" data-src="https://monitor.latitudo-scrum.ru/delivery-frame/" title="Расчёт доставки" scrolling="no" class="nd-delivery-calc__frame is-loading"></iframe>
-	<div class="nd-delivery-calc__loading" id="ndDeliveryCalcLoading">Загружаем расчёт доставки…</div>
-	<div class="nd-delivery-calc__result" id="ndDeliveryCalcResult" hidden></div>
+	<p class="nd-delivery-calc__note">Выберите склад и город — посчитаем доставку товаров из корзины.</p>
+	<form class="nd-delivery-calc__form" id="ndDeliveryCalcForm" autocomplete="off" novalidate>
+		<div class="nd-delivery-calc__fields">
+			<div class="nd-delivery-calc__field">
+				<label class="nd-delivery-calc__label" for="ndDeliveryCalcWh">Склад отгрузки</label>
+				<?/* iks-ignore — иначе тема подменяет список своим виджетом ikSelect (main.js, initSelects). */?>
+				<select class="nd-delivery-calc__input iks-ignore" id="ndDeliveryCalcWh">
+					<?foreach (ND_DELIVERY_WAREHOUSES as $ndDcCode => $ndDcWh):?>
+						<option value="<?=$ndDcCode?>"<?=($ndDcCode === $ndDcDefault ? ' selected' : '')?>><?=htmlspecialcharsbx($ndDcWh['name'])?></option>
+					<?endforeach;?>
+				</select>
+			</div>
+			<div class="nd-delivery-calc__field">
+				<label class="nd-delivery-calc__label" for="ndDeliveryCalcCity">Город доставки</label>
+				<input type="text" class="nd-delivery-calc__input" id="ndDeliveryCalcCity" placeholder="Начните вводить город…"
+					role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ndDeliveryCalcList"
+					value="<?=htmlspecialcharsbx($ndDcQuote['to'] ?? '')?>">
+				<ul class="nd-delivery-calc__list" id="ndDeliveryCalcList" role="listbox" hidden></ul>
+			</div>
+		</div>
+		<button type="submit" class="nd-delivery-calc__btn" id="ndDeliveryCalcBtn">Рассчитать доставку</button>
+	</form>
+	<div class="nd-delivery-calc__result" id="ndDeliveryCalcResult" aria-live="polite" hidden></div>
+	<p class="nd-delivery-calc__disclaimer">Стоимость предварительная и не является публичной офертой. Точную цену подтвердит менеджер.</p>
 </div>
 <script>
 (function () {
-	var ORIGIN = 'https://monitor.latitudo-scrum.ru';
+	var URL_CALC = '/local/ajax/nd_delivery_calc.php';
+	var URL_FLAG = '/local/ajax/nd_delivery_quote.php';
+	var SESSID = <?=CUtil::PhpToJSObject(bitrix_sessid())?>;
 	var items = <?=CUtil::PhpToJSObject($ndDcItems)?>;
-	var frame = document.getElementById('ndDeliveryCalcFrame');
+	var quote = <?=CUtil::PhpToJSObject($ndDcQuote)?>;
+
+	var form = document.getElementById('ndDeliveryCalcForm');
+	var whSelect = document.getElementById('ndDeliveryCalcWh');
+	var cityInput = document.getElementById('ndDeliveryCalcCity');
+	var list = document.getElementById('ndDeliveryCalcList');
+	var btn = document.getElementById('ndDeliveryCalcBtn');
+	var result = document.getElementById('ndDeliveryCalcResult');
+
+	/* PhpToJSObject отдаёт числа и логические строками: '8737' + сумма
+	   товаров давало склейку «345 708 737 ₽» (Ирина, 28.09.2026). */
+	function normalize(q) {
+		if (!q) return null;
+		q.price = parseFloat(q.price) || 0;
+		q['with'] = q['with'] === true || q['with'] === 'true' || q['with'] === '1' || q['with'] === 1 || q['with'] === 'Y';
+		q.city_id = parseInt(q.city_id, 10) || 0;
+		return q;
+	}
+	quote = normalize(quote);
+	var city = quote && quote.city_id ? { id: quote.city_id, name: quote.to } : null;
 
 	/* Место блока — под товарами в левой колонке корзины (Ирина, 28.09.2026).
 	   Шаблон корзины не трогаем: блок подключается из /basket/index.php после
 	   компонента и сам переезжает в .basket-items-list-outer. На узком экране
-	   (≤991px, колонки стоят друг под другом) — после итогов с кнопкой
-	   «Заказать», чтобы не отодвигать её вниз. Нет разметки корзины — блок
-	   остаётся, где подключён. Место выбираем один раз: при повороте экрана
-	   не двигаем, иначе фрейм перезагрузится и расчёт сбросится. */
+	   (≤991px, колонки друг под другом) — сразу под карточкой итогов: ниже его
+	   не находили (Ирина, 01.10.2026), а «Заказать» на телефоне — в прибитой
+	   панели. Нет разметки корзины — блок остаётся, где подключён. */
 	(function () {
 		var calc = document.getElementById('ndDeliveryCalc');
 		var root = document.getElementById('basket-root');
@@ -129,9 +171,6 @@ if (is_array($ndDcSaved)
 		var left = row && row.querySelector('.basket-items-list-outer');
 		if (!row || !left) return;
 		if (window.matchMedia && window.matchMedia('(max-width: 991px)').matches) {
-			/* Прямо под карточкой итогов: после блока «Доставка» (самовывоз/ТК)
-			   его на телефоне не находили (Ирина, 01.10.2026). Кнопка «Заказать»
-			   на телефоне — в прибитой панели, вниз её это не отодвигает. */
 			var total = row.querySelector('[data-entity="basket-total-block"]');
 			if (total) total.parentNode.insertBefore(calc, total.nextSibling);
 			else row.parentNode.insertBefore(calc, row.nextSibling);
@@ -139,89 +178,181 @@ if (is_array($ndDcSaved)
 			left.appendChild(calc);
 		}
 	})();
-	frame.src = frame.getAttribute('data-src');
 
-	/* Своей прокрутки у фрейма нет (scrolling="no"): высоту он задаёт сам
-	   сообщением LATITUDO_HEIGHT. Со стартовыми 320px, пока сообщение не
-	   пришло, внутри мелькала полоса прокрутки (Ирина, 28.09.2026). Не пришла
-	   высота за 4 с после LATITUDO_READY — ставим с запасом, чтобы не обрезать. */
-	var gotHeight = false;
-	var loading = document.getElementById('ndDeliveryCalcLoading');
-	function showFrame() {
-		frame.classList.remove('is-loading');
-		loading.hidden = true;
-	}
-	/* Фрейм не пустил к себе этот адрес (город-поддомен ещё не в его списке)
-	   или не загрузился — LATITUDO_READY нет. Тогда убираем весь блок, иначе
-	   после 4 с ниже вместо расчёта открылось бы пустое окно на 900px. */
-	var ready = false;
-	setTimeout(function () {
-		if (ready) return;
-		var calc = document.getElementById('ndDeliveryCalc');
-		calc && calc.parentNode && calc.parentNode.removeChild(calc);
-		/* Прибитая панель корзины на телефоне прячет ссылку «Рассчитать доставку». */
-		try { window.dispatchEvent(new Event('ndDeliveryCalcChange')); } catch (e) {}
-	}, 10000);
-	var result = document.getElementById('ndDeliveryCalcResult');
-	var sentKey = '';
-
-	/* ---- Доставка в панели «Итого» (Ирина, 28.09.2026) ----------------------
-	   После расчёта в панели итогов под суммой — строка «Доставка — куда: N ₽»
-	   и галочка «С доставкой»: с ней сумма доставки прибавляется к «Итого».
-	   Панель — мустач-шаблон, корзина перерисовывает её при каждом пересчёте,
-	   поэтому строку возвращает MutationObserver. Сумму «Итого» компонент
-	   анимирует, пересчитывая цифры в [data-entity="basket-total-price"]: её не
-	   переписываем, а при включённой доставке прячем и показываем рядом свою.
-	   Расчёт и галочка уходят в сессию (/local/ajax/nd_delivery_quote.php),
-	   при оформлении они попадут в комментарий заказа. Состав корзины
-	   изменился — расчёт сбрасываем и тут, и в сессии. */
-	var SESSID = <?=CUtil::PhpToJSObject(bitrix_sessid())?>;
-	var quote = <?=CUtil::PhpToJSObject($ndDcQuote)?>;
-	/* PhpToJSObject отдаёт числа строками: '8737' + сумма товаров давало
-	   склейку «345 708 737 ₽» вместо сложения (Ирина, 28.09.2026). */
-	if (quote) {
-		quote.price = parseFloat(quote.price) || 0;
-		quote['with'] = quote['with'] === true || quote['with'] === 'true' || quote['with'] === '1' || quote['with'] === 1;
-		quote.vat = quote.vat === true || quote.vat === 'true' || quote.vat === '1' || quote.vat === 1;
-		quote.key = itemsKey(currentItems());
-	}
-
-	function itemsKey(list) {
-		/* Количество из PHP приходит строкой, из компонента — числом: приводим. */
-		return JSON.stringify(list.map(function (it) { return [String(it.id), parseFloat(it.qty)]; }));
-	}
-
-	function saveQuote() {
+	function post(url, data) {
 		var body = new URLSearchParams();
 		body.append('sessid', SESSID);
-		if (quote) {
-			body.append('action', 'save');
-			['from', 'to', 'distance', 'truck', 'weight', 'items', 'notes'].forEach(function (k) {
-				body.append(k, quote[k] || '');
-			});
-			body.append('vat', quote.vat ? 'Y' : 'N');
-			body.append('price', String(quote.price));
-			body.append('with', quote['with'] ? 'Y' : 'N');
-		} else {
-			body.append('action', 'clear');
-		}
-		fetch('/local/ajax/nd_delivery_quote.php', { method: 'POST', body: body, credentials: 'same-origin' })
-			.catch(function () {});
+		Object.keys(data).forEach(function (k) { body.append(k, data[k]); });
+		return fetch(url, { method: 'POST', body: body, credentials: 'same-origin' })
+			.then(function (r) { return r.json(); });
 	}
 
-	function goodsSum() {
-		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
-		var t = bc && bc.result && bc.result.TOTAL_RENDER_DATA;
-		/* Сумма уменьшилась (убрали товар, меньше штук) — компонент до конца
-		   анимации цифр держит в PRICE прежнюю, а новую кладёт в PRICE_NEW.
-		   Брали PRICE — «Итого с доставкой» считалось от старой суммы
-		   (Ирина, 01.10.2026). */
-		var v = t ? parseFloat(t.PRICE_NEW != null ? t.PRICE_NEW : t.PRICE) : NaN;
-		return isNaN(v) ? null : v;
+	function money(v) {
+		return Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽';
 	}
 
 	function setText(node, text) {
 		if (node.textContent !== text) node.textContent = text;
+	}
+
+	/* ---- Подсказки городов --------------------------------------------- */
+	var suggest = [], active = -1, timer = 0, lastQuery = '';
+
+	function closeList() {
+		list.hidden = true;
+		cityInput.setAttribute('aria-expanded', 'false');
+		active = -1;
+	}
+
+	function renderList() {
+		list.textContent = '';
+		suggest.forEach(function (s, i) {
+			var li = document.createElement('li');
+			li.className = 'nd-delivery-calc__option' + (i === active ? ' is-active' : '');
+			li.setAttribute('role', 'option');
+			li.textContent = s.name;
+			if (s.region && s.region !== s.name) {
+				var sm = document.createElement('small');
+				sm.textContent = s.region;
+				li.appendChild(sm);
+			}
+			li.addEventListener('mousedown', function (e) { e.preventDefault(); pick(i); });
+			list.appendChild(li);
+		});
+		list.hidden = !suggest.length;
+		cityInput.setAttribute('aria-expanded', suggest.length ? 'true' : 'false');
+	}
+
+	function pick(i) {
+		var s = suggest[i];
+		if (!s) return;
+		city = { id: s.id, name: s.name + (s.region && s.region !== s.name ? ', ' + s.region : '') };
+		cityInput.value = city.name;
+		cityInput.classList.remove('is-error');
+		closeList();
+		calculate();
+	}
+
+	cityInput.addEventListener('input', function () {
+		city = null;
+		var q = cityInput.value.trim();
+		clearTimeout(timer);
+		if (q.length < 2) { suggest = []; closeList(); return; }
+		timer = setTimeout(function () {
+			lastQuery = q;
+			post(URL_CALC, { action: 'city', query: q }).then(function (d) {
+				if (q !== lastQuery) return;
+				suggest = (d && d.items) || [];
+				active = suggest.length ? 0 : -1;
+				renderList();
+			}).catch(function () {});
+		}, 250);
+	});
+
+	cityInput.addEventListener('keydown', function (e) {
+		if (list.hidden) return;
+		if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+			e.preventDefault();
+			active = (active + (e.key === 'ArrowDown' ? 1 : -1) + suggest.length) % suggest.length;
+			renderList();
+		} else if (e.key === 'Enter') {
+			e.preventDefault();
+			pick(active < 0 ? 0 : active);
+		} else if (e.key === 'Escape') {
+			closeList();
+		}
+	});
+	cityInput.addEventListener('blur', function () { setTimeout(closeList, 150); });
+
+	/* ---- Расчёт --------------------------------------------------------- */
+	var busy = false, pending = false;
+
+	function showResult(q, unparsed) {
+		result.textContent = '';
+		var price = document.createElement('div');
+		price.className = 'nd-delivery-calc__price';
+		price.appendChild(document.createTextNode(money(q.price) + ' '));
+		var vat = document.createElement('small');
+		vat.textContent = 'с НДС';
+		price.appendChild(vat);
+		result.appendChild(price);
+		var facts = [q.distance, q.truck, q.weight].filter(Boolean).join(' · ');
+		if (facts) {
+			var f = document.createElement('div');
+			f.className = 'nd-delivery-calc__facts';
+			f.textContent = facts;
+			result.appendChild(f);
+		}
+		if (unparsed && unparsed.length) {
+			var w = document.createElement('div');
+			w.className = 'nd-delivery-calc__warn';
+			w.textContent = 'Не все товары учтены в расчёте — точную стоимость назовёт менеджер.';
+			result.appendChild(w);
+		}
+		result.hidden = false;
+	}
+
+	function showError(text) {
+		result.textContent = '';
+		var e = document.createElement('div');
+		e.className = 'nd-delivery-calc__error';
+		e.textContent = text;
+		result.appendChild(e);
+		result.hidden = false;
+	}
+
+	function calculate() {
+		if (!city) {
+			cityInput.classList.add('is-error');
+			cityInput.focus();
+			showError('Выберите город из списка подсказок.');
+			return;
+		}
+		if (busy) { pending = true; return; }
+		busy = true;
+		btn.disabled = true;
+		setText(btn, 'Считаем…');
+		post(URL_CALC, { action: 'quote', warehouse: whSelect.value, city_id: city.id, city: city.name })
+			.then(function (d) {
+				if (d && d.ok && d.quote) {
+					quote = normalize(d.quote);
+					quote.key = itemsKey(currentItems());
+					showResult(quote, d.unparsed);
+				} else {
+					quote = null;
+					showError((d && d.error) || 'Не удалось рассчитать доставку автоматически — менеджер посчитает её при оформлении заказа.');
+				}
+			})
+			.catch(function () {
+				quote = null;
+				showError('Не удалось рассчитать доставку автоматически — менеджер посчитает её при оформлении заказа.');
+			})
+			.then(function () {
+				busy = false;
+				btn.disabled = false;
+				setText(btn, 'Рассчитать доставку');
+				applyTotal();
+				try { window.dispatchEvent(new Event('ndDeliveryCalcChange')); } catch (e) {}
+				if (pending) { pending = false; calculate(); }
+			});
+	}
+
+	form.addEventListener('submit', function (e) { e.preventDefault(); calculate(); });
+	whSelect.addEventListener('change', function () { if (city) calculate(); });
+
+	/* ---- Доставка в панели «Итого» (Ирина, 28.09.2026) ----------------------
+	   Строка с галочкой «Доставка» и ценой под «Товары», маршрут под кнопкой.
+	   Панель — мустач-шаблон, корзина перерисовывает её при каждом пересчёте,
+	   поэтому строку возвращает MutationObserver. Сумму «Итого» компонент
+	   анимирует в [data-entity="basket-total-price"]: её не переписываем, а при
+	   включённой доставке прячем и показываем рядом свою. */
+	function goodsSum() {
+		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+		var t = bc && bc.result && bc.result.TOTAL_RENDER_DATA;
+		/* Сумма уменьшилась — компонент до конца анимации держит в PRICE прежнюю,
+		   а новую кладёт в PRICE_NEW (Ирина, 01.10.2026). */
+		var v = t ? parseFloat(t.PRICE_NEW != null ? t.PRICE_NEW : t.PRICE) : NaN;
+		return isNaN(v) ? null : v;
 	}
 
 	function applyTotal() {
@@ -254,7 +385,7 @@ if (is_array($ndDcSaved)
 				if (!quote) return;
 				quote['with'] = this.checked;
 				applyTotal();
-				saveQuote();
+				post(URL_FLAG, { action: 'with', value: quote['with'] ? 'Y' : 'N' }).catch(function () {});
 			});
 			sum.parentNode.insertBefore(box, sum);
 		}
@@ -280,54 +411,12 @@ if (is_array($ndDcSaved)
 				own.className = 'nd-total__sum-value nd-dq-total';
 				sum.appendChild(own);
 			}
-			setText(own, money(goods + (parseFloat(quote.price) || 0)));
+			setText(own, money(goods + quote.price));
 			if (!orig.hidden) orig.hidden = true;
 		} else {
 			if (own) own.parentNode.removeChild(own);
 			if (orig.hidden) orig.hidden = false;
 		}
-	}
-
-	/* Всё, что фрейм показал под ценой, — для комментария заказа и лида:
-	   склад отгрузки, куда, расстояние, машина (по ней же схема загрузки —
-	   саму 3D-схему фрейм наружу не отдаёт), вес, состав, предупреждения. */
-	function quoteFromFrame(d, price) {
-		var truck = d.truck || {}, cargo = d.cargo || {};
-		var names = {};
-		items.forEach(function (it) { names[String(it.id)] = it.name; });
-		var list = (d.items && d.items.length ? d.items : currentItems()).map(function (it) {
-			var name = names[String(it.id)] || it.name || '';
-			return name ? name + ' — ' + parseFloat(it.qty) + ' ' + (it.unit || 'шт') : '';
-		}).filter(Boolean);
-		var notes = [];
-		if (d.unparsedPositions && d.unparsedPositions.length) notes.push('Не распознаны позиции: ' + d.unparsedPositions.join(', '));
-		(d.warnings || []).forEach(function (w) { notes.push(String(w)); });
-		/* Склад фрейм называет точкой, где он стоит («с. Таврово»), а не как в
-		   списке «Склад отгрузки». Название возвращаем по коду города ATI —
-		   сверено с API фрейма 28.09.2026. Незнакомый склад — как прислал фрейм. */
-		var WAREHOUSES = { 22549: 'Москва', 24942: 'Краснодар', 13033: 'Белгород', 40: 'Воронеж' };
-		var fromText = d.from && d.from.text ? String(d.from.text) : '';
-		var fromName = d.from && WAREHOUSES[d.from.atiCityId] || '';
-		return {
-			from: fromName ? fromName + (fromText ? ' (' + fromText + ')' : '') : fromText,
-			to: d.to && d.to.text ? String(d.to.text) : '',
-			distance: d.distanceKm != null ? Math.round(d.distanceKm) + ' км' : '',
-			truck: truck.name ? truck.name + (truck.count > 1 ? ' × ' + truck.count : '') : '',
-			weight: cargo.weightKg != null ? Math.round(cargo.weightKg) + ' кг' : '',
-			items: list.join('; '),
-			notes: notes.join(' '),
-			vat: !!(d.price && d.price.costWithVAT != null),
-			price: parseFloat(price),
-			'with': true,
-			key: itemsKey(currentItems())
-		};
-	}
-
-	function dropQuote() {
-		if (!quote) return;
-		quote = null;
-		applyTotal();
-		saveQuote();
 	}
 
 	(function () {
@@ -341,12 +430,14 @@ if (is_array($ndDcSaved)
 			requestAnimationFrame(function () { queued = false; applyTotal(); });
 		}).observe(block, { childList: true, subtree: true });
 	})();
-	applyTotal();
 
-	/* Количество в корзине меняют без перезагрузки: берём актуальное из
+	/* ---- Состав корзины поменялся ----------------------------------------
+	   Количество меняют без перезагрузки: актуальное берём из
 	   BX.Sale.BasketComponent. Удалённая позиция там либо с SHOW_RESTORE
 	   («Восстановить»), либо уже не в sortedItems. По DOM не судим: корзина
-	   подгружает строки при прокрутке (USE_DYNAMIC_SCROLL). */
+	   подгружает строки при прокрутке (USE_DYNAMIC_SCROLL). Город выбран —
+	   пересчитываем сами, иначе прежняя цена не годится и в заказ не пойдёт
+	   (сервер сверяет состав). */
 	function currentItems() {
 		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
 		if (!bc || !bc.items) return items;
@@ -357,63 +448,38 @@ if (is_array($ndDcSaved)
 			return !sorted || !sorted.length || sorted.indexOf(String(it.id)) !== -1;
 		}).map(function (it) {
 			var live = bc.items[it.id];
-			return { id: it.id, name: it.name, unit: it.unit, qty: live && live.QUANTITY ? parseFloat(live.QUANTITY) : it.qty };
+			return { id: it.id, qty: live && live.QUANTITY ? parseFloat(live.QUANTITY) : it.qty };
 		});
 	}
 
-	function pushOrder(force) {
-		if (!ready || !frame.contentWindow) return;
-		var list = currentItems();
-		var key = JSON.stringify(list.map(function (it) { return [it.id, it.qty]; }));
-		if (!force && key === sentKey) return;
-		sentKey = key;
-		if (!force) result.hidden = true;   // состав изменился — прежняя цена неактуальна
-		frame.contentWindow.postMessage({ type: 'LATITUDO_ORDER', autoCalc: false, items: list }, ORIGIN);
+	function itemsKey(list) {
+		/* Количество из PHP приходит строкой, из компонента — числом: приводим. */
+		return JSON.stringify(list.map(function (it) { return [String(it.id), parseFloat(it.qty)]; }));
 	}
 
-	function money(v) {
-		return Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽';
+	if (quote) {
+		quote.key = itemsKey(currentItems());
+		showResult(quote, null);
 	}
+	applyTotal();
 
-	window.addEventListener('message', function (e) {
-		if (e.origin !== ORIGIN) return;
-		var d = e.data || {};
-		if (d.type === 'LATITUDO_READY') {
-			if (!ready) {
-				setTimeout(function () {
-					if (!gotHeight) { frame.style.height = '900px'; showFrame(); }
-				}, 4000);
-			}
-			ready = true;
-			pushOrder(true);
-		} else if (d.type === 'LATITUDO_HEIGHT' && d.px) {
-			gotHeight = true;
-			frame.style.height = d.px + 'px';
-			showFrame();
-		} else if (d.type === 'LATITUDO_QUOTE') {
-			var price = d.ok && d.price ? (d.price.costWithVAT != null ? d.price.costWithVAT : d.price.cost) : null;
-			if (price != null) {
-				quote = quoteFromFrame(d, price);
-				applyTotal();
-				saveQuote();
-				var to = d.to && d.to.text ? ' — ' + String(d.to.text) : '';
-				result.textContent = '';
-				result.appendChild(document.createTextNode('Доставка' + to + ': '));
-				var b = document.createElement('span');
-				b.className = 'nd-delivery-calc__price';
-				b.textContent = money(price);
-				result.appendChild(b);
-			} else {
-				dropQuote();
-				result.textContent = 'Не удалось рассчитать доставку автоматически — менеджер посчитает её при оформлении заказа.';
-			}
-			result.hidden = false;
-		}
-	});
-
+	var lastKey = itemsKey(currentItems()), changeTimer = 0;
 	setInterval(function () {
-		if (quote && itemsKey(currentItems()) !== quote.key) dropQuote();
-		pushOrder(false);
-	}, 1500);
+		var key = itemsKey(currentItems());
+		if (key === lastKey) return;
+		lastKey = key;
+		clearTimeout(changeTimer);
+		/* Компонент сохраняет количество на сервере с задержкой — ждём. */
+		changeTimer = setTimeout(function () {
+			if (city) {
+				calculate();
+			} else if (quote) {
+				quote = null;
+				result.hidden = true;
+				applyTotal();
+				post(URL_FLAG, { action: 'clear' }).catch(function () {});
+			}
+		}, 1500);
+	}, 700);
 })();
 </script>
