@@ -983,6 +983,20 @@ $utm_content = $arMessageFields["UTM_CONTENT"];
 $utm_term = $arMessageFields["UTM_TERM"];
 $utm_geo = $arMessageFields["UTM_GEO"];
 $utm_medium = $arMessageFields["UTM_MEDIUM"];
+// Заказ из корзины с галочкой «С доставкой» (02.10.2026): в «Сумме» лида —
+// товары + доставка, в названии — пометка, в комментарии — сумма за товары
+// отдельно. Сам заказ на сайте и письмо менеджерам — без изменений.
+$ndLeadTitle = "Заказ с сайта RU";
+$ndLeadSumNote = '';
+$ndDeliveryPrice = !empty($GLOBALS['ND_DELIVERY_QUOTE_TEXT']) ? (float)($GLOBALS['ND_DELIVERY_QUOTE_PRICE'] ?? 0) : 0;
+if ($ndDeliveryPrice > 0) {
+	$ndGoodsSum = (float)$arOrderQuery["PRICE"];
+	$strsummacopy1 = $ndGoodsSum + $ndDeliveryPrice;
+	$ndLeadTitle = "Заказ из корзины RU (с учетом доставки)";
+	$ndLeadSumNote = "\n<b>Сумма за товары:</b> " . number_format($ndGoodsSum, 0, '.', ' ') . " руб"
+		. "\n<b>Доставка:</b> " . number_format($ndDeliveryPrice, 0, '.', ' ') . " руб"
+		. "\n<b>Итого с доставкой:</b> " . number_format($strsummacopy1, 0, '.', ' ') . " руб\n";
+}
 	// определяем URL
 // Адрес вебхука Б24 — в файле вне папки сайта и вне git (~/.latitudo_b24.php,
 // возвращает ['webhook' => 'https://…/rest/ID/КЛЮЧ/']). Раньше ключ был прописан
@@ -993,7 +1007,7 @@ $Url = (is_array($ndB24) && !empty($ndB24['webhook'])) ? $ndB24['webhook'] . 'cr
 // описываем параметры лида 
 $ParamLid = http_build_query(array(
   'fields' => array(
-    'TITLE' => "Заказ с сайта RU", // НАЗВАНИЕ
+    'TITLE' => $ndLeadTitle, // НАЗВАНИЕ
    'NAME' => $namecopy, // ИМЯ
 	'UF_CRM_1670914333154' => $domencopy, // домен сайта
 	'UF_CRM_1671023828597' => $addresscopy, // населенный пункт
@@ -1005,7 +1019,7 @@ $ParamLid = http_build_query(array(
 	'UF_CRM_1674473526' => $utm_medium,//utm-medium
 	'UF_CRM_1674473518' => $utm_geo,//utm-geo
 	'OPPORTUNITY' => $strsummacopy1,
-	'COMMENTS' =>  "<b><font color=red size=4>Сообщение клиента:</font></b>\n" .$commentcopy. "\n<b>Состав заказа:</b>\n" .$commentscopy // состав заказа заносим в поле комментарий
+	'COMMENTS' =>  "<b><font color=red size=4>Сообщение клиента:</font></b>\n" .$commentcopy. $ndLeadSumNote . "\n<b>Состав заказа:</b>\n" .$commentscopy // состав заказа заносим в поле комментарий
 		// Расчёт доставки из корзины с галочкой «С доставкой» (28.09.2026) — текст
 		// кладёт обработчик заказа, local/php_interface/include/latitudo_delivery_quote.php.
 		. (!empty($GLOBALS['ND_DELIVERY_QUOTE_TEXT']) ? "\n<b>Доставка:</b>\n" . htmlspecialcharsbx($GLOBALS['ND_DELIVERY_QUOTE_TEXT']) : ''),
