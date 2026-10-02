@@ -47,12 +47,12 @@ if (is_array($ndDcSaved)
 	$ndDcQuote = ndDeliveryQuoteForJs($ndDcSaved);
 }
 
-/* Склад по умолчанию — по городу сайта: krasnodar.latitudo.ru → Краснодар,
+/* Склад по умолчанию — по городу сайта: krasnodar.latitudo.ru и rostov → Краснодар,
    belgorod → Белгород, vrn → Воронеж.
    Остальные города и основной домен — Москва. Покупатель может сменить. */
 $ndDcHost = strtolower(preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? '')));
 $ndDcSub = strpos($ndDcHost, '.') !== false ? substr($ndDcHost, 0, strpos($ndDcHost, '.')) : '';
-$ndDcDefault = array('krasnodar' => 'krd', 'krd' => 'krd', 'belgorod' => 'bel', 'vrn' => 'vrn')[$ndDcSub] ?? 'msk';
+$ndDcDefault = array('krasnodar' => 'krd', 'krd' => 'krd', 'rostov' => 'krd', 'belgorod' => 'bel', 'vrn' => 'vrn')[$ndDcSub] ?? 'msk';
 if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 	$ndDcDefault = $ndDcQuote['warehouse'];
 }
