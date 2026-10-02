@@ -77,6 +77,7 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 .nd-delivery-calc__btn[disabled] { opacity: .6; cursor: default; }
 .nd-delivery-calc__result { margin: 16px 0 0; padding: 16px; border-radius: 4px; background: #f6f6f8; }
 .nd-delivery-calc__result[hidden] { display: none; }
+.nd-delivery-calc__result.is-stale { opacity: .45; transition: opacity .2s; }
 .nd-delivery-calc__price { font-size: 24px; font-weight: 800; line-height: 32px; }
 .nd-delivery-calc__price small { font-size: 14px; font-weight: 500; color: #8f8f9a; }
 .nd-delivery-calc__facts { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: #525264; }
@@ -290,6 +291,13 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 			f.textContent = facts;
 			result.appendChild(f);
 		}
+		var stock = stockNote();
+		if (stock) {
+			var st = document.createElement('div');
+			st.className = 'nd-delivery-calc__warn nd-delivery-calc__stock';
+			st.textContent = stock;
+			result.appendChild(st);
+		}
 		if (unparsed && unparsed.length) {
 			var w = document.createElement('div');
 			w.className = 'nd-delivery-calc__warn';
@@ -297,6 +305,25 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 			result.appendChild(w);
 		}
 		result.hidden = false;
+	}
+
+	/* Наличие (Ирина, 02.10.2026): часть товаров в наличии, часть под заказ —
+	   предупреждаем под ценой. Признак тот же, что у плашки «В наличии» над
+	   фото: SHOW_STORES из mutator.php (положительный остаток хоть на одном
+	   складе), его компонент обновляет при каждом пересчёте корзины. */
+	function stockNote() {
+		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+		if (!bc || !bc.items) return '';
+		var inStock = 0, onOrder = 0;
+		currentItems().forEach(function (it) {
+			var live = bc.items[it.id];
+			if (!live) return;
+			if (live.SHOW_STORES) inStock++; else onOrder++;
+		});
+		if (!onOrder) return '';
+		return inStock
+			? 'Часть товаров есть в наличии, часть — под заказ. Точные сроки поставки уточните у менеджера.'
+			: 'Товары в корзине — под заказ. Точные сроки поставки уточните у менеджера.';
 	}
 
 	function showError(text) {
@@ -338,6 +365,7 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 				busy = false;
 				btn.disabled = false;
 				setText(btn, 'Рассчитать доставку');
+				result.classList.remove('is-stale');
 				applyTotal();
 				try { window.dispatchEvent(new Event('ndDeliveryCalcChange')); } catch (e) {}
 				if (pending) { pending = false; calculate(); }
@@ -408,11 +436,13 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 		var toName = String(quote.to || '').replace(/,\s*Россия(?=,|$)/, '');
 		var path = [fromName ? 'склад ' + fromName : '', toName].filter(Boolean).join(' → ');
 		if (route) setText(route, quote['with'] ? 'Доставка' + (path ? ': ' + path : '') : 'Самовывоз со склада');
-		setText(box.querySelector('.nd-total__row-value'), money(quote.price));
+		setText(box.querySelector('.nd-total__row-value'), quote.pending ? 'считаем…' : money(quote.price));
 		var check = box.querySelector('input');
 		if (check.checked !== !!quote['with']) check.checked = !!quote['with'];
 
-		if (quote['with']) {
+		/* Пока пересчитываем — «Итого» штатное (товары), как его сразу
+		   показывает корзина; строка доставки — «считаем…». */
+		if (quote['with'] && !quote.pending) {
 			if (!own) {
 				own = document.createElement('span');
 				own.className = 'nd-total__sum-value nd-dq-total';
@@ -470,23 +500,66 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 	}
 	applyTotal();
 
-	var lastKey = itemsKey(currentItems()), changeTimer = 0;
-	setInterval(function () {
-		var key = itemsKey(currentItems());
-		if (key === lastKey) return;
-		lastKey = key;
-		clearTimeout(changeTimer);
-		/* Компонент сохраняет количество на сервере с задержкой — ждём. */
-		changeTimer = setTimeout(function () {
-			if (city) {
-				calculate();
-			} else if (quote) {
-				quote = null;
-				result.hidden = true;
-				applyTotal();
-				post(URL_FLAG, { action: 'clear' }).catch(function () {});
+	/* Пересчёт после смены количества (Ирина, 02.10.2026: «Итого» менялось
+	   сразу, а доставка — секунд через пять). Как только количество поменялось
+	   на странице — помечаем цену доставки «считаем…», чтобы не висела
+	   прежняя. Считаем, как только сервер корзины ответил (компонент
+	   подменяет bc.result) — раньше нельзя: сервер расчёта берёт состав из
+	   сохранённой корзины. Ответа нет 3 с — считаем всё равно. */
+	var lastKey = itemsKey(currentItems()), changed = false, changedAt = 0, touchedAt = 0;
+	var lastResult = window.BX && BX.Sale && BX.Sale.BasketComponent ? BX.Sale.BasketComponent.result : null;
+
+	function markPending(on) {
+		if (quote) quote.pending = on;
+		result.classList.toggle('is-stale', !!on);
+		applyTotal();
+	}
+
+	function afterChange() {
+		changed = false;
+		if (city) {
+			calculate();
+		} else if (quote) {
+			quote = null;
+			result.hidden = true;
+			markPending(false);
+			post(URL_FLAG, { action: 'clear' }).catch(function () {});
+		}
+	}
+
+	/* Нажали «+»/«−» или правят число — «считаем…» сразу, не дожидаясь сервера. */
+	(function () {
+		var root = document.getElementById('basket-root');
+		if (!root) return;
+		function touch(e) {
+			var t = e.target;
+			if (!city || !quote || !t || !t.closest) return;
+			if (t.closest('[data-entity="basket-item-quantity-plus"], [data-entity="basket-item-quantity-minus"], [data-entity="basket-item-quantity-field"], [data-entity="basket-item-delete"]')) {
+				touchedAt = Date.now();
+				markPending(true);
 			}
-		}, 1500);
-	}, 700);
+		}
+		root.addEventListener('click', touch);
+		root.addEventListener('change', touch);
+	})();
+
+	setInterval(function () {
+		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+		var key = itemsKey(currentItems());
+		if (key !== lastKey) {
+			lastKey = key;
+			changed = true;
+			changedAt = Date.now();
+			if (bc) lastResult = bc.result;
+			if (city) markPending(true);
+		}
+		/* Нажали, а количество не поменялось (упёрлись в предел) — снимаем отметку. */
+		if (!changed && !busy && quote && quote.pending && Date.now() - touchedAt > 3000) markPending(false);
+		if (!changed) return;
+		if ((bc && bc.result !== lastResult) || Date.now() - changedAt > 3000) {
+			if (bc) lastResult = bc.result;
+			afterChange();
+		}
+	}, 200);
 })();
 </script>
