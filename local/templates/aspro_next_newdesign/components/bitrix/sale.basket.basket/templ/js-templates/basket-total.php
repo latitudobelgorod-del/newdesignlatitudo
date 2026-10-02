@@ -40,22 +40,15 @@ use Bitrix\Main\Localization\Loc;
 		}
 		?>
 
+		<?/* Карточка по схеме Ирины 02.10.2026: «Ваш заказ:» → Товары (N шт.) →
+		   [галочка «Доставка» с ценой — её вставляет блок расчёта доставки,
+		   local/include/basket_delivery_calc.php, перед .nd-total__sum] → Итого →
+		   «Заказать» → под кнопкой вес, объём и строка «Доставка: склад … → …» /
+		   «Самовывоз со склада» (.nd-total__meta, строку дописывает тот же блок).
+		   Галочка «Получить информацию о рассрочке» убрана. */?>
 		<div class="nd-total__card">
+			<div class="nd-total__title"><?=Loc::getMessage('SBB_ND_ORDER_TITLE')?></div>
 			<div class="nd-total__rows">
-				{{#WEIGHT_FORMATED}}
-					<div class="nd-total__row">
-						<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_WEIGHT')?></span>
-						<span class="nd-total__row-value">{{{WEIGHT_FORMATED}}}</span>
-					</div>
-				{{/WEIGHT_FORMATED}}
-
-				{{#VOLUME_FORMATED}}
-					<div class="nd-total__row">
-						<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_VOLUME')?></span>
-						<span class="nd-total__row-value">{{{VOLUME_FORMATED}}}</span>
-					</div>
-				{{/VOLUME_FORMATED}}
-
 				<?/* Со скидкой в строке «Товары» стоит сумма до скидки, без неё —
 				   итоговая. Пустую корзину строка пропускает целиком: сервер в этом
 				   случае присылает пустой COUNT_ITEMS, но прежнюю сумму до скидки —
@@ -66,8 +59,8 @@ use Bitrix\Main\Localization\Loc;
 				   цифр. Строку «Товары» анимация не трогает: после удаления товара в ней
 				   оставалась старая сумма (Ирина, 01.10.2026) — берём новую сразу. */?>
 				{{#COUNT_ITEMS}}
-				<div class="nd-total__row">
-					<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_ITEMS')?> ({{COUNT_ITEMS}})</span>
+				<div class="nd-total__row nd-total__row--goods">
+					<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_ITEMS')?> ({{COUNT_ITEMS}} <?=Loc::getMessage('SBB_ND_PIECES')?>.)</span>
 					<span class="nd-total__row-value">
 						{{#DISCOUNT_PRICE_FORMATED}}{{{PRICE_WITHOUT_DISCOUNT_FORMATED}}}{{/DISCOUNT_PRICE_FORMATED}}
 						{{^DISCOUNT_PRICE_FORMATED}}{{#PRICE_FORMATED_NEW}}{{{PRICE_FORMATED_NEW}}}{{/PRICE_FORMATED_NEW}}{{^PRICE_FORMATED_NEW}}{{{PRICE_FORMATED}}}{{/PRICE_FORMATED_NEW}}{{/DISCOUNT_PRICE_FORMATED}}
@@ -95,13 +88,21 @@ use Bitrix\Main\Localization\Loc;
 				</button>
 			</div>
 
-			<?// Чекбокс из макета: пока только помечает интерес к рассрочке визуально,
-			   // в заказ ничего не передаёт — отдельной логики под него в компоненте нет.?>
-			<label class="nd-total__check">
-				<input type="checkbox" class="nd-total__check-input" name="ND_INSTALLMENT" value="Y">
-				<span class="nd-total__check-box"></span>
-				<span class="nd-total__check-text"><?=Loc::getMessage('SBB_ND_INSTALLMENT')?></span>
-			</label>
+			<div class="nd-total__meta">
+				{{#WEIGHT_FORMATED}}
+					<div class="nd-total__row">
+						<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_WEIGHT')?></span>
+						<span class="nd-total__row-value">{{{WEIGHT_FORMATED}}}</span>
+					</div>
+				{{/WEIGHT_FORMATED}}
+
+				{{#VOLUME_FORMATED}}
+					<div class="nd-total__row">
+						<span class="nd-total__row-name"><?=Loc::getMessage('SBB_ND_VOLUME')?></span>
+						<span class="nd-total__row-value">{{{VOLUME_FORMATED}}}</span>
+					</div>
+				{{/VOLUME_FORMATED}}
+			</div>
 		</div>
 
 		<?

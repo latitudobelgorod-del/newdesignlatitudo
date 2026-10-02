@@ -816,7 +816,38 @@
     pointer-events: none;
 }
 
-/* Чекбокс рассрочки: штатный квадрат браузера прячем, рисуем свой. */
+/* «Ваш заказ:» над строкой «Товары» (02.10.2026). */
+#basket-root .nd-total__title {
+    margin: 0 0 16px;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 24px;
+    color: #101014;
+}
+/* Под кнопкой «Заказать»: вес, объём, куда везём / самовывоз. */
+#basket-root .nd-total__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 20px 0 0;
+}
+#basket-root .nd-total__meta:empty {
+    display: none;
+}
+#basket-root .nd-total__meta .nd-total__row {
+    font-size: 14px;
+    line-height: 20px;
+}
+#basket-root .nd-total__meta .nd-dq-route {
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    color: #8f8f9a;
+}
+
+/* Галочка: штатный квадрат браузера прячем, рисуем свой. Сейчас это галочка
+   «Доставка» в карточке итогов (рассрочку убрали 02.10.2026). */
 #basket-root .nd-total__check {
     display: flex;
     align-items: center;

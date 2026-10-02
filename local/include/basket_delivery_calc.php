@@ -92,12 +92,14 @@ if (is_array($ndDcSaved)
 .nd-delivery-calc__result[hidden] { display: none; }
 .nd-delivery-calc__price { font-weight: 700; }
 @media (max-width: 600px) { .nd-delivery-calc { padding: 14px; } }
-/* Доставка в панели «Итого»: строка и галочка под суммой. Классы строки и
-   галочки — те же, что у панели (.nd-total__row, .nd-total__check). */
-#basket-root .nd-dq { margin: 16px 0 0; }
+/* Доставка в панели «Итого» (схема Ирины 02.10.2026): строка с галочкой
+   «Доставка» и ценой — под «Товары», над «Итого»; куда везём — под кнопкой
+   «Заказать» (.nd-total__meta). Классы — те же, что у панели. */
+#basket-root .nd-dq { margin: 12px 0 0; }
+#basket-root .nd-dq .nd-total__row { align-items: center; }
+#basket-root .nd-dq-route[hidden] { display: none; }
 #basket-root .nd-total__sum-value[hidden] { display: none; }
-#basket-root .nd-dq .nd-total__row-name { white-space: normal; }
-#basket-root .nd-dq .nd-total__check { margin-top: 8px; }
+#basket-root .nd-dq .nd-total__check { margin: 0; gap: 8px; color: #8f8f9a; }
 </style>
 <div class="nd-delivery-calc" id="ndDeliveryCalc">
 	<h2 class="nd-delivery-calc__title">Расчёт доставки</h2>
@@ -231,11 +233,13 @@ if (is_array($ndDcSaved)
 		var orig = sum && sum.querySelector('[data-entity="basket-total-price"]');
 		if (!sum || !orig) return;
 		var box = card.querySelector('.nd-dq');
+		var route = card.querySelector('.nd-dq-route');
 		var own = sum.querySelector('.nd-dq-total');
 		var goods = goodsSum();
 
 		if (!quote || goods === null) {
 			if (box) box.parentNode.removeChild(box);
+			if (route) route.parentNode.removeChild(route);
 			if (own) own.parentNode.removeChild(own);
 			if (orig.hidden) orig.hidden = false;
 			return;
@@ -244,22 +248,32 @@ if (is_array($ndDcSaved)
 		if (!box) {
 			box = document.createElement('div');
 			box.className = 'nd-dq';
-			box.innerHTML = '<div class="nd-total__row"><span class="nd-total__row-name"></span><span class="nd-total__row-value"></span></div>'
-				+ '<label class="nd-total__check"><input type="checkbox" class="nd-total__check-input">'
-				+ '<span class="nd-total__check-box"></span><span class="nd-total__check-text">С доставкой</span></label>';
+			box.innerHTML = '<div class="nd-total__row"><label class="nd-total__check nd-total__row-name"><input type="checkbox" class="nd-total__check-input">'
+				+ '<span class="nd-total__check-box"></span><span class="nd-total__check-text">Доставка</span></label>'
+				+ '<span class="nd-total__row-value"></span></div>';
 			box.querySelector('input').addEventListener('change', function () {
 				if (!quote) return;
 				quote['with'] = this.checked;
 				applyTotal();
 				saveQuote();
 			});
-			sum.parentNode.insertBefore(box, sum.nextSibling);
+			sum.parentNode.insertBefore(box, sum);
 		}
-		/* «Доставка: Белгород → Воронеж» — откуда и куда (Ирина, 28.09.2026). */
+		/* Под кнопкой: «Доставка: склад Белгород → Ростов-на-Дону». Без
+		   галочки строки нет (Ирина, 02.10.2026). */
+		var meta = card.querySelector('.nd-total__meta');
+		if (meta && !route) {
+			route = document.createElement('div');
+			route.className = 'nd-dq-route';
+			meta.appendChild(route);
+		}
 		var fromName = String(quote.from || '').replace(/\s*\(.*\)$/, '');
 		var toName = String(quote.to || '').replace(/,\s*Россия(?=,|$)/, '');
-		var route = [fromName ? 'склад ' + fromName : '', toName].filter(Boolean).join(' → ');
-		setText(box.querySelector('.nd-total__row-name'), 'Доставка' + (route ? ': ' + route : ''));
+		var path = [fromName ? 'склад ' + fromName : '', toName].filter(Boolean).join(' → ');
+		if (route) {
+			setText(route, 'Доставка' + (path ? ': ' + path : ''));
+			if (route.hidden !== !quote['with']) route.hidden = !quote['with'];
+		}
 		setText(box.querySelector('.nd-total__row-value'), money(quote.price));
 		var check = box.querySelector('input');
 		if (check.checked !== !!quote['with']) check.checked = !!quote['with'];

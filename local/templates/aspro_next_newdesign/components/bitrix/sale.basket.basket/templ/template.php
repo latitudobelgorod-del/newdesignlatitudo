@@ -459,8 +459,9 @@ if (empty($arResult['ERROR_MESSAGE']))
 					})();
 					</script>
 
-					<?/* Блок «Доставка» — последним в правой колонке, как в макете. */?>
-					<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/page_blocks/basket_delivery_newdesign.php';?>
+					<?/* Блок «Доставка» (самовывоз / транспортной компанией,
+					     page_blocks/basket_delivery_newdesign.php) убран 02.10.2026:
+					     доставку теперь считает блок расчёта, итог — в карточке. */?>
 				</div>
 			<?endif;?>
 </div>
