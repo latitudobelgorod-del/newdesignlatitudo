@@ -189,7 +189,7 @@
    тоже сетка: кадр 203×203 и текст рядом. */
 #basket-root .basket-items-list-item-descriptions-inner {
     display: grid;
-    grid-template-columns: 120px minmax(0, 1fr);
+    grid-template-columns: 203px minmax(0, 1fr);
     /* Одна строка: плашка наличия лежит в той же ячейке, что и кадр, поверх
        его угла (см. ниже) — своей строки ей не нужно. */
     grid-template-rows: auto;
@@ -206,7 +206,7 @@
     /* Кадр держим у верха ячейки: строка бывает выше 203, когда у товара
        длинное название, — плашка наличия ориентируется на верх кадра. */
     align-self: start;
-    width: 120px;
+    width: 203px;
     margin: 0;
 }
 /* Кадр начинается ровно с верха ячейки: тема даёт обёртке значения поле
@@ -221,8 +221,8 @@
 /* Рамки вокруг фото в макете нет — тема рисует её на самом кадре. */
 #basket-root .basket-item-custom-block-photo-item {
     display: block;
-    width: 120px;
-    height: 120px;
+    width: 203px;
+    height: 203px;
     object-fit: cover;
     border: 0;
     border-radius: 12px;
@@ -899,14 +899,16 @@
 }
 
 /* ---- наличие под названием (02.10.2026) ----------------------------------
-   Кадр уменьшен до 120px (был 203 — «сильно огромная», Ирина). Плашки всех
-   складов — сразу под названием, на цветном фоне; выпадашку «В наличии ▼»
-   над фото убрали. Цвета — те же, что были у списка складов. */
+   Плашки всех складов — сразу под названием, на цветном фоне; выпадашку
+   «В наличии ▼» над фото убрали. Цвета — те же, что были у списка складов.
+   Кадр пробовали уменьшить до 120px — вернули 203 (Ирина, 02.10.2026).
+   Поле сверху отрицательное: у колонки описания gap 16px, плашки стояли
+   далеко от названия. */
 #basket-root .nd-basket-stock {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin: 8px 0 4px;
+    margin: -8px 0 0;
 }
 #basket-root .nd-basket-stock__chip {
     display: inline-block;
@@ -1086,14 +1088,14 @@
         column-gap: 24px;
     }
     #basket-root .basket-items-list-item-descriptions-inner {
-        grid-template-columns: 110px minmax(0, 1fr);
+        grid-template-columns: 150px minmax(0, 1fr);
     }
     #basket-root .basket-item-property-custom-photo,
     #basket-root .basket-item-custom-block-photo-item {
-        width: 110px;
+        width: 150px;
     }
     #basket-root .basket-item-custom-block-photo-item {
-        height: 110px;
+        height: 150px;
     }
     #basket-root .basket-total-outer {
         flex-basis: 340px;
@@ -1125,15 +1127,15 @@
         column-gap: 20px;
     }
     #basket-root .basket-items-list-item-descriptions-inner {
-        grid-template-columns: 100px minmax(0, 1fr);
+        grid-template-columns: 140px minmax(0, 1fr);
         column-gap: 20px;
     }
     #basket-root .basket-item-property-custom-photo,
     #basket-root .basket-item-custom-block-photo-item {
-        width: 100px;
+        width: 140px;
     }
     #basket-root .basket-item-custom-block-photo-item {
-        height: 100px;
+        height: 140px;
     }
 }
 
@@ -1223,6 +1225,11 @@
        на узком экране она отнимала строку у названия. */
     #basket-root .nd-basket-stores {
         display: none;
+    }
+    /* Здесь у колонки описания gap 6px, а не 16 — отрицательное поле
+       прижимало плашки складов вплотную к названию. */
+    #basket-root .nd-basket-stock {
+        margin: 2px 0 0;
     }
     /* display с !important — тема ниже 768px кладёт блок в display:block,
        и «Удалить» (у него order:3) уезжает наверх, до названия. */
