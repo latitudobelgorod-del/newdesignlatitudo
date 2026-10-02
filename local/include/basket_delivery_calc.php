@@ -92,6 +92,10 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 #ndDeliveryCalc .nd-delivery-calc__input.is-error { border-color: #c60000; }
 #ndDeliveryCalc .nd-delivery-calc__option { list-style: none; padding: 8px 14px; }
 #ndDeliveryCalc .nd-delivery-calc__option:before { content: none; display: none; }
+/* В правой колонке узко — склад и город друг под другом, отступы как
+   между карточкой итогов и блоком «Уточните наличие». */
+.nd-delivery-calc.nd-delivery-calc--aside { margin: 24px 0 0; }
+.nd-delivery-calc--aside .nd-delivery-calc__fields { grid-template-columns: 1fr; }
 @media (max-width: 600px) {
 	.nd-delivery-calc { padding: 16px; }
 	.nd-delivery-calc__fields { grid-template-columns: 1fr; }
@@ -158,25 +162,28 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 	quote = normalize(quote);
 	var city = quote && quote.city_id ? { id: quote.city_id, name: quote.to } : null;
 
-	/* Место блока — под товарами в левой колонке корзины (Ирина, 28.09.2026).
-	   Шаблон корзины не трогаем: блок подключается из /basket/index.php после
-	   компонента и сам переезжает в .basket-items-list-outer. На узком экране
-	   (≤991px, колонки друг под другом) — сразу под карточкой итогов: ниже его
-	   не находили (Ирина, 01.10.2026), а «Заказать» на телефоне — в прибитой
-	   панели. Нет разметки корзины — блок остаётся, где подключён. */
+	/* Место блока — в правой колонке сразу под карточкой «Ваш заказ», над
+	   «Уточните наличие» (Ирина, 02.10.2026: внизу под товарами его не
+	   видели). На телефоне колонки идут друг под другом — там это тоже место
+	   сразу под итогами. Шаблон корзины не трогаем: блок подключается из
+	   /basket/index.php после компонента и переезжает сам. Нет разметки
+	   корзины — остаётся, где подключён. */
 	(function () {
 		var calc = document.getElementById('ndDeliveryCalc');
 		var root = document.getElementById('basket-root');
-		var row = root && root.querySelector('.basket-items-list.flexbox--row');
-		var left = row && row.querySelector('.basket-items-list-outer');
-		if (!row || !left) return;
-		if (window.matchMedia && window.matchMedia('(max-width: 991px)').matches) {
-			var total = row.querySelector('[data-entity="basket-total-block"]');
-			if (total) total.parentNode.insertBefore(calc, total.nextSibling);
-			else row.parentNode.insertBefore(calc, row.nextSibling);
-		} else {
+		var total = root && root.querySelector('[data-entity="basket-total-block"]');
+		if (!total) return;
+		/* 992–1024px: тема прибивает правую колонку (.basket-total-outer —
+		   position: fixed, см. newdesign-basket.css), и с блоком она выше экрана —
+		   наезжала на товары. Там блок — под товарами, как было до 02.10.2026. */
+		var w = window.innerWidth || document.documentElement.clientWidth;
+		var left = root.querySelector('.basket-items-list-outer');
+		if (w >= 992 && w <= 1024 && left) {
 			left.appendChild(calc);
+			return;
 		}
+		total.parentNode.insertBefore(calc, total.nextSibling);
+		calc.classList.add('nd-delivery-calc--aside');
 	})();
 
 	function post(url, data) {
