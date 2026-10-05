@@ -184,12 +184,22 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 		   // корзину компонент отдаёт той же веткой, что и ошибку: в ERROR_MESSAGE
 		   // у него лежит «Ваша корзина пуста».?>
 		<?if(empty($arResult['ERROR_MESSAGE'])):?>
+		<?// «Печать в PDF» (Ирина, 05.10.2026): собирает бланк корзины и открывает
+		   // печать браузера — там «Сохранить как PDF». Скрипт ниже, под очисткой.?>
+		<div class="nd-basket-head__actions">
+		<button class="nd-basket-head__clear nd-basket-head__print" type="button" data-nd-basket-print>
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+				<path d="M7 9V3.75A.75.75 0 0 1 7.75 3h8.5a.75.75 0 0 1 .75.75V9M7 17.5H5a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2h-2M7 14h10v6.25a.75.75 0 0 1-.75.75h-8.5a.75.75 0 0 1-.75-.75V14Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+			</svg>
+			<span>Печать в PDF</span>
+		</button>
 		<button class="nd-basket-head__clear" type="button" data-nd-basket-clear>
 			<svg width="24" height="24" viewBox="0 0 16 16" fill="none" aria-hidden="true">
 				<path d="M9.332.733c.513 0 1.005.204 1.367.567.363.362.567.854.567 1.367v.732h2.733a.6.6 0 0 1 0 1.201h-.733v8.733c0 .513-.204 1.005-.567 1.367a1.93 1.93 0 0 1-1.367.567H4.666a1.93 1.93 0 0 1-1.367-.567 1.93 1.93 0 0 1-.567-1.367V4.6H2a.6.6 0 0 1 0-1.201h2.733v-.732c0-.513.204-1.005.566-1.367A1.93 1.93 0 0 1 6.666.733h2.666ZM3.933 4.6v8.733c0 .195.077.381.215.519.137.137.324.214.518.214h6.666c.195 0 .381-.077.519-.214a.733.733 0 0 0 .214-.519V4.6H3.933Zm2.733-2.667a.733.733 0 0 0-.733.733v.733h4.132v-.733a.733.733 0 0 0-.732-.733H6.666Z" fill="currentColor"/>
 			</svg>
 			<span>Очистить корзину</span>
 		</button>
+		</div>
 		<?endif;?>
 	</div>
 	<?
@@ -249,6 +259,124 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 			document.body.classList.add('nd-basket-clearing');
 			removeNext();
 		});
+	})();
+	</script>
+	<script>
+	/* «Печать в PDF» (Ирина, 05.10.2026). Страницу как есть не печатаем: лист
+	   A4 уже 768px, и браузер подставил бы мобильную вёрстку со счётчиками и
+	   «Удалить». Собираем отдельный бланк — шапка с логотипом и контактами,
+	   таблица товаров, итоги (копия карточки «Ваш заказ» без кнопки) — кладём
+	   прямо в body и печатаем только его (стили — newdesign-basket.css,
+	   «печать»). Цены и количество — из BX.Sale.BasketComponent, как на экране. */
+	(function () {
+		function text(html) {
+			var d = document.createElement('div');
+			d.innerHTML = html == null ? '' : String(html);
+			return (d.textContent || '').replace(/\s+/g, ' ').trim();
+		}
+		function el(tag, cls, txt) {
+			var e = document.createElement(tag);
+			if (cls) e.className = cls;
+			if (txt != null) e.textContent = txt;
+			return e;
+		}
+
+		function build() {
+			var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+			var box = el('div', 'nd-bprint');
+			box.id = 'nd-basket-print';
+
+			var head = el('div', 'nd-bprint__head');
+			var logo = el('div', 'nd-bprint__logo');
+			document.querySelectorAll('#header .nd-logo img').forEach(function (img) {
+				var i = el('img', img.className);
+				i.src = img.src;
+				i.alt = img.alt;
+				logo.appendChild(i);
+			});
+			head.appendChild(logo);
+			var contacts = el('div', 'nd-bprint__contacts');
+			var seen = {};
+			document.querySelectorAll('#header .nd-contact--phone, #header a.nd-contact[href^="mailto:"]').forEach(function (a) {
+				var t = a.textContent.replace(/\s+/g, ' ').trim();
+				if (t && !seen[t]) { seen[t] = 1; contacts.appendChild(el('div', '', t)); }
+			});
+			contacts.appendChild(el('div', '', location.hostname));
+			head.appendChild(contacts);
+			box.appendChild(head);
+
+			box.appendChild(el('div', 'nd-bprint__title', 'Корзина от ' + new Date().toLocaleDateString('ru-RU')));
+
+			var table = el('table', 'nd-bprint__table');
+			var thead = el('thead');
+			var tr = el('tr');
+			['№', '', 'Товар', 'Кол-во', 'Цена', 'Сумма'].forEach(function (h) { tr.appendChild(el('th', '', h)); });
+			thead.appendChild(tr);
+			table.appendChild(thead);
+			var tbody = el('tbody');
+			var n = 0;
+			document.querySelectorAll('#basket-item-table [data-entity="basket-item"]').forEach(function (row) {
+				if (row.querySelector('[data-entity="basket-item-restore-button"]')) return;
+				var item = bc && bc.items ? bc.items[row.getAttribute('data-id')] : null;
+				if (!item) return;
+				n++;
+				var r = el('tr');
+				r.appendChild(el('td', 'nd-bprint__n', String(n)));
+				var ph = el('td', 'nd-bprint__photo');
+				var img = row.querySelector('.basket-item-custom-block-photo-item');
+				if (img) { var i = el('img'); i.src = img.src; ph.appendChild(i); }
+				r.appendChild(ph);
+				var name = el('td', 'nd-bprint__name');
+				name.appendChild(el('div', 'nd-bprint__item', text(item.NAME)));
+				var chips = [];
+				row.querySelectorAll('.nd-basket-stock__chip').forEach(function (c) { chips.push(c.textContent.replace(/\s+/g, ' ').trim()); });
+				if (chips.length) name.appendChild(el('div', 'nd-bprint__muted', 'Наличие: ' + chips.join(' · ')));
+				var props = row.querySelector('.basket-item-block-properties');
+				if (props && props.textContent.trim()) name.appendChild(el('div', 'nd-bprint__muted', props.textContent.replace(/\s+/g, ' ').trim()));
+				r.appendChild(name);
+				r.appendChild(el('td', 'nd-bprint__num', text(item.QUANTITY) + ' ' + text(item.MEASURE_TEXT)));
+				r.appendChild(el('td', 'nd-bprint__num', text(item.PRICE_FORMATED)));
+				r.appendChild(el('td', 'nd-bprint__num nd-bprint__sum', text(item.SUM_PRICE_FORMATED)));
+				tbody.appendChild(r);
+			});
+			table.appendChild(tbody);
+			box.appendChild(table);
+
+			var card = document.querySelector('[data-entity="basket-total-block"] .nd-total__card');
+			if (card) {
+				var total = card.cloneNode(true);
+				total.querySelectorAll('.nd-total__title, .basket-checkout-block, input, script').forEach(function (e) { e.remove(); });
+				total.classList.add('nd-bprint__total');
+				box.appendChild(total);
+			}
+			box.appendChild(el('div', 'nd-bprint__note', 'Цены и наличие — на ' + new Date().toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' }) + '. Не является публичной офертой: точную стоимость и сроки подтвердит менеджер.'));
+			return n ? box : null;
+		}
+
+		function cleanup() {
+			document.body.classList.remove('nd-basket-printing');
+			var old = document.getElementById('nd-basket-print');
+			if (old) old.remove();
+		}
+
+		document.addEventListener('click', function (e) {
+			var btn = e.target.closest('[data-nd-basket-print]');
+			if (!btn) return;
+			cleanup();
+			var box = build();
+			if (!box) return;
+			document.body.appendChild(box);
+			document.body.classList.add('nd-basket-printing');
+			/* Картинки должны догрузиться до печати, иначе в PDF пустые клетки. */
+			var imgs = Array.prototype.slice.call(box.querySelectorAll('img'));
+			Promise.all(imgs.map(function (i) {
+				return i.complete ? null : new Promise(function (ok) { i.onload = i.onerror = ok; });
+			})).then(function () {
+				window.print();
+				setTimeout(cleanup, 500);
+			});
+		});
+		window.addEventListener('afterprint', function () { setTimeout(cleanup, 0); });
 	})();
 	</script>
 
