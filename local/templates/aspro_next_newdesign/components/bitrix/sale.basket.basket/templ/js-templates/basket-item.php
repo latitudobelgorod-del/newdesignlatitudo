@@ -136,7 +136,7 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 						<div class="nd-basket-stock">
 							{{#SHOW_STORES}}
 								{{#STORES}}
-									<span class="nd-basket-stock__chip is-{{CLASS}}">{{NAME}}: {{#HAS_AMOUNT}}{{AMOUNT}} <?=Loc::getMessage('SBB_ND_PIECES')?>{{/HAS_AMOUNT}}{{^HAS_AMOUNT}}<?=Loc::getMessage('SBB_ND_ON_ORDER')?>{{/HAS_AMOUNT}}</span>
+									<span class="nd-basket-stock__chip is-{{CLASS}}" data-nd-store="{{NAME}}" data-nd-amount="{{AMOUNT}}">{{NAME}}: {{#HAS_AMOUNT}}{{AMOUNT}} <?=Loc::getMessage('SBB_ND_PIECES')?>{{/HAS_AMOUNT}}{{^HAS_AMOUNT}}<?=Loc::getMessage('SBB_ND_ON_ORDER')?>{{/HAS_AMOUNT}}</span>
 								{{/STORES}}
 							{{/SHOW_STORES}}
 							{{^SHOW_STORES}}

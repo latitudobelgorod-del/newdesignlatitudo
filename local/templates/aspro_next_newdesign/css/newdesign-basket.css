@@ -1059,8 +1059,12 @@
    корзине, лента прячет, и :first-child запросто оказывается скрытым. Ловим
    это так: линию даём всем видимым, а у тех, перед кем есть видимый сосед,
    снимаем. Между карточками линию рисует их собственный border-right. */
+/* Скругление 4px у сетки (тема) срезало углы линий карточек: слева угол
+   выходил кривым, справа верхняя линия обрывалась (Ирина, 05.10.2026).
+   Линии рисуют карточки, поэтому и углы — прямые, по карточкам. */
 .nd-related--basket .nd-catlist .catalog_block {
     border: 0 !important;
+    border-radius: 0 !important;
 }
 .nd-related--basket .nd-catlist .catalog_block .item_block:not(.nd-related-hidden) {
     border-top: 1px solid rgba(82, 82, 100, .15) !important;
@@ -1859,4 +1863,11 @@
     #basket-root .basket-items-list-item-container {
         column-gap: 12px;
     }
+}
+
+/* Склад, выбранный в «Расчёте доставки», если на нём хватает товара на
+   количество в корзине — плашка в яркой рамке своего цвета (05.10.2026).
+   Ставит класс скрипт local/include/basket_delivery_calc.php. */
+#basket-root .nd-basket-stock__chip.is-picked {
+    box-shadow: inset 0 0 0 1.5px currentColor;
 }

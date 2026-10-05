@@ -543,6 +543,45 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 		root.addEventListener('change', touch);
 	})();
 
+	/* ---- Склад отгрузки в плашках товаров (Ирина, 05.10.2026) ---------------
+	   Покупатель выбрал склад в расчёте — у товаров, которых на этом складе
+	   хватает на количество в корзине, плашка склада обводится яркой рамкой.
+	   До первого выбора склада (или расчёта) не подсвечиваем: склад по
+	   умолчанию покупатель ещё не выбирал. Корзина перерисовывает строки при
+	   каждом пересчёте — подсветку ставим заново по наблюдателю. */
+	var whTouched = !!quote;
+	function markStores() {
+		var root = document.getElementById('basket-root');
+		if (!root) return;
+		var opt = whSelect.options[whSelect.selectedIndex];
+		var whName = whTouched && opt ? opt.text.trim().toLowerCase() : '';
+		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+		root.querySelectorAll('[data-entity="basket-item"]').forEach(function (row) {
+			var id = row.getAttribute('data-id');
+			var live = bc && bc.items ? bc.items[id] : null;
+			var qty = live && live.QUANTITY ? parseFloat(live.QUANTITY) : 0;
+			row.querySelectorAll('.nd-basket-stock__chip[data-nd-store]').forEach(function (chip) {
+				var name = (chip.getAttribute('data-nd-store') || '').toLowerCase();
+				var amount = parseFloat(chip.getAttribute('data-nd-amount')) || 0;
+				var on = whName !== '' && name.indexOf(whName) !== -1 && amount > 0 && amount >= qty;
+				if (chip.classList.contains('is-picked') !== on) chip.classList.toggle('is-picked', on);
+			});
+		});
+	}
+	whSelect.addEventListener('change', function () { whTouched = true; markStores(); });
+	form.addEventListener('submit', function () { whTouched = true; markStores(); });
+	(function () {
+		var list = document.getElementById('basket-item-list');
+		if (!list || !window.MutationObserver) return;
+		var queued = false;
+		new MutationObserver(function () {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(function () { queued = false; markStores(); });
+		}).observe(list, { childList: true, subtree: true });
+	})();
+	markStores();
+
 	setInterval(function () {
 		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
 		var key = itemsKey(currentItems());
