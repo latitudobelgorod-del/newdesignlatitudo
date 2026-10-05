@@ -2186,3 +2186,19 @@
         align-self: center;
     }
 }
+/* Телефон: фото по высоте — три строки названия (3 × 20 = 60), было 80
+   (Ирина, 05.10.2026). Колонки 1fr | 60 | 60: фото — последняя, счётчик
+   (120) — две последние. */
+@media (max-width: 767px) {
+    #basket-root .basket-items-list-item-container {
+        grid-template-columns: minmax(0, 1fr) 60px 60px;
+    }
+    #basket-root .basket-item-property-custom-photo,
+    #basket-root .basket-item-custom-block-photo-item {
+        width: 60px;
+    }
+    #basket-root .basket-item-custom-block-photo-item {
+        height: 60px;
+        border-radius: 4px;
+    }
+}
