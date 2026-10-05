@@ -2083,3 +2083,106 @@
 .nd-bprint__total .nd-total__row-name * {
     color: #6c6c78 !important;
 }
+
+/* ---- плашки складов шрифтом характеристик; телефон — всё на всю ширину (05.10.2026)
+   Ирина: «плашки складов — шрифт такой же по высоте и размеру, как ниже
+   логистические параметры; на мобильном плашки и параметры на всю ширину». */
+#basket-root .nd-basket-stock__chip {
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 19.6px;
+}
+@media (max-width: 767px) {
+    #basket-root .nd-basket-stock {
+        gap: 4px;
+    }
+    #basket-root .nd-basket-stock__chip {
+        padding: 2px 6px;
+        font-size: 10px;
+        line-height: 13px;
+        letter-spacing: .4px;
+    }
+    /* Как на десктопе: обёртки описания растворяем (display:contents), и
+       название, плашки, характеристики, «Удалить» становятся ячейками сетки
+       строки. Рядом с фото — только название; остальное — на всю ширину.
+       Колонки 1fr | 40 | 80: фото — последняя (80), счётчик — две последние. */
+    #basket-root .basket-items-list-item-container {
+        grid-template-columns: minmax(0, 1fr) 40px 80px;
+        grid-template-areas:
+            "name   name   photo"
+            "stock  stock  stock"
+            "warn   warn   warn"
+            "props  props  props"
+            "remove remove remove"
+            "sum    stepper stepper";
+        column-gap: 0;
+        row-gap: 0;
+    }
+    #basket-root .basket-items-list-item-descriptions,
+    #basket-root .basket-items-list-item-descriptions-inner,
+    #basket-root .basket-item-block-info,
+    #basket-root .basket-items-list-item-descriptions-inner .basket-item-block-info {
+        display: contents !important;
+    }
+    #basket-root .basket-items-list-item-notification {
+        grid-column: 1 / -1;
+    }
+    #basket-root .basket-item-property-custom-photo {
+        grid-area: photo;
+        align-self: start;
+        justify-self: end;
+    }
+    #basket-root .basket-item-info-name {
+        grid-area: name;
+        align-self: start;
+        margin-right: 12px;
+    }
+    #basket-root .nd-basket-stock {
+        grid-area: stock;
+        margin: 10px 0 0;
+    }
+    #basket-root .basket-items-list-item-warning-container {
+        grid-area: warn;
+        margin-top: 8px;
+    }
+    #basket-root .basket-item-block-properties {
+        grid-area: props;
+        margin-top: 8px;
+    }
+    #basket-root .basket-item-block-info .basket-item-actions-remove.visible-xs {
+        grid-area: remove;
+        justify-self: start;
+        margin-top: 12px;
+    }
+    #basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) {
+        grid-area: sum;
+        margin-top: 16px;
+    }
+    #basket-root .basket-items-list-item-amount {
+        grid-area: stepper;
+        justify-self: end;
+        margin-top: 16px;
+    }
+}
+/* 768–1279: с плашками шрифтом характеристик (14px) колонка складов узка —
+   плашки вставали столбиком. Здесь склады идут на всю ширину под названием,
+   а цена и счётчик — последней строкой, справа от «Удалить». */
+@media (min-width: 768px) and (max-width: 1279px) {
+    #basket-root .basket-items-list-item-container {
+        grid-template-areas:
+            "photo name   name   name"
+            "photo stock  stock  stock"
+            "photo warn   warn   warn"
+            "photo props  props  props"
+            "photo remove sum    stepper";
+        grid-template-rows: auto auto auto auto 1fr;
+    }
+    #basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one),
+    #basket-root .basket-items-list-item-amount {
+        align-self: start;
+    }
+    #basket-root .basket-item-block-info .basket-item-actions-remove.visible-xs {
+        align-self: center;
+    }
+}
