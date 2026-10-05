@@ -1754,7 +1754,9 @@
     }
     #basket-root .nd-basket-stock {
         grid-area: stock;
-        align-self: center;
+        /* К верху, а не по центру: одна плашка «Под заказ» иначе опускалась
+           до середины блока цены — ниже, чем первая строка складов у соседей. */
+        align-self: start;
         margin: 12px 0 0;
     }
     #basket-root .basket-items-list-item-price:not(.basket-items-list-item-price-for-one) {
