@@ -1984,12 +1984,12 @@
     color: #8f8f9a;
 }
 .nd-bprint__photo {
-    width: 48px;
+    width: 60px;
 }
 .nd-bprint__photo img {
     display: block;
-    width: 44px;
-    height: 44px;
+    width: 56px;
+    height: 56px;
     object-fit: cover;
     border-radius: 4px;
 }
@@ -2016,14 +2016,11 @@
 }
 /* Итоги — копия карточки «Ваш заказ»: прижимаем вправо и ужимаем. */
 .nd-bprint__body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 200px;
-    align-items: start;
-    gap: 16px;
+    display: block;
 }
 .nd-bprint .nd-bprint__total {
     width: auto;
-    margin: 0;
+    margin: 16px 0 0;
     padding: 12px 16px;
     break-inside: avoid;
     page-break-inside: avoid;

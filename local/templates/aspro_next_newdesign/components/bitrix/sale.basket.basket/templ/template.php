@@ -310,7 +310,7 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 			var table = el('table', 'nd-bprint__table');
 			var thead = el('thead');
 			var tr = el('tr');
-			['№', '', 'Товар', 'Кол-во × цена', 'Сумма'].forEach(function (h) { tr.appendChild(el('th', '', h)); });
+			['№', '', 'Товар', 'Кол-во', 'Цена', 'Сумма'].forEach(function (h) { tr.appendChild(el('th', '', h)); });
 			thead.appendChild(tr);
 			table.appendChild(thead);
 			var tbody = el('tbody');
@@ -334,17 +334,14 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 				var props = row.querySelector('.basket-item-block-properties');
 				if (props && props.textContent.trim()) name.appendChild(el('div', 'nd-bprint__muted', props.textContent.replace(/\s+/g, ' ').trim()));
 				r.appendChild(name);
-				// количество и цена за единицу — одной ячейкой: в две колонки с итогами
-				// справа название товара не помещалось
-				var qp = el('td', 'nd-bprint__num');
-				qp.appendChild(el('div', '', text(item.QUANTITY) + ' ' + text(item.MEASURE_TEXT)));
-				qp.appendChild(el('div', 'nd-bprint__muted', '× ' + text(item.PRICE_FORMATED)));
-				r.appendChild(qp);
+				r.appendChild(el('td', 'nd-bprint__num', text(item.QUANTITY) + ' ' + text(item.MEASURE_TEXT)));
+				r.appendChild(el('td', 'nd-bprint__num', text(item.PRICE_FORMATED)));
 				r.appendChild(el('td', 'nd-bprint__num nd-bprint__sum', text(item.SUM_PRICE_FORMATED)));
 				tbody.appendChild(r);
 			});
 			table.appendChild(tbody);
-			/* Как на сайте: слева товары, справа итоги (Ирина, 05.10.2026). */
+			/* Товары на всю ширину, под ними итоги тоже на всю ширину (Ирина,
+			   05.10.2026; две колонки «как на сайте» не понравились). */
 			var body = el('div', 'nd-bprint__body');
 			body.appendChild(table);
 			box.appendChild(body);
