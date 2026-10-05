@@ -188,7 +188,7 @@ $displayModeClass = $arParams['DISPLAY_MODE'] === 'compact' ? ' basket-items-lis
 		   // печать браузера — там «Сохранить как PDF». Скрипт ниже, под очисткой.?>
 		<div class="nd-basket-head__actions">
 		<button class="nd-basket-head__clear nd-basket-head__print" type="button" data-nd-basket-print>
-			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+			<svg width="24" height="24" viewBox="2.25 2.25 19.5 19.5" fill="none" aria-hidden="true">
 				<path d="M7 9V3.75A.75.75 0 0 1 7.75 3h8.5a.75.75 0 0 1 .75.75V9M7 17.5H5a2 2 0 0 1-2-2V11a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2h-2M7 14h10v6.25a.75.75 0 0 1-.75.75h-8.5a.75.75 0 0 1-.75-.75V14Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
 			</svg>
 			<span>Печать в PDF</span>

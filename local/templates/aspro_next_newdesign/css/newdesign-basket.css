@@ -1893,9 +1893,16 @@
     display: none;
 }
 @media print {
+    /* Поля по бокам держит сам бланк (padding ниже): Яндекс.Браузер и
+       Chrome с «Поля: нет» поля @page не применяют — бланк лип к краям
+       листа (Ирина, 05.10.2026). Сверху/снизу — поля страницы, чтобы они
+       были и на втором листе. */
     @page {
         size: A4;
-        margin: 12mm;
+        margin: 12mm 0;
+    }
+    body.nd-basket-printing #nd-basket-print {
+        padding: 4mm 16mm 0;
     }
     body.nd-basket-printing > *:not(#nd-basket-print) {
         display: none !important;
@@ -2060,4 +2067,16 @@
     font-size: 10px;
     line-height: 14px;
     color: #8f8f9a;
+}
+/* «Доставка» в итогах приходит подписью галочки — тема делает её жирной;
+   в бланке все строки над «Итого» одного вида. */
+.nd-bprint__total .nd-total__rows .nd-total__row,
+.nd-bprint__total .nd-total__rows .nd-total__row * {
+    font-weight: 400 !important;
+    font-size: 12px !important;
+    color: inherit;
+}
+.nd-bprint__total .nd-total__rows .nd-total__row-name,
+.nd-bprint__total .nd-total__rows .nd-total__row-name * {
+    color: #6c6c78 !important;
 }
