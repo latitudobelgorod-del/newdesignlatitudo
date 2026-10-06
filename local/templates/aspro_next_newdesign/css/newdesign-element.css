@@ -1604,6 +1604,15 @@
     align-items: baseline;
     gap: 0;
 }
+/* Старая цена по макету зачёркнута. line-through висит на .offers_price_old,
+   но через inline-flex обёртку (правило выше) зачёркивание до текста не
+   доходит — ставим его прямо на число и «₽». */
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .offers_price_old .price_value,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .offers_price_old .price_currency,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount .price_value,
+.catalog_detail.element_newdesign .right_info .info_item .prices_block .price_matrix_wrapper > .price.discount .price_currency {
+    text-decoration: line-through;
+}
 
 /* Ссылки «Все характеристики» / «Примеры применения» в макете подчёркнуты.
    Это не <a>, а <span class="choise"> — тема раскрывает по ним блоки, поэтому

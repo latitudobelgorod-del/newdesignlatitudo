@@ -1,6 +1,6 @@
 <?if(!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();?>
-<?// Сворачивание длинного описания акции — js/newdesign-sale.js.
-$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/newdesign-sale.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-sale.js'));?>
+<?// Сворачивание длинного описания акции — js/newdesign-sale.js. Подключается
+// в component_epilog.php: отсюда при отдаче страницы из кеша он пропадал.?>
 
 <?// вывод текущей даты и перевод ее в UNIX-формат?>
 <?$objDateTime = new DateTime();
