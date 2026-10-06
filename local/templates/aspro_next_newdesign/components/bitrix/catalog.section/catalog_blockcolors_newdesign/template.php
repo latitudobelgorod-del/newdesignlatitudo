@@ -510,6 +510,20 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 						/* Плашка гарантии («25 лет») — свойство SET; в макете она в правом
 						   нижнем углу картинки, поэтому вынесена из ссылки-миниатюры. */
 						$ndWarrantyClass = ($arItem['PROPERTIES']['SET']['VALUE'] ? $arItem['PROPERTIES']['SET']['VALUE_XML_ID'] : '');
+
+						/* Склады — по тому предложению, которое карточка показывает выбранным.
+						   result_modifier берёт первое покупаемое в порядке $arItem['OFFERS'],
+						   а карточка выбирает по дереву свойств (JS_OFFERS / OFFERS_SELECTED):
+						   у Latitudo Евро там первой шла 6000 мм без остатков при выбранной
+						   3000 — и «В наличии» не показывалось (акция, 06.10.2026). */
+						if (!empty($arItem['JS_OFFERS']) && isset($arItem['OFFERS_SELECTED'])) {
+							$ndSelOffer = $arItem['JS_OFFERS'][$arItem['OFFERS_SELECTED']] ?? null;
+							$ndSelOfferId = $ndSelOffer ? (int)$ndSelOffer['ID'] : 0;
+							if ($ndSelOfferId && isset($arItem['OFFERS_STORES_DATA'][$ndSelOfferId])) {
+								$arItem['STORES_DATA'] = $arItem['OFFERS_STORES_DATA'][$ndSelOfferId];
+								$arItem['CURRENT_OFFER_ID'] = $ndSelOfferId;
+							}
+						}
 						?>
 						<div class="image_wrapper_block">
 							<div class="nd-badges">
