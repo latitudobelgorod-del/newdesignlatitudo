@@ -583,8 +583,31 @@
 }
 
 .nd-catlist .catalog_item_wrapp .nd-old-row__diff {
-    color: #ff4130;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #c60000;
+    font-weight: 600;
     white-space: nowrap;
+}
+
+/* Акция в списке (Ирина, 06.10.2026): цена красная, «−15%» белым на красной
+   плашке, «выгода N ₽» красным. Класс nd-has-sale ставит newdesign-catalog.js
+   только когда старая цена выше текущей. */
+.nd-catlist .catalog_item_wrapp .nd-old-row__pct {
+    padding: 0 6px;
+    border-radius: 4px;
+    background: #c60000;
+    color: #fff;
+    font-weight: 700;
+    line-height: 20px;
+}
+
+.nd-catlist .catalog_item_wrapp.nd-has-sale .cost.prices .price,
+.nd-catlist .catalog_item_wrapp.nd-has-sale .offers_price,
+.nd-catlist .catalog_item_wrapp.nd-has-sale .price_value_block,
+.nd-catlist .catalog_item_wrapp.nd-has-sale .price_measure {
+    color: #c60000;
 }
 
 /* ---------------------------------------------------------------------------

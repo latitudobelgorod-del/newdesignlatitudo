@@ -637,8 +637,13 @@
                     };
                 }
             }
+            /* Карточка со скидкой красит цену в красный (класс nd-has-sale,
+               стили — newdesign-catalog.css). Снимаем, если скидка ушла при
+               смене длины. */
+            var ndWrap = row.closest('.catalog_item_wrapp');
             if (!prices) {
                 setDisplay(row, 'none');
+                if (ndWrap) ndWrap.classList.remove('nd-has-sale');
                 return;
             }
 
@@ -646,6 +651,7 @@
             var now = parseFloat(prices.RATIO_PRICE || prices.PRICE || 0);
             if (!base || !now || base <= now) {
                 setDisplay(row, 'none');
+                if (ndWrap) ndWrap.classList.remove('nd-has-sale');
                 return;
             }
 
@@ -670,8 +676,15 @@
             /* Округляем до рубля: после умножения на коэффициент выходят копейки
                (6 233.33), а тема в своей строке показывает целые. */
             setHtml(row.querySelector('.nd-old-row__old'), fmt(Math.round(base * ndKoef)));
-            setHtml(row.querySelector('.nd-old-row__diff'), 'скидка ' + fmt(Math.round((base - now) * ndKoef)));
+            /* «−15%» красной плашкой и «выгода N ₽» — акцию в списке было
+               не видно (Ирина, 06.10.2026). Процент — от цен, а не от
+               коэффициента единиц: в любой единице он одинаковый. */
+            var ndPct = Math.round((base - now) / base * 100);
+            setHtml(row.querySelector('.nd-old-row__diff'),
+                (ndPct > 0 ? '<span class="nd-old-row__pct">−' + ndPct + '%</span>' : '')
+                + '<span class="nd-old-row__gain">выгода ' + fmt(Math.round((base - now) * ndKoef)) + '</span>');
             setDisplay(row, '');
+            if (ndWrap) ndWrap.classList.add('nd-has-sale');
         } catch (e) { }
     }
 
