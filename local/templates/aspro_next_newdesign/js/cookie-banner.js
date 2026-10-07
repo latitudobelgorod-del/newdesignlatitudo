@@ -65,8 +65,17 @@
   // ─── Трекеры грузим всегда, не дожидаясь кнопки ─────────────────────────────
   loadTrackers();
 
+  /* Разметка баннера стоит в HTML страницы скрытой (footer.php, 07.10.2026): проверка
+     152-ФЗ (vlip.site) читает HTML и без уведомления о cookie в нём ставила «загрузку
+     трекеров до согласия» — у vrn.easydecking.ru баннер в HTML, и замечания там нет.
+     Если разметки на странице нет (другой шаблон), баннер собирается здесь, как раньше. */
+  var staticWrap = document.getElementById('cb-wrap');
+
   // Кнопку уже нажимали — баннер больше не показываем.
-  if (getCookie(COOKIE_NAME)) { return; }
+  if (getCookie(COOKIE_NAME)) {
+    if (staticWrap) staticWrap.parentNode.removeChild(staticWrap);
+    return;
+  }
 
   // ─── Стили баннера ──────────────────────────────────────────────────────────
   /* Полоса во всю ширину, прибитая к нижнему краю (Ирина, 16 сентября 2026).
@@ -120,14 +129,17 @@
   document.head.appendChild(style);
 
   // ─── Разметка баннера ───────────────────────────────────────────────────────
-  var wrap = document.createElement('div');
-  wrap.id = 'cb-wrap';
-  wrap.setAttribute('role', 'dialog');
-  wrap.setAttribute('aria-label', 'Уведомление об использовании файлов cookie');
-  wrap.innerHTML =
-    '<p id="cb-text">Сайт использует cookie и аналитику, согласно ' +
-    '<a href="/info/licenses_detail/" target="_blank" rel="noopener">Политике конфиденциальности</a>.</p>' +
-    '<button id="cb-accept">Согласен</button>';
+  var wrap = staticWrap;
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'cb-wrap';
+    wrap.setAttribute('role', 'dialog');
+    wrap.setAttribute('aria-label', 'Уведомление об использовании файлов cookie');
+    wrap.innerHTML =
+      '<p id="cb-text">Сайт использует cookie и аналитику, согласно ' +
+      '<a href="/info/licenses_detail/" target="_blank" rel="noopener">Политике конфиденциальности</a>.</p>' +
+      '<button id="cb-accept">Согласен</button>';
+  }
 
   /* Кнопка одна, отклонять нечего — пишем всегда accepted. Прежнее
      значение declined у тех, кто нажимал «Отклонить» раньше, баннер
@@ -139,6 +151,7 @@
   }
 
   function mountBanner() {
+    wrap.hidden = false;
     document.body.appendChild(wrap);
     document.getElementById('cb-accept').addEventListener('click', function () { dismiss(); });
     document.addEventListener('keydown', function esc(e) {

@@ -164,7 +164,9 @@ $(document).ready(function() {
 		
 		
 		
-<script src="/local/templates/aspro_next_newdesign/js/cookie-banner.js?v=20260922"></script>
+<?/* Разметка cookie-баннера — в HTML, скрытой; показывает её js/cookie-banner.js (см. там, 07.10.2026). */?>
+<div id="cb-wrap" role="dialog" aria-label="Уведомление об использовании файлов cookie" hidden><p id="cb-text">Сайт использует cookie и аналитику, согласно <a href="/info/licenses_detail/" target="_blank" rel="noopener">Политике конфиденциальности</a>.</p><button id="cb-accept">Согласен</button></div>
+<script src="/local/templates/aspro_next_newdesign/js/cookie-banner.js?v=20261007"></script>
 <?/* Виджет обратного звонка envybox — по первому действию посетителя, из отдельного
    файла js/nd-lazy-widgets.js (там же значок рейтинга на главной; почему — см. шапку файла). */?>
 <script src="<?=SITE_TEMPLATE_PATH?>/js/nd-lazy-widgets.js?v=20261007" defer></script>
