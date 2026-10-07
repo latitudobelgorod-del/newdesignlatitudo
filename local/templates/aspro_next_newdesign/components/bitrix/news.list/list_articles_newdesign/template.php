@@ -8,7 +8,11 @@
  * Если отмеченных статей нет, блок не выводится совсем — вместе с заголовком
  * и кнопкой, чтобы на главной не оставалась пустая шапка.
  *
- * Стили лежат рядом (style.css) — Битрикс подключает их сам.
+ * Статьи листаются стрелками, как бренды (list_brands_newdesign): список
+ * плоский, на слайды его режет script.js по ширине экрана — 3 на десктопе,
+ * 2 на планшете и мобильном. Стрелки видны, только если слайдов больше одного.
+ *
+ * Стили и скрипт лежат рядом (style.css, script.js) — Битрикс подключает их сам.
  */
 $this->setFrameMode(true);
 
@@ -19,14 +23,24 @@ if (!$arResult['ITEMS']) {
 $allUrl = trim($arParams['ALL_URL'] ?? '') ?: SITE_DIR.'materials/';
 $badge = trim($arParams['BADGE_TEXT'] ?? '') ?: 'Статья';
 ?>
-<section class="nd-articles">
+<section class="nd-articles" data-nd-articles>
 	<?/* Плоская разметка — раскладку задаёт grid: на десктопе кнопка стоит справа
 	   от заголовка, на мобильном уходит под список во всю ширину */?>
 	<h2 class="nd-articles__title"><?= $arParams['TITLE_BLOCK'] ?: 'Полезно знать' ?></h2>
 
 	<a class="nd-articles__all" href="<?= $allUrl ?>">Смотреть все</a>
 
-	<div class="nd-articles__list">
+	<div class="nd-articles__nav" data-nd-articles-nav hidden>
+		<button type="button" class="nd-articles__arrow" data-nd-articles-prev aria-label="Предыдущие статьи">
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		</button>
+		<button type="button" class="nd-articles__arrow" data-nd-articles-next aria-label="Следующие статьи">
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+		</button>
+	</div>
+
+	<div class="nd-articles__viewport">
+	<div class="nd-articles__list" data-nd-articles-track>
 		<? foreach ($arResult['ITEMS'] as $arItem): ?>
 			<?
 			$this->AddEditAction($arItem['ID'], $arItem['EDIT_LINK'], CIBlock::GetArrayByID($arItem['IBLOCK_ID'], 'ELEMENT_EDIT'));
@@ -53,5 +67,6 @@ $badge = trim($arParams['BADGE_TEXT'] ?? '') ?: 'Статья';
 				<div class="nd-articles__name"><?= $arItem['NAME'] ?></div>
 			</<?= $tag ?>>
 		<? endforeach; ?>
+	</div>
 	</div>
 </section>

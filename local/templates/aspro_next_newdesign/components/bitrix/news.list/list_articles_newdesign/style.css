@@ -6,11 +6,11 @@
    ========================================================================= */
 .nd-articles {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
     grid-template-areas:
-        "title all"
-        "list  list";
-    gap: 36px 24px;
+        "title all nav"
+        "list  list list";
+    gap: 36px 8px;
     max-width: 1440px;
     margin: 0 auto;
     padding: 52px;
@@ -51,8 +51,57 @@
     color: #101014;
     text-decoration: none;
 }
-.nd-articles__list {
+/* Стрелки листалки — те же, что в блоке брендов (.nd-brands__arrow) */
+.nd-articles__nav {
+    grid-area: nav;
+    align-self: center; /* по центру строки, как кнопка «Смотреть все» */
+    display: flex;
+    gap: 8px;
+}
+.nd-articles__nav[hidden] {
+    display: none;
+}
+.nd-articles__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, 0.1);
+    color: #101014;
+    cursor: pointer;
+}
+.nd-articles__arrow:hover {
+    background: rgba(82, 82, 100, 0.2);
+}
+.nd-articles__arrow[disabled] {
+    opacity: 0.4;
+    cursor: default;
+}
+.nd-articles__viewport {
     grid-area: list;
+    overflow: hidden;
+}
+/* До скрипта — обычная сетка, лишние статьи (что не влезли в ряд) спрятаны,
+   чтобы при загрузке блок не прыгал. Скрипт ставит --slider и режет на слайды. */
+.nd-articles__list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.nd-articles__list:not(.nd-articles__list--slider) .nd-articles__item:nth-child(n+4) {
+    display: none;
+}
+.nd-articles__list--slider {
+    display: flex;
+    gap: 0;
+    transition: transform 0.35s ease;
+}
+.nd-articles__slide {
+    flex: 0 0 100%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
@@ -128,20 +177,25 @@
         font-size: 40px;
         line-height: 46px;
     }
-    .nd-articles__list {
+    .nd-articles__list,
+    .nd-articles__slide {
         grid-template-columns: repeat(2, 1fr);
+    }
+    .nd-articles__list:not(.nd-articles__list--slider) .nd-articles__item:nth-child(n+3) {
+        display: none;
     }
 }
 
-/* Мобильный (макет 360): одна колонка, две статьи, кнопка уходит под список */
+/* Мобильный (макет 360): одна колонка, по две статьи на слайд, стрелки у
+   заголовка, кнопка уходит под список — как в блоке брендов */
 @media (max-width: 767px) {
     .nd-articles {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr auto;
         grid-template-areas:
-            "title"
-            "list"
-            "all";
-        gap: 20px;
+            "title nav"
+            "list  list"
+            "all   all";
+        gap: 20px 8px;
         padding: 36px 16px;
     }
     .nd-articles__title {
@@ -151,14 +205,10 @@
     .nd-articles__all {
         width: 100%;
     }
-    .nd-articles__list {
+    .nd-articles__list,
+    .nd-articles__slide {
         grid-template-columns: 1fr;
         gap: 20px;
-    }
-    /* На мобильном показываем две статьи из трёх — третью прячем стилями,
-       чтобы разметка и кэш компонента оставались одинаковыми для всех ширин */
-    .nd-articles__item:nth-child(n+3) {
-        display: none;
     }
     .nd-articles__name {
         font-size: 17px;

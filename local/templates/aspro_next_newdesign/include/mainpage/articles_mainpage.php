@@ -38,7 +38,7 @@ $APPLICATION->IncludeComponent(
 	[
 		'IBLOCK_TYPE' => 'aspro_next_content',
 		'IBLOCK_ID' => '14',
-		'NEWS_COUNT' => '3',
+		'NEWS_COUNT' => '12', // листаются стрелками, см. list_articles_newdesign/script.js
 		'SORT_BY1' => 'ACTIVE_FROM',
 		'SORT_ORDER1' => 'DESC',
 		'SORT_BY2' => 'SORT',
