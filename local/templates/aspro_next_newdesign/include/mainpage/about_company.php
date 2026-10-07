@@ -33,27 +33,16 @@ $ndArea = function ($file, $title) use ($ndIncDir) {
 			     src="<?=SITE_TEMPLATE_PATH?>/images/newdesign/about_team.webp"
 			     alt="Команда Латитудо" loading="lazy" width="1312" height="960">
 			<? if ($arRegion && $arRegion['PROPERTY_REGION_TAG_RAITING_VALUE']): ?>
-				<?/* Значок рейтинга Яндекс Бизнеса (iframe yandex.ru/sprav) — по первому действию
-				   посетителя, а не сразу: проверка 152-ФЗ (vlip.site) засчитывала его как «загрузку
-				   трекеров до взаимодействия пользователя» (07.10.2026). Код значка лежит в
-				   <template> — iframe из него не грузится, пока скрипт не вставит его на место.
-				   Метрика и Top.Mail.Ru не тронуты: у vrn.easydecking.ru они грузятся так же сразу,
-				   и замечания там нет. */?>
-				<div class="nd-about__rating" data-nd-lazy-rating style="min-width:150px;min-height:50px"><template>#REGION_TAG_RAITING#</template></div>
-				<script>
-				(function () {
-					var done = false, evs = ['touchstart', 'scroll', 'mousemove', 'keydown', 'click'];
-					function show() {
-						if (done) return;
-						done = true;
-						evs.forEach(function (e) { window.removeEventListener(e, show, true); });
-						document.querySelectorAll('[data-nd-lazy-rating] > template').forEach(function (t) {
-							t.parentNode.replaceChild(t.content.cloneNode(true), t);
-						});
-					}
-					evs.forEach(function (e) { window.addEventListener(e, show, {capture: true, passive: true}); });
-				})();
-				</script>
+				<?/* Значок рейтинга Яндекс Бизнеса (iframe yandex.ru/sprav) рисует js/nd-lazy-widgets.js
+				   по первому действию посетителя: в HTML — только номер организации из поля региона,
+				   без адреса виджета (vlip.site, «трекеры до взаимодействия», 07.10.2026). Если номер
+				   из поля не достаётся — значок не выводим. */
+				$ndRating = $arRegion['PROPERTY_REGION_TAG_RAITING_VALUE'];
+				if (is_array($ndRating)) $ndRating = $ndRating['TEXT'] ?? '';
+				$ndRatingId = preg_match('~rating-badge/(\d+)~', html_entity_decode((string)$ndRating), $m) ? $m[1] : '';?>
+				<? if ($ndRatingId !== ''): ?>
+					<div class="nd-about__rating" data-nd-rating-id="<?=$ndRatingId?>" style="min-width:150px;min-height:50px"></div>
+				<? endif; ?>
 			<? endif; ?>
 		</div>
 

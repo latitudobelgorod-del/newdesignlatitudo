@@ -165,31 +165,8 @@ $(document).ready(function() {
 		
 		
 <script src="/local/templates/aspro_next_newdesign/js/cookie-banner.js?v=20260922"></script>
-<?/* Виджет обратного звонка envybox (он же тянет чат saas-support/whitesaas)
-   подключаем не сразу, а по первому действию посетителя (22.09.2026): на телефоне
-   он занимал процессор ~0,4 с и его CSS задерживал отрисовку страницы.
-   Запасной запуск через 2 с после загрузки убран 07.10.2026: проверка 152-ФЗ
-   (vlip.site) засчитывала виджет как «загрузку трекеров до взаимодействия
-   пользователя». На vrn.easydecking.ru envybox нет — там этого замечания нет. */?>
-<script>
-(function () {
-	var done = false, evs = ['touchstart', 'scroll', 'mousemove', 'keydown', 'click'];
-	function loadWidget() {
-		if (done) return;
-		done = true;
-		evs.forEach(function (e) { window.removeEventListener(e, loadWidget, true); });
-		var l = document.createElement('link');
-		l.rel = 'stylesheet';
-		l.href = 'https://cdn.envybox.io/widget/cbk.css';
-		document.head.appendChild(l);
-		var s = document.createElement('script');
-		s.src = 'https://cdn.envybox.io/widget/cbk.js?wcb_code=e4de92bacc448ee6b674c4cb61afd66e';
-		s.charset = 'UTF-8';
-		s.async = true;
-		document.body.appendChild(s);
-	}
-	evs.forEach(function (e) { window.addEventListener(e, loadWidget, {capture: true, passive: true, once: true}); });
-})();
-</script>
+<?/* Виджет обратного звонка envybox — по первому действию посетителя, из отдельного
+   файла js/nd-lazy-widgets.js (там же значок рейтинга на главной; почему — см. шапку файла). */?>
+<script src="<?=SITE_TEMPLATE_PATH?>/js/nd-lazy-widgets.js?v=20261007" defer></script>
 </body>
 </html>
