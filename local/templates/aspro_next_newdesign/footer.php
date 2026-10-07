@@ -164,9 +164,25 @@ $(document).ready(function() {
 		
 		
 		
+<!-- Top.Mail.Ru counter -->
+<?/* Счётчик Top.Mail.Ru — обычным кодом в странице, как на vrn.easydecking.ru (07.10.2026);
+   прежде его загружал js/cookie-banner.js. Считает все посещения, как и раньше. */?>
+<script>
+var _tmr = window._tmr || (window._tmr = []);
+_tmr.push({id: "3477275", type: "pageView", start: (new Date()).getTime()});
+(function (d, w, id) {
+  if (d.getElementById(id)) return;
+  var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
+  ts.src = "https://top-fwz1.mail.ru/js/code.js";
+  var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
+  if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
+})(document, window, "tmr-code");
+</script>
+<noscript><div><img src="https://top-fwz1.mail.ru/counter?id=3477275;js=na" style="position:absolute;left:-9999px;" alt="Top.Mail.Ru" /></div></noscript>
+<!-- /Top.Mail.Ru counter -->
 <?/* Разметка cookie-баннера — в HTML, скрытой; показывает её js/cookie-banner.js (см. там, 07.10.2026). */?>
 <div id="cb-wrap" role="dialog" aria-label="Уведомление об использовании файлов cookie" hidden><p id="cb-text">Сайт использует cookie и аналитику, согласно <a href="/info/licenses_detail/" target="_blank" rel="noopener">Политике конфиденциальности</a>.</p><button id="cb-accept">Согласен</button></div>
-<script src="/local/templates/aspro_next_newdesign/js/cookie-banner.js?v=20261007"></script>
+<script src="/local/templates/aspro_next_newdesign/js/cookie-banner.js?v=20261007b"></script>
 <?/* Виджет обратного звонка envybox — по первому действию посетителя, из отдельного
    файла js/nd-lazy-widgets.js (там же значок рейтинга на главной; почему — см. шапку файла). */?>
 <script src="<?=SITE_TEMPLATE_PATH?>/js/nd-lazy-widgets.js?v=20261007" defer></script>

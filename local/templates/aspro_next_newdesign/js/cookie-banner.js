@@ -1,24 +1,17 @@
 /**
  * Cookie Consent Banner
- * Путь: /local/templates/aspro_next/js/cookie-banner.js
+ * Путь: /local/templates/aspro_next_newdesign/js/cookie-banner.js
  *
- * Баннер — уведомление: любая из двух кнопок прячет его на 30 дней.
- * Загрузку трекеров он не решает — так попросили 8 сентября 2026 года.
- *
- * Яндекс.Метрику вставляет в каждую страницу модуль yandex.metrika,
- * Envybox прибит в footer.php шаблона. Прежде этот файл подключал их
- * второй раз после «Принять» — счётчик задваивался (замер в браузере:
- * до нажатия 1, после 2). Поэтому здесь остался только Top.Mail.Ru —
- * его больше нигде на странице нет.
+ * Баннер — уведомление: кнопка «Согласен» прячет его на 30 дней.
+ * Только показ баннера: счётчики посещений подключаются в странице сами
+ * (Top.Mail.Ru — кодом в footer.php с 07.10.2026, как на vrn.easydecking.ru;
+ * прежде его загружал этот файл). Проверка 152-ФЗ (vlip.site) ставила
+ * «загрузку трекеров до согласия», видя загрузку счётчика в скрипте баннера.
  */
 
 (function () {
   var COOKIE_NAME  = 'cookie_consent';
   var COOKIE_DAYS  = 30;
-
-  // ─── Конфиг трекеров ────────────────────────────────────────────────────────
-  var TOPMAIL_ID   = '3477275';
-  // ────────────────────────────────────────────────────────────────────────────
 
   function getCookie(name) {
     var m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
@@ -41,29 +34,6 @@
     }
     document.cookie = base;
   }
-
-  function loadScript(src, id, onload) {
-    if (id && document.getElementById(id)) return;
-    var s = document.createElement('script');
-    s.type  = 'text/javascript';
-    s.async = true;
-    s.src   = src;
-    if (id) s.id = id;
-    if (onload) s.onload = onload;
-    document.head.appendChild(s);
-  }
-
-  // ─── Загрузка трекеров ──────────────────────────────────────────────────────
-  function loadTrackers() {
-
-    // Top.Mail.Ru
-    var _tmr = window._tmr || (window._tmr = []);
-    _tmr.push({ id: TOPMAIL_ID, type: 'pageView', start: (new Date()).getTime() });
-    loadScript('https://top-fwz1.mail.ru/js/code.js', 'tmr-code');
-  }
-
-  // ─── Трекеры грузим всегда, не дожидаясь кнопки ─────────────────────────────
-  loadTrackers();
 
   /* Разметка баннера стоит в HTML страницы скрытой (footer.php, 07.10.2026): проверка
      152-ФЗ (vlip.site) читает HTML и без уведомления о cookie в нём ставила «загрузку
