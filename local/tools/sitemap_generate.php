@@ -72,19 +72,21 @@ if (!$rows) {
 $startedAll = microtime(true);
 $hadError = false;
 
-foreach ($rows as $row) {
-    $id = (int) $row['ID'];
-    say("Карта #{$id} «{$row['NAME']}» (сайт {$row['SITE_ID']})");
-
+/**
+ * Один полный прогон генерации карты #$id. false — не создалось задание
+ * или упёрлись в предел шагов/времени.
+ */
+function ndRunSitemapJob(int $id): bool
+{
     /* Незавершённая работа с прошлого раза (например, кроновый процесс убили)
        мешает начать заново — снимаем её и заводим свежую. */
     Job::clearBySitemap($id);
 
     $job = Job::addJob($id);
     if (!$job) {
-        fwrite(STDERR, "  не удалось создать задание для карты #{$id}\n");
-        $hadError = true;
-        continue;
+        fwrite(STDERR, "  не удалось создать задание для карты #{$id}
+");
+        return false;
     }
 
     $started = microtime(true);
@@ -97,18 +99,81 @@ foreach ($rows as $row) {
         $steps++;
 
         if ($steps >= ND_SITEMAP_MAX_STEPS) {
-            fwrite(STDERR, "  карта #{$id}: превышен предел в " . ND_SITEMAP_MAX_STEPS . " шагов\n");
-            $hadError = true;
-            break;
+            fwrite(STDERR, "  карта #{$id}: превышен предел в " . ND_SITEMAP_MAX_STEPS . " шагов
+");
+            return false;
         }
         if (microtime(true) - $started > ND_SITEMAP_MAX_SECONDS) {
-            fwrite(STDERR, "  карта #{$id}: превышен предел в " . ND_SITEMAP_MAX_SECONDS . " секунд\n");
-            $hadError = true;
-            break;
+            fwrite(STDERR, "  карта #{$id}: превышен предел в " . ND_SITEMAP_MAX_SECONDS . " секунд
+");
+            return false;
         }
     }
 
     say(sprintf('  шагов: %d, время: %.1f с', $steps, microtime(true) - $started));
+    return true;
+}
+
+/**
+ * Файлы sitemap*.xml в корне, переписанные начиная с $since, которые не
+ * разбираются как XML.
+ *
+ * 6 октября 2026 ночная сборка оставила sitemap-iblock-19.xml порванным
+ * посередине («</lastmo»), но с </urlset> в конце — обработчик региональных
+ * копий проверял только хвост, и сутки все домены отдавали битую карту
+ * (Яндекс.Вебмастер: «Ошибка в XML»). Повторить не удалось, поэтому ловим
+ * сразу после сборки и пересобираем.
+ */
+function ndBrokenSitemaps(string $root, int $since): array
+{
+    $broken = [];
+    foreach (glob($root . '/sitemap*.xml') ?: [] as $file) {
+        if (filemtime($file) < $since) {
+            continue;
+        }
+        $prev = libxml_use_internal_errors(true);
+        $reader = new XMLReader();
+        $ok = $reader->open($file, null, LIBXML_NONET);
+        if ($ok) {
+            while (($step = @$reader->read()) === true) {
+            }
+            $ok = $step === false && !libxml_get_errors();
+        }
+        $reader->close();
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+        if (!$ok) {
+            $broken[] = basename($file);
+        }
+    }
+    return $broken;
+}
+
+foreach ($rows as $row) {
+    $id = (int) $row['ID'];
+    say("Карта #{$id} «{$row['NAME']}» (сайт {$row['SITE_ID']})");
+
+    /* Одна повторная сборка, если файлы вышли битыми. Прежние файлы к этому
+       моменту уже перезаписаны, так что лучше попробовать ещё раз, чем
+       оставить до следующей ночи. Обработчик битый файл роботам не отдаёт —
+       отдаёт вчерашнюю копию из кеша. */
+    for ($attempt = 1; $attempt <= 2; $attempt++) {
+        $since = time() - 1;
+        if (!ndRunSitemapJob($id)) {
+            $hadError = true;
+            break;
+        }
+        clearstatcache();
+        $broken = ndBrokenSitemaps($_SERVER['DOCUMENT_ROOT'], $since);
+        if (!$broken) {
+            break;
+        }
+        fwrite(STDERR, date('d.m.Y H:i:s') . "  карта #{$id}, попытка {$attempt}: битый XML в " . implode(', ', $broken) . "
+");
+        if ($attempt === 2) {
+            $hadError = true;
+        }
+    }
 }
 
 /* ------------------------------------------------------------------------

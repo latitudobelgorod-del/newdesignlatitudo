@@ -140,6 +140,34 @@ function ndSitemapRootEnd($content)
     return $end;
 }
 
+/* Разбирается ли XML целиком. Одного закрывающего тега в конце мало: 6 октября
+   2026 исходный sitemap-iblock-19.xml после ночной сборки был порван посередине
+   («</lastmo» вместо «</lastmod>»), но кончался на </urlset> — и сутки уходил
+   во все региональные копии, а Яндекс.Вебмастер писал «Ошибка в XML».
+   XMLReader идёт потоком, без дерева в памяти: карта картинок — 3,5 МБ. */
+function ndSitemapXmlValid($content)
+{
+    if (!class_exists('XMLReader')) {
+        return ndSitemapRootEnd($content) !== 0;
+    }
+
+    $prev = libxml_use_internal_errors(true);
+    $reader = new XMLReader();
+    $ok = $reader->XML($content, null, LIBXML_NONET);
+
+    if ($ok) {
+        while (($step = @$reader->read()) === true) {
+        }
+        $ok = $step === false && !libxml_get_errors();
+    }
+
+    $reader->close();
+    libxml_clear_errors();
+    libxml_use_internal_errors($prev);
+
+    return $ok && ndSitemapRootEnd($content) !== 0;
+}
+
 function ndSitemapCutAfterRoot($content)
 {
     $end = ndSitemapRootEnd($content);
@@ -166,7 +194,7 @@ function ndSitemapReadCache($cacheFile)
 
     $content = ndSitemapCutAfterRoot($content);
 
-    return ndSitemapRootEnd($content) === 0 ? false : $content;
+    return ndSitemapXmlValid($content) ? $content : false;
 }
 
 /* Единственное место, где пишется кеш: заведомо неполное не сохраняем, а
@@ -174,7 +202,7 @@ function ndSitemapReadCache($cacheFile)
    запрос увидит либо прежнюю копию, либо новую целиком. */
 function ndSitemapWriteCache($cacheFile, $content)
 {
-    if (strlen($content) <= 100 || ndSitemapRootEnd($content) === 0) {
+    if (strlen($content) <= 100 || !ndSitemapXmlValid($content)) {
         return false;
     }
 
@@ -194,8 +222,9 @@ function ndSitemapWriteCache($cacheFile, $content)
 }
 
 /* Чтение исходной карты из корня сайта с подстановкой домена. Пока идёт ночная
-   пересборка, файл в корне бывает без закрывающего тега — тогда false, чтобы
-   недописанная карта не разъехалась по всем доменам на сутки. */
+   пересборка, файл в корне бывает без закрывающего тега, а бывает и порван
+   посередине (6 октября 2026) — тогда false, чтобы битая карта не разъехалась
+   по всем доменам на сутки. */
 function ndSitemapReadSource($path, $host)
 {
     $content = @file_get_contents($path);
@@ -206,7 +235,7 @@ function ndSitemapReadSource($path, $host)
 
     $content = ndSitemapCutAfterRoot(replaceDomainInXml($content, $host));
 
-    return ndSitemapRootEnd($content) === 0 ? false : $content;
+    return ndSitemapXmlValid($content) ? $content : false;
 }
 
 /* Главная не попадает в sitemap-files.xml: модуль seo обходит сайт по
