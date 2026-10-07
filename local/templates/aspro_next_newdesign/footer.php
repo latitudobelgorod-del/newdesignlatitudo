@@ -59,7 +59,9 @@
 									include $ndIndexBlocks;
 								} else {
 									CNext::ShowPageType('indexblocks');
-								}?>
+								}
+								// Окно «Оставить заявку» с формой в HTML главной — для проверки 152-ФЗ.
+								include __DIR__.'/include/home_form_newdesign.php';?>
 							<?endif;?>
 							<?CNext::get_banners_position('CONTENT_BOTTOM');?>
 						</div> <?// .middle?>
