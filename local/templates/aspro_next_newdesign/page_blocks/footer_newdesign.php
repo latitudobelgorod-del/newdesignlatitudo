@@ -286,6 +286,9 @@ if(!function_exists('ndFooterMenuColumn'))
 			<div class="nd-fbot">
 				<div class="nd-fbot__left">
 					<div class="nd-fbot__copy">2017-<?=date('Y')?> Latitudo. Все права защищены</div>
+					<?// Реквизиты оператора на каждой странице: проверка vlip.site (ЗоЗПП ст. 9 и реестр РКН
+					// по 152-ФЗ) не находила ИНН и ОГРН на главной (07.10.2026). Те же реквизиты — в Политике и Согласии.?>
+					<div class="nd-fbot__req">ООО «Латитудо-М», ИНН 7751200253, ОГРН 1217700295075</div>
 					<div class="nd-fbot__links">
 						<a href="/karta-sayta/">Карта сайта</a>
 						<a href="/info/licenses_detail/">Политика конфиденциальности</a>
