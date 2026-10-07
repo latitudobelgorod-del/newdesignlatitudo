@@ -48,8 +48,8 @@ use CNext as Solution;
 	</div>
 </div>
 <style>
-/* z-index выше cookie-баннера и шапки; окно переносится в body скриптом ниже. */
-.nd-home-modal {position:fixed;inset:0;z-index:10070;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(16,16,20,.55);visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s ease,visibility 0s linear .2s;}
+/* z-index выше шапки и cookie-баннера (#cb-wrap, 99999); окно переносится в body скриптом ниже. */
+.nd-home-modal {position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(16,16,20,.55);visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s ease,visibility 0s linear .2s;}
 .nd-home-modal.is-open {visibility:visible;opacity:1;pointer-events:auto;transition:opacity .2s ease;}
 .nd-home-modal__box {position:relative;width:100%;max-width:680px;max-height:calc(100vh - 32px);overflow-y:auto;background:#fff;}
 .nd-home-modal__close {position:absolute;top:8px;right:8px;z-index:2;width:40px;height:40px;padding:0;border:0;background:none;font-size:30px;line-height:40px;color:#525264;cursor:pointer;}
