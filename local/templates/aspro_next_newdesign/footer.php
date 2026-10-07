@@ -166,9 +166,11 @@ $(document).ready(function() {
 		
 <script src="/local/templates/aspro_next_newdesign/js/cookie-banner.js?v=20260922"></script>
 <?/* Виджет обратного звонка envybox (он же тянет чат saas-support/whitesaas)
-   подключаем не сразу, а через 2 с после загрузки или по первому действию
-   посетителя (22.09.2026): на телефоне он занимал процессор ~0,4 с
-   и его CSS задерживал отрисовку страницы. */?>
+   подключаем не сразу, а по первому действию посетителя (22.09.2026): на телефоне
+   он занимал процессор ~0,4 с и его CSS задерживал отрисовку страницы.
+   Запасной запуск через 2 с после загрузки убран 07.10.2026: проверка 152-ФЗ
+   (vlip.site) засчитывала виджет как «загрузку трекеров до взаимодействия
+   пользователя». На vrn.easydecking.ru envybox нет — там этого замечания нет. */?>
 <script>
 (function () {
 	var done = false, evs = ['touchstart', 'scroll', 'mousemove', 'keydown', 'click'];
@@ -187,9 +189,6 @@ $(document).ready(function() {
 		document.body.appendChild(s);
 	}
 	evs.forEach(function (e) { window.addEventListener(e, loadWidget, {capture: true, passive: true, once: true}); });
-	function later() { setTimeout(loadWidget, 2000); }
-	if (document.readyState === 'complete') later();
-	else window.addEventListener('load', later);
 })();
 </script>
 </body>
