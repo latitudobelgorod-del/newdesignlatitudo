@@ -93,8 +93,11 @@
 }
 
 /* Фотографии страниц — те же, что были в custom.css. */
+/* Фото «Опытные монтажники» заменено 8 октября 2026 (сварка металлокаркаса).
+   Новое имя файла, а не замена старого: иначе браузеры держат прежнее из кеша.
+   Старый файл остаётся — его ещё берёт custom.css старого дизайна. */
 .services_newdesign #page_str_terras.terras-pod-klyuch .nd-srv-hero__card {
-    background-image: url('/images/services/terras-pod-klyuch.jpg');
+    background-image: url('/images/services/terras-pod-klyuch-2026.jpg');
 }
 .services_newdesign #page_str_terras.montaj_service .nd-srv-hero__card {
     background-image: url('/images/services/montaj_service.jpg');
