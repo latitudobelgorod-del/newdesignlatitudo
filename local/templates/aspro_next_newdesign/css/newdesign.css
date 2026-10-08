@@ -5287,23 +5287,44 @@ body ul.c-lists > li:before {
     line-height: 0;
     color: transparent;
 }
-/* Нумерованные списки остаются с цифрами. Счётчик темы выключаем: он
-   рассчитан на абсолютное поле в 20px, которого на широких страницах нет,
-   и цифра налезала на текст. Родная нумерация ведёт себя предсказуемо. */
+/* Нумерованные списки — макет Figma, компонент List/numbered: «1.» у левого
+   края, текст с отступом 28, набор 16/24, между пунктами 8.
+   Номер рисуем своим счётчиком в ::before, как точку у маркированного списка.
+   Родная нумерация (list-style: decimal) не работает: тема ставит каждому
+   li `list-style: none`, и номера пропадали совсем (Ирина, 8 октября 2026 —
+   «Порядок работ» в статье об укладке ДПК). Счётчик темы рассчитан на поле
+   в 20px, которого на широких страницах нет, — его content перебиваем. */
 .detail_text ol {
     margin: 0 0 16px;
-    padding-left: 28px;
-    list-style: decimal outside;
+    padding-left: 0;
+    list-style: none;
+    counter-reset: nd-ol;
 }
 .detail_text ol > li {
+    position: relative;
     margin: 0 0 8px;
-    padding-left: 0;
+    padding-left: 28px;
+    list-style: none;
     font-size: 16px;
     line-height: 24px;
     color: #101014;
+    counter-increment: nd-ol;
 }
 body .detail_text ol > li:before {
-    content: none !important;
+    content: counter(nd-ol) "." !important;
+    position: absolute;
+    top: 0;
+    left: 4px;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #101014;
 }
 .detail_text ul > li:last-child,
 .detail_text ol > li:last-child,
