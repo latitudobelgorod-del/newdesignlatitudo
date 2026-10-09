@@ -385,6 +385,33 @@ $ndColorDots = [
 $ndChevron = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
 	.'<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>';
 
+/* Заголовок выпадающего списка. Если в нём что-то выбрано — плашка красная
+   (класс is-selected у <details>, стили в css/newdesign.css, как в фильтре
+   поиска) и крестик, который снимает только эту группу: адрес собираем из
+   текущих условий без неё. Страница при этом начинается с первой. */
+$ndCurState = [
+	'review' => $ndReview ? 'y' : '',
+	'video' => $ndVideo ? 'y' : '',
+	'color' => $ndColor,
+	'fence' => $ndFence,
+	'brand' => $ndBrand,
+	'goods' => $ndGoods,
+];
+$ndDropHead = function ($title, $key) use ($ndCurState, $ndResetUrl, $ndChevron) {
+	$cnt = count((array) $ndCurState[$key]);
+	$html = $ndChevron.'<span>'.htmlspecialcharsbx($title).($cnt ? ' ('.$cnt.')' : '').'</span>';
+	if ($cnt) {
+		$q = $ndCurState;
+		unset($q[$key]);
+		$q = http_build_query(array_filter($q));
+		$url = $ndResetUrl.($q !== '' ? '?'.$q : '');
+		/* всплытие гасим: иначе клик по крестику заодно раскрыл бы список */
+		$html .= '<a class="nd-filter__clear" href="'.htmlspecialcharsbx($url).'" title="Снять этот фильтр"'
+			.' aria-label="Снять фильтр «'.htmlspecialcharsbx($title).'»" onclick="event.stopPropagation();">&times;</a>';
+	}
+	return $html;
+};
+
 /* Общий скрипт фильтра и кнопки «Показать ещё». Подключаем тегом здесь:
    блок выводится, когда <head> уже отдан, и AddHeadScript туда не попадёт. */
 if (!defined('ND_UI_JS')) {
@@ -408,10 +435,8 @@ if (!defined('ND_UI_JS')) {
 	</label>
 
 	<? if ($ndColorOptions): ?>
-		<details class="nd-filter__drop">
-			<summary class="nd-filter__head">
-				<?= $ndChevron ?><span>Цвет<?= $ndSelColor ? ' ('.count($ndSelColor).')' : '' ?></span>
-			</summary>
+		<details class="nd-filter__drop<?= $ndSelColor ? ' is-selected' : '' ?>">
+			<summary class="nd-filter__head"><?= $ndDropHead('Цвет', 'color') ?></summary>
 			<div class="nd-filter__panel">
 				<? foreach ($ndColorOptions as $xmlId => $opt): ?>
 					<label class="nd-filter__opt">
@@ -430,10 +455,8 @@ if (!defined('ND_UI_JS')) {
 
 	<? /* виды ограждений — справочник с картинками: у пункта миниатюра слева */ ?>
 	<? if ($ndFenceOptions): ?>
-		<details class="nd-filter__drop">
-			<summary class="nd-filter__head">
-				<?= $ndChevron ?><span>Виды ограждений<?= $ndSelFence ? ' ('.count($ndSelFence).')' : '' ?></span>
-			</summary>
+		<details class="nd-filter__drop<?= $ndSelFence ? ' is-selected' : '' ?>">
+			<summary class="nd-filter__head"><?= $ndDropHead('Виды ограждений', 'fence') ?></summary>
 			<div class="nd-filter__panel nd-filter__panel--pics">
 				<? foreach ($ndFenceOptions as $xmlId => $opt): ?>
 					<label class="nd-filter__opt">
@@ -451,10 +474,8 @@ if (!defined('ND_UI_JS')) {
 	<? endif; ?>
 
 	<? if ($ndBrandOptions): ?>
-		<details class="nd-filter__drop">
-			<summary class="nd-filter__head">
-				<?= $ndChevron ?><span>Бренд<?= $ndSelBrand ? ' ('.count($ndSelBrand).')' : '' ?></span>
-			</summary>
+		<details class="nd-filter__drop<?= $ndSelBrand ? ' is-selected' : '' ?>">
+			<summary class="nd-filter__head"><?= $ndDropHead('Бренд', 'brand') ?></summary>
 			<div class="nd-filter__panel">
 				<? foreach ($ndBrandOptions as $enumId => $opt): ?>
 					<label class="nd-filter__opt">
@@ -476,10 +497,8 @@ if (!defined('ND_UI_JS')) {
 	      Поле поиска без name: в адрес фильтра оно не уходит, а скрипт не
 	      отправляет форму, пока в нём печатают. */ ?>
 	<? if ($ndGoodsOptions): ?>
-		<details class="nd-filter__drop nd-filter__drop--goods">
-			<summary class="nd-filter__head">
-				<?= $ndChevron ?><span>Товары<?= $ndSelGoods ? ' ('.count($ndSelGoods).')' : '' ?></span>
-			</summary>
+		<details class="nd-filter__drop nd-filter__drop--goods<?= $ndSelGoods ? ' is-selected' : '' ?>">
+			<summary class="nd-filter__head"><?= $ndDropHead('Товары', 'goods') ?></summary>
 			<div class="nd-filter__panel nd-filter__panel--goods">
 				<? if (count($ndGoodsOptions) > 8): ?>
 					<input type="search" class="nd-filter__search" placeholder="Найти товар" autocomplete="off" aria-label="Найти товар в списке">

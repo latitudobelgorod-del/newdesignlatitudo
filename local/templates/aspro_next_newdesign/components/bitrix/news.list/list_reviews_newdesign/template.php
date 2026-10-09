@@ -111,6 +111,33 @@ arsort($ndCityList);
 
 $ndResetUrl = $APPLICATION->GetCurPage(false);
 
+/* Заголовок выпадающего списка. Если в нём что-то выбрано — плашка красная
+   (класс is-selected у <details>, стили в css/newdesign.css, как в фильтре
+   поиска) и крестик, который снимает только эту группу: адрес собираем из
+   текущих условий без неё. Условия берём из $ndF, а не из $_GET — шаблон
+   кешируется по фильтру, и посторонние метки в адрес не попадут. */
+$ndCurState = [
+	'photo' => !empty($ndF['photo']) ? 'y' : '',
+	'city' => array_keys($ndSelCity),
+	'rate' => array_keys($ndSelRate),
+];
+$ndChevron = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+	.'<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>';
+$ndDropHead = function ($title, $key) use ($ndCurState, $ndResetUrl, $ndChevron) {
+	$cnt = count((array) $ndCurState[$key]);
+	$html = $ndChevron.'<span>'.htmlspecialcharsbx($title).($cnt ? ' ('.$cnt.')' : '').'</span>';
+	if ($cnt) {
+		$q = $ndCurState;
+		unset($q[$key]);
+		$q = http_build_query(array_filter($q));
+		$url = $ndResetUrl.($q !== '' ? '?'.$q : '');
+		/* всплытие гасим: иначе клик по крестику заодно раскрыл бы список */
+		$html .= '<a class="nd-filter__clear" href="'.htmlspecialcharsbx($url).'" title="Снять этот фильтр"'
+			.' aria-label="Снять фильтр «'.htmlspecialcharsbx($title).'»" onclick="event.stopPropagation();">&times;</a>';
+	}
+	return $html;
+};
+
 /* Общий скрипт фильтра и кнопки «Показать ещё» — тот же, что на портфолио.
    Подключаем тегом здесь: компонент выводится, когда <head> уже отдан. */
 if (!defined('ND_UI_JS')) {
@@ -137,13 +164,8 @@ if (!defined('ND_UI_JS')) {
 		<span class="nd-filter__toggle-text">С фото</span>
 	</label>
 
-	<details class="nd-filter__drop">
-		<summary class="nd-filter__head">
-			<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-				<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
-			</svg>
-			<span>Город<?= $ndSelCity ? ' ('.count($ndSelCity).')' : '' ?></span>
-		</summary>
+	<details class="nd-filter__drop<?= $ndSelCity ? ' is-selected' : '' ?>">
+		<summary class="nd-filter__head"><?= $ndDropHead('Город', 'city') ?></summary>
 		<div class="nd-filter__panel">
 			<? foreach ($ndCityList as $cityId => $cnt): ?>
 				<label class="nd-filter__opt">
@@ -157,13 +179,8 @@ if (!defined('ND_UI_JS')) {
 		</div>
 	</details>
 
-	<details class="nd-filter__drop">
-		<summary class="nd-filter__head">
-			<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-				<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
-			</svg>
-			<span>Оценка<?= $ndSelRate ? ' ('.count($ndSelRate).')' : '' ?></span>
-		</summary>
+	<details class="nd-filter__drop<?= $ndSelRate ? ' is-selected' : '' ?>">
+		<summary class="nd-filter__head"><?= $ndDropHead('Оценка', 'rate') ?></summary>
 		<div class="nd-filter__panel">
 			<? foreach ($ndRateTitles as $key => $title): ?>
 				<label class="nd-filter__opt">
