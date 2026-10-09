@@ -5,6 +5,13 @@
 // Array("CLASS" => "accent").
 $aMenuLinks = Array(
 	Array(
+		"Материалы",
+		"/materials/",
+		Array(),
+		Array(),
+		""
+	),
+	Array(
 		"Отзывы",
 		"/company/reviews/",
 		Array(),

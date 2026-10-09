@@ -29,13 +29,6 @@ $aMenuLinks = Array(
 		Array(),
 		Array(),
 		""
-	),
-	Array(
-		"Заборная доска",
-		"/catalog/zabor-iz-dpk/",
-		Array(),
-		Array(),
-		""
 	)
 );
 ?>
