@@ -88,6 +88,9 @@ if ($ndDcAction !== 'quote' || !\Bitrix\Main\Loader::includeModule('sale')) {
 $whCode = (string)($_POST['warehouse'] ?? '');
 $cityId = (int)($_POST['city_id'] ?? 0);
 $cityName = ndDeliveryQuoteClean($_POST['city'] ?? '', 150);
+/* Улица и дом — только для «Куда» в заказе/лиде; калькулятор считает по городу
+   (atiCityId), в to.text их не шлём: другой текст точки сбивал расстояние. */
+$address = ndDeliveryQuoteClean($_POST['address'] ?? '', 150);
 if (!isset(ND_DELIVERY_WAREHOUSES[$whCode]) || $cityId <= 0 || $cityName === '') {
 	$ndDcAnswer(array('ok' => false, 'error' => 'Выберите город из списка подсказок.'));
 }
@@ -154,6 +157,7 @@ $quote = array(
 	'TIME'      => time(),
 	'WAREHOUSE' => $whCode,
 	'CITY_ID'   => $cityId,
+	'ADDRESS'   => $address,
 );
 $_SESSION['ND_DELIVERY_QUOTE'] = $quote;
 
