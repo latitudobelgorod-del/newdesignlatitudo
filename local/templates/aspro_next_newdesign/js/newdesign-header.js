@@ -441,3 +441,15 @@
 	document.addEventListener('touchstart', onIntent, { passive: true });
 	document.addEventListener('focusin', onIntent);
 })();
+
+/* ── Галерея fancybox не пишет фото в адрес страницы ──
+   fancyBox 3 по умолчанию (hash) добавляет в адрес #gallery-N и при каждом
+   открытии делает pushState, а при закрытии запись не убирает. Посмотрел
+   пять фото — «Назад» в браузере приходится жать пять раз. Выключаем это
+   для всех галерей. Модуль hash читает настройку через setTimeout после
+   готовности DOM, поэтому успеваем выставить её на DOMContentLoaded — к тому
+   времени загружены все копии fancybox (шаблона и sprint.editor). */
+document.addEventListener('DOMContentLoaded', function () {
+	var $ = window.jQuery;
+	if ($ && $.fancybox && $.fancybox.defaults) $.fancybox.defaults.hash = false;
+});
