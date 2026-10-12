@@ -10,9 +10,12 @@
  * подключает — фото шоу-румов вставали столбиком (12.10.2026). Эпилог
  * выполняется всегда, поэтому подключаем их отсюда. На /info/company/
  * они подключаются и самим компонентом — Asset не дублирует.
- * Без карусели на странице стили и скрипт ничего не делают (всё под .nd-shr
- * и [data-nd-shr]).
+ * Карусель есть только у элемента company (/info/ и /info/company/), а этот
+ * шаблон выводит и остальные /info/* и услуги — там файлы не подключаем.
  */
+if (($arParams['ELEMENT_CODE'] ?? '') !== 'company') {
+	return;
+}
 $ndShrPath = SITE_TEMPLATE_PATH.'/components/bitrix/news.list/showrooms_newdesign/';
 $APPLICATION->SetAdditionalCSS($ndShrPath.'style.css');
 $APPLICATION->AddHeadScript($ndShrPath.'script.js');
