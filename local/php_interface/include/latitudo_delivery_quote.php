@@ -76,11 +76,6 @@ function ndDeliveryQuoteText(array $quote): string
 		'ITEMS'    => 'Состав для расчёта',
 		'NOTES'    => 'Примечания',
 	);
-	/* Улица и дом (Ирина, 12.10.2026) — дописываем к городу в «Куда». */
-	$address = trim((string)($quote['ADDRESS'] ?? ''));
-	if ($address !== '') {
-		$quote['TO'] = trim((string)($quote['TO'] ?? '')) . ', ' . $address;
-	}
 	foreach ($fields as $code => $title) {
 		$value = trim((string)($quote[$code] ?? ''));
 		if ($value !== '') {
@@ -96,7 +91,6 @@ function ndDeliveryQuoteForJs(array $quote): array
 	return array(
 		'from'      => (string)($quote['FROM'] ?? ''),
 		'to'        => (string)($quote['TO'] ?? ''),
-		'address'   => (string)($quote['ADDRESS'] ?? ''),
 		'distance'  => (string)($quote['DISTANCE'] ?? ''),
 		'truck'     => (string)($quote['TRUCK'] ?? ''),
 		'weight'    => (string)($quote['WEIGHT'] ?? ''),

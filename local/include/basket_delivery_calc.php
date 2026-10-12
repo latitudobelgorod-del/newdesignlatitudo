@@ -62,7 +62,6 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 .nd-delivery-calc__title { margin: 0 0 6px; font-size: 20px; font-weight: 700; line-height: 1.3; }
 .nd-delivery-calc__note { margin: 0 0 16px; color: #8f8f9a; font-size: 14px; line-height: 1.4; }
 .nd-delivery-calc__fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; }
-.nd-delivery-calc__field--wide { grid-column: 1 / -1; }
 .nd-delivery-calc__field { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 #ndDeliveryCalc .nd-delivery-calc__label { display: block; margin: 0; padding: 0; font-size: 13px; font-weight: 400; line-height: 18px; color: #8f8f9a; }
 .nd-delivery-calc__input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid rgba(82, 82, 100, .3); border-radius: 4px; background: #fff; font: inherit; font-size: 16px; color: #101014; box-sizing: border-box; }
@@ -131,13 +130,6 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 					value="<?=htmlspecialcharsbx($ndDcQuote['to'] ?? '')?>">
 				<ul class="nd-delivery-calc__list" id="ndDeliveryCalcList" role="listbox" hidden></ul>
 			</div>
-			<?/* Улица и дом (Ирина, 12.10.2026): цену не меняют — калькулятор считает
-			   по городу, — но идут в «Куда» в заказе и лиде. */?>
-			<div class="nd-delivery-calc__field nd-delivery-calc__field--wide">
-				<label class="nd-delivery-calc__label" for="ndDeliveryCalcAddr">Улица, дом</label>
-				<input type="text" class="nd-delivery-calc__input" id="ndDeliveryCalcAddr" maxlength="150"
-					placeholder="Например: ул. Ленина, 10" value="<?=htmlspecialcharsbx($ndDcQuote['address'] ?? '')?>">
-			</div>
 		</div>
 		<button type="submit" class="nd-delivery-calc__btn" id="ndDeliveryCalcBtn">Рассчитать доставку</button>
 	</form>
@@ -155,7 +147,6 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 	var form = document.getElementById('ndDeliveryCalcForm');
 	var whSelect = document.getElementById('ndDeliveryCalcWh');
 	var cityInput = document.getElementById('ndDeliveryCalcCity');
-	var addrInput = document.getElementById('ndDeliveryCalcAddr');
 	var list = document.getElementById('ndDeliveryCalcList');
 	var btn = document.getElementById('ndDeliveryCalcBtn');
 	var result = document.getElementById('ndDeliveryCalcResult');
@@ -355,7 +346,7 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 		busy = true;
 		btn.disabled = true;
 		setText(btn, 'Считаем…');
-		post(URL_CALC, { action: 'quote', warehouse: whSelect.value, city_id: city.id, city: city.name, address: addrInput.value.trim() })
+		post(URL_CALC, { action: 'quote', warehouse: whSelect.value, city_id: city.id, city: city.name })
 			.then(function (d) {
 				if (d && d.ok && d.quote) {
 					quote = normalize(d.quote);
@@ -382,21 +373,6 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 	}
 
 	form.addEventListener('submit', function (e) { e.preventDefault(); calculate(); });
-
-	/* Улицу дописали после расчёта — цену не пересчитываем (она по городу),
-	   только сохраняем адрес к расчёту и обновляем «куда» под кнопкой. */
-	var addrTimer = null;
-	addrInput.addEventListener('input', function () {
-		clearTimeout(addrTimer);
-		addrTimer = setTimeout(function () {
-			if (!quote) return;
-			var v = addrInput.value.trim();
-			if (v === (quote.address || '')) return;
-			quote.address = v;
-			post(URL_FLAG, { action: 'address', value: v }).catch(function () {});
-			applyTotal();
-		}, 600);
-	});
 	whSelect.addEventListener('change', function () { if (city) calculate(); });
 
 	/* ---- Доставка в панели «Итого» (Ирина, 28.09.2026) ----------------------
@@ -457,8 +433,7 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 			meta.appendChild(route);
 		}
 		var fromName = String(quote.from || '').replace(/\s*\(.*\)$/, '');
-		var toName = String(quote.to || '').replace(/,\s*Россия(?=,|$)/, '')
-			+ (quote.address ? ', ' + quote.address : '');
+		var toName = String(quote.to || '').replace(/,\s*Россия(?=,|$)/, '');
 		var path = [fromName ? 'склад ' + fromName : '', toName].filter(Boolean).join(' → ');
 		if (route) setText(route, quote['with'] ? 'Доставка' + (path ? ': ' + path : '') : 'Самовывоз со склада');
 		setText(box.querySelector('.nd-total__row-value'), quote.pending ? 'считаем…' : money(quote.price));
