@@ -1,7 +1,7 @@
 <?php
 /**
  * Заполнение «Линейки» (LINE) и «Диапазона высоты, мм» (HEIGHT_RANGE) у опор по названию.
- * Пишет только пустые поля. Бэкап прежних значений — рядом с DOCUMENT_ROOT (вне www).
+ * Пишет только пустые поля. Бэкап прежних значений — в домашнюю папку (вне www).
  *
  *   php local/tools/nd_line_fill.php <DOCUMENT_ROOT> <LINE_XML_ID|all> [--apply]
  *   php local/tools/nd_line_fill.php <DOCUMENT_ROOT> rollback <файл бэкапа>
@@ -79,7 +79,7 @@ foreach ($todo as $xml) {
 	}
 }
 if ($backup) {
-	$fn = dirname($_SERVER['DOCUMENT_ROOT']).'/nd_line_fill_backup_'.date('Ymd-His').'.json';
+	$fn = (getenv('HOME') ?: dirname($_SERVER['DOCUMENT_ROOT'])).'/nd_line_fill_backup_'.date('Ymd-His').'.json';
 	file_put_contents($fn, json_encode($backup, JSON_PRETTY_PRINT));
 	// SetPropertyValuesEx не сбрасывает тегированный кеш — сбрасываем, как это сделала бы админка
 	CIBlock::clearIblockTagCache(ND_IB);
