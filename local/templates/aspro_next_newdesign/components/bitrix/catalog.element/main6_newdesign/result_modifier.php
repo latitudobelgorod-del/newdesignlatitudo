@@ -1558,5 +1558,71 @@ if($hasVideo){
     $arResult['HAS_VIDEO'] = true;
 }
 
+/* Линейка высот — блок «Диапазон высоты, мм» у опор (ТЗ сеошников, п. 3.4,
+   13.10.2026). Каждая высота — отдельный товар со своим адресом; связывает их
+   свойство «Линейка» (LINE), подпись кнопки — «Диапазон высоты, мм»
+   (HEIGHT_RANGE), порядок — по первому числу диапазона. Заполняет
+   контент-менеджер; скрипт первичного заполнения — local/tools/nd_line_fill.php.
+
+   Цена и наличие — по ценам и складам текущего региона ($arParams уже
+   региональные), как у самой карточки. Результат лежит в кеше компонента, а
+   кеш тегированный (iblock_id_19): любое сохранение товара каталога в админке
+   его сбрасывает, поэтому выключенная высота пропадает со всех карточек линейки. */
+$arResult['ND_LINE'] = [];
+$ndLineEnum = (int) ($arResult['PROPERTIES']['LINE']['VALUE_ENUM_ID'] ?? 0);
+if ($ndLineEnum > 0) {
+	$ndLinePrices = CIBlockPriceTools::GetCatalogPrices($arResult['IBLOCK_ID'], (array) $arParams['PRICE_CODE']);
+	$ndLineSelect = ['ID', 'IBLOCK_ID', 'NAME', 'DETAIL_PAGE_URL', 'PROPERTY_HEIGHT_RANGE', 'CATALOG_QUANTITY'];
+	foreach ($ndLinePrices as $ndPrice) {
+		if ($ndPrice['CAN_VIEW']) {
+			$ndLineSelect[] = $ndPrice['SELECT'];
+		}
+	}
+	$ndLineItems = [];
+	$ndRes = CIBlockElement::GetList([], [
+		'IBLOCK_ID' => $arResult['IBLOCK_ID'],
+		'ACTIVE' => 'Y',
+		'ACTIVE_DATE' => 'Y',
+		'PROPERTY_LINE' => $ndLineEnum,
+	], false, false, $ndLineSelect);
+	while ($ndEl = $ndRes->GetNext()) {
+		$ndRange = trim((string) $ndEl['PROPERTY_HEIGHT_RANGE_VALUE']);
+		if ($ndRange === '' || isset($ndLineItems[$ndEl['ID']])) {
+			continue;
+		}
+		$ndItemPrices = CIBlockPriceTools::GetItemPrices($arResult['IBLOCK_ID'], $ndLinePrices, $ndEl,
+			$arParams['PRICE_VAT_INCLUDE'] ?? true, $arResult['CONVERT_CURRENCY'] ?? []);
+		$ndMin = $ndItemPrices ? CIBlockPriceTools::getMinPriceFromList($ndItemPrices) : null;
+		$ndLineItems[$ndEl['ID']] = [
+			'ID' => (int) $ndEl['ID'],
+			'RANGE' => $ndRange,
+			'MIN' => (int) $ndRange, // «35-50» → 35
+			'URL' => $ndEl['DETAIL_PAGE_URL'],
+			'PRICE' => ($ndMin && $ndMin['DISCOUNT_VALUE'] > 0) ? $ndMin['PRINT_DISCOUNT_VALUE'] : '',
+			'IN_STOCK' => (float) $ndEl['CATALOG_QUANTITY'] > 0,
+		];
+	}
+	// Наличие — по складам региона, если они заданы (иначе общий остаток товара)
+	$ndStores = array_filter(array_map('intval', (array) ($arParams['STORES'] ?? [])));
+	if ($ndLineItems && $ndStores && CModule::IncludeModule('catalog')) {
+		$ndAmount = array_fill_keys(array_keys($ndLineItems), 0);
+		$ndSp = CCatalogStoreProduct::GetList([], ['PRODUCT_ID' => array_keys($ndLineItems), 'STORE_ID' => $ndStores],
+			false, false, ['PRODUCT_ID', 'AMOUNT']);
+		while ($ndRow = $ndSp->Fetch()) {
+			$ndAmount[$ndRow['PRODUCT_ID']] += (float) $ndRow['AMOUNT'];
+		}
+		foreach ($ndAmount as $ndId => $ndQty) {
+			$ndLineItems[$ndId]['IN_STOCK'] = $ndQty > 0;
+		}
+	}
+	// Блок нужен, только если в линейке есть кто-то кроме самого товара
+	if (count($ndLineItems) > 1 && isset($ndLineItems[$arResult['ID']])) {
+		uasort($ndLineItems, static function ($a, $b) {
+			return [$a['MIN'], $a['RANGE']] <=> [$b['MIN'], $b['RANGE']];
+		});
+		$arResult['ND_LINE'] = array_values($ndLineItems);
+	}
+}
+
 
 ?>

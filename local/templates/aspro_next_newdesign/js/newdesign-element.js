@@ -1146,8 +1146,14 @@
 
 		if (isMobile) {
 			var logistic = root.querySelector('.middle_info .row .logistic');
+			/* У опор с блоком высот (.nd-line) логистики нет — кладём наличие
+			   в колонку к кнопкам высот, после них его ставит order. Только для
+			   них: у прочих товаров без логистики раскладку не трогаем. */
+			var line = root.querySelector('.middle_info .row .nd-line');
 			if (logistic && logistic.parentNode && stores.nextElementSibling !== logistic) {
 				logistic.parentNode.insertBefore(stores, logistic);
+			} else if (!logistic && line && stores.parentNode !== line.parentNode) {
+				line.parentNode.appendChild(stores);
 			}
 		} else if (home && home.parent && stores.parentNode !== home.parent) {
 			home.parent.insertBefore(stores, home.next);

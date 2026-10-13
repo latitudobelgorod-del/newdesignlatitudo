@@ -1192,6 +1192,30 @@ $ndColorItems = array_values(array_filter(
     </div>
 <?}?>
 
+<?/* Линейка высот (опоры HILST, Level): соседние высоты — обычными ссылками
+     в HTML, чтобы страницы линейки ссылались друг на друга (ТЗ сеошников,
+     п. 3.4). Данные собирает result_modifier.php (ND_LINE); вид — чипы длины
+     доски, стили в css/newdesign-element.css (.nd-line). Цену показывает
+     подсказка при наведении: текст в data-tip, рисует CSS. */?>
+<?if (!empty($arResult['ND_LINE'])):?>
+	<div class="nd-line">
+		<div class="nd-line__title">Диапазон высоты, мм</div>
+		<ul class="nd-line__list">
+			<?foreach ($arResult['ND_LINE'] as $ndLineItem):
+				$ndTip = trim($ndLineItem['PRICE'].($ndLineItem['IN_STOCK'] ? '' : ($ndLineItem['PRICE'] ? ', ' : '').'под заказ'));
+				$ndCls = 'nd-line__item'.($ndLineItem['IN_STOCK'] ? '' : ' is-order');?>
+				<li>
+					<?if ($ndLineItem['ID'] == $arResult['ID']):?>
+						<span class="<?=$ndCls?> is-current" aria-current="page"<?if ($ndTip !== ''):?> data-tip="<?=htmlspecialcharsbx($ndTip)?>"<?endif;?>><?=htmlspecialcharsbx($ndLineItem['RANGE'])?></span>
+					<?else:?>
+						<a class="<?=$ndCls?>" href="<?=$ndLineItem['URL']?>"<?if ($ndTip !== ''):?> data-tip="<?=htmlspecialcharsbx($ndTip)?>"<?endif;?>><?=htmlspecialcharsbx($ndLineItem['RANGE'])?></a>
+					<?endif;?>
+				</li>
+			<?endforeach;?>
+		</ul>
+	</div>
+<?endif;?>
+
 
 
 

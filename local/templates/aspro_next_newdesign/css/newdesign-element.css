@@ -3432,3 +3432,106 @@ a.nd-pd__installment:focus {
         line-height: 20px;
     }
 }
+
+/* ---------------------------------------------------------------------------
+   Линейка высот опор — «Диапазон высоты, мм» (ТЗ сеошников, п. 3.4, 13.10.2026).
+   Кнопки — соседние товары линейки, обычные ссылки. Вид повторяет чипы длины
+   доски выше (.sku_props .bx_size li: 87×36, рамка, r4, 18/20; на телефоне
+   85×35, 17), только без привязки к .sku_props — там живёт JS выбора
+   торгового предложения, а у опор предложений нет.
+   Высота без остатка в регионе — светлее; цена и «под заказ» — подсказкой
+   при наведении (data-tip), на сенсорных экранах подсказки нет.
+   --------------------------------------------------------------------------- */
+/* Место — как у чипов длины (.sku_props, order 3 в раскладке колонки выше и в
+   мобильной): над ценой на компьютере, сразу после цвета на телефоне, где цена
+   с кнопкой уезжают в нижнюю панель. */
+.catalog_detail.element_newdesign .right_info .info_item .nd-line {
+    order: 3;
+    flex: 1 1 100%;
+    width: auto !important;
+    margin: 0;
+}
+.catalog_detail.element_newdesign .nd-line__title {
+    margin: 0 0 4px;
+    font-size: 18px;
+    line-height: 25px;
+    font-weight: 400;
+    color: #101014;
+}
+.catalog_detail.element_newdesign .nd-line__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.catalog_detail.element_newdesign .nd-line__list > li {
+    margin: 0;
+    padding: 0;
+    background: none;
+}
+.catalog_detail.element_newdesign .nd-line__list > li:before {
+    content: none;
+}
+.catalog_detail.element_newdesign .nd-line__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 87px;
+    height: 36px;
+    padding: 5px 10px;
+    border: 1px solid rgba(82, 82, 100, .25);
+    border-radius: 4px;
+    background: none;
+    font-size: 18px;
+    line-height: 20px;
+    color: #101014;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.catalog_detail.element_newdesign a.nd-line__item:hover,
+.catalog_detail.element_newdesign a.nd-line__item:focus-visible {
+    border-color: #525264;
+    color: #101014;
+    text-decoration: none;
+}
+.catalog_detail.element_newdesign .nd-line__item.is-current {
+    border-color: #525264;
+    background: rgba(82, 82, 100, .05);
+    cursor: default;
+}
+.catalog_detail.element_newdesign .nd-line__item.is-order {
+    color: rgba(16, 16, 20, .45);
+    border-style: dashed;
+}
+@media (hover: hover) {
+    .catalog_detail.element_newdesign .nd-line__item[data-tip]:hover::after {
+        content: attr(data-tip);
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        z-index: 5;
+        transform: translateX(-50%);
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: #101014;
+        font-size: 13px;
+        line-height: 18px;
+        color: #fff;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+}
+@media (max-width: 767px) {
+    .catalog_detail.element_newdesign .nd-line__title {
+        font-size: 17px;
+        line-height: 23.8px;
+    }
+    .catalog_detail.element_newdesign .nd-line__item {
+        min-width: 85px;
+        height: 35px;
+        font-size: 17px;
+    }
+}
