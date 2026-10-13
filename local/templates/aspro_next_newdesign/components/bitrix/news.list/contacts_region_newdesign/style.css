@@ -169,8 +169,7 @@
 .nd-region__map.is-active {
     display: block;
 }
-.nd-region__map iframe,
-.nd-region__2gis {
+.nd-region__map iframe {
     display: block;
     width: 100%;
     height: 449px;
@@ -218,8 +217,7 @@
     .nd-region__row--store {
         grid-template-columns: minmax(0, 1fr);
     }
-    .nd-region__map iframe,
-    .nd-region__2gis {
+    .nd-region__map iframe {
         height: 320px;
     }
 }
