@@ -24,6 +24,7 @@ $lines = [
 	'HILST_LIFT_F'  => 'HILST ЛИФТ противопожарные',
 	'LEVEL_3D'      => 'Level 3Д',
 	'LEVEL_PRO'     => 'Level ПРО',
+	'LEVEL_MUFTA'   => 'Удлинительная муфта Level', // кнопки — размер, подпись блока «Размер»
 ];
 
 $prop = new CIBlockProperty;

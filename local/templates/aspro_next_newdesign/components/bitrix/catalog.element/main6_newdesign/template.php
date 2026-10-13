@@ -1204,10 +1204,10 @@ $ndColorItems = array_values(array_filter(
 		foreach ($arResult['ND_LINE'] as $ndLineItem) {
 			if ($ndLineItem['ID'] == $arResult['ID']) $ndLineCur = $ndLineItem['RANGE'];
 		}?>
-		<div class="nd-line__title">Диапазон высоты:<?if ($ndLineCur !== ''):?><span class="nd-line__value"><?=htmlspecialcharsbx($ndLineCur)?>мм</span><?endif;?></div>
+		<div class="nd-line__title"><?=$arResult['ND_LINE_TITLE']?>:<?if ($ndLineCur !== ''):?><span class="nd-line__value"><?=htmlspecialcharsbx($ndLineCur)?>мм</span><?endif;?></div>
 		<ul class="nd-line__list">
 			<?foreach ($arResult['ND_LINE'] as $ndLineItem):
-				$ndTitle = htmlspecialcharsbx('Диапазон высоты, мм: '.$ndLineItem['RANGE']);?>
+				$ndTitle = htmlspecialcharsbx($arResult['ND_LINE_TITLE'].', мм: '.$ndLineItem['RANGE']);?>
 				<li>
 					<?if ($ndLineItem['ID'] == $arResult['ID']):?>
 						<span class="nd-line__item is-current" aria-current="page" title="<?=$ndTitle?>"><?=htmlspecialcharsbx($ndLineItem['RANGE'])?>мм</span>

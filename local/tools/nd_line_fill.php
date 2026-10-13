@@ -17,12 +17,13 @@ require $_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_before.ph
 CModule::IncludeModule('iblock');
 
 const ND_IB = 19;
-// линейка → раздел и шаблон названия; диапазон — первая группа «мин-макс»
+// линейка → раздел, шаблон названия и разделитель подписи: «мин-макс» (высота) или «AхB» (размер муфты)
 $rules = [
 	'HILST_LIFT_SL' => [335, '~^Регулируемая опора HILST ЛИФТ с автокоррекцией уклона ХЛ\d+ \((\d+)-(\d+) мм\)$~u'],
 	'HILST_LIFT_F'  => [338, '~^Регулируемая опора HILST ЛИФТ F\d+ \(?(\d+)-(\d+) мм\)?$~u'],
 	'LEVEL_3D'      => [426, '~^Регулируемая опора Level 3Д (\d+)-(\d+)$~u'],
 	'LEVEL_PRO'     => [426, '~^Регулируемая опора Level ПРО (\d+)-(\d+)$~u'],
+	'LEVEL_MUFTA'   => [426, '~^Удлинительная муфта \S+ Level \((\d+)х(\d+) мм\)$~u', 'х'],
 ];
 
 $mode = $argv[2] ?? '';
@@ -47,6 +48,7 @@ foreach ($todo as $xml) {
 		exit("нет линейки $xml\n");
 	}
 	[$sec, $re] = $rules[$xml];
+	$sep = $rules[$xml][2] ?? '-';
 	echo "== $xml (раздел $sec)\n";
 	$res = CIBlockElement::GetList(['ID' => 'ASC'], ['IBLOCK_ID' => ND_IB, 'SECTION_ID' => $sec],
 		false, false, ['ID', 'NAME', 'ACTIVE', 'PROPERTY_LINE', 'PROPERTY_HEIGHT_RANGE']);
@@ -56,7 +58,7 @@ foreach ($todo as $xml) {
 			continue;
 		}
 		$seen[$el['ID']] = true;
-		$range = "{$m[1]}-{$m[2]}";
+		$range = $m[1].$sep.$m[2];
 		$curLine = (string) $el['PROPERTY_LINE_ENUM_ID'];
 		$curRange = (string) $el['PROPERTY_HEIGHT_RANGE_VALUE'];
 		$set = [];

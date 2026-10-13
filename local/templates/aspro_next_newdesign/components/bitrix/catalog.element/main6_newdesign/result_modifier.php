@@ -1571,6 +1571,9 @@ if($hasVideo){
    высота пропадает со всех карточек линейки. */
 $arResult['ND_LINE'] = [];
 $ndLineEnum = (int) ($arResult['PROPERTIES']['LINE']['VALUE_ENUM_ID'] ?? 0);
+// Подпись блока: у опор — диапазон высоты, у муфт Level кнопки — размер («103х90»)
+$arResult['ND_LINE_TITLE'] = (($arResult['PROPERTIES']['LINE']['VALUE_XML_ID'] ?? '') === 'LEVEL_MUFTA')
+	? 'Размер' : 'Диапазон высоты';
 if ($ndLineEnum > 0) {
 	$ndLineItems = [];
 	$ndRes = CIBlockElement::GetList([], [
@@ -1587,7 +1590,7 @@ if ($ndLineEnum > 0) {
 		$ndLineItems[$ndEl['ID']] = [
 			'ID' => (int) $ndEl['ID'],
 			'RANGE' => $ndRange,
-			'MIN' => (int) $ndRange, // «35-50» → 35
+			'MIN' => (int) $ndRange, // «35-50» → 35, «103х90» → 103
 			'URL' => $ndEl['DETAIL_PAGE_URL'],
 		];
 	}
