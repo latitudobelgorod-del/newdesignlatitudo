@@ -3452,7 +3452,7 @@ a.nd-pd__installment:focus {
     margin: 0;
 }
 .catalog_detail.element_newdesign .nd-line__title {
-    margin: 0 0 4px;
+    margin: 0 0 12px; /* как у длины доски: 12 от подписи до чипов */
     font-size: 18px;
     line-height: 25px;
     font-weight: 400;
@@ -3504,7 +3504,12 @@ a.nd-pd__installment:focus {
 }
 .catalog_detail.element_newdesign .nd-line__item.is-order {
     color: rgba(16, 16, 20, .45);
-    border-style: dashed;
+}
+/* Как у длины доски: «Длина: 3000мм» — выбранное значение в подписи весом 500
+   (.nd-sku__value); «мм» на чипах дописывает шаблон — ::after занят подсказкой. */
+.catalog_detail.element_newdesign .nd-line__value {
+    margin-left: .3em;
+    font-weight: 500;
 }
 @media (hover: hover) {
     .catalog_detail.element_newdesign .nd-line__item[data-tip]:hover::after {

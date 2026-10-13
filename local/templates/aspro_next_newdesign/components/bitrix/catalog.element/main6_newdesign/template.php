@@ -1199,16 +1199,21 @@ $ndColorItems = array_values(array_filter(
      подсказка при наведении: текст в data-tip, рисует CSS. */?>
 <?if (!empty($arResult['ND_LINE'])):?>
 	<div class="nd-line">
-		<div class="nd-line__title">Диапазон высоты, мм</div>
+		<?/* Подпись как у длины доски: «Длина: 3000мм» — название и выбранное значение весом 500 */
+		$ndLineCur = '';
+		foreach ($arResult['ND_LINE'] as $ndLineItem) {
+			if ($ndLineItem['ID'] == $arResult['ID']) $ndLineCur = $ndLineItem['RANGE'];
+		}?>
+		<div class="nd-line__title">Диапазон высоты:<?if ($ndLineCur !== ''):?><span class="nd-line__value"><?=htmlspecialcharsbx($ndLineCur)?>мм</span><?endif;?></div>
 		<ul class="nd-line__list">
 			<?foreach ($arResult['ND_LINE'] as $ndLineItem):
 				$ndTip = trim($ndLineItem['PRICE'].($ndLineItem['IN_STOCK'] ? '' : ($ndLineItem['PRICE'] ? ', ' : '').'под заказ'));
 				$ndCls = 'nd-line__item'.($ndLineItem['IN_STOCK'] ? '' : ' is-order');?>
 				<li>
 					<?if ($ndLineItem['ID'] == $arResult['ID']):?>
-						<span class="<?=$ndCls?> is-current" aria-current="page"<?if ($ndTip !== ''):?> data-tip="<?=htmlspecialcharsbx($ndTip)?>"<?endif;?>><?=htmlspecialcharsbx($ndLineItem['RANGE'])?></span>
+						<span class="<?=$ndCls?> is-current" aria-current="page"<?if ($ndTip !== ''):?> data-tip="<?=htmlspecialcharsbx($ndTip)?>"<?endif;?>><?=htmlspecialcharsbx($ndLineItem['RANGE'])?>мм</span>
 					<?else:?>
-						<a class="<?=$ndCls?>" href="<?=$ndLineItem['URL']?>"<?if ($ndTip !== ''):?> data-tip="<?=htmlspecialcharsbx($ndTip)?>"<?endif;?>><?=htmlspecialcharsbx($ndLineItem['RANGE'])?></a>
+						<a class="<?=$ndCls?>" href="<?=$ndLineItem['URL']?>"<?if ($ndTip !== ''):?> data-tip="<?=htmlspecialcharsbx($ndTip)?>"<?endif;?>><?=htmlspecialcharsbx($ndLineItem['RANGE'])?>мм</a>
 					<?endif;?>
 				</li>
 			<?endforeach;?>
