@@ -79,7 +79,7 @@ foreach ($todo as $xml) {
 	}
 }
 if ($backup) {
-	$fn = (getenv('HOME') ?: dirname($_SERVER['DOCUMENT_ROOT'])).'/nd_line_fill_backup_'.date('Ymd-His').'.json';
+	$fn = (getenv('HOME') ?: dirname($_SERVER['DOCUMENT_ROOT'])).'/nd_line_fill_backup_'.$mode.'_'.date('Ymd-His').'.json';
 	file_put_contents($fn, json_encode($backup, JSON_PRETTY_PRINT));
 	// SetPropertyValuesEx не сбрасывает тегированный кеш — сбрасываем, как это сделала бы админка
 	CIBlock::clearIblockTagCache(ND_IB);
