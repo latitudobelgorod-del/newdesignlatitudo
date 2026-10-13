@@ -560,16 +560,18 @@
     padding: 0;
     list-style: none;
 }
-/* Нумерованные списки в вакансиях тоже встречаются — им нужны цифры,
-   а не точки, поэтому маркер списка оставляем родной. */
+/* Нумерованные списки в вакансиях тоже встречаются. Номер рисует общее
+   правило из newdesign.css (`.detail_text ol > li:before`, счётчик nd-ol) в
+   отступе пункта 28px — родной маркер тут не нужен: с ним и нулевым
+   отступом у li номер ложился поверх текста. */
 .nd-vac__editor ol,
 .editor .nd-vac__editor ol {
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin: 0 0 16px;
-    padding-left: 20px;
-    list-style: decimal outside;
+    padding-left: 0;
+    list-style: none;
 }
 .nd-vac__editor li,
 .editor .nd-vac__editor li {
@@ -579,11 +581,7 @@
 }
 .nd-vac__editor ol > li,
 .editor .nd-vac__editor ol > li {
-    padding-left: 0;
-}
-.nd-vac__editor ol > li:before,
-.editor .nd-vac__editor ol > li:before {
-    content: none;
+    margin: 0;
 }
 /* В контенте попадаются пустые абзацы и абзацы из одного <br> — в редакторе
    они не видны, а на странице дают дыры. */
