@@ -196,17 +196,21 @@ foreach ($groups as $g) {
 				continue;
 			}
 			$assoc = count($main) > 1 ? array_values(array_map(static fn($x) => $x === $c['xml'] ? $id : $main[$x], array_keys($main))) : [];
-			$new = ['COLOR_MAIN_EL' => $sw[$c['xml']], $code => $enum[$code][$c['xml']] ?? '(после создания)', 'ASSOCIATED' => $assoc];
+			/* Цвет вне справочника (Грецкий орех, Дуб…) — xml пустой: ни свойства цвета, ни свотча,
+			   только связь; кружком карточка покажет картинку анонса. */
+			$new = ['ASSOCIATED' => $assoc];
+			if (($c['xml'] ?? '') !== '') {
+				$new['COLOR_MAIN_EL'] = $sw[$c['xml']];
+				$new[$code] = $enum[$code][$c['xml']] ?? '(после создания)';
+			}
 			$old = ndVals($id);
-			echo "  $id «{$sortOf[$id][2]}»: $code={$c['name']}, свотч={$sw[$c['xml']]}, вариации=" . implode(',', $assoc) . "\n";
+			echo "  $id «{$sortOf[$id][2]}»: $code={$c['name']}, свотч=" . ($new['COLOR_MAIN_EL'] ?? '—') . ", вариации=" . implode(',', $assoc) . "\n";
 			if (!$apply) {
 				continue;
 			}
-			CIBlockElement::SetPropertyValuesEx($id, ND_IB, [
-				'COLOR_MAIN_EL' => $new['COLOR_MAIN_EL'],
-				$code => $new[$code],
-				'ASSOCIATED' => $assoc ?: false,
-			]);
+			$set = $new;
+			$set['ASSOCIATED'] = $assoc ?: false;
+			CIBlockElement::SetPropertyValuesEx($id, ND_IB, $set);
 			foreach ($new as $k => $v) {
 				$log[] = "$id\t$k\t" . json_encode($old[$k] ?? [], JSON_UNESCAPED_UNICODE) . "\t" . json_encode($v, JSON_UNESCAPED_UNICODE);
 			}
