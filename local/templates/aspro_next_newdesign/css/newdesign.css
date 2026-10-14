@@ -5976,3 +5976,17 @@ a.nd-tline__item:hover {
     background: rgba(82, 82, 100, .1);
     font-weight: 600;
 }
+
+/* «ещё N» — остальные высоты линейки свёрнуты (js/newdesign-catalog.js, collapseLines) */
+.nd-tline__more {
+    font: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    color: #c60000 !important;
+    border-color: rgba(198, 0, 0, .4);
+    cursor: pointer;
+}
+
+.nd-tline__more:hover {
+    background: rgba(198, 0, 0, .06);
+}

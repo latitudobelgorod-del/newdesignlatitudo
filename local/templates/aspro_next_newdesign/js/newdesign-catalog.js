@@ -808,6 +808,64 @@
     }
 
     /* ---------------------------------------------------------------------
+       Линейка опор в плитке (.nd-tline): не больше двух рядов, остальное —
+       под кнопкой «ещё N» (Ирина, 14.10.2026: 11 высот занимали полкарточки).
+       Текущая высота всегда видна: если она дальше второго ряда, видимое
+       окно сдвигается к ней. Ссылки скрытых высот остаются в разметке.
+       ------------------------------------------------------------------ */
+    var TLINE_ROWS = 2;
+
+    function collapseLine(box) {
+        if (box.classList.contains('is-expanded') || !box.offsetWidth) return;
+        var items = [].slice.call(box.querySelectorAll('.nd-tline__item:not(.nd-tline__more)'));
+        var more = box.querySelector('.nd-tline__more');
+        items.forEach(function (el) { el.style.display = ''; });
+        if (more) more.style.display = 'none';
+        if (items.length < 2) return;
+
+        var top0 = items[0].offsetTop;
+        var rowH = items[0].offsetHeight + 3; // gap 3px
+        var fits = function (el) { return el.offsetTop < top0 + rowH * TLINE_ROWS - 1; };
+        if (fits(items[items.length - 1])) return; // и так влезает
+
+        if (!more) {
+            more = document.createElement('button');
+            more.type = 'button';
+            more.className = 'nd-tline__item nd-tline__more';
+            more.addEventListener('click', function (e) {
+                e.preventDefault();
+                box.classList.add('is-expanded');
+                [].forEach.call(box.querySelectorAll('.nd-tline__item'), function (el) { el.style.display = ''; });
+                more.style.display = 'none';
+            });
+            box.appendChild(more);
+        }
+        var cur = 0;
+        items.forEach(function (el, i) { if (el.classList.contains('is-current')) cur = i; });
+
+        // окно [start..]: сколько высот влезает вместе с кнопкой «ещё N»
+        for (var start = 0; start <= cur; start++) {
+            var shown = 0;
+            items.forEach(function (el) { el.style.display = 'none'; });
+            more.style.display = '';
+            for (var i = start; i < items.length; i++) {
+                items[i].style.display = '';
+                more.textContent = 'ещё ' + (items.length - (shown + 1));
+                if (!fits(more) || !fits(items[i])) { items[i].style.display = 'none'; break; }
+                shown++;
+            }
+            more.textContent = 'ещё ' + (items.length - shown);
+            if (start + shown > cur) break; // текущая в окне
+        }
+    }
+
+    function collapseLines() {
+        try {
+            [].forEach.call(document.querySelectorAll('.nd-tline'), collapseLine);
+        } catch (e) { }
+    }
+
+    /* ---------------------------------------------------------------------
        Чипы тегов: в макете они свёрнуты в один ряд, остальные прячет «…»
        ------------------------------------------------------------------ */
     function collapseTags() {
@@ -1013,6 +1071,7 @@
                 } catch (e) { }
             }
         });
+        collapseLines();
     }
 
     if (document.readyState !== 'loading') run();
@@ -1037,6 +1096,7 @@
             } else {
                 placePromo();
                 collapseTags();
+                collapseLines();
             }
         }, 200);
     });
