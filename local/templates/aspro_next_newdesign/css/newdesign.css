@@ -5990,3 +5990,11 @@ a.nd-tline__item:hover {
 .nd-tline__more:hover {
     background: rgba(198, 0, 0, .06);
 }
+
+/* До подсчёта скриптом — сразу не выше двух рядов (2×26px + зазор 3px):
+   иначе плитка сначала вытягивалась на все высоты, потом сжималась, и
+   страница прыгала под курсором (14.10.2026). is-measured ставит collapseLine. */
+.nd-tline:not(.is-measured):not(.is-expanded) {
+    max-height: 55px;
+    overflow: hidden;
+}

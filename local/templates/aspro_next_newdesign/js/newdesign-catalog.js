@@ -79,6 +79,7 @@
                 var tline = card.querySelector('.nd-tline');
                 var beforeTline = colors || title;
                 if (tline && beforeTline && tline.previousElementSibling !== beforeTline) info.insertBefore(tline, beforeTline.nextSibling);
+                if (tline) collapseLine(tline);
                 var beforeSku = tline || colors || title;
                 if (sku && beforeSku && sku.previousElementSibling !== beforeSku) info.insertBefore(sku, beforeSku.nextSibling);
 
@@ -826,18 +827,13 @@
         var top0 = items[0].offsetTop;
         var rowH = items[0].offsetHeight + 3; // gap 3px
         var fits = function (el) { return el.offsetTop < top0 + rowH * TLINE_ROWS - 1; };
+        box.classList.add('is-measured');
         if (fits(items[items.length - 1])) return; // и так влезает
 
         if (!more) {
             more = document.createElement('button');
             more.type = 'button';
             more.className = 'nd-tline__item nd-tline__more';
-            more.addEventListener('click', function (e) {
-                e.preventDefault();
-                box.classList.add('is-expanded');
-                [].forEach.call(box.querySelectorAll('.nd-tline__item'), function (el) { el.style.display = ''; });
-                more.style.display = 'none';
-            });
             box.appendChild(more);
         }
         var cur = 0;
@@ -858,6 +854,18 @@
             if (start + shown > cur) break; // текущая в окне
         }
     }
+
+    /* Клик ловим на документе: кнопка срабатывает, даже если плитку в этот
+       момент перестраивают (14.10.2026: «кнопка ещё тупит»). */
+    document.addEventListener('click', function (e) {
+        var more = e.target.closest && e.target.closest('.nd-tline__more');
+        if (!more) return;
+        e.preventDefault();
+        var box = more.closest('.nd-tline');
+        box.classList.add('is-expanded');
+        [].forEach.call(box.querySelectorAll('.nd-tline__item'), function (el) { el.style.display = ''; });
+        more.style.display = 'none';
+    });
 
     function collapseLines() {
         try {
