@@ -73,7 +73,8 @@ $ndMailPodmena = (ndIsUtmVisit() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_
 	/* Данные для микроразметки: абсолютный адрес сайта, первое фото офиса
 	   и координаты из свойства MAP («широта,долгота»). */
 	$ndHost = 'https://'.$_SERVER['HTTP_HOST'];
-	$ndOrgImage = !empty($arItem['ND_GALLERY']) ? $ndHost.reset($arItem['ND_GALLERY']) : '';
+	$ndOrgImage = !empty($arItem['ND_GALLERY_FULL']) ? $ndHost.reset($arItem['ND_GALLERY_FULL'])
+		: (!empty($arItem['ND_GALLERY']) ? $ndHost.reset($arItem['ND_GALLERY']) : '');
 	$ndGeo = [];
 	$ndMapValue = trim((string) ($arItem['PROPERTIES']['MAP']['VALUE'] ?? ''));
 	if (preg_match('/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/', $ndMapValue, $m)) {
@@ -110,8 +111,8 @@ $ndMailPodmena = (ndIsUtmVisit() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_
 		<? if ($arItem['ND_GALLERY']): ?>
 			<div class="nd-region__gallery" data-nd-gallery>
 				<div class="nd-region__shots" data-nd-gallery-track>
-					<? foreach ($arItem['ND_GALLERY'] as $src): ?>
-						<a class="nd-region__shot popup_video various" href="<?= $src ?>" data-fancybox="office-<?= $arItem['ID'] ?>">
+					<? foreach ($arItem['ND_GALLERY'] as $ndShotIdx => $src): ?>
+						<a class="nd-region__shot popup_video various" href="<?= $arItem['ND_GALLERY_FULL'][$ndShotIdx] ?? $src ?>" data-fancybox="office-<?= $arItem['ID'] ?>">
 							<img src="<?= $src ?>" alt="<?= $arItem['NAME'] ?>" loading="lazy">
 						</a>
 					<? endforeach; ?>

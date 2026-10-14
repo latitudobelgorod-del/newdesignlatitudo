@@ -25,6 +25,9 @@ foreach ($arResult['ITEMS'] as &$arItem) {
 	}
 
 	$arItem['ND_GALLERY'] = [];
+	/* Оригиналы — для увеличения по клику: там открывалась та же нарезка 882×588
+	   с обрезанными краями, хотя фото грузят в 1920 (Ирина, 14.10.2026). */
+	$arItem['ND_GALLERY_FULL'] = [];
 	$photos = $arItem['PROPERTIES']['MORE_PHOTOS']['VALUE'] ?? [];
 	foreach ((array) $photos as $fileId) {
 		$fileId = (int) $fileId;
@@ -34,6 +37,7 @@ foreach ($arResult['ITEMS'] as &$arItem) {
 		$img = CFile::ResizeImageGet($fileId, ['width' => 882, 'height' => 588], BX_RESIZE_IMAGE_EXACT, true);
 		if (!empty($img['src'])) {
 			$arItem['ND_GALLERY'][] = $img['src'];
+			$arItem['ND_GALLERY_FULL'][] = CFile::GetPath($fileId) ?: $img['src'];
 		}
 	}
 
