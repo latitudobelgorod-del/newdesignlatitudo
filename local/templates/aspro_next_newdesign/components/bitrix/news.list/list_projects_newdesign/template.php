@@ -23,6 +23,24 @@ require_once $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/parts/projec
    шаблон кешируется по составу фильтра, и отмеченные пункты приезжали бы
    из чужого кеша. Сюда приходит только признак «фильтр включён». */
 $ndF = is_array($arParams['ND_FILTER']) ? $arParams['ND_FILTER'] : [];
+
+/* ND_CAPTIONS [ID => подпись] — блок редактора «Элемент со своей подписью»
+   (sprint.editor, iblock_elements__aspro-projects, style4): карточки в порядке
+   ключей, подпись вместо названия (пустая — название остаётся). */
+$ndCaptions = is_array($arParams['~ND_CAPTIONS'] ?? null) ? $arParams['~ND_CAPTIONS'] : [];
+if ($ndCaptions && $arResult['ITEMS']) {
+	$ndById = array_column($arResult['ITEMS'], null, 'ID');
+	$arResult['ITEMS'] = [];
+	foreach ($ndCaptions as $ndId => $ndCaption) {
+		if (!isset($ndById[$ndId])) {
+			continue;
+		}
+		if ($ndCaption !== '') {
+			$ndById[$ndId]['~NAME'] = $ndCaption;
+		}
+		$arResult['ITEMS'][] = $ndById[$ndId];
+	}
+}
 ?>
 <section class="nd-projects">
 	<? if (!$arResult['ITEMS']): ?>

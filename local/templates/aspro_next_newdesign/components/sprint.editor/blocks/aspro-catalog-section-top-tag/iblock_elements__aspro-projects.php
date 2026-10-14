@@ -30,6 +30,19 @@ $GLOBALS['sprintSearchFilter'] = [
 	'ID' => $block['element_ids'],
 ];
 
+/* Вариант «Элемент со своей подписью» (param1 = style4, Ирина, 14.10.2026):
+   та же карточка проекта, но вместо названия — подпись, заданная в редакторе
+   рядом с элементом (ключевые фразы для SEO), и порядок — как в редакторе.
+   Пустая подпись — остаётся название проекта. Подписи хранит своя копия
+   блока редактора: local/admin/sprint.editor/blocks/iblock_elements. */
+$ndCaptions = [];
+if (($block['settings']['param1'] ?? '') === 'style4') {
+	$ndCaptionsRaw = is_array($block['captions'] ?? null) ? $block['captions'] : [];
+	foreach ((array) $block['element_ids'] as $ndId) {
+		$ndCaptions[(int) $ndId] = trim((string) ($ndCaptionsRaw[$ndId] ?? ''));
+	}
+}
+
 $APPLICATION->IncludeComponent(
 	'bitrix:news.list',
 	'list_projects_newdesign',
@@ -79,6 +92,7 @@ $APPLICATION->IncludeComponent(
 		/* Своего пейджера у блока быть не должно (Ирина, 2026-08-11) —
 		   параметрами компонента это не выключается, флаг понимает шаблон. */
 		'ND_NO_PAGER' => 'Y',
+		'ND_CAPTIONS' => $ndCaptions,
 		'PAGER_TEMPLATE' => '',
 		'DISPLAY_TOP_PAGER' => 'N',
 		'DISPLAY_BOTTOM_PAGER' => 'N',

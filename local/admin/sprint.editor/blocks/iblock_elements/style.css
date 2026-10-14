@@ -1,0 +1,77 @@
+.sp-block-iblock_elements .sp-result {
+    position: relative;
+}
+
+.sp-block-iblock_elements .sp-filter {
+    display: block;
+}
+
+.sp-block-iblock_elements.sp-show .sp-filter {
+    display: block;
+}
+
+.sp-block-iblock_elements .sp-item {
+    padding: 2px 5px;
+    cursor: move;
+    white-space: nowrap;
+    /*width: 95%;*/
+    overflow: hidden;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.sp-block-iblock_elements .sp-item:last-child{
+    border-bottom: none;
+}
+.sp-block-iblock_elements .sp-item .sp-item-del {
+    visibility: hidden;
+}
+.sp-block-iblock_elements .sp-item:hover .sp-item-del {
+    visibility: visible;
+}
+.sp-block-iblock_elements .sp-placeholder {
+    border: 1px dotted black;
+    padding: 2px;
+    height: 26px;
+}
+
+.sp-block-iblock_elements .sp-elements {
+    background: #eee;
+    min-height: 35px;
+    padding: 7px 7px 10px;
+}
+
+.sp-block-iblock_elements .sp-item.ui-draggable-dragging {
+    background: #FDBF3B;
+}
+
+.sp-block-iblock_elements .sp-item.ui-sortable-helper {
+    background: #ccc;
+}
+
+.sp-block-iblock_elements .sp-field {
+    margin-bottom: 10px;
+}
+
+.sp-block-iblock_elements .sp-select-iblock {
+    width: 180px;
+}
+
+.sp-block-iblock_elements .sp-filter {
+    margin-bottom: 10px;
+}
+
+/* своя подпись у элемента (Латитудо, 14.10.2026) */
+.sp-block-iblock_elements .sp-item-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 0 1 45%;
+}
+.sp-block-iblock_elements .sp-item .sp-item-caption {
+    flex: 1 1 auto;
+    min-width: 120px;
+    margin: 0 8px;
+    padding: 3px 6px;
+    cursor: text;
+}

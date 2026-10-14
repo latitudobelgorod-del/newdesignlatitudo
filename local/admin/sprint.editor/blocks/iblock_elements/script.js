@@ -1,0 +1,202 @@
+/* Копия штатного блока sprint.editor «Инфоблоки. Элементы» (перекрывает
+   bitrix/admin/sprint.editor/blocks/iblock_elements, которую затирает обновление
+   модуля). Добавлено: своя подпись у каждого элемента — data.captions {ID: текст},
+   её выводит вариант «Элемент со своей подписью» (param1 = style4) в шаблоне
+   iblock_elements__aspro-projects.php нового дизайна. Латитудо, 14.10.2026. */
+sprint_editor.registerBlock('iblock_elements', function ($, $el, data, settings) {
+
+    settings = settings || {};
+
+    var enabled_iblocks = [];
+    if (settings.enabled_iblocks && settings.enabled_iblocks.value && Array.isArray(settings.enabled_iblocks.value)) {
+        enabled_iblocks = settings.enabled_iblocks.value;
+    }
+
+    var multiple = true;
+    if (settings.hasOwnProperty('multiple') && settings.multiple.hasOwnProperty('value')) {
+        multiple = !!settings.multiple.value;
+    }
+
+    data = $.extend({
+        iblock_id: 0,
+        element_ids: [],
+        captions: {}
+    }, data);
+    if (!$.isPlainObject(data.captions)) {
+        data.captions = {};
+    }
+
+    this.getData = function () {
+        return data;
+    };
+
+    this.collectData = function () {
+        data.iblock_id = findIblockId();
+        data.element_ids = findElementIds();
+        data.captions = findCaptions();
+        return data;
+    };
+
+    this.afterRender = function () {
+
+        var popupIds = [];
+
+        var uid = sprint_editor.makeUid();
+        window[uid] = {
+            AddValue: function (newid) {
+                newid = intval(newid);
+                if (newid > 0) {
+                    popupIds.push(newid);
+                }
+            },
+
+            Complete: function () {
+                var oldids = [];
+                if (multiple) {
+                    oldids = findElementIds();
+                }
+                sendrequest({
+                    iblock_id: findIblockId(),
+                    element_ids: $.merge(oldids, popupIds),
+                    enabled_iblocks: enabled_iblocks
+                });
+
+                popupIds = [];
+            }
+        };
+
+
+        $el.on('click', '.sp-open', function () {
+            var iblockId = findIblockId();
+            if (iblockId > 0) {
+
+                var width = 900;
+                var height = 700;
+                var url = '/bitrix/admin/iblock_element_search.php?' + decodeURIComponent($.param({
+                    lang: 'ru',
+                    IBLOCK_ID: iblockId,
+                    iblockfix: 'y',
+                    lookup: uid,
+                    m: multiple ? 'y' : 'n'
+                }));
+
+
+                var w = $(window).width(), h = $(window).height();
+                var sizes = '';
+
+                sizes += 'status=no,scrollbars=yes,resizable=yes,';
+                sizes += 'width=' + width + ',height=' + height;
+                sizes += +',top=' + Math.floor((h - height) / 2 - 14) + ',left=' + Math.floor((w - width) / 2 - 5);
+
+                var popup = window.open(url, '', sizes);
+
+                popup.addEventListener('unload', () => window[uid].Complete());
+            }
+        });
+
+        $el.on('change', '.sp-select-iblock', function () {
+            sendrequest({
+                iblock_id: findIblockId(),
+                element_ids: findElementIds(),
+                enabled_iblocks: enabled_iblocks
+            });
+        });
+
+        $el.on('click', '.sp-item-del', function () {
+            $(this).closest('.sp-item').remove();
+        });
+
+        sendrequest({
+            iblock_id: data.iblock_id,
+            element_ids: data.element_ids,
+            enabled_iblocks: enabled_iblocks
+        });
+
+    };
+
+    var findIblockId = function () {
+        return intval(
+            $el.find('.sp-select-iblock').val()
+        );
+    };
+
+    var findElementIds = function () {
+        var $obj = $el.find('.sp-elements');
+
+        var values = [];
+        $obj.find('.sp-item').each(function () {
+            var val = intval(
+                $(this).data('id')
+            );
+            if (val > 0) {
+                values.push(val);
+            }
+        });
+        return values;
+    };
+
+    // подписи из полей; до первой отрисовки полей нет — берём сохранённые
+    var findCaptions = function () {
+        var $items = $el.find('.sp-elements .sp-item');
+        if (!$items.length && !$el.find('.sp-elements').length) {
+            return data.captions;
+        }
+        var values = {};
+        $items.each(function () {
+            var id = intval($(this).data('id'));
+            var text = $.trim($(this).find('.sp-item-caption').val() || '');
+            if (id > 0 && text !== '') {
+                values[id] = text;
+            }
+        });
+        return values;
+    };
+
+    var intval = function (val) {
+        val = (val) ? val : 0;
+        val = parseInt(val, 10);
+        return isNaN(val) ? 0 : val;
+    };
+
+
+    var sendrequest = function (requestParams, callback) {
+        var $jresult = $el.find('.sp-result');
+        // перерисовка списка (добавили элемент, сменили инфоблок) не должна терять набранные подписи
+        data.captions = findCaptions();
+
+        $.ajax({
+            url: sprint_editor.getBlockWebPath('iblock_elements') + '/ajax.php',
+            type: 'post',
+            data: requestParams,
+            dataType: 'json',
+            success: function (result) {
+
+                $jresult.html(
+                    sprint_editor.renderTemplate('iblock_elements-select', result)
+                );
+
+                var $elem = $jresult.find('.sp-elements');
+
+                $elem.find('.sp-item').each(function () {
+                    var id = intval($(this).data('id'));
+                    if (data.captions[id]) {
+                        $(this).find('.sp-item-caption').val(data.captions[id]);
+                    }
+                });
+
+                $elem.sortable({
+                    items: ".sp-item",
+                    placeholder: "sp-placeholder",
+                });
+
+                if (callback) {
+                    callback();
+                }
+            },
+            error: function () {
+
+            }
+        });
+    };
+
+});
