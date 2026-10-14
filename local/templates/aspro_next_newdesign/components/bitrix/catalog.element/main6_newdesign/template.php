@@ -1089,9 +1089,17 @@ $ndColorItems = array_values(array_filter(
 		return !empty($item["COLOR"]["FILE_PATH"]);
 	}
 ));
+/* Подпись по свойству товара: у Millargo кружки — это цвет ротанга или массива
+   ясеня (ROTANG_COLOR / ASH_COLOR, Ирина, 14.10.2026), у остальных — «Цвет». */
+$ndColorLabel = 'Цвет';
+if (!empty($arResult["PROPERTIES"]["ROTANG_COLOR"]["VALUE"])) {
+	$ndColorLabel = 'Цвет ротанга';
+} elseif (!empty($arResult["PROPERTIES"]["ASH_COLOR"]["VALUE"])) {
+	$ndColorLabel = 'Цвет массива ясеня';
+}
 ?>
 <?if ($ndColorItems):?>
-    <div class="catalog-detail-sku__title">Цвет:
+    <div class="catalog-detail-sku__title"><?=$ndColorLabel?>:
 	  <?if (!empty($arResult["MAIN_COLOR"]["NAME"])):?>
             <span class="catalog-detail-sku__current-color">
                 <?=htmlspecialcharsbx($arResult["MAIN_COLOR"]["NAME"])?>
