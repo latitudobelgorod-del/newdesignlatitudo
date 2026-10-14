@@ -188,6 +188,17 @@ function ndCatalogCacheTokens(&$content)
         array(ndCurrentHost(), $sales, $sales === '' ? ' nd-pd__bottom--nosales' : ''),
         $content
     );
+
+    /* #ND_V:/путь/к/файлу# — версия файла (filemtime) для ?v= у css/js, которые
+       подключает кешированный шаблон: версия, записанная в кеш, оставалась
+       старой после выкладки, и браузер брал из своего кеша прежний скрипт
+       (14.10.2026, кнопка «ещё» в линейке опор). */
+    if (strpos($content, '#ND_V:') !== false) {
+        $content = preg_replace_callback('~#ND_V:(/[\w./-]+)#~', static function ($m) {
+            $file = $_SERVER['DOCUMENT_ROOT'] . $m[1];
+            return (strpos($m[1], '..') === false && is_file($file)) ? (string)filemtime($file) : '';
+        }, $content);
+    }
 }
 
 /**

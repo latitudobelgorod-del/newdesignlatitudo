@@ -274,15 +274,17 @@ div[id*="prop_169"][style*="display: none"] {
 <?/* Стили и скрипт списка нового дизайна. Тегами прямо в разметке, а не через
 	SetAdditionalCSS/AddHeadScript: шаблон рисуется, когда <head> уже отдан.
 	Защита от повторного подключения — шаблон выводится ещё и по ajax
-	(фильтр, «показать ещё»), а на странице бывает несколько списков. */?>
+	(фильтр, «показать ещё»), а на странице бывает несколько списков.
+	Версия — меткой #ND_V:…#: её подставляет ndCatalogCacheTokens при каждой
+	отдаче, filemtime здесь застывал в кеше шаблона. */?>
 <?if(!defined('ND_CATALOG_ASSETS')){
 	define('ND_CATALOG_ASSETS', true);
 	$ndAssetsDir = SITE_TEMPLATE_PATH;
 	$ndCssFile = $_SERVER['DOCUMENT_ROOT'].$ndAssetsDir.'/css/newdesign-catalog.css';
 	$ndJsFile = $_SERVER['DOCUMENT_ROOT'].$ndAssetsDir.'/js/newdesign-catalog.js';
 	?>
-	<link href="<?=$ndAssetsDir?>/css/newdesign-catalog.css?<?=(file_exists($ndCssFile) ? filemtime($ndCssFile) : '')?>" rel="stylesheet" />
-	<script src="<?=$ndAssetsDir?>/js/newdesign-catalog.js?<?=(file_exists($ndJsFile) ? filemtime($ndJsFile) : '')?>"></script>
+	<link href="<?=$ndAssetsDir?>/css/newdesign-catalog.css?#ND_V:<?=$ndAssetsDir?>/css/newdesign-catalog.css#" rel="stylesheet" />
+	<script src="<?=$ndAssetsDir?>/js/newdesign-catalog.js?#ND_V:<?=$ndAssetsDir?>/js/newdesign-catalog.js#"></script>
 <?}?>
 <?/* Общий скрипт нового дизайна — им работает кнопка «Показать ещё»
 	под сеткой (та же, что на отзывах и материалах). */?>
@@ -290,7 +292,7 @@ div[id*="prop_169"][style*="display: none"] {
 	define('ND_UI_JS', true);
 	$ndUiFile = $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-ui.js';
 	?>
-	<script src="<?=SITE_TEMPLATE_PATH?>/js/newdesign-ui.js?<?=(file_exists($ndUiFile) ? filemtime($ndUiFile) : '')?>"></script>
+	<script src="<?=SITE_TEMPLATE_PATH?>/js/newdesign-ui.js?#ND_V:<?=SITE_TEMPLATE_PATH?>/js/newdesign-ui.js#"></script>
 <?}?>
 <?}?>
 
