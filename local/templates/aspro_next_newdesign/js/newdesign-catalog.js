@@ -817,42 +817,69 @@
     var TLINE_ROWS = 2;
 
     function collapseLine(box) {
-        if (box.classList.contains('is-expanded') || !box.offsetWidth) return;
+        if (box.classList.contains('is-expanded')) return;
+        var W = box.clientWidth;
+        /* Считаем один раз на ширину: прежний вариант на каждую кнопку менял
+           display и тут же читал offsetTop — браузер перекладывал страницу
+           сотни раз, на телефоне это 12 с процессора и «кнопка долго думает». */
+        if (!W || box.__ndW === W) return;
         var items = [].slice.call(box.querySelectorAll('.nd-tline__item:not(.nd-tline__more)'));
+        if (items.length < 2) { box.classList.add('is-measured'); box.__ndW = W; return; }
         var more = box.querySelector('.nd-tline__more');
-        items.forEach(function (el) { el.style.display = ''; });
-        if (more) more.style.display = 'none';
-        if (items.length < 2) return;
-
-        var top0 = items[0].offsetTop;
-        var rowH = items[0].offsetHeight + 3; // gap 3px
-        var fits = function (el) { return el.offsetTop < top0 + rowH * TLINE_ROWS - 1; };
-        box.classList.add('is-measured');
-        if (fits(items[items.length - 1])) return; // и так влезает
-
         if (!more) {
             more = document.createElement('button');
             more.type = 'button';
             more.className = 'nd-tline__item nd-tline__more';
             box.appendChild(more);
         }
-        var cur = 0;
-        items.forEach(function (el, i) { if (el.classList.contains('is-current')) cur = i; });
+        // замер — одним проходом: всё видно, «ещё» с самым длинным текстом
+        items.forEach(function (el) { el.style.display = ''; });
+        more.style.display = '';
+        more.textContent = 'ещё ' + items.length;
+        var widths = items.map(function (el) { return el.offsetWidth; });
+        var moreW = more.offsetWidth;
+        var GAP = 3;
+        box.__ndW = W;
+        box.classList.add('is-measured');
 
-        // окно [start..]: сколько высот влезает вместе с кнопкой «ещё N»
-        for (var start = 0; start <= cur; start++) {
-            var shown = 0;
-            items.forEach(function (el) { el.style.display = 'none'; });
-            more.style.display = '';
-            for (var i = start; i < items.length; i++) {
-                items[i].style.display = '';
-                more.textContent = 'ещё ' + (items.length - (shown + 1));
-                if (!fits(more) || !fits(items[i])) { items[i].style.display = 'none'; break; }
-                shown++;
+        // сколько высот с позиции start влезает в TLINE_ROWS рядов (с кнопкой «ещё» или без)
+        function count(start, withMore) {
+            var row = 0, x = 0, n = 0;
+            for (var i = start; i < widths.length; i++) {
+                var nx = x ? x + GAP + widths[i] : widths[i];
+                if (nx > W) { row++; nx = widths[i]; if (row >= TLINE_ROWS) break; }
+                x = nx; n++;
             }
-            more.textContent = 'ещё ' + (items.length - shown);
-            if (start + shown > cur) break; // текущая в окне
+            if (!withMore) return n;
+            // кнопке «ещё» нужно место в последнем ряду — убираем высоты, пока не влезет
+            while (n > 0) {
+                row = 0; x = 0;
+                for (var j = start; j < start + n; j++) {
+                    var px = x ? x + GAP + widths[j] : widths[j];
+                    if (px > W) { row++; px = widths[j]; }
+                    x = px;
+                }
+                var mx = x ? x + GAP + moreW : moreW;
+                if (mx > W) { row++; }
+                if (row < TLINE_ROWS) break;
+                n--;
+            }
+            return n;
         }
+
+        var show = items.map(function () { return true; });
+        if (count(0, false) < items.length) {
+            var cur = 0;
+            items.forEach(function (el, i) { if (el.classList.contains('is-current')) cur = i; });
+            var start = 0, n = count(0, true);
+            // окно сдвигаем, пока текущая высота не попадёт в видимые
+            while (start + n <= cur && start < cur) { start++; n = count(start, true); }
+            show = items.map(function (el, i) { return i >= start && i < start + n; });
+            more.textContent = 'ещё ' + (items.length - n);
+        }
+        var hidden = 0;
+        items.forEach(function (el, i) { el.style.display = show[i] ? '' : 'none'; if (!show[i]) hidden++; });
+        more.style.display = hidden ? '' : 'none';
     }
 
     /* Клик ловим на документе: кнопка срабатывает, даже если плитку в этот
@@ -873,6 +900,7 @@
         box.__ndToggledAt = Date.now();
         if (box.classList.contains('is-expanded')) {
             box.classList.remove('is-expanded');
+            box.__ndW = 0;
             collapseLine(box);
             return;
         }
