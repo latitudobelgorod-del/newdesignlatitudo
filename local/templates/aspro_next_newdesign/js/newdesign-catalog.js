@@ -75,11 +75,16 @@
 
                 if (title && title.previousElementSibling !== orow) info.insertBefore(title, orow.nextSibling);
                 if (colors && title && colors.previousElementSibling !== title) info.insertBefore(colors, title.nextSibling);
-                if (sku && sku.previousElementSibling !== (colors || title)) info.insertBefore(sku, (colors || title).nextSibling);
+                /* линейка опор (.nd-tline, соседние высоты) — сразу под названием и цветами */
+                var tline = card.querySelector('.nd-tline');
+                var beforeTline = colors || title;
+                if (tline && beforeTline && tline.previousElementSibling !== beforeTline) info.insertBefore(tline, beforeTline.nextSibling);
+                var beforeSku = tline || colors || title;
+                if (sku && beforeSku && sku.previousElementSibling !== beforeSku) info.insertBefore(sku, beforeSku.nextSibling);
 
                 /* мобильный: единицы измерения — своей строкой под длинами */
                 if (units && isMobile()) {
-                    var after = sku || colors || title;
+                    var after = sku || tline || colors || title;
                     if (after && units.previousElementSibling !== after) info.insertBefore(units, after.nextSibling);
                 }
 
