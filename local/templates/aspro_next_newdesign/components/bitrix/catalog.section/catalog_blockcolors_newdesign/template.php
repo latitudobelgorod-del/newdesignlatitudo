@@ -606,6 +606,19 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 							
 							
 						<div class="list__catalog_sku" data-product-id="<?=$arItem['ID']?>" style="min-height: 30px;"></div>
+						<?/* Линейка опор: соседние высоты кнопками-ссылками (ND_LINE из result_modifier) */?>
+						<?if (!empty($arItem['ND_LINE'])):?>
+							<div class="nd-tline">
+								<?foreach ($arItem['ND_LINE'] as $ndLineItem):
+									$ndLineText = htmlspecialcharsbx($ndLineItem['RANGE']).'мм';
+									if ($ndLineItem['ID'] === (int) $arItem['ID']):?>
+										<span class="nd-tline__item is-current"><?=$ndLineText?></span>
+									<?else:?>
+										<a class="nd-tline__item" href="<?=$ndLineItem['URL']?>"><?=$ndLineText?></a>
+									<?endif;
+								endforeach;?>
+							</div>
+						<?endif;?>
 							
 		<?if($arItem["OFFERS"]){?>
 								<?if(!empty($arItem['OFFERS_PROP'])){?>

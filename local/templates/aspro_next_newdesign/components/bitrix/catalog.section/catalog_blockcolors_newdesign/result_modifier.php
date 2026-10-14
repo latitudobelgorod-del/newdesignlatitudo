@@ -1084,4 +1084,57 @@ endforeach;
 
 
 
+
+/* Линейка опор в плитке (14.10.2026, Ирина): соседние высоты линейки — кнопками
+   под названием, как длина у доски. Та же логика, что блок «Диапазон высоты»
+   на детальной (catalog.element/main6_newdesign/result_modifier.php, ND_LINE):
+   свойства LINE (список) и HEIGHT_RANGE («35-50», у муфт «103х90»). Два запроса
+   на всю страницу; результат в кеше компонента, тег iblock_id_19 его сбрасывает. */
+$ndLineIds = array();
+foreach ((array) $arResult['ITEMS'] as $ndItem) {
+	$ndLineIds[] = (int) $ndItem['ID'];
+}
+if ($ndLineIds) {
+	$ndItemLine = array();
+	$ndRes = CIBlockElement::GetList(array(), array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'ID' => $ndLineIds), false, false, array('ID', 'IBLOCK_ID', 'PROPERTY_LINE'));
+	while ($ndEl = $ndRes->Fetch()) {
+		if ((int) $ndEl['PROPERTY_LINE_ENUM_ID'] > 0) {
+			$ndItemLine[(int) $ndEl['ID']] = (int) $ndEl['PROPERTY_LINE_ENUM_ID'];
+		}
+	}
+	$ndLines = array();
+	if ($ndItemLine) {
+		$ndRes = CIBlockElement::GetList(array(), array(
+			'IBLOCK_ID' => $arParams['IBLOCK_ID'],
+			'ACTIVE' => 'Y',
+			'ACTIVE_DATE' => 'Y',
+			'PROPERTY_LINE' => array_values(array_unique($ndItemLine)),
+		), false, false, array('ID', 'IBLOCK_ID', 'DETAIL_PAGE_URL', 'PROPERTY_LINE', 'PROPERTY_HEIGHT_RANGE'));
+		while ($ndEl = $ndRes->GetNext()) {
+			$ndRange = trim((string) $ndEl['PROPERTY_HEIGHT_RANGE_VALUE']);
+			if ($ndRange === '') {
+				continue;
+			}
+			$ndLines[(int) $ndEl['PROPERTY_LINE_ENUM_ID']][(int) $ndEl['ID']] = array(
+				'ID' => (int) $ndEl['ID'],
+				'RANGE' => $ndRange,
+				'MIN' => (int) $ndRange, // «35-50» → 35, «103х90» → 103
+				'URL' => $ndEl['DETAIL_PAGE_URL'],
+			);
+		}
+		foreach ($ndLines as &$ndLine) {
+			uasort($ndLine, static function ($a, $b) {
+				return array($a['MIN'], $a['RANGE']) <=> array($b['MIN'], $b['RANGE']);
+			});
+		}
+		unset($ndLine);
+	}
+	foreach ($arResult['ITEMS'] as &$ndItem) {
+		$ndLine = $ndLines[$ndItemLine[(int) $ndItem['ID']] ?? 0] ?? array();
+		// кнопки нужны, только если в линейке есть кто-то кроме самого товара
+		$ndItem['ND_LINE'] = (count($ndLine) > 1 && isset($ndLine[(int) $ndItem['ID']])) ? array_values($ndLine) : array();
+	}
+	unset($ndItem);
+}
+
 ?>
