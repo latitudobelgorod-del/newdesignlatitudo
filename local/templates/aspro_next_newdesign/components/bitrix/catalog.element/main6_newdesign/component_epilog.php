@@ -39,7 +39,9 @@ if (!empty($templateData['ND_OG'])) {
 		'<meta property="og:site_name" content="Латитудо - изделия из ДПК от производителя" />',
 		'<meta property="og:logo" content="' . $ndOgBase . '/images/company/logo.png" />',
 		'<meta property="og:title" content="' . htmlspecialcharsbx($ndOg['NAME']) . '" />',
-		'<meta property="og:url" content="' . $ndOgBase . $APPLICATION->GetCurPage() . '" />',
+		/* og:url = canonical: тот же хост (поддомен города, не SITE_SERVER_NAME) и
+		   DETAIL_PAGE_URL — на spb.latitudo.ru og:url вёл на latitudo.ru (14.10.2026). */
+		'<meta property="og:url" content="https://' . htmlspecialcharsbx($_SERVER['HTTP_HOST']) . ($arResult['DETAIL_PAGE_URL'] ?: $APPLICATION->GetCurPage()) . '" />',
 	);
 	if ($ndOg['PICTURE']) {
 		$ndOgTags[] = '<meta property="og:image" content="' . $ndOgBase . $ndOg['PICTURE'] . '" />';
