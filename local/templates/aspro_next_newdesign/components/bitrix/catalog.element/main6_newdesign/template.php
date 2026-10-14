@@ -931,8 +931,12 @@ if ($hasPositiveAmount):
         "USER_FIELDS" => $arParams['USER_FIELDS'],
         "FIELDS" => $arParams['FIELDS'],
         "STORES" => $arParams['STORES'],
-        "CACHE_TYPE" => "A",
-        "CACHE_TIME" => "3600",
+        /* Свой кеш компонента без тегов каталога: сброс по выгрузке остатков
+           (ndStockCacheFlush) его не трогал, и у каждого склада города копия
+           жила до часа — Москва 960 на latitudo.ru и 1073 на поддоменах
+           (14.10.2026). Карточка и так в кеше, сбрасываемом по остаткам. */
+        "CACHE_TYPE" => "N",
+        "CACHE_TIME" => "0",
         "SET_ITEMS" => $arResult["SET_ITEMS"],
         "REGION_STORE_ID" => $regionStoreId,
     ), $component);?>
