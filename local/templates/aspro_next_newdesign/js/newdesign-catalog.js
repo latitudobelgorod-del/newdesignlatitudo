@@ -858,14 +858,29 @@
     /* Клик ловим на документе: кнопка срабатывает, даже если плитку в этот
        момент перестраивают (14.10.2026: «кнопка ещё тупит»). */
     document.addEventListener('click', function (e) {
-        var more = e.target.closest && e.target.closest('.nd-tline__more');
-        if (!more) return;
+        if (!e.target.closest) return;
+        var box = e.target.closest('.nd-tline');
+        if (!box) return;
+        var more = e.target.closest('.nd-tline__more');
+        if (!more) {
+            /* Второй клик подряд по «ещё» приходился уже на ссылку высоты, ставшую
+               на место кнопки, и уводил на другой товар (14.10.2026) — полсекунды
+               после раскрытия/сворачивания ссылки в этом ряду не срабатывают. */
+            if (box.__ndToggledAt && Date.now() - box.__ndToggledAt < 500) e.preventDefault();
+            return;
+        }
         e.preventDefault();
-        var box = more.closest('.nd-tline');
+        box.__ndToggledAt = Date.now();
+        if (box.classList.contains('is-expanded')) {
+            box.classList.remove('is-expanded');
+            collapseLine(box);
+            return;
+        }
         box.classList.add('is-expanded');
         [].forEach.call(box.querySelectorAll('.nd-tline__item'), function (el) { el.style.display = ''; });
-        more.style.display = 'none';
-    });
+        more.textContent = 'свернуть';
+        box.appendChild(more);
+    }, true);
 
     function collapseLines() {
         try {
