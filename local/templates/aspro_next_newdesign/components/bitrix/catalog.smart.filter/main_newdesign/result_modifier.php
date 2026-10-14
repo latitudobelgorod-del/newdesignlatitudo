@@ -203,7 +203,7 @@ if (!empty($arResult['JS_FILTER_PARAMS']['SEF_SET_FILTER_URL'])) {
    - сняли галочку бренда (ajax-пересчёт) — «Показать» ведёт в родителя с
      остальными выбранными пунктами (LatitudoFilterRedirect::moveToParent). */
 if (!empty($arParams['SECTION_ID'])) {
-    $ndBrandId = LatitudoFilterRedirect::brandOfSection($arParams['SECTION_ID']);
+    $ndBrandId = LatitudoFilterRedirect::realBrandOfSection($arParams['SECTION_ID']); // не просто «один бренд», см. realBrandOfSection
     if ($ndBrandId > 0 && \Bitrix\Main\Loader::includeModule('iblock')) {
         $ndBrand = CIBlockElement::GetList(array(), array('ID' => $ndBrandId), false, array('nTopCount' => 1), array('ID', 'CODE'))->Fetch();
         $ndIsAjax = !empty($_REQUEST['ajax']);

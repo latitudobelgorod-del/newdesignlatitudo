@@ -19,7 +19,7 @@ if (empty($arParams['SECTION_ID']) || !empty($_REQUEST['ajax'])) {
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/local/php_interface/include/latitudo_filter_redirect.php';
 
-$ndBrandId = LatitudoFilterRedirect::brandOfSection($arParams['SECTION_ID']);
+$ndBrandId = LatitudoFilterRedirect::realBrandOfSection($arParams['SECTION_ID']); // не просто «один бренд», см. realBrandOfSection
 if ($ndBrandId <= 0) {
     return;
 }

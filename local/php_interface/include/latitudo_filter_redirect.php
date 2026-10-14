@@ -181,6 +181,54 @@ class LatitudoFilterRedirect
 	}
 
 	/**
+	 * Раздел бренда «по-настоящему»: все товары одного бренда И у родителя есть
+	 * хотя бы два разных одномарочных подраздела (Террасная доска NEXTWOOD /
+	 * LATITUDO / Террапол…). Разделы по типу товара, где случайно один бренд
+	 * («Шезлонги» — сплошь 4SiS), разделами бренда не считаем: иначе в фильтр
+	 * подмешивались соседние бренды родителя, у которых шезлонгов нет вовсе
+	 * (Ирина, 14.10.2026: «если в Millargo нет шезлонгов, марка в разделе
+	 * выводиться не должна»). Возвращает ID бренда или 0.
+	 */
+	public static function realBrandOfSection($sectionId)
+	{
+		$sectionId = (int)$sectionId;
+		$brandId = self::brandOfSection($sectionId);
+		if ($brandId <= 0 || !\Bitrix\Main\Loader::includeModule('iblock')) {
+			return 0;
+		}
+		$cache = \Bitrix\Main\Data\Cache::createInstance();
+		if ($cache->initCache(86400, 'nd_real_brand_section_' . $sectionId, '/nd_filter_brand')) {
+			return (int)$cache->getVars();
+		}
+		$cache->startDataCache();
+		global $CACHE_MANAGER;
+		$CACHE_MANAGER->StartTagCache('/nd_filter_brand');
+		$CACHE_MANAGER->RegisterTag('iblock_id_' . self::IBLOCK_CATALOG);
+
+		// родитель — как в siblingBrands: выше разделов того же бренда (серии)
+		$section = CIBlockSection::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'ID' => $sectionId, 'CHECK_PERMISSIONS' => 'N'), false, array('ID', 'IBLOCK_SECTION_ID'))->Fetch();
+		$pid = $section ? (int)$section['IBLOCK_SECTION_ID'] : 0;
+		for ($up = 0; $pid > 0 && $up < 4 && self::brandOfSection($pid) === $brandId; $up++) {
+			$parent = CIBlockSection::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'ID' => $pid, 'CHECK_PERMISSIONS' => 'N'), false, array('ID', 'IBLOCK_SECTION_ID'))->Fetch();
+			$pid = $parent ? (int)$parent['IBLOCK_SECTION_ID'] : 0;
+		}
+		$brands = array();
+		$rs = CIBlockSection::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'SECTION_ID' => $pid, 'ACTIVE' => 'Y', 'CHECK_PERMISSIONS' => 'N'), false, array('ID'));
+		while ($child = $rs->Fetch()) {
+			$b = self::brandOfSection((int)$child['ID']);
+			if ($b > 0) {
+				$brands[$b] = true;
+			}
+		}
+		$result = count($brands) >= 2 ? $brandId : 0;
+
+		$CACHE_MANAGER->EndTagCache();
+		$cache->endDataCache($result);
+
+		return $result;
+	}
+
+	/**
 	 * Адрес фильтра в разделе бренда → тот же отбор в родительском разделе, но уже
 	 * без бренда. Нужен, когда в разделе бренда галочку бренда сняли или нажали
 	 * «Сбросить»: иначе адрес вёл на тот же раздел, где галочка снова стоит, и
