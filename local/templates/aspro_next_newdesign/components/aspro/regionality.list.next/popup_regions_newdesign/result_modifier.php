@@ -65,12 +65,25 @@ $cache = new CPHPCache();
 $cacheID = 'nd_city_photos_v3_'.md5(implode(',', $arIDs));
 $cachePath = '/nd/city_photos/';
 
+$arPhotos = null;
 if($cache->InitCache(3600, $cacheID, $cachePath))
 {
 	$vars = $cache->GetVars();
 	$arPhotos = $vars['PHOTOS'];
+	/* Заменили картинку анонса магазина — Битрикс удаляет старый файл вместе
+	   с нарезками, а кеш ещё час отдаёт их адрес: в окне пустая картинка
+	   (Краснодар, 14.10.2026). Нет хоть одного файла — собираем заново. */
+	foreach((array)$arPhotos as $ndSrc)
+	{
+		if(!is_file($_SERVER['DOCUMENT_ROOT'].$ndSrc))
+		{
+			$cache->Clean($cacheID, $cachePath);
+			$arPhotos = null;
+			break;
+		}
+	}
 }
-else
+if($arPhotos === null)
 {
 	$arPhotos = array();
 
