@@ -52,6 +52,7 @@ foreach ($ndSibs as $ndSb) {
         /* Хвост имени галочки в фильтре (NEXT_SMART_FILTER_134_<ctl>) — так его
            считает catalog.smart.filter для значения-привязки. */
         'ctl' => (string)abs(crc32((string)$ndSb['ID'])),
+        'cnt' => (int)($ndSb['CNT'] ?? 0),
     );
 }
 ?>
@@ -87,7 +88,10 @@ foreach ($ndSibs as $ndSb) {
             l.setAttribute('data-role', 'label_' + id);
             l.innerHTML = '<span class="bx_filter_input_checkbox">'
                 + (it.logo ? '<img class="nd-filter__logo" src="' + esc(it.logo) + '" width="20" height="20" alt="' + esc(it.name) + '" loading="lazy" />' : '')
-                + '<span class="bx_filter_param_text" title="' + esc(it.name) + '">' + esc(it.name) + '</span></span>';
+                + '<span class="bx_filter_param_text" title="' + esc(it.name) + '">' + esc(it.name)
+                /* число — товаров бренда в родительском разделе, куда ведёт фильтр
+                   (Ирина, 14.10.2026: «почему тут не показывается количество?») */
+                + (it.cnt ? ' (<span>' + it.cnt + '</span>)' : '') + '</span></span>';
             inp.addEventListener('change', recount);
             var before = clb && clb.parentNode === box ? clb : null;
             box.insertBefore(inp, before);

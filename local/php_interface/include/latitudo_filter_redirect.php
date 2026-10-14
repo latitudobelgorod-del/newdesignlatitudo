@@ -221,7 +221,7 @@ class LatitudoFilterRedirect
 		}
 
 		$cache = \Bitrix\Main\Data\Cache::createInstance();
-		if ($cache->initCache(86400, 'nd_sibling_brands2_' . $sectionId . '_' . $ownBrandId, '/nd_filter_brand')) {
+		if ($cache->initCache(86400, 'nd_sibling_brands3_' . $sectionId . '_' . $ownBrandId, '/nd_filter_brand')) {
 			return (array)$cache->getVars();
 		}
 		$cache->startDataCache();
@@ -244,11 +244,13 @@ class LatitudoFilterRedirect
 		}
 		if ($parent) {
 			$ids = array();
+			$cnt = array(); // товаров бренда в родителе — число у галочки (14.10.2026)
 			$rs = CIBlockElement::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'SECTION_ID' => $parent['ID'], 'INCLUDE_SUBSECTIONS' => 'Y', 'ACTIVE' => 'Y', 'CHECK_PERMISSIONS' => 'N'), array('PROPERTY_' . self::PROP_BRAND), false, array('ID'));
 			while ($row = $rs->Fetch()) {
 				$id = (int)$row['PROPERTY_' . self::PROP_BRAND . '_VALUE'];
 				if ($id > 0 && $id !== $ownBrandId) {
 					$ids[] = $id;
+					$cnt[$id] = (int)$row['CNT'];
 				}
 			}
 			if ($ids) {
@@ -266,6 +268,7 @@ class LatitudoFilterRedirect
 						'CODE' => $code,
 						'URL' => $url !== '' ? $url : $parent['SECTION_PAGE_URL'] . 'filter/brand-is-' . $code . '/apply/',
 						'PARENT_URL' => (string)$parent['SECTION_PAGE_URL'],
+						'CNT' => $cnt[(int)$brand['ID']] ?? 0,
 					);
 				}
 			}
