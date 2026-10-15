@@ -1,0 +1,109 @@
+/* Сравнение товаров: кнопка «Сравнить», уведомление.
+   Подключается только группе «Тестирование сравнения» (header.php шаблона).
+   Цвета и радиусы — как у иконки корзины в шапке (.nd-cart) и красной кнопки сайта. */
+
+.nd-cmp-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 4px 0;
+	border: 0;
+	background: none;
+	font: inherit;
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 500;
+	color: #525264;
+	cursor: pointer;
+}
+.nd-cmp-btn:hover .nd-cmp-btn__text {
+	color: #c60000;
+}
+.nd-cmp-btn__box {
+	position: relative;
+	flex: 0 0 auto;
+	box-sizing: border-box;
+	width: 18px;
+	height: 18px;
+	border: 2px solid rgba(82, 82, 100, 0.4);
+	border-radius: 4px;
+	background: #fff;
+	transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.nd-cmp-btn.is-active .nd-cmp-btn__box {
+	border-color: #c60000;
+	background: #c60000;
+}
+.nd-cmp-btn.is-active .nd-cmp-btn__box::after {
+	content: "";
+	position: absolute;
+	left: 4px;
+	top: 0;
+	width: 5px;
+	height: 10px;
+	border: solid #fff;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+}
+.nd-cmp-btn.is-active .nd-cmp-btn__text {
+	color: #c60000;
+}
+.nd-cmp-btn.is-busy {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+/* В плитке — отдельной строкой под кнопкой «В корзину». */
+.nd-cmp-btn--list {
+	display: flex;
+	margin-top: 8px;
+}
+/* В карточке — под «Рассчитать вместе с менеджером». */
+.nd-cmp-btn--detail {
+	margin-top: 12px;
+	font-size: 16px;
+}
+
+/* Иконка в шапке — та же плашка, что у корзины (.nd-cart). */
+.nd-cmp-link svg {
+	display: block;
+}
+
+/* Уведомление «Добавлено к сравнению · Сравнить (2)». */
+.nd-cmp-toast {
+	position: fixed;
+	left: 50%;
+	bottom: 24px;
+	z-index: 3000;
+	max-width: calc(100% - 32px);
+	box-sizing: border-box;
+	padding: 14px 20px;
+	border-radius: 4px;
+	background: #2b2b38;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+	color: #fff;
+	font-size: 15px;
+	line-height: 20px;
+	opacity: 0;
+	transform: translate(-50%, 16px);
+	pointer-events: none;
+	transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.nd-cmp-toast.is-visible {
+	opacity: 1;
+	transform: translate(-50%, 0);
+	pointer-events: auto;
+}
+.nd-cmp-toast a {
+	color: #fff;
+	font-weight: 700;
+	text-decoration: underline;
+}
+
+/* Над нижней панелью телефона (.nd-navbar, 56px). */
+@media (max-width: 991px) {
+	.nd-cmp-toast {
+		bottom: 72px;
+	}
+}

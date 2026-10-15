@@ -1619,7 +1619,10 @@ if (!empty($arResult["PROPERTIES"]["ROTANG_COLOR"]["VALUE"])) {
 					<span class="btn btn-default btn-lg  type_block transition_bg one_click" data-item="<?=$arResult["ID"]?>" data-event="jqm" data-iblockID="<?=$arParams["IBLOCK_ID"]?>" data-param-form_id="MAINFORM" data-name="question">
 					<span>Рассчитать вместе с менеджером</span>
 					</span>
-					</div>		
+					</div>
+	<?// Метка кнопки «Сравнить» — кнопку ставит ndCompareTokens на отдаче страницы,
+	// только группе тестирования (шаблон кешируется; см. latitudo_compare.php).?>
+	<!--ND_CMP_D:<?=(int)$arResult['ID']?>-->
 	
 	
 			

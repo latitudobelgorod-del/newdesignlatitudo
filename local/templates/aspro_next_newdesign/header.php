@@ -91,7 +91,20 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 	// Цифра у корзины после добавления товара: штатная цепочка темы её не обновляет.
 	$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/newdesign-basket-count.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-basket-count.js'));
 	// Кружки цветов на плитках — одной пачкой вместо запроса на каждую плитку.
-	$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/newdesign-sku-colors.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-sku-colors.js'));?>
+	$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/newdesign-sku-colors.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-sku-colors.js'));
+	// Сравнение товаров: кнопки, счётчик в шапке, уведомление. Пока скрытый тест —
+	// только группе «Тестирование сравнения» (local/php_interface/include/latitudo_compare.php),
+	// остальным ни файлов, ни разметки.
+	if (function_exists('ndCompareAllowed') && ndCompareAllowed()) {
+		$APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/newdesign-compare.css', true);
+		$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/newdesign-compare.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-compare.js'));
+		$APPLICATION->AddHeadString('<script>window.ndCompareInit='.json_encode([
+			'ids' => ndCompareList(),
+			'sessid' => bitrix_sessid(),
+			'url' => '/local/ajax/compare.php',
+			'page' => '/compare/',
+		]).';</script>');
+	}?>
 	<?include_once('defines.php');?>
 	<?CNext::SetJSOptions();?>
 <?CNext::ShowPageType('search_title_component');?>

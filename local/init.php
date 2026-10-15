@@ -294,6 +294,16 @@ AddEventHandler('main', 'OnEndBufferContent', 'ndCatalogCacheTokens', 10030);
 AddEventHandler('main', 'OnEndBufferContent', 'ndDedupNewdesignAssets', 10070);
 
 /**
+ * Сравнение товаров (15.10.2026): пока скрытый тест — только группа
+ * «Тестирование сравнения». В кешируемых шаблонах карточки и плитки стоит
+ * метка-комментарий, кнопку на её место ставит ndCompareTokens — только группе.
+ *
+ * Логика в local/php_interface/include/latitudo_compare.php.
+ */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_compare.php';
+AddEventHandler('main', 'OnEndBufferContent', 'ndCompareTokens', 10035);
+
+/**
  * Расчёт доставки из корзины (фрейм LATITUDO, галочка «С доставкой») —
  * в комментарий нового заказа, если состав с расчёта не менялся. Сумма
  * заказа не меняется: цена из браузера, для менеджера — «предварительно».

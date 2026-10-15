@@ -103,6 +103,9 @@ $APPLICATION->IncludeComponent(
 		'LD_AJAX_QUERY' => (string)($ldBrand['AJAX_QUERY'] ?? ''),
 		// у акции догрузку отдаёт свой обработчик, у бренда — свой
 		'LD_AJAX_URL' => (string)($ldBrand['AJAX_URL'] ?? ''),
+		// порядок карточек списком ID — страница сравнения (порядок добавления);
+		// переставляет result_modifier, как выдачу поиска. Без него — SORT, ID.
+		'ND_ID_ORDER' => !empty($ldBrand['ID_ORDER']) ? array_values(array_map('intval', (array)$ldBrand['ID_ORDER'])) : null,
 
 		'IBLOCK_TYPE' => 'aspro_next_catalog',
 		'IBLOCK_ID' => \Bitrix\Main\Config\Option::get('aspro.next', 'CATALOG_IBLOCK_ID', 19),

@@ -924,7 +924,11 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 
 
 							
-						</div><?/*inner_wrap*/?>  
+							<?// Метка кнопки «Сравнить»: шаблон кешируется, поэтому сама кнопка ставится
+							// на отдаче страницы и только группе тестирования (ndCompareTokens,
+							// local/php_interface/include/latitudo_compare.php). У остальных метка вырезается.?>
+							<!--ND_CMP:<?=(int)$arItem['ID']?>-->
+						</div><?/*inner_wrap*/?>
 
 
 					</div><?/*catalog_item*/?> 

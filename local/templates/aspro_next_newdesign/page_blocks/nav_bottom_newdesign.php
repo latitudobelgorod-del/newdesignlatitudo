@@ -104,6 +104,20 @@ $ndIco = function($name) use ($imgPath) {
 		<?Bitrix\Main\Page\Frame::getInstance()->finishDynamicWithID('nd-navbar-basket');?>
 	<?endif;?>
 
+	<?// Сравнение — только группе «Тестирование сравнения», пока идёт скрытый тест
+	// (latitudo_compare.php). Цифру держит js/newdesign-compare.js.?>
+	<?if(function_exists('ndCompareAllowed') && ndCompareAllowed()):?>
+		<?$ndCmpCount = count(ndCompareList());
+		$ndCmpIco = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 20V10M12 20V4M19 20v-7' stroke='%23000' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E";?>
+		<a class="nd-navbar__tab<?=(strpos($curDir, '/compare/') === 0 ? ' is-active' : '')?>" rel="nofollow" href="/compare/">
+			<span class="nd-navbar__ico">
+				<i class="nd-ico" style="-webkit-mask-image:url(&quot;<?=$ndCmpIco?>&quot;);mask-image:url(&quot;<?=$ndCmpIco?>&quot;)"></i>
+				<span class="nd-navbar__count<?=($ndCmpCount ? '' : ' empted')?>" data-nd-cmp-count><?=$ndCmpCount?></span>
+			</span>
+			<span class="nd-navbar__label">Сравнение</span>
+		</a>
+	<?endif;?>
+
 	<button class="nd-navbar__tab" type="button" data-nd-open="contacts" aria-expanded="false">
 		<span class="nd-navbar__ico"><?=$ndIco('phone-fill')?></span>
 		<span class="nd-navbar__label">Контакты</span>

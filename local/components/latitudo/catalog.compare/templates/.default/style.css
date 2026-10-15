@@ -1,0 +1,382 @@
+/* Страница сравнения /compare/. Цвета, радиусы и кнопки — как у плиток
+   каталога нового дизайна (рамка rgba(82,82,100,.15), красный #c60000). */
+
+.nd-cmp {
+	--nd-cmp-lbl: 220px;
+	--nd-cmp-col: 279px;
+	--nd-cmp-line: rgba(82, 82, 100, 0.15);
+	margin: 8px 0 48px;
+	color: #2b2b38;
+}
+
+/* ---------- вкладки разделов ---------- */
+.nd-cmp__tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 24px;
+}
+.nd-cmp__tab {
+	padding: 10px 16px;
+	border-radius: 4px;
+	background: rgba(82, 82, 100, 0.1);
+	color: #2b2b38;
+	font-size: 16px;
+	line-height: 22px;
+	font-weight: 500;
+	text-decoration: none;
+	transition: background-color 0.15s ease;
+}
+.nd-cmp__tab:hover {
+	background: rgba(82, 82, 100, 0.18);
+	color: #2b2b38;
+	text-decoration: none;
+}
+.nd-cmp__tab.is-active {
+	background: #c60000;
+	color: #fff;
+}
+.nd-cmp__tab-count {
+	opacity: 0.7;
+}
+
+/* ---------- над таблицей ---------- */
+.nd-cmp__bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+.nd-cmp__diff {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	font-size: 16px;
+	line-height: 22px;
+	font-weight: 500;
+	cursor: pointer;
+}
+.nd-cmp__diff input {
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	accent-color: #c60000;
+}
+.nd-cmp__clear {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: #525264;
+	font-size: 14px;
+	text-decoration: underline;
+	cursor: pointer;
+}
+.nd-cmp__clear:hover {
+	color: #c60000;
+}
+
+/* ---------- таблица ---------- */
+.nd-cmp__scroll {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	scroll-snap-type: x proximity;
+}
+.nd-cmp__grid {
+	width: max-content;
+	min-width: 100%;
+}
+.nd-cmp__row,
+.nd-cmp__sticky-in {
+	display: grid;
+	grid-template-columns: var(--nd-cmp-lbl) repeat(var(--nd-cmp-slots), var(--nd-cmp-col));
+}
+.nd-cmp__row {
+	border-bottom: 1px solid var(--nd-cmp-line);
+}
+.nd-cmp__row--head,
+.nd-cmp__row--links {
+	border-bottom: 0;
+}
+.nd-cmp__lbl {
+	position: sticky;
+	left: 0;
+	z-index: 2;
+	padding: 14px 16px 14px 0;
+	background: #fff;
+	color: #525264;
+	font-size: 14px;
+	line-height: 20px;
+}
+.nd-cmp__lbl--head {
+	display: flex;
+	align-items: flex-end;
+	font-size: 16px;
+	font-weight: 700;
+	color: #2b2b38;
+}
+.nd-cmp__cell {
+	position: relative;
+	padding: 14px 16px;
+	font-size: 15px;
+	line-height: 21px;
+	word-break: break-word;
+	scroll-snap-align: start;
+}
+.nd-cmp__cell.is-best {
+	background: rgba(69, 132, 15, 0.08);
+	font-weight: 700;
+}
+.nd-cmp__row--price .nd-cmp__cell {
+	font-size: 18px;
+	font-weight: 700;
+}
+.nd-cmp.is-diff .nd-cmp__row.is-same {
+	display: none;
+}
+
+/* плитки товаров в шапке таблицы: контейнер списка — сеткой колонок таблицы */
+.nd-cmp__row--head .nd-cmp__cell {
+	padding: 0 4px 16px;
+}
+.nd-cmp__tiles {
+	min-width: 0;
+	padding-bottom: 16px;
+}
+.nd-cmp__tiles .catalog_block {
+	display: grid !important;
+	grid-template-columns: repeat(var(--nd-cmp-n), var(--nd-cmp-col)) !important; /* сетка бренда — 5 колонок */
+	width: auto !important;
+	margin: 0 !important;
+}
+.nd-cmp__tiles .item_block {
+	position: relative;
+	float: none !important;
+	width: auto !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 4px !important;
+}
+.nd-cmp__tiles .nd-cmp-btn {
+	display: none; /* в таблице товар уже в сравнении — убирает крестик */
+}
+.nd-cmp__remove {
+	position: absolute;
+	top: 24px; /* под номером товара, мимо плашек слева */
+	right: 10px;
+	z-index: 5;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 0;
+	border-radius: 4px;
+	background: rgba(82, 82, 100, 0.1);
+	color: #525264;
+	font-size: 20px;
+	line-height: 28px;
+	cursor: pointer;
+}
+.nd-cmp__remove:hover {
+	background: #c60000;
+	color: #fff;
+}
+
+/* пустой слот «Добавить товар» */
+.nd-cmp__add {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	height: 100%;
+	min-height: 320px;
+	border: 2px dashed var(--nd-cmp-line);
+	border-radius: 4px;
+	color: #525264;
+	font-size: 16px;
+	font-weight: 500;
+	text-decoration: none;
+}
+.nd-cmp__add:hover {
+	border-color: #c60000;
+	color: #c60000;
+	text-decoration: none;
+}
+.nd-cmp__add-plus {
+	font-size: 40px;
+	line-height: 40px;
+	font-weight: 300;
+}
+
+.nd-cmp__usage .fa-check {
+	color: #45840f;
+}
+.nd-cmp__usage .fa-close {
+	color: #9e1414;
+}
+.nd-cmp__swatch {
+	width: 24px;
+	height: 24px;
+	margin-right: 6px;
+	border-radius: 50%;
+	object-fit: cover;
+	vertical-align: middle;
+}
+.nd-cmp__stock {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 4px;
+	background: #e6f2dc;
+	color: #2f6b0a;
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 500;
+}
+.nd-cmp__more {
+	color: #c60000;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+/* ---------- липкая шапка ---------- */
+.nd-cmp__sticky {
+	position: fixed;
+	top: 0;
+	z-index: 1500;
+	display: none;
+	overflow: hidden;
+	background: #fff;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+.nd-cmp__sticky.is-visible {
+	display: block;
+}
+.nd-cmp__sticky-in .nd-cmp__lbl {
+	padding: 0;
+}
+.nd-cmp__sticky-cell {
+	padding: 10px 16px;
+}
+.nd-cmp__sticky-name {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	color: #2b2b38;
+	font-size: 14px;
+	line-height: 18px;
+	font-weight: 500;
+}
+.nd-cmp__sticky-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-top: 6px;
+}
+.nd-cmp__sticky-price {
+	font-size: 16px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+.nd-cmp__sticky-buy {
+	padding: 6px 12px;
+	border: 0;
+	border-radius: 4px;
+	background: #c60000;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+	white-space: nowrap;
+	cursor: pointer;
+}
+.nd-cmp__sticky-buy:hover {
+	background: #a50000;
+}
+
+/* ---------- под таблицей ---------- */
+.nd-cmp__manager {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin: 32px 0 48px;
+}
+.nd-cmp__manager-note {
+	margin: 0;
+	color: #525264;
+	font-size: 14px;
+}
+.nd-cmp__h2 {
+	margin: 0 0 24px;
+	font-size: 32px;
+	line-height: 38px;
+	font-weight: 800;
+}
+.nd-cmp__empty {
+	padding: 40px 0;
+	font-size: 18px;
+}
+.nd-cmp__empty .nd-btn {
+	display: inline-block;
+	margin-top: 16px;
+}
+
+/* ---------- телефон: две колонки товаров, свайп ----------
+   Отдельной колонки названий на телефоне нет: название свойства идёт строкой
+   над значениями и при свайпе стоит на месте (sticky), а колонки товаров —
+   в пол-экрана, как плитки в каталоге. */
+@media (max-width: 767px) {
+	.nd-cmp {
+		--nd-cmp-col: calc((100vw - 32px) / 2);
+	}
+	.nd-cmp__row,
+	.nd-cmp__sticky-in {
+		grid-template-columns: repeat(var(--nd-cmp-slots), var(--nd-cmp-col));
+	}
+	.nd-cmp__lbl {
+		grid-column: 1 / -1;
+		width: calc(100vw - 32px);
+		box-sizing: border-box;
+		padding: 10px 0 0;
+		font-size: 13px;
+		line-height: 18px;
+		font-weight: 700;
+		color: #2b2b38;
+	}
+	.nd-cmp__lbl--head,
+	.nd-cmp__sticky-in .nd-cmp__lbl,
+	.nd-cmp__row--links .nd-cmp__lbl {
+		display: none;
+	}
+	.nd-cmp__cell {
+		padding: 6px 8px 10px 0;
+		font-size: 14px;
+		line-height: 19px;
+	}
+	.nd-cmp__row--price .nd-cmp__cell {
+		font-size: 16px;
+	}
+	.nd-cmp__bar {
+		flex-wrap: wrap;
+	}
+	.nd-cmp__h2 {
+		font-size: 24px;
+		line-height: 30px;
+	}
+	.nd-cmp__add {
+		min-height: 200px;
+	}
+	.nd-cmp__sticky-cell {
+		padding: 8px;
+	}
+	.nd-cmp__sticky-name {
+		font-size: 12px;
+		line-height: 15px;
+	}
+	.nd-cmp__sticky-row {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
