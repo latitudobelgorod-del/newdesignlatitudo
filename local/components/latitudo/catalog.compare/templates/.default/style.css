@@ -80,7 +80,7 @@
 	position: sticky;
 	left: 0;
 	justify-self: start;
-	padding: 20px 0 4px 16px;
+	padding: 16px 0 19px 16px; /* поровну между карточками и чертой под строкой (подпись выше галки на 3px) */
 }
 .nd-cmp__diff {
 	display: inline-flex;
@@ -151,7 +151,7 @@
 }
 .nd-cmp__cell {
 	position: relative;
-	padding: 4px 16px 14px;
+	padding: 8px 16px 14px;
 	font-size: 16px;
 	line-height: 22px;
 	word-break: break-word;
@@ -167,7 +167,7 @@
 .nd-cmp__cell.is-best::before {
 	content: "";
 	position: absolute;
-	inset: 0 8px 6px 8px;
+	inset: 0 8px 6px 8px; /* по 8px от текста сверху и снизу */
 	z-index: -1;
 	border-radius: 6px;
 	background: #fdecec;
@@ -397,7 +397,7 @@
 		line-height: 16px;
 	}
 	.nd-cmp__cell {
-		padding: 2px 10px 10px 8px;
+		padding: 6px 10px 12px 8px; /* плашка лучшего — по 6px от текста */
 		font-size: 14px;
 		line-height: 19px;
 	}
