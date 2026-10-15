@@ -17,6 +17,28 @@
 		if (!root) return;
 
 		var panels = root.querySelectorAll('[data-nd-cmp-panel]');
+		var goal = function (name) {
+			if (window.ndCompare && window.ndCompare.goal) window.ndCompare.goal(name);
+		};
+		// Метрика: открыли страницу сравнения (с товарами)
+		if (panels.length) goal('compare_open');
+
+		/* Метрика: «В корзину» со страницы сравнения — кнопки плиток таблицы
+		   и ленты «С этим покупают» (липкая шапка жмёт кнопку плитки). */
+		root.addEventListener('click', function (e) {
+			if (e.target.closest('.to-cart')) goal('compare_cart');
+		}, true);
+
+		/* Метрика: заявка менеджеру со страницы сравнения — отправка формы,
+		   открытой кнопкой «Рассчитать вместе с менеджером», если поля заполнены. */
+		var calcOpened = false;
+		document.addEventListener('submit', function (e) {
+			var form = e.target;
+			if (!calcOpened || !form.querySelector || !form.querySelector('[data-sid="QUESTION"]')) return;
+			if (form.checkValidity && !form.checkValidity()) return;
+			goal('compare_request');
+			calcOpened = false;
+		}, true);
 
 		function activePanel() {
 			return root.querySelector('[data-nd-cmp-panel].is-active');
@@ -222,6 +244,7 @@
 		root.addEventListener('click', function (e) {
 			var calc = e.target.closest('[data-nd-cmp-list]');
 			if (calc) {
+				calcOpened = true;
 				var text = calc.getAttribute('data-nd-cmp-list');
 				var tries = 0;
 				var timer = setInterval(function () {

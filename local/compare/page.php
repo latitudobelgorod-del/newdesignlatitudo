@@ -25,6 +25,9 @@ if (!function_exists('ndCompareAllowed') || !ndCompareAllowed()
 $APPLICATION->SetTitle('Сравнение товаров');
 $APPLICATION->SetPageProperty('title', 'Сравнение товаров');
 $APPLICATION->SetPageProperty('robots', ND_COMPARE_PUBLIC ? 'noindex, follow' : 'noindex, nofollow');
+// и заголовком ответа: страница в индекс не попадёт, даже если метатег потеряется
+// (Ирина, 15.10.2026: варианты сравнения посетителей индексировать не надо)
+header('X-Robots-Tag: noindex, ' . (ND_COMPARE_PUBLIC ? 'follow' : 'nofollow'));
 // канонический — адрес без параметров (?tab=)
 $APPLICATION->AddHeadString('<link rel="canonical" href="https://'.ndCurrentHost().'/compare/">', true);
 $APPLICATION->AddChainItem('Сравнение товаров');

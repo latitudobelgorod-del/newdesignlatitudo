@@ -104,6 +104,7 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 			'sessid' => bitrix_sessid(),
 			'url' => '/local/ajax/compare.php',
 			'page' => '/compare/',
+			'metrika' => ND_COMPARE_METRIKA,
 		]).';</script>');
 	}?>
 	<?include_once('defines.php');?>

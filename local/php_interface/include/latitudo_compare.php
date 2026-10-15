@@ -27,8 +27,12 @@
  * (см. ND_COMPARE_PUBLIC), плюс robots страницы и цели Метрики.
  */
 
-/** Сравнение открыто для всех (после «открываем сравнение»). Пока — только группа. */
-const ND_COMPARE_PUBLIC = false;
+/** Сравнение открыто для всех — Ирина, 15.10.2026 («да, выкладывай» после
+ *  вопроса «открываем сравнение»). Откат в скрытый тест — false и сброс кеша
+ *  catalog.element / catalog.section. */
+const ND_COMPARE_PUBLIC = true;
+/** Счётчик Яндекс Метрики latitudo.ru — цели сравнения (js/newdesign-compare.js). */
+const ND_COMPARE_METRIKA = 62259859;
 const ND_COMPARE_GROUP = 'ND_COMPARE_TEST';
 const ND_COMPARE_COOKIE = 'ND_CMP';
 const ND_COMPARE_MAX = 40;

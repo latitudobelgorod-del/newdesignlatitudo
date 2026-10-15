@@ -39,6 +39,14 @@
 		return !cur || cur === saved;
 	}
 
+	/* Цели Яндекс Метрики: compare_add, compare_open, compare_cart, compare_request.
+	   Счётчик — init.metrika (latitudo_compare.php). Нет Метрики — молча. */
+	function goal(name) {
+		try {
+			if (init.metrika && typeof window.ym === 'function') window.ym(init.metrika, 'reachGoal', name);
+		} catch (e) {}
+	}
+
 	function request(action, data) {
 		var body = new URLSearchParams();
 		body.append('action', action);
@@ -155,7 +163,10 @@
 		btn.classList.add('is-busy');
 		request(adding ? 'add' : 'remove', adding ? {id: id, offer: currentOffer(btn)} : {id: id})
 			.then(function (res) {
-				if (adding && res && res.last) toast(res.last);
+				if (adding && res && res.last) {
+					toast(res.last);
+					goal('compare_add');
+				}
 			})
 			.catch(function () {})
 			.then(function () {
@@ -184,7 +195,7 @@
 		});
 	}).observe(document.documentElement, {childList: true, subtree: true});
 
-	window.ndCompare = {request: request, has: has, ids: function () { return ids.slice(); }};
+	window.ndCompare = {request: request, has: has, goal: goal, ids: function () { return ids.slice(); }};
 
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', paint);
