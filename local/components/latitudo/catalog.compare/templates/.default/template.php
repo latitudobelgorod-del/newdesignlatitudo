@@ -90,6 +90,16 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 				</div>
 			</div>
 
+			<?/* Товаров больше, чем влезает (больше пяти): полоса прокрутки спрятана,
+			     листают стрелки по бокам карточек — как у ДНС (Ирина, 15.10.2026).
+			     Стрелки показывает script.js, только когда есть что листать. */?>
+			<div class="nd-cmp__scroller">
+			<button class="nd-cmp__arrow nd-cmp__arrow--prev" type="button" data-nd-cmp-arrow="-1" aria-label="Предыдущие товары" hidden>
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+			<button class="nd-cmp__arrow nd-cmp__arrow--next" type="button" data-nd-cmp-arrow="1" aria-label="Следующие товары" hidden>
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
 			<div class="nd-cmp__scroll" data-nd-cmp-scroll>
 				<div class="nd-cmp__grid" style="--nd-cmp-slots: <?=$slots?>">
 
@@ -149,6 +159,7 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 					</div>
 				</div>
 			</div>
+			</div><?/* .nd-cmp__scroller */?>
 
 			<?/* Заявка менеджеру — штатная «Общая форма» темы (MAINFORM), как кнопка
 			     в карточке. Список товаров script.js подставляет в поле вопроса —

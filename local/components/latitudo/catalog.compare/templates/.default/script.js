@@ -42,7 +42,7 @@
 			if (window.history && history.replaceState) {
 				history.replaceState(null, '', location.pathname + '?tab=' + encodeURIComponent(key));
 			}
-			window.dispatchEvent(new Event('resize')); // ленты и плитки пересчитывают ширину
+			window.dispatchEvent(new Event('resize')); // ленты, плитки и стрелки пересчитывают ширину
 			updateSticky();
 		});
 
@@ -161,13 +161,43 @@
 				}
 			}
 		}
+		/* Стрелки по бокам карточек: видны, когда товаров больше, чем влезает;
+		   листают на одну колонку, у края гаснут. */
+		function updateArrows() {
+			for (var p = 0; p < panels.length; p++) {
+				var scroll = panels[p].querySelector('[data-nd-cmp-scroll]');
+				if (!scroll) continue;
+				var max = scroll.scrollWidth - scroll.clientWidth;
+				var arrows = panels[p].querySelectorAll('[data-nd-cmp-arrow]');
+				for (var a = 0; a < arrows.length; a++) {
+					arrows[a].hidden = max <= 2;
+					arrows[a].disabled = arrows[a].getAttribute('data-nd-cmp-arrow') === '-1'
+						? scroll.scrollLeft <= 2
+						: scroll.scrollLeft >= max - 2;
+				}
+			}
+		}
+		root.addEventListener('click', function (e) {
+			var arrow = e.target.closest('[data-nd-cmp-arrow]');
+			if (!arrow) return;
+			var scroll = arrow.parentNode.querySelector('[data-nd-cmp-scroll]');
+			var cell = scroll && scroll.querySelector('.nd-cmp__row--head .item_block, .nd-cmp__row--head .nd-cmp__cell');
+			var step = cell ? cell.getBoundingClientRect().width : scroll.clientWidth / 5;
+			// к ближайшей границе колонки, чтобы карточки не вставали обрезанными
+			var target = Math.round((scroll.scrollLeft + Number(arrow.getAttribute('data-nd-cmp-arrow')) * step) / step) * step;
+			scroll.scrollLeft = Math.max(0, Math.min(target, scroll.scrollWidth - scroll.clientWidth));
+		});
+
 		window.addEventListener('scroll', updateSticky, {passive: true});
 		window.addEventListener('resize', updateSticky);
 		var scrolls = root.querySelectorAll('[data-nd-cmp-scroll]');
 		for (var sc = 0; sc < scrolls.length; sc++) {
 			scrolls[sc].addEventListener('scroll', updateSticky, {passive: true});
+			scrolls[sc].addEventListener('scroll', updateArrows, {passive: true});
 		}
+		window.addEventListener('resize', updateArrows);
 		updateSticky();
+		updateArrows();
 
 		/* Заявка менеджеру: список сравниваемых товаров — в поле вопроса формы.
 		   Форма приходит ajax'ом после клика; поле не блокируем — можно дописать. */
