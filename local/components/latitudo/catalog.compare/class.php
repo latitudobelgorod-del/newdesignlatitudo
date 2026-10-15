@@ -26,6 +26,9 @@ class LatitudoCatalogCompare extends CBitrixComponent
 	private const UNITS = ['board' => 6, 'fence' => 1];
 	private const UNIT_TITLE = [6 => 'м²', 1 => 'п.м', 0 => 'шт'];
 
+	/** Склады наличия, порядок по умолчанию: Москва, Краснодар, Воронеж, Белгород. */
+	private const STORES = [3, 4, 2, 1];
+
 	/** Единица цены вкладки, которая сейчас собирается. */
 	private $unitTitle = 'шт';
 
@@ -238,16 +241,18 @@ class LatitudoCatalogCompare extends CBitrixComponent
 		}
 		unset($item);
 
-		// наличие в Москве: по каждому предложению (у доски — по длинам)
-		if ($stockIds) {
-			$rs = CCatalogStoreProduct::GetList([], ['PRODUCT_ID' => array_keys($stockIds), 'STORE_ID' => ND_COMPARE_MSK_STORE], false, false, ['PRODUCT_ID', 'AMOUNT']);
+		/* Наличие по складам (Ирина, 15.10.2026: не только Москва): по каждому
+		   складу — сумма по предложениям (у доски — по длинам). */
+		$stores = $this->stores();
+		foreach ($items as &$item) {
+			$item['STOCK'] = array_fill_keys(array_keys($stores), 0);
+		}
+		unset($item);
+		if ($stockIds && $stores) {
+			$rs = CCatalogStoreProduct::GetList([], ['PRODUCT_ID' => array_keys($stockIds), 'STORE_ID' => array_keys($stores)], false, false, ['PRODUCT_ID', 'STORE_ID', 'AMOUNT']);
 			while ($row = $rs->Fetch()) {
 				$pid = $stockIds[(int)$row['PRODUCT_ID']];
-				$amount = (float)$row['AMOUNT'];
-				if ($amount > 0) {
-					$len = $items[$pid]['OFFERS'][(int)$row['PRODUCT_ID']]['DLINA']['VALUE'] ?? '';
-					$items[$pid]['STOCK'][] = ['AMOUNT' => $amount, 'LEN' => (string)$len];
-				}
+				$items[$pid]['STOCK'][(int)$row['STORE_ID']] += max(0, (float)$row['AMOUNT']);
 			}
 		}
 
@@ -259,6 +264,37 @@ class LatitudoCatalogCompare extends CBitrixComponent
 			}
 		}
 		return $sorted;
+	}
+
+	/**
+	 * Склады для строки наличия: ID => название без хвоста «(…)» и «, …»,
+	 * как в карточке. Первым — склад города, где открыта страница, дальше
+	 * Москва, Краснодар, Воронеж, Белгород.
+	 */
+	private function stores(): array
+	{
+		static $list = null;
+		if ($list !== null) {
+			return $list;
+		}
+		$names = [];
+		$rs = CCatalogStore::GetList([], ['ACTIVE' => 'Y', 'ID' => self::STORES], false, false, ['ID', 'TITLE']);
+		while ($st = $rs->Fetch()) {
+			$name = preg_replace('~\s*[(,].*$~u', '', trim((string)$st['TITLE']));
+			$names[(int)$st['ID']] = $name !== '' ? $name : 'Склад';
+		}
+		$order = self::STORES;
+		if (function_exists('ndRegionStoreId')) {
+			$own = ndRegionStoreId();
+			$order = array_merge([$own], array_diff($order, [$own]));
+		}
+		$list = [];
+		foreach ($order as $sid) {
+			if (isset($names[$sid])) {
+				$list[$sid] = $names[$sid];
+			}
+		}
+		return $list;
 	}
 
 	/** Обозначение единицы измерения каталога по ID (0 — штука). */
@@ -299,7 +335,7 @@ class LatitudoCatalogCompare extends CBitrixComponent
 				$label = 'Цена за ' . $this->unitTitle;
 				$best = 'min';
 			} elseif ($kind === 'stock') {
-				$label = 'Наличие в Москве';
+				$label = 'Наличие на складах';
 			} elseif ($kind === 'num' && $best === null) {
 				$best = '';
 			}
@@ -370,13 +406,22 @@ class LatitudoCatalogCompare extends CBitrixComponent
 				break;
 
 			case 'stock':
-				if (!empty($item['STOCK'])) {
-					$parts = [];
-					foreach ($item['STOCK'] as $s) {
-						$parts[] = $this->fmtNum($s['AMOUNT']) . ' шт' . ($s['LEN'] !== '' && count($item['STOCK']) > 1 ? ' (' . $s['LEN'] . ' мм)' : '');
-					}
-					$cell['TEXT'] = implode(', ', $parts);
-					$cell['HTML'] = '<span class="nd-cmp__stock">Москва: ' . htmlspecialcharsbx($cell['TEXT']) . '</span>';
+				// плашки как в карточке (catalog.store.amount/main_detail_store_newdesign):
+				// от 30 шт — зелёная, меньше — оранжевая, нет — серая «Под заказ»
+				$stores = $this->stores();
+				$html = '';
+				$text = [];
+				foreach ($item['STOCK'] as $sid => $amount) {
+					$class = $amount >= 30 ? 'green' : ($amount > 0 ? 'orange' : 'gray');
+					$html .= '<span class="nd-cmp__store nd-cmp__store--' . $class . '">'
+						. '<span class="nd-cmp__store-name">' . htmlspecialcharsbx($stores[$sid]) . '</span>'
+						. '<span class="nd-cmp__store-amount">' . ($amount > 0 ? $this->fmtNum($amount) . ' шт.' : 'Под заказ') . '</span>'
+						. '</span>';
+					$text[] = $sid . ':' . $amount;
+				}
+				if ($html !== '') {
+					$cell['HTML'] = '<span class="nd-cmp__stores">' . $html . '</span>';
+					$cell['TEXT'] = implode('|', $text);
 				}
 				break;
 

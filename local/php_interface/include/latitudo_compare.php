@@ -216,6 +216,3 @@ function ndCompareTokens(&$content)
 		return $allowed ? ndCompareButtonHtml((int)$m[2], $m[1] ? 'detail' : 'list') : '';
 	}, $content);
 }
-
-/** Склад Москвы — строка «Наличие в Москве» таблицы. */
-const ND_COMPARE_MSK_STORE = 3;
