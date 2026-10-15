@@ -573,6 +573,16 @@
 		font-size: 32px;
 		line-height: 38px;
 	}
+	/* заголовок на всю ширину, «Очистить список» — под ним */
+	.nd-cmp__head {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+		margin-bottom: 20px;
+	}
+	.nd-cmp__clear {
+		white-space: nowrap;
+	}
 	.nd-cmp__sticky-cell {
 		padding: 8px;
 	}
