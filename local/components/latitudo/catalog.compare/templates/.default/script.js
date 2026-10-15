@@ -92,10 +92,11 @@
 				window.ndCompare.request('remove', {id: rm.getAttribute('data-nd-cmp-remove')}).then(reloadTab, reloadTab);
 				return;
 			}
-			var clear = e.target.closest('[data-nd-cmp-clear]');
+			var clear = e.target.closest('[data-nd-cmp-clear-active]');
 			if (clear && window.ndCompare) {
 				e.preventDefault();
-				window.ndCompare.request('clear', {key: clear.getAttribute('data-nd-cmp-clear')}).then(function () {
+				// очищаем открытую вкладку, остальные остаются
+				window.ndCompare.request('clear', {key: root.getAttribute('data-tab')}).then(function () {
 					location.href = location.pathname;
 				});
 				return;

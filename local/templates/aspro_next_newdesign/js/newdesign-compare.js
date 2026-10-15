@@ -42,20 +42,18 @@
 		if (el && el.textContent !== text) el.textContent = text;
 	}
 
-	/* В карточке правую колонку перестраивает скрипт карточки (newdesign-element.js),
-	   и метка оказывается над выбором цвета. Ставим кнопку под «Рассчитать вместе
-	   с менеджером» (.nd-pd__calc) — рядом с «В корзину». */
+	/* В карточке кнопка — квадрат с иконкой, как в шапке, справа от номера
+	   товара в строке H1. В сам H1 её класть нельзя: тема при загрузке
+	   переписывает его содержимое и кнопку стирает. Ставим следом за H1
+	   и прижимаем к его нижнему правому углу (под неё у H1 поле справа). */
 	function placeDetail() {
 		var btn = document.querySelector('.nd-cmp-btn--detail');
-		var calc = document.querySelector('.nd-pd__calc');
-		if (btn && calc && calc.nextElementSibling !== btn) {
-			calc.parentNode.insertBefore(btn, calc.nextSibling);
-		}
-		// колонка раскладывается flex'ом с order — встаём в тот же ряд, что ссылка
-		if (btn && calc) {
-			var order = getComputedStyle(calc).order;
-			if (btn.style.order !== order) btn.style.order = order;
-		}
+		var h1 = document.querySelector('.catalog_detail.element_newdesign > h1');
+		if (!btn || !h1) return;
+		if (h1.nextElementSibling !== btn) h1.parentNode.insertBefore(btn, h1.nextSibling);
+		if (!h1.classList.contains('nd-has-cmp')) h1.classList.add('nd-has-cmp');
+		var top = (h1.offsetTop + h1.offsetHeight - btn.offsetHeight + 8) + 'px';
+		if (btn.style.top !== top) btn.style.top = top;
 	}
 
 	/* Кнопки: состояние «в сравнении» видно сразу. */
@@ -66,7 +64,9 @@
 			var on = has(buttons[i].getAttribute('data-nd-cmp'));
 			buttons[i].classList.toggle('is-active', on);
 			buttons[i].setAttribute('aria-pressed', on ? 'true' : 'false');
-			buttons[i].title = on ? 'Убрать из сравнения' : 'Добавить к сравнению';
+			var title = on ? 'Убрать из сравнения' : 'Добавить к сравнению';
+			if (buttons[i].title !== title) buttons[i].title = title;
+			if (buttons[i].hasAttribute('aria-label') && buttons[i].getAttribute('aria-label') !== title) buttons[i].setAttribute('aria-label', title);
 			var text = buttons[i].querySelector('.nd-cmp-btn__text');
 			setText(text, on ? 'В сравнении' : 'Сравнить');
 		}
@@ -134,6 +134,7 @@
 
 	window.ndCompare = {request: request, has: has, ids: function () { return ids.slice(); }};
 
+	window.addEventListener('resize', placeDetail);
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', paint);
 	} else {

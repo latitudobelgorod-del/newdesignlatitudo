@@ -31,6 +31,15 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 ?>
 <div class="nd-cmp" id="nd-cmp" data-tab="<?=htmlspecialcharsbx($active)?>">
 
+<?/* Шапка как у корзины: H1 слева, «Очистить список» (открытая вкладка) справа.
+     Общий верх страницы нового дизайна печатает только крошки. */?>
+<div class="nd-cmp__head">
+	<h1 class="nd-cmp__title" id="pagetitle">Сравнение товаров</h1>
+	<?if ($tabs):?>
+		<button type="button" class="nd-cmp__clear" data-nd-cmp-clear-active>Очистить список</button>
+	<?endif;?>
+</div>
+
 <?if (!$tabs):?>
 	<div class="nd-cmp__empty">
 		<p>В сравнении пока нет товаров. Нажмите «Сравнить» на карточке товара или в списке.</p>
@@ -63,14 +72,6 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 				<a class="nd-btn nd-btn--red" href="<?=htmlspecialcharsbx($tab['URL'])?>">Перейти в раздел</a>
 			</div>
 		<?else:?>
-
-			<div class="nd-cmp__bar">
-				<label class="nd-cmp__diff">
-					<input type="checkbox" data-nd-cmp-diff<?=($count >= 3 ? ' checked' : '')?>>
-					<span>Показывать только различия</span>
-				</label>
-				<button type="button" class="nd-cmp__clear" data-nd-cmp-clear="<?=htmlspecialcharsbx($key)?>">Очистить список</button>
-			</div>
 
 			<?/* Липкая шапка: название, цена и «В корзину» каждого товара — когда
 			     плитки ушли за верх экрана. Кнопка жмёт «В корзину» плитки
@@ -116,6 +117,14 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 								<?endif;?>
 							</div>
 						<?endfor;?>
+					</div>
+
+					<?// «Показывать только различия» — под карточками, над свойствами?>
+					<div class="nd-cmp__row nd-cmp__row--bar">
+						<label class="nd-cmp__diff">
+							<input type="checkbox" data-nd-cmp-diff<?=($count >= 3 ? ' checked' : '')?>>
+							<span>Показывать только различия</span>
+						</label>
 					</div>
 
 					<?foreach ($panel['ROWS'] as $row):?>

@@ -22,6 +22,24 @@
 	pointer-events: none;
 }
 
+/* ---------- шапка: H1 и «Очистить список» — как у корзины ---------- */
+.nd-cmp__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin: 16px 0 24px;
+}
+.nd-cmp__title {
+	margin: 0;
+	padding: 0;
+	font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+	font-weight: 800;
+	font-size: 52px;
+	line-height: 58px;
+	color: #101014;
+}
+
 /* ---------- вкладки разделов ---------- */
 .nd-cmp__tabs {
 	display: flex;
@@ -53,13 +71,16 @@
 	opacity: 0.7;
 }
 
-/* ---------- над таблицей ---------- */
-.nd-cmp__bar {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
-	margin-bottom: 16px;
+/* ---------- «Показывать только различия» — строкой под карточками ---------- */
+.nd-cmp__row--bar {
+	border-bottom: 0;
+}
+.nd-cmp__row--bar > .nd-cmp__diff {
+	grid-column: 1 / -1;
+	position: sticky;
+	left: 0;
+	justify-self: start;
+	padding: 20px 0 4px 16px;
 }
 .nd-cmp__diff {
 	display: inline-flex;
@@ -172,14 +193,17 @@
 
 /* плитки товаров в шапке таблицы: контейнер списка — сеткой колонок таблицы */
 .nd-cmp__row--head .nd-cmp__cell {
-	padding: 0 4px 16px;
+	padding: 0 4px;
 }
 .nd-cmp__row--head .nd-cmp__cell--slot {
 	padding-left: 8px;
 }
 .nd-cmp__tiles {
 	min-width: 0;
-	padding-bottom: 16px;
+}
+/* пустая постраничная навигация списка (40px) — под плитками была дырой */
+.nd-cmp__tiles .bottom_nav {
+	display: none !important;
 }
 .nd-cmp__tiles .catalog_block {
 	display: grid !important;
@@ -228,7 +252,7 @@
 	justify-content: center;
 	gap: 8px;
 	height: 100%;
-	min-height: 320px;
+	box-sizing: border-box;
 	border: 2px dashed var(--nd-cmp-line);
 	border-radius: 4px;
 	color: #525264;
@@ -357,6 +381,12 @@
 }
 
 /* ---------- телефон: две колонки товаров в пол-экрана, свайп ---------- */
+@media (max-width: 1199px) {
+	.nd-cmp__title {
+		font-size: 42px;
+		line-height: 48px;
+	}
+}
 @media (max-width: 767px) {
 	.nd-cmp {
 		--nd-cmp-col: calc((100vw - 32px) / 2);
@@ -379,11 +409,9 @@
 		font-size: 12px;
 		line-height: 16px;
 	}
-	.nd-cmp__bar {
-		flex-wrap: wrap;
-	}
-	.nd-cmp__add {
-		min-height: 200px;
+	.nd-cmp__title {
+		font-size: 32px;
+		line-height: 38px;
 	}
 	.nd-cmp__sticky-cell {
 		padding: 8px;

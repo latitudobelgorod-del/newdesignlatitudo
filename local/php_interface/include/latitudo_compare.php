@@ -184,9 +184,19 @@ function ndCompareSectionUrl(int $sectionId): string
 	return $urls[$sectionId];
 }
 
-/** Кнопка «Сравнить» вместо метки (атрибуты — в одинарных кавычках, см. шапку). */
+/**
+ * Кнопка «Сравнить» вместо метки (атрибуты — в одинарных кавычках, см. шапку).
+ * В плитке — галочка с подписью, в карточке — квадрат с иконкой, как в шапке
+ * (Ирина, 15.10.2026): js/newdesign-compare.js ставит его в строку H1 рядом с номером.
+ */
 function ndCompareButtonHtml(int $id, string $place): string
 {
+	if ($place === 'detail') {
+		return "<button type='button' class='nd-cmp-btn nd-cmp-btn--detail' data-nd-cmp='" . $id . "'"
+			. " title='Добавить к сравнению' aria-label='Добавить к сравнению'>"
+			. "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path d='M5 20V10M12 20V4M19 20v-7' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg>"
+			. "<span class='nd-cmp-btn__text'>Сравнить</span></button>";
+	}
 	return "<button type='button' class='nd-cmp-btn nd-cmp-btn--" . $place . "' data-nd-cmp='" . $id . "'"
 		. " title='Добавить к сравнению'><span class='nd-cmp-btn__box'></span>"
 		. "<span class='nd-cmp-btn__text'>Сравнить</span></button>";
