@@ -65,6 +65,12 @@
 .catalog_detail .info_item .buy_block .counter_wrapp:has(> .nd-cmp-btn--detail) > :not(.button_block):not(.nd-cmp-btn--detail):not(script):not(.nd-cart-note) {
 	flex: 0 0 calc(50% - 6px) !important;
 }
+/* Товар уже в корзине: счётчик спрятан, «В корзине» тянется на весь ряд
+   (flex 1 1 100% в newdesign-element.css) и уезжала под кнопку сравнения —
+   оставляем её в том же ряду, на остаток ширины. */
+.catalog_detail.element_newdesign .right_info .info_item .buy_block .counter_wrapp.nd-incart:has(> .nd-cmp-btn--detail) .button_block {
+	flex: 1 1 0 !important;
+}
 /* На телефоне ряд покупки узкий (нижняя полоса #nd-pd-buybar) — три кнопки
    не влезают. Там кнопка справа от заголовка, 36px; место под неё держит
    .nd-has-cmp у H1, top ставит js. */
