@@ -140,9 +140,11 @@
 .nd-cmp__lbl {
 	grid-column: 1 / -1;
 	padding: 14px 0 0 16px; /* по левому краю текста плиток */
-	color: #525264;
-	font-size: 13px;
-	line-height: 18px;
+	/* жирным — таблица читается блоками (Ирина, 15.10.2026) */
+	color: #101014;
+	font-size: 14px;
+	line-height: 20px;
+	font-weight: 700;
 }
 .nd-cmp__lbl span {
 	position: sticky;
@@ -393,8 +395,8 @@
 	}
 	.nd-cmp__lbl {
 		padding: 10px 0 0 8px;
-		font-size: 12px;
-		line-height: 16px;
+		font-size: 13px;
+		line-height: 18px;
 	}
 	.nd-cmp__cell {
 		padding: 6px 10px 12px 8px; /* плашка лучшего — по 6px от текста */
