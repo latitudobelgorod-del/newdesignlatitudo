@@ -29,6 +29,9 @@ class LatitudoCatalogCompare extends CBitrixComponent
 	/** Склады наличия, порядок по умолчанию: Москва, Краснодар, Воронеж, Белгород. */
 	private const STORES = [3, 4, 2, 1];
 
+	/** Список сравнения: [ID товара => ID выбранного предложения или 0]. */
+	private $entries = [];
+
 	/** Единица цены вкладки, которая сейчас собирается. */
 	private $unitTitle = 'шт';
 
@@ -118,7 +121,9 @@ class LatitudoCatalogCompare extends CBitrixComponent
 			return;
 		}
 
-		$ids = ndCompareList();
+		// товар => выбранная длина (торговое предложение) или 0
+		$this->entries = ndCompareEntries();
+		$ids = array_keys($this->entries);
 		$groups = ndCompareGroups($ids);
 		$ids = array_values(array_filter($ids, static function ($id) use ($groups) {
 			return isset($groups[$id]);
@@ -198,6 +203,24 @@ class LatitudoCatalogCompare extends CBitrixComponent
 				}
 			}
 		}
+
+		/* Выбранная длина (Ирина, 15.10.2026): у длин разные цена за штуку и
+		   остатки — считаем по ней одной. TREE — значения списков предложения
+		   («299_304»): по ним script.js открывает плитку на этой длине. */
+		foreach ($items as $pid => &$item) {
+			$item['TREE'] = [];
+			$oid = (int)($this->entries[$pid] ?? 0);
+			if (!$oid || !isset($item['OFFERS'][$oid])) {
+				continue;
+			}
+			$item['OFFERS'] = [$oid => $item['OFFERS'][$oid]];
+			foreach ($item['OFFERS'][$oid] as $prop) {
+				if ($prop['PROPERTY_TYPE'] === 'L' && $prop['MULTIPLE'] !== 'Y' && !empty($prop['VALUE_ENUM_ID'])) {
+					$item['TREE'][] = (int)$prop['ID'] . '_' . (int)$prop['VALUE_ENUM_ID'];
+				}
+			}
+		}
+		unset($item);
 
 		$groupsArr = is_object($USER) ? $USER->GetUserGroupArray() : [2];
 		$stockIds = [];

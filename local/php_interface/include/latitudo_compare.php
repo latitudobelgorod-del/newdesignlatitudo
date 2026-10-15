@@ -14,10 +14,10 @@
  * ни ссылки, ни текста. Атрибуты кнопки — в одинарных кавычках: метка бывает
  * внутри JSON-строки ответа ajax, двойная кавычка порвала бы JSON.
  *
- * Список — ID товаров (не торговых предложений: у доски предложения по длине,
- * и одна доска встала бы в таблицу дважды) в порядке добавления. Хранится в
- * сессии и в cookie ND_CMP на 30 дней на весь домен (иначе на поддомене города
- * список был бы свой).
+ * Список — товары в порядке добавления, у каждого — выбранная длина (торговое
+ * предложение), см. ndCompareEntries. Одна доска — одна колонка: другая длина
+ * заменяет прежнюю. Хранится в сессии и в cookie ND_CMP на 30 дней на весь
+ * домен (иначе на поддомене города список был бы свой).
  *
  * Страница — /compare/ (обёртка /compare/index.php → local/compare/page.php),
  * таблица — компонент latitudo:catalog.compare, кнопки и счётчик —
@@ -74,24 +74,51 @@ function ndCompareCookieDomain(): string
 	return '';
 }
 
-/** Список ID в порядке добавления. */
-function ndCompareList(): array
+/**
+ * Список сравнения: [ID товара => ID торгового предложения или 0] в порядке
+ * добавления. Предложение — выбранная длина (Ирина, 15.10.2026: у длин разные
+ * цена за штуку и остатки). Один товар — одна запись: другая длина того же
+ * товара заменяет прежнюю. Хранится строками «товар» или «товар-предложение»
+ * через точку (старые записи без предложения читаются как есть).
+ */
+function ndCompareEntries(): array
 {
 	if (isset($_SESSION['ND_COMPARE']) && is_array($_SESSION['ND_COMPARE'])) {
-		$ids = $_SESSION['ND_COMPARE'];
+		$raw = $_SESSION['ND_COMPARE'];
 	} else {
-		$ids = explode('.', (string)($_COOKIE[ND_COMPARE_COOKIE] ?? ''));
+		$raw = explode('.', (string)($_COOKIE[ND_COMPARE_COOKIE] ?? ''));
 	}
-	$ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
-	return array_slice($ids, -ND_COMPARE_MAX);
+	$out = [];
+	foreach ($raw as $entry) {
+		if (!preg_match('~^(\d+)(?:-(\d+))?$~', trim((string)$entry), $m)) {
+			continue;
+		}
+		$pid = (int)$m[1];
+		unset($out[$pid]); // повтор — поднимаем в конец
+		$out[$pid] = (int)($m[2] ?? 0);
+	}
+	return array_slice($out, -ND_COMPARE_MAX, null, true);
 }
 
-function ndCompareSave(array $ids): void
+/** ID товаров в порядке добавления. */
+function ndCompareList(): array
 {
-	$ids = array_slice(array_values(array_unique(array_filter(array_map('intval', $ids)))), -ND_COMPARE_MAX);
-	$_SESSION['ND_COMPARE'] = $ids;
-	setcookie(ND_COMPARE_COOKIE, implode('.', $ids), [
-		'expires' => $ids ? time() + 30 * 86400 : time() - 3600,
+	return array_keys(ndCompareEntries());
+}
+
+/** Сохранить [ID товара => ID предложения или 0]. */
+function ndCompareSave(array $entries): void
+{
+	$entries = array_slice($entries, -ND_COMPARE_MAX, null, true);
+	$list = [];
+	foreach ($entries as $pid => $oid) {
+		if ((int)$pid > 0) {
+			$list[] = (int)$pid . ((int)$oid > 0 ? '-' . (int)$oid : '');
+		}
+	}
+	$_SESSION['ND_COMPARE'] = $list;
+	setcookie(ND_COMPARE_COOKIE, implode('.', $list), [
+		'expires' => $list ? time() + 30 * 86400 : time() - 3600,
 		'path' => '/',
 		'domain' => ndCompareCookieDomain(),
 		'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
@@ -186,13 +213,14 @@ function ndCompareSectionUrl(int $sectionId): string
 
 /**
  * Кнопка «Сравнить» вместо метки (атрибуты — в одинарных кавычках, см. шапку).
- * В плитке — галочка с подписью, в карточке — квадрат с иконкой, как в шапке
- * (Ирина, 15.10.2026): js/newdesign-compare.js ставит его в строку H1 рядом с номером.
+ * В карточке — квадрат с иконкой в ряду покупки, в плитке — значок под номером
+ * товара в правом верхнем углу, как у «Всех инструментов» (Ирина, 15.10.2026).
  */
 function ndCompareButtonHtml(int $id, string $place): string
 {
-	if ($place === 'detail') {
-		return "<button type='button' class='nd-cmp-btn nd-cmp-btn--detail' data-nd-cmp='" . $id . "'"
+	// и в карточке, и в плитке — значок без подписи (подпись — для экранного диктора)
+	if ($place === 'detail' || $place === 'list') {
+		return "<button type='button' class='nd-cmp-btn nd-cmp-btn--" . $place . "' data-nd-cmp='" . $id . "'"
 			. " title='Добавить к сравнению' aria-label='Добавить к сравнению'>"
 			. "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path d='M5 20V10M12 20V4M19 20v-7' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg>"
 			. "<span class='nd-cmp-btn__text'>Сравнить</span></button>";

@@ -4,8 +4,9 @@
    Пока идёт скрытый тест, отвечает только группе «Тестирование сравнения»
    (ndCompareAllowed), остальным — 404, как будто адреса нет.
 
-   POST: action=add|remove|clear|list, id (товар), key (вкладка для clear), sessid.
-   Ответ: {ok, ids, count, groups:{ID:KEY}, tabs:{KEY:{TITLE,COUNT}}, last}. */
+   POST: action=add|remove|clear|list, id (товар), offer (выбранная длина —
+   торговое предложение), key (вкладка для clear), sessid.
+   Ответ: {ok, ids, count, groups:{ID:KEY}, offers:{ID:OFFER}, tabs:{KEY:{TITLE,COUNT}}, last}. */
 
 define('STOP_STATISTICS', true);
 define('NO_AGENT_CHECK', true);
@@ -36,43 +37,61 @@ if ($action !== 'list' && !check_bitrix_sessid()) {
 	$ndOut(400, ['ok' => false, 'error' => 'sessid']);
 }
 
-$ids = ndCompareList();
+$entries = ndCompareEntries();
 $id = (int)($_REQUEST['id'] ?? 0);
+$offer = (int)($_REQUEST['offer'] ?? 0);
 
 if ($action === 'add' && $id > 0) {
 	\Bitrix\Main\Loader::includeModule('iblock');
+	\Bitrix\Main\Loader::includeModule('catalog');
 	$exists = CIBlockElement::GetList([], ['IBLOCK_ID' => ND_COMPARE_IBLOCK, 'ID' => $id, 'ACTIVE' => 'Y'], []);
 	if (!$exists) {
 		$ndOut(400, ['ok' => false, 'error' => 'product']);
 	}
-	// повторное добавление поднимает товар в конец: его вкладка откроется первой
-	$ids = array_values(array_diff($ids, [$id]));
-	$ids[] = $id;
-	ndCompareSave($ids);
+	// выбранная длина — только предложение этого товара, иначе без неё
+	if ($offer > 0 && $offer !== $id) {
+		$parent = CCatalogSku::GetProductInfo($offer);
+		if (!$parent || (int)$parent['ID'] !== $id) {
+			$offer = 0;
+		}
+	} else {
+		$offer = 0;
+	}
+	// одна доска — одна колонка: другая длина заменяет прежнюю и поднимает в конец
+	unset($entries[$id]);
+	$entries[$id] = $offer;
+	ndCompareSave($entries);
 } elseif ($action === 'remove' && $id > 0) {
-	ndCompareSave(array_values(array_diff($ids, [$id])));
+	unset($entries[$id]);
+	ndCompareSave($entries);
 } elseif ($action === 'clear') {
 	$key = (string)($_REQUEST['key'] ?? '');
 	if ($key === '') {
 		ndCompareSave([]);
 	} else {
-		$groups = ndCompareGroups($ids);
-		ndCompareSave(array_values(array_filter($ids, static function ($i) use ($groups, $key) {
-			return ($groups[$i]['KEY'] ?? '') !== $key;
-		})));
+		$groups = ndCompareGroups(array_keys($entries));
+		foreach (array_keys($entries) as $pid) {
+			if (($groups[$pid]['KEY'] ?? '') === $key) {
+				unset($entries[$pid]);
+			}
+		}
+		ndCompareSave($entries);
 	}
 }
 
-$ids = ndCompareList();
+$entries = ndCompareEntries();
+$ids = array_keys($entries);
 $groups = ndCompareGroups($ids);
 $tabs = [];
 $byId = [];
+$offers = [];
 foreach ($ids as $i) {
 	if (!isset($groups[$i])) {
 		continue; // товар сняли с публикации
 	}
 	$key = $groups[$i]['KEY'];
 	$byId[$i] = $key;
+	$offers[$i] = $entries[$i];
 	$tabs[$key] = $tabs[$key] ?? ['TITLE' => $groups[$i]['TITLE'], 'COUNT' => 0];
 	$tabs[$key]['COUNT']++;
 }
@@ -82,6 +101,8 @@ $ndOut(200, [
 	'ids' => array_keys($byId),
 	'count' => count($byId),
 	'groups' => $byId,
+	// выбранная длина (торговое предложение) у каждого товара, 0 — без неё
+	'offers' => (object)$offers,
 	'tabs' => $tabs,
 	'last' => ($action === 'add' && isset($byId[$id])) ? ['ID' => $id, 'KEY' => $byId[$id], 'TITLE' => $tabs[$byId[$id]]['TITLE'], 'COUNT' => $tabs[$byId[$id]]['COUNT']] : null,
 ]);

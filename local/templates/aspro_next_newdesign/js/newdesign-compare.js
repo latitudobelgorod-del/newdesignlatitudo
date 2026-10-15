@@ -10,9 +10,33 @@
 
 	var init = window.ndCompareInit || {};
 	var ids = (init.ids || []).map(Number);
+	// товар → выбранная длина (торговое предложение), 0 — без неё
+	var offers = init.offers || {};
 
-	function has(id) {
-		return ids.indexOf(Number(id)) !== -1;
+	/* Выбранная сейчас длина рядом с кнопкой: «В корзину» карточки или плитки
+	   держит в data-item текущее предложение (у товара без длин — сам товар). */
+	function currentOffer(btn) {
+		var pid = Number(btn.getAttribute('data-nd-cmp'));
+		var box = btn.closest('.item_block, .catalog_detail');
+		if (!box) return 0;
+		var carts = box.querySelectorAll('.to-cart[data-item], .in-cart[data-item]');
+		for (var i = 0; i < carts.length; i++) {
+			if (!carts[i].offsetParent) continue;
+			var oid = Number(carts[i].getAttribute('data-item'));
+			return oid && oid !== pid ? oid : 0;
+		}
+		return 0;
+	}
+
+	/* В сравнении ли товар — и именно эта длина. Другая длина того же товара
+	   кнопку не подсвечивает: нажатие заменит длину в сравнении. */
+	function has(id, btn) {
+		id = Number(id);
+		if (ids.indexOf(id) === -1) return false;
+		var saved = Number(offers[id] || 0);
+		if (!btn || !saved) return true;
+		var cur = currentOffer(btn);
+		return !cur || cur === saved;
 	}
 
 	function request(action, data) {
@@ -30,6 +54,7 @@
 			.then(function (res) {
 				if (res && res.ok) {
 					ids = (res.ids || []).map(Number);
+					offers = res.offers || {};
 					paint();
 				}
 				return res;
@@ -79,7 +104,7 @@
 		placeDetail();
 		var buttons = document.querySelectorAll('[data-nd-cmp]');
 		for (var i = 0; i < buttons.length; i++) {
-			var on = has(buttons[i].getAttribute('data-nd-cmp'));
+			var on = has(buttons[i].getAttribute('data-nd-cmp'), buttons[i]);
 			buttons[i].classList.toggle('is-active', on);
 			buttons[i].setAttribute('aria-pressed', on ? 'true' : 'false');
 			var title = on ? 'Убрать из сравнения' : 'Добавить к сравнению';
@@ -126,9 +151,9 @@
 		e.stopPropagation();
 		if (btn.classList.contains('is-busy')) return;
 		var id = btn.getAttribute('data-nd-cmp');
-		var adding = !has(id);
+		var adding = !has(id, btn);
 		btn.classList.add('is-busy');
-		request(adding ? 'add' : 'remove', {id: id})
+		request(adding ? 'add' : 'remove', adding ? {id: id, offer: currentOffer(btn)} : {id: id})
 			.then(function (res) {
 				if (adding && res && res.last) toast(res.last);
 			})
@@ -137,6 +162,15 @@
 				btn.classList.remove('is-busy');
 			});
 	}, true);
+
+	/* Смена длины в карточке или плитке: тема меняет предложение, местами только
+	   атрибутами (их наблюдатель ниже не видит) — перерисовываем кнопки. */
+	document.addEventListener('click', function (e) {
+		if (e.target.closest && e.target.closest('[data-treevalue], [data-onevalue]')) {
+			setTimeout(paint, 300);
+			setTimeout(paint, 1000);
+		}
+	});
 
 	/* Плитки догружаются («Показать ещё», лента «С этим товаром покупают») —
 	   красим новые кнопки. Наблюдаем дешёво: только за появлением кнопок. */

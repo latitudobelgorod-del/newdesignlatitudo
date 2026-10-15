@@ -64,7 +64,16 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 		// «Добавить товар», пока товаров меньше пяти
 		$slots = max(5, $count + ($count < 5 ? 1 : 0));
 		?>
-		<section class="nd-cmp__panel<?=($key === $active ? ' is-active' : '')?>" data-nd-cmp-panel="<?=htmlspecialcharsbx($key)?>" role="tabpanel">
+		<?// выбранная длина каждого товара — script.js открывает на ней плитку
+		$ndTree = [];
+		foreach ($items as $id => $item) {
+			if (!empty($item['TREE'])) {
+				$ndTree[$id] = $item['TREE'];
+			}
+		}
+		?>
+		<section class="nd-cmp__panel<?=($key === $active ? ' is-active' : '')?>" data-nd-cmp-panel="<?=htmlspecialcharsbx($key)?>" role="tabpanel"
+			data-nd-cmp-tree="<?=htmlspecialcharsbx(json_encode((object)$ndTree))?>">
 
 		<?if (!$count):?>
 			<div class="nd-cmp__empty">

@@ -100,6 +100,7 @@ $findstr   = "SEF_APPLICATION_CUR_PAGE_URL";
 		$APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/js/newdesign-compare.js?'.@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/newdesign-compare.js'));
 		$APPLICATION->AddHeadString('<script>window.ndCompareInit='.json_encode([
 			'ids' => ndCompareList(),
+			'offers' => (object)ndCompareEntries(), // выбранная длина у каждого товара
 			'sessid' => bitrix_sessid(),
 			'url' => '/local/ajax/compare.php',
 			'page' => '/compare/',

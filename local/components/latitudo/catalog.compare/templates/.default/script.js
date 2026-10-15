@@ -72,6 +72,19 @@
 				blocks[i].appendChild(rm);
 			}
 
+			/* Плитка — на той длине, что в сравнении: жмём её кнопки выбора
+			   («В корзину» плитки тогда положит именно эту длину). */
+			var tree = {};
+			try { tree = JSON.parse(panel.getAttribute('data-nd-cmp-tree') || '{}'); } catch (err) {}
+			Object.keys(tree).forEach(function (pid) {
+				var tile = panel.querySelector('[data-nd-cmp-tile="' + pid + '"]');
+				if (!tile) return;
+				tree[pid].forEach(function (value) {
+					var opt = tile.querySelector('[data-treevalue="' + value + '"]');
+					if (opt && !opt.classList.contains('active')) opt.click();
+				});
+			});
+
 			/* «Показывать только различия» — по умолчанию включено при трёх товарах и больше. */
 			var diff = panel.querySelector('[data-nd-cmp-diff]');
 			var applyDiff = function () {

@@ -54,10 +54,39 @@
 	pointer-events: none;
 }
 
-/* В плитке — отдельной строкой под кнопкой «В корзину». */
+/* В плитке — значок под номером товара в правом верхнем углу (номер:
+   top 6, right 6, строка 13px — css/newdesign-catalog.css), как у «Всех
+   инструментов». Серый, при наведении тёмный, в сравнении — красный. */
 .nd-cmp-btn--list {
-	display: flex;
-	margin-top: 8px;
+	position: absolute;
+	top: 20px;
+	right: 2px;
+	z-index: 7;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border-radius: 4px;
+	color: #8e8e9c;
+	transition: color 0.15s ease, background-color 0.15s ease;
+}
+.nd-cmp-btn--list svg {
+	width: 20px;
+	height: 20px;
+}
+.nd-cmp-btn--list:hover {
+	color: #101014;
+	background: rgba(82, 82, 100, 0.08);
+}
+.nd-cmp-btn--list.is-active {
+	color: #c60000;
+}
+.nd-cmp-btn--list .nd-cmp-btn__text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
 }
 /* В карточке — квадрат с иконкой в ряду покупки, первым, слева от счётчика
    (js/newdesign-compare.js, placeDetail). Счётчик держит прежнюю половину ряда,
@@ -122,6 +151,18 @@
 /* Иконка в шапке — та же плашка, что у корзины (.nd-cart). */
 .nd-cmp-link svg {
 	display: block;
+}
+/* Цифра — как у корзины. Её размер и цвет корзине даёт тема через класс
+   .count; сам класс не берём — по нему скрипт темы пишет число корзины. */
+.nd-cmp-link .nd-cart__count {
+	width: 20px;
+	height: 20px;
+	padding: 1px 4px 0;
+	border-radius: 100%;
+	background: #b41818;
+	color: #fff;
+	font-size: 11px;
+	line-height: 20px;
 }
 
 /* Уведомление «Добавлено к сравнению · Сравнить (2)». */
