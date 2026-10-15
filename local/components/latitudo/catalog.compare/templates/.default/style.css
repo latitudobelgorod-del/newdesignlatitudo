@@ -400,11 +400,15 @@
 .nd-cmp__sticky {
 	position: fixed;
 	top: 0;
+	left: 0;
+	right: 0;
 	z-index: 1500;
 	display: none;
-	overflow: hidden;
 	background: #fff;
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+.nd-cmp__sticky-clip {
+	overflow: hidden;
 }
 .nd-cmp__sticky.is-visible {
 	display: block;

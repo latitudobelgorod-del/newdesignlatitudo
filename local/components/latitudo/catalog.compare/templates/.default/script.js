@@ -153,11 +153,13 @@
 				var show = h.bottom < top && g.bottom > top + 120;
 				sticky.classList.toggle('is-visible', show);
 				if (show) {
+					// полоса — на всю ширину экрана, окно с товарами — ровно над таблицей
 					var s = scroll.getBoundingClientRect();
+					var clip = sticky.querySelector('.nd-cmp__sticky-clip');
 					sticky.style.top = top + 'px';
-					sticky.style.left = s.left + 'px';
-					sticky.style.width = scroll.clientWidth + 'px';
-					sticky.firstElementChild.style.transform = 'translateX(' + (-scroll.scrollLeft) + 'px)';
+					clip.style.marginLeft = s.left + 'px';
+					clip.style.width = scroll.clientWidth + 'px';
+					clip.firstElementChild.style.transform = 'translateX(' + (-scroll.scrollLeft) + 'px)';
 				}
 			}
 		}

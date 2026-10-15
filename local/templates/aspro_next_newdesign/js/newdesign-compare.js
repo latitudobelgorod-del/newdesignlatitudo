@@ -42,17 +42,27 @@
 		if (el && el.textContent !== text) el.textContent = text;
 	}
 
-	/* В карточке кнопка — квадрат с иконкой, как в шапке, справа от номера
-	   товара в строке H1. В сам H1 её класть нельзя: тема при загрузке
-	   переписывает его содержимое и кнопку стирает. Ставим следом за H1
-	   и прижимаем к его нижнему правому углу (под неё у H1 поле справа). */
+	/* В карточке кнопка — квадрат с иконкой, как в шапке, слева от номера
+	   товара (номер остаётся у правого края, его кладёт в H1 newdesign-element.js).
+	   В сам H1 кнопку класть нельзя: тема при загрузке переписывает его
+	   содержимое. Ставим следом за H1 и выравниваем по номеру; место под неё
+	   перед номером держит стиль .nd-has-cmp. */
 	function placeDetail() {
 		var btn = document.querySelector('.nd-cmp-btn--detail');
 		var h1 = document.querySelector('.catalog_detail.element_newdesign > h1');
 		if (!btn || !h1) return;
 		if (h1.nextElementSibling !== btn) h1.parentNode.insertBefore(btn, h1.nextSibling);
 		if (!h1.classList.contains('nd-has-cmp')) h1.classList.add('nd-has-cmp');
-		var top = (h1.offsetTop + h1.offsetHeight - btn.offsetHeight + 8) + 'px';
+		var box = h1.parentNode.getBoundingClientRect();
+		var article = h1.querySelector(':scope > .nd-pd__article');
+		// на телефоне номер в заголовке скрыт (он в верхней полосе карточки) —
+		// тогда кнопка справа от заголовка, место под неё держит .nd-has-cmp-noart
+		if (article && !article.offsetWidth) article = null;
+		h1.classList.toggle('nd-has-cmp-noart', !article);
+		var r = article ? article.getBoundingClientRect() : null;
+		var right = (article ? box.right - r.left + 12 : 0) + 'px';
+		var top = (article ? r.top - box.top + (r.height - btn.offsetHeight) / 2 : h1.offsetTop + h1.offsetHeight - btn.offsetHeight) + 'px';
+		if (btn.style.right !== right) btn.style.right = right;
 		if (btn.style.top !== top) btn.style.top = top;
 	}
 

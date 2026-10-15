@@ -77,6 +77,8 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 			     плитки ушли за верх экрана. Кнопка жмёт «В корзину» плитки
 			     с выбранным там количеством. */?>
 			<div class="nd-cmp__sticky" data-nd-cmp-sticky aria-hidden="true">
+				<?// фон — на всю ширину экрана, как шапка; окно — ровно над таблицей?>
+				<div class="nd-cmp__sticky-clip">
 				<div class="nd-cmp__sticky-in" style="--nd-cmp-slots: <?=$slots?>">
 					<?foreach ($items as $id => $item):?>
 						<div class="nd-cmp__sticky-cell">
@@ -87,6 +89,7 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 							</div>
 						</div>
 					<?endforeach;?>
+				</div>
 				</div>
 			</div>
 

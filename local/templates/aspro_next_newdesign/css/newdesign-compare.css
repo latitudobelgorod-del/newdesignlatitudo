@@ -61,13 +61,17 @@
 }
 /* В карточке — квадрат с иконкой в строке H1, как иконка сравнения в шапке
    (.nd-cart); в сравнении — как выбранный фильтр (.nd-filter .is-selected). */
-/* Кнопка стоит следом за H1 и прижата к его правому нижнему углу (top
-   ставит js по высоте заголовка) — под неё у H1 поле справа. */
+/* Кнопка стоит следом за H1, слева от номера товара (right/top ставит js по
+   номеру). Перед номером — место под кнопку, чтобы длинное название её не
+   накрывало. */
 .catalog_detail.element_newdesign {
 	position: relative;
 }
-.catalog_detail.element_newdesign > h1.nd-has-cmp {
-	padding-right: 64px;
+.catalog_detail.element_newdesign > h1.nd-has-cmp > .nd-pd__article {
+	margin-left: 48px;
+}
+.catalog_detail.element_newdesign > h1.nd-has-cmp-noart {
+	padding-right: 48px;
 }
 .catalog_detail.element_newdesign > .nd-cmp-btn--detail {
 	position: absolute;
@@ -75,15 +79,24 @@
 	z-index: 2;
 }
 .nd-cmp-btn--detail {
+	position: absolute;
+	right: 0;
+	z-index: 2;
+}
+.nd-cmp-btn--detail {
 	justify-content: center;
 	box-sizing: border-box;
-	width: 48px;
-	height: 48px;
+	width: 36px;
+	height: 36px;
 	padding: 0;
 	border-radius: 4px;
 	background: rgba(82, 82, 100, 0.1);
 	color: #525264;
 	transition: background-color 0.15s ease;
+}
+.nd-cmp-btn--detail svg {
+	width: 20px;
+	height: 20px;
 }
 .nd-cmp-btn--detail:hover {
 	background: rgba(82, 82, 100, 0.18);
