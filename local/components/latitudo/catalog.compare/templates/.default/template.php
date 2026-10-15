@@ -63,6 +63,12 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 		// по пять в ряд, как плитки на странице производителя; пустой слот
 		// «Добавить товар», пока товаров меньше пяти
 		$slots = max(5, $count + ($count < 5 ? 1 : 0));
+		// на телефоне видно две колонки — пустых слотов не держим (свайпом уезжали
+		// в пустоту), только «Добавить товар», если товар один
+		$slotsM = max(2, $count);
+		$ndSlotClass = static function ($i) use ($slotsM) {
+			return 'nd-cmp__cell nd-cmp__cell--slot' . ($i >= $slotsM ? ' nd-cmp__cell--desk' : '');
+		};
 		?>
 		<?// выбранная длина каждого товара — script.js открывает на ней плитку
 		$ndTree = [];
@@ -88,7 +94,7 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 			<div class="nd-cmp__sticky" data-nd-cmp-sticky aria-hidden="true">
 				<?// фон — на всю ширину экрана, как шапка; окно — ровно над таблицей?>
 				<div class="nd-cmp__sticky-clip">
-				<div class="nd-cmp__sticky-in" style="--nd-cmp-slots: <?=$slots?>">
+				<div class="nd-cmp__sticky-in" style="--nd-cmp-slots: <?=$slots?>; --nd-cmp-slots-m: <?=$slotsM?>">
 					<?foreach ($items as $id => $item):?>
 						<div class="nd-cmp__sticky-cell">
 							<a class="nd-cmp__sticky-name" href="<?=$item['URL']?>"><?=htmlspecialcharsbx($item['NAME'])?></a>
@@ -113,7 +119,7 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 			</button>
 			<div class="nd-cmp__scroll" data-nd-cmp-scroll>
-				<div class="nd-cmp__grid" style="--nd-cmp-slots: <?=$slots?>">
+				<div class="nd-cmp__grid" style="--nd-cmp-slots: <?=$slots?>; --nd-cmp-slots-m: <?=$slotsM?>">
 
 					<div class="nd-cmp__row nd-cmp__row--head">
 						<div class="nd-cmp__tiles" data-nd-cmp-tiles style="grid-column: span <?=$count?>; --nd-cmp-n: <?=$count?>">
@@ -130,7 +136,7 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 							?>
 						</div>
 						<?for ($i = $count; $i < $slots; $i++):?>
-							<div class="nd-cmp__cell nd-cmp__cell--slot">
+							<div class="<?=$ndSlotClass($i)?>">
 								<?if ($i === $count):?>
 									<a class="nd-cmp__add" href="<?=htmlspecialcharsbx($tab['URL'])?>">
 										<span class="nd-cmp__add-plus">+</span>
@@ -156,7 +162,7 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 								<div class="nd-cmp__cell<?=($cell['BEST'] ? ' is-best' : '')?>"><?=($cell['HTML'] !== '' ? $cell['HTML'] : '—')?></div>
 							<?endforeach;?>
 							<?for ($i = $count; $i < $slots; $i++):?>
-								<div class="nd-cmp__cell nd-cmp__cell--slot"></div>
+								<div class="<?=$ndSlotClass($i)?>"></div>
 							<?endfor;?>
 						</div>
 					<?endforeach;?>
@@ -166,7 +172,7 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 							<div class="nd-cmp__cell"><a class="nd-cmp__more" href="<?=$item['URL']?>">Подробнее о товаре</a></div>
 						<?endforeach;?>
 						<?for ($i = $count; $i < $slots; $i++):?>
-							<div class="nd-cmp__cell nd-cmp__cell--slot"></div>
+							<div class="<?=$ndSlotClass($i)?>"></div>
 						<?endfor;?>
 					</div>
 				</div>

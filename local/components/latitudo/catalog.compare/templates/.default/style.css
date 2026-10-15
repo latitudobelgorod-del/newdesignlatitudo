@@ -513,6 +513,18 @@
 		--nd-cmp-col: calc((100vw - 32px) / 2);
 		--nd-cmp-visible: 2;
 	}
+	/* колонок — по числу товаров (--nd-cmp-slots-m), пустые слоты прячем */
+	.nd-cmp__row,
+	.nd-cmp__sticky-in {
+		grid-template-columns: repeat(var(--nd-cmp-slots-m), minmax(0, 1fr));
+	}
+	.nd-cmp__grid,
+	.nd-cmp__sticky-in {
+		width: max(100%, calc(var(--nd-cmp-slots-m) * 100% / var(--nd-cmp-visible)));
+	}
+	.nd-cmp__cell--desk {
+		display: none;
+	}
 	.nd-cmp__lbl {
 		padding: 10px 0 0 8px;
 		font-size: 13px;
@@ -531,14 +543,31 @@
 		font-size: 12px;
 		line-height: 16px;
 	}
-	/* на телефоне колонка узкая — склады столбиком */
+	/* на телефоне колонка узкая — склады столбиком, каждый одной строкой:
+	   «Москва … 622 шт.» */
 	.nd-cmp__stores {
 		grid-template-columns: minmax(0, 1fr);
+		gap: 3px;
+	}
+	.nd-cmp__store {
+		flex-direction: row;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 6px;
+		padding: 3px 6px;
 	}
 	.nd-cmp__store-name,
 	.nd-cmp__store-amount {
-		font-size: 13px;
-		line-height: 18px;
+		font-size: 12px;
+		line-height: 16px;
+	}
+	.nd-cmp__store-amount {
+		flex: 0 0 auto;
+		white-space: nowrap;
+	}
+	/* плашка лучшего значения — с полем 6px слева от текста, а не впритык */
+	.nd-cmp__cell.is-best::before {
+		inset: 0 4px 6px 2px;
 	}
 	.nd-cmp__title {
 		font-size: 32px;
