@@ -196,6 +196,18 @@
 	text-decoration: underline;
 }
 
+/* Цифра во вкладке «Сравнение» нижней панели телефона — как у «Корзины»
+   (ей размер даёт тема классом .count, его не берём — см. шапку выше). */
+#nd-navbar [data-nd-cmp-count] {
+	width: 20px;
+	height: 20px;
+	font-size: 11px;
+	line-height: 20px;
+	border-radius: 100%;
+	background: #b41818;
+	color: #fff;
+}
+
 /* Над нижней панелью телефона (.nd-navbar, 56px). */
 @media (max-width: 991px) {
 	.nd-cmp-toast {
