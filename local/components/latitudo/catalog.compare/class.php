@@ -200,7 +200,10 @@ class LatitudoCatalogCompare extends CBitrixComponent
 		$stockIds = [];
 		foreach ($items as $pid => &$item) {
 			$buyIds = $item['OFFERS'] ? array_keys($item['OFFERS']) : [$pid];
-			$best = null;
+			/* Цена во всех единицах, что есть у товара: штука (цена каталога) и
+			   единицы из «Коэффициентов единиц измерения» (цена × коэффициент,
+			   как в плитке). По каждой — меньшая среди предложений. */
+			$byUnit = [];
 			foreach ($buyIds as $buyId) {
 				$price = CCatalogProduct::GetOptimalPrice($buyId, 1, $groupsArr, 'N', [], SITE_ID);
 				$value = (float)($price['RESULT_PRICE']['DISCOUNT_PRICE'] ?? 0);
@@ -208,16 +211,27 @@ class LatitudoCatalogCompare extends CBitrixComponent
 					continue;
 				}
 				$koefProps = $item['OFFERS'][$buyId]['UNIT_KOEF'] ?? ($item['PROPS']['UNIT_KOEF'] ?? []);
-				$koef = $unit ? $this->unitKoef($koefProps, $unit) : 1.0;
-				if ($koef === null) {
-					continue; // единицы раздела у товара нет — за неё цену не посчитать
+				// цена каталога — за базовую единицу товара (обычно штука; у штуки
+				// в справочнике нет обозначения — она идёт ключом 0, как единица вкладки)
+				$base = (int)(CCatalogProduct::GetByID($buyId)['MEASURE'] ?? 0);
+				$units = [($this->measureSymbol($base) === 'шт' ? 0 : $base) => 1.0];
+				foreach ((array)($koefProps['VALUE'] ?? []) as $k => $v) {
+					$mid = (int)($koefProps['DESCRIPTION'][$k] ?? 0);
+					if ($mid > 0 && (float)$v > 0) {
+						$units[$mid] = (float)$v;
+					}
 				}
-				$value *= $koef;
-				if ($best === null || $value < $best) {
-					$best = $value;
+				foreach ($units as $mid => $koef) {
+					$unitPrice = $value * $koef;
+					if (!isset($byUnit[$mid]) || $unitPrice < $byUnit[$mid]) {
+						$byUnit[$mid] = $unitPrice;
+					}
 				}
 			}
-			$item['PRICE'] = $best;
+			// цена за единицу раздела — для подсветки и липкой шапки; нет такой
+			// единицы у товара — цены за неё нет
+			$item['PRICE'] = $byUnit[$unit] ?? null;
+			$item['PRICES'] = $byUnit;
 			foreach ($buyIds as $buyId) {
 				$stockIds[$buyId] = $pid;
 			}
@@ -247,17 +261,18 @@ class LatitudoCatalogCompare extends CBitrixComponent
 		return $sorted;
 	}
 
-	/** Коэффициент перевода цены штуки в единицу (UNIT_KOEF: значение — коэффициент, описание — ID единицы). */
-	private function unitKoef(array $prop, int $unit): ?float
+	/** Обозначение единицы измерения каталога по ID (0 — штука). */
+	private function measureSymbol(int $id): string
 	{
-		$values = (array)($prop['VALUE'] ?? []);
-		$descr = (array)($prop['DESCRIPTION'] ?? []);
-		foreach ($values as $k => $v) {
-			if ((int)($descr[$k] ?? 0) === $unit && (float)$v > 0) {
-				return (float)$v;
+		static $symbols = null;
+		if ($symbols === null) {
+			$symbols = [];
+			$rs = CCatalogMeasure::getList([], [], false, false, ['ID', 'SYMBOL_RUS', 'MEASURE_TITLE']);
+			while ($m = $rs->Fetch()) {
+				$symbols[(int)$m['ID']] = (string)($m['SYMBOL_RUS'] ?: $m['MEASURE_TITLE']);
 			}
 		}
-		return null;
+		return ($id && !empty($symbols[$id])) ? $symbols[$id] : 'шт';
 	}
 
 	private function buildRows(string $type, array $items): array
@@ -339,6 +354,18 @@ class LatitudoCatalogCompare extends CBitrixComponent
 				if ($item['PRICE'] !== null) {
 					$cell['NUM'] = round($item['PRICE']);
 					$cell['TEXT'] = number_format($item['PRICE'], 0, ',', ' ') . ' ₽/' . $this->unitTitle;
+					$cell['HTML'] = '<span class="nd-cmp__price">' . htmlspecialcharsbx($cell['TEXT']) . '</span>';
+					// та же цена в других единицах — мелкой строкой (шт · м² · п.м)
+					$other = [];
+					foreach ($item['PRICES'] as $mid => $value) {
+						$sym = $this->measureSymbol((int)$mid);
+						if ($sym !== $this->unitTitle) {
+							$other[] = number_format($value, 0, ',', ' ') . ' ₽/' . $sym;
+						}
+					}
+					if ($other) {
+						$cell['HTML'] .= '<span class="nd-cmp__price-alt">' . htmlspecialcharsbx(implode(' · ', $other)) . '</span>';
+					}
 				}
 				break;
 

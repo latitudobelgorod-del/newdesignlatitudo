@@ -1219,7 +1219,10 @@
            scrollWidth уже про оставшиеся. */
         function state() {
             var w = track.clientWidth || 1;
-            var total = Math.max(1, Math.ceil((track.scrollWidth - 1) / w));
+            /* Хвост в несколько пикселей (отступы, дробная ширина карточек) —
+               не страница: иначе при ровно двух экранах товаров счётчик писал
+               «/03», а третий шаг сдвигал ленту на 2–10px (15.10.2026). */
+            var total = Math.max(1, Math.ceil((track.scrollWidth - 16) / w));
             /* Конец ленты ловим с запасом в 1px: при дробной ширине карточки
                scrollLeft не дотягивает до scrollWidth - clientWidth. */
             var atEnd = track.scrollLeft >= track.scrollWidth - w - 1;

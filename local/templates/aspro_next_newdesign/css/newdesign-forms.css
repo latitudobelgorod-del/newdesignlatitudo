@@ -247,6 +247,18 @@
     top: 14px;
     transform: none;
 }
+/* Длинный текст в textarea прокручивается — без подложки он проезжал под
+   поднятой подписью и буквы наезжали друг на друга (15.10.2026). Подложка
+   белая, от рамки до рамки, высотой со строку подписи. */
+.form-container .form-control.nd-form-control--area.is-filled > label:not(.error),
+.form-container .form-control.nd-form-control--area.is-focused > label:not(.error) {
+    top: 2px !important;
+    left: 2px !important;
+    right: 18px !important; /* полоса прокрутки остаётся видна */
+    padding: 6px 12px 8px !important;
+    border-radius: 4px 0 0 0;
+    background: #fff;
+}
 
 /* ---- согласие на обработку --------------------------------------------- */
 .form-container .licence_block {

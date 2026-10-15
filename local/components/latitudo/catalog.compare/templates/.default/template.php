@@ -11,7 +11,8 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
    Таблица — как у ДНС (Ирина, 15.10.2026): без колонки названий слева,
    название свойства строкой, под ним значения товаров. Так товарам достаётся
-   вся ширина — по четыре колонки на компьютере, по две на телефоне.
+   вся ширина — по пять колонок на компьютере, как плитки у производителя,
+   по две на телефоне.
 
    Верхняя строка — обычные плитки списка (catalog_blockcolors_newdesign
    через include/brand_products.php): цена в единицах, количество, «В корзину»,
@@ -50,8 +51,9 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 		$panel = $arResult['PANELS'][$key];
 		$items = $panel['ITEMS'];
 		$count = count($items);
-		// пустой слот «Добавить товар», пока товаров меньше четырёх
-		$slots = max(4, $count + ($count < 4 ? 1 : 0));
+		// по пять в ряд, как плитки на странице производителя; пустой слот
+		// «Добавить товар», пока товаров меньше пяти
+		$slots = max(5, $count + ($count < 5 ? 1 : 0));
 		?>
 		<section class="nd-cmp__panel<?=($key === $active ? ' is-active' : '')?>" data-nd-cmp-panel="<?=htmlspecialcharsbx($key)?>" role="tabpanel">
 
@@ -99,6 +101,7 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 								'ID_ORDER' => array_keys($items),
 								'PER_SECTION' => $count,
 								'TITLE' => '',
+								'STORES' => [1, 2, 3, 4], // как в каталоге (/catalog/index.php)
 							];
 							include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_products.php';
 							?>
@@ -171,6 +174,7 @@ $ndRelatedNav = '<div class="nd-related__nav">'
 							'ID_ORDER' => $panel['EXPANDABLES'],
 							'PER_SECTION' => count($panel['EXPANDABLES']),
 							'TITLE' => '',
+							'STORES' => [1, 2, 3, 4],
 						];
 						include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_products.php';
 						?>
