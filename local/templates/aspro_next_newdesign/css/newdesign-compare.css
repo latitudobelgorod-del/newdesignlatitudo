@@ -59,44 +59,43 @@
 	display: flex;
 	margin-top: 8px;
 }
-/* В карточке — квадрат с иконкой в строке H1, как иконка сравнения в шапке
-   (.nd-cart); в сравнении — как выбранный фильтр (.nd-filter .is-selected). */
-/* Кнопка стоит следом за H1, слева от номера товара (right/top ставит js по
-   номеру). Перед номером — место под кнопку, чтобы длинное название её не
-   накрывало. */
+/* В карточке — квадрат с иконкой в ряду покупки, слева от «В корзину»
+   (js/newdesign-compare.js, placeDetail). Счётчик держит прежнюю половину ряда,
+   ужимается только «В корзину». */
+.catalog_detail .info_item .buy_block .counter_wrapp:has(> .nd-cmp-btn--detail) > :not(.button_block):not(.nd-cmp-btn--detail):not(script):not(.nd-cart-note) {
+	flex: 0 0 calc(50% - 6px) !important;
+}
+/* На телефоне ряд покупки узкий (нижняя полоса #nd-pd-buybar) — три кнопки
+   не влезают. Там кнопка справа от заголовка, 36px; место под неё держит
+   .nd-has-cmp у H1, top ставит js. */
 .catalog_detail.element_newdesign {
 	position: relative;
 }
-.catalog_detail.element_newdesign > h1.nd-has-cmp > .nd-pd__article {
-	margin-left: 48px;
-}
-.catalog_detail.element_newdesign > h1.nd-has-cmp-noart {
+.catalog_detail.element_newdesign > h1.nd-has-cmp {
 	padding-right: 48px;
 }
 .catalog_detail.element_newdesign > .nd-cmp-btn--detail {
 	position: absolute;
 	right: 0;
 	z-index: 2;
-}
-.nd-cmp-btn--detail {
-	position: absolute;
-	right: 0;
-	z-index: 2;
-}
-.nd-cmp-btn--detail {
-	justify-content: center;
-	box-sizing: border-box;
 	width: 36px;
 	height: 36px;
+}
+.nd-cmp-btn--detail {
+	flex: 0 0 56px;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 56px;
+	height: 56px;
 	padding: 0;
 	border-radius: 4px;
 	background: rgba(82, 82, 100, 0.1);
-	color: #525264;
+	color: #101014; /* как значок корзины */
 	transition: background-color 0.15s ease;
 }
 .nd-cmp-btn--detail svg {
-	width: 20px;
-	height: 20px;
+	width: 24px;
+	height: 24px;
 }
 .nd-cmp-btn--detail:hover {
 	background: rgba(82, 82, 100, 0.18);

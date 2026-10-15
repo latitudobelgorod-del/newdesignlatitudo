@@ -302,7 +302,7 @@ $basketCount = (int)$arBasketPrices['BASKET_COUNT'];
 				<?if(function_exists('ndCompareAllowed') && ndCompareAllowed()):?>
 					<?$ndCmpCount = count(ndCompareList());?>
 					<a class="nd-cart nd-cmp-link" rel="nofollow" href="/compare/" title="Сравнение товаров" data-nd-cmp-link>
-						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7" stroke="#525264" stroke-width="2" stroke-linecap="round"/></svg>
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7" stroke="#101014" stroke-width="2.4" stroke-linecap="round"/></svg>
 						<span class="nd-cart__count<?=($ndCmpCount ? '' : ' empted')?>" data-nd-cmp-count><?=$ndCmpCount?></span>
 					</a>
 				<?endif;?>

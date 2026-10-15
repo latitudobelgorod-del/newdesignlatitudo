@@ -403,15 +403,24 @@
 	left: 0;
 	right: 0;
 	z-index: 1500;
-	display: none;
 	background: #fff;
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+	/* появляется плавно: прозрачность и лёгкий сдвиг сверху */
+	visibility: hidden;
+	opacity: 0;
+	transform: translateY(-8px);
+	pointer-events: none;
+	transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
 }
 .nd-cmp__sticky-clip {
 	overflow: hidden;
 }
 .nd-cmp__sticky.is-visible {
-	display: block;
+	visibility: visible;
+	opacity: 1;
+	transform: none;
+	pointer-events: auto;
+	transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s;
 }
 .nd-cmp__sticky-cell {
 	padding: 10px 16px;
