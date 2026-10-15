@@ -26,6 +26,9 @@ class LatitudoCatalogCompare extends CBitrixComponent
 	private const UNITS = ['board' => 6, 'fence' => 1];
 	private const UNIT_TITLE = [6 => 'м²', 1 => 'п.м', 0 => 'шт'];
 
+	/** Единица цены вкладки, которая сейчас собирается. */
+	private $unitTitle = 'шт';
+
 	private const ROWS = [
 		'board' => [
 			['price'],
@@ -132,24 +135,29 @@ class LatitudoCatalogCompare extends CBitrixComponent
 			$active = $ids ? $groups[end($ids)]['KEY'] : '';
 		}
 
+		/* Все вкладки собираем сразу: переключаются они без перезагрузки
+		   страницы (script.js шаблона), а товаров в списке — единицы. */
 		$this->arResult = [
 			'TABS' => $tabs,
 			'ACTIVE' => $active,
-			'ITEMS' => [],
-			'ROWS' => [],
-			'UNIT' => 'шт',
-			'EXPANDABLES' => [],
+			'PANELS' => [],
 		];
-
-		if ($active !== '') {
-			$tab = $tabs[$active];
-			$type = $tab['TYPE'];
-			$unit = self::UNITS[$type] ?? 0;
-			$this->arResult['UNIT'] = self::UNIT_TITLE[$unit] ?? 'шт';
+		$allIds = $ids;
+		$shownRelated = [];
+		foreach ($tabs as $key => $tab) {
+			$unit = self::UNITS[$tab['TYPE']] ?? 0;
+			$this->unitTitle = self::UNIT_TITLE[$unit] ?? 'шт';
 			$items = $this->loadItems($tab['IDS'], $unit);
-			$this->arResult['ITEMS'] = $items;
-			$this->arResult['ROWS'] = $this->buildRows($type, $items);
-			$this->arResult['EXPANDABLES'] = $this->expandables($items, $tab['IDS']);
+			// «С этим покупают»: без сравниваемых товаров и без повторов между
+			// вкладками — у одной карточки на странице были бы одинаковые id
+			$related = array_values(array_diff($this->expandables($items, $allIds), $shownRelated));
+			$shownRelated = array_merge($shownRelated, $related);
+			$this->arResult['PANELS'][$key] = [
+				'ITEMS' => $items,
+				'ROWS' => $this->buildRows($tab['TYPE'], $items),
+				'UNIT' => $this->unitTitle,
+				'EXPANDABLES' => $related,
+			];
 		}
 
 		$this->includeComponentTemplate();
@@ -273,7 +281,7 @@ class LatitudoCatalogCompare extends CBitrixComponent
 			$label = $def[0];
 			$best = $def[3] ?? null;
 			if ($kind === 'price') {
-				$label = 'Цена за ' . $this->arResult['UNIT'];
+				$label = 'Цена за ' . $this->unitTitle;
 				$best = 'min';
 			} elseif ($kind === 'stock') {
 				$label = 'Наличие в Москве';
@@ -330,7 +338,7 @@ class LatitudoCatalogCompare extends CBitrixComponent
 			case 'price':
 				if ($item['PRICE'] !== null) {
 					$cell['NUM'] = round($item['PRICE']);
-					$cell['TEXT'] = number_format($item['PRICE'], 0, ',', ' ') . ' ₽/' . $this->arResult['UNIT'];
+					$cell['TEXT'] = number_format($item['PRICE'], 0, ',', ' ') . ' ₽/' . $this->unitTitle;
 				}
 				break;
 
@@ -541,7 +549,7 @@ class LatitudoCatalogCompare extends CBitrixComponent
 			}
 		}
 		arsort($ids); // чаще всего встречающиеся — первыми
-		return array_slice(array_keys($ids), 0, 8);
+		return array_slice(array_keys($ids), 0, 12);
 	}
 
 	private function toNum($value): ?float

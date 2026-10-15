@@ -2,11 +2,24 @@
    каталога нового дизайна (рамка rgba(82,82,100,.15), красный #c60000). */
 
 .nd-cmp {
-	--nd-cmp-lbl: 220px;
-	--nd-cmp-col: 279px;
+	/* наименьшая ширина колонки товара: при четырёх колонки делят всю ширину,
+	   при пяти и больше — прокрутка вбок */
+	--nd-cmp-col: 300px;
 	--nd-cmp-line: rgba(82, 82, 100, 0.15);
+	position: relative;
 	margin: 8px 0 48px;
 	color: #2b2b38;
+}
+
+/* Вкладки печатаются все сразу. Неактивная — за краем экрана, а не
+   display:none: плитки и лента меряют ширину при запуске. */
+.nd-cmp__panel:not(.is-active) {
+	position: absolute;
+	top: 0;
+	left: -10000px;
+	width: 100%;
+	visibility: hidden;
+	pointer-events: none;
 }
 
 /* ---------- вкладки разделов ---------- */
@@ -83,14 +96,16 @@
 	-webkit-overflow-scrolling: touch;
 	scroll-snap-type: x proximity;
 }
-.nd-cmp__grid {
-	width: max-content;
-	min-width: 100%;
+.nd-cmp__grid,
+.nd-cmp__sticky-in {
+	/* ширина — от числа колонок, а не от содержимого: иначе широкая плитка
+	   раздувала свою колонку */
+	width: max(100%, calc(var(--nd-cmp-slots) * var(--nd-cmp-col)));
 }
 .nd-cmp__row,
 .nd-cmp__sticky-in {
 	display: grid;
-	grid-template-columns: var(--nd-cmp-lbl) repeat(var(--nd-cmp-slots), var(--nd-cmp-col));
+	grid-template-columns: repeat(var(--nd-cmp-slots), minmax(0, 1fr));
 }
 .nd-cmp__row {
 	border-bottom: 1px solid var(--nd-cmp-line);
@@ -99,40 +114,46 @@
 .nd-cmp__row--links {
 	border-bottom: 0;
 }
+/* Название свойства — строкой над значениями (как у ДНС). При прокрутке
+   вбок (пять товаров и больше) оно стоит на месте. */
 .nd-cmp__lbl {
+	grid-column: 1 / -1;
+	padding: 14px 0 0 16px; /* по левому краю текста плиток */
+	color: #525264;
+	font-size: 13px;
+	line-height: 18px;
+}
+.nd-cmp__lbl span {
 	position: sticky;
 	left: 0;
-	z-index: 2;
-	padding: 14px 16px 14px 0;
-	background: #fff;
-	color: #525264;
-	font-size: 14px;
-	line-height: 20px;
-}
-.nd-cmp__lbl--head {
-	display: flex;
-	align-items: flex-end;
-	font-size: 16px;
-	font-weight: 700;
-	color: #2b2b38;
+	display: inline-block;
 }
 .nd-cmp__cell {
 	position: relative;
-	padding: 14px 16px;
-	font-size: 15px;
-	line-height: 21px;
+	padding: 4px 16px 14px;
+	font-size: 16px;
+	line-height: 22px;
 	word-break: break-word;
 	scroll-snap-align: start;
 }
 .nd-cmp__cell.is-best {
-	background: rgba(69, 132, 15, 0.08);
+	isolation: isolate; /* подложка ::before — под текстом, но над фоном страницы */
+	color: #2f6b0a;
 	font-weight: 700;
+}
+.nd-cmp__cell.is-best::before {
+	content: "";
+	position: absolute;
+	inset: 0 8px 6px 8px;
+	z-index: -1;
+	border-radius: 4px;
+	background: rgba(69, 132, 15, 0.08);
 }
 .nd-cmp__row--price .nd-cmp__cell {
 	font-size: 18px;
 	font-weight: 700;
 }
-.nd-cmp.is-diff .nd-cmp__row.is-same {
+.nd-cmp__panel.is-diff .nd-cmp__row.is-same {
 	display: none;
 }
 
@@ -140,13 +161,16 @@
 .nd-cmp__row--head .nd-cmp__cell {
 	padding: 0 4px 16px;
 }
+.nd-cmp__row--head .nd-cmp__cell--slot {
+	padding-left: 8px;
+}
 .nd-cmp__tiles {
 	min-width: 0;
 	padding-bottom: 16px;
 }
 .nd-cmp__tiles .catalog_block {
 	display: grid !important;
-	grid-template-columns: repeat(var(--nd-cmp-n), var(--nd-cmp-col)) !important; /* сетка бренда — 5 колонок */
+	grid-template-columns: repeat(var(--nd-cmp-n), minmax(0, 1fr)) !important; /* сетка бренда — 5 колонок */
 	width: auto !important;
 	margin: 0 !important;
 }
@@ -155,8 +179,9 @@
 	float: none !important;
 	width: auto !important;
 	max-width: none !important;
+	min-width: 0;
 	margin: 0 !important;
-	padding: 0 4px !important;
+	padding: 0 8px 0 0 !important;
 }
 .nd-cmp__tiles .nd-cmp-btn {
 	display: none; /* в таблице товар уже в сравнении — убирает крестик */
@@ -252,9 +277,6 @@
 .nd-cmp__sticky.is-visible {
 	display: block;
 }
-.nd-cmp__sticky-in .nd-cmp__lbl {
-	padding: 0;
-}
 .nd-cmp__sticky-cell {
 	padding: 10px 16px;
 }
@@ -308,11 +330,8 @@
 	color: #525264;
 	font-size: 14px;
 }
-.nd-cmp__h2 {
-	margin: 0 0 24px;
-	font-size: 32px;
-	line-height: 38px;
-	font-weight: 800;
+.nd-related--compare {
+	margin-top: 8px;
 }
 .nd-cmp__empty {
 	padding: 40px 0;
@@ -323,35 +342,18 @@
 	margin-top: 16px;
 }
 
-/* ---------- телефон: две колонки товаров, свайп ----------
-   Отдельной колонки названий на телефоне нет: название свойства идёт строкой
-   над значениями и при свайпе стоит на месте (sticky), а колонки товаров —
-   в пол-экрана, как плитки в каталоге. */
+/* ---------- телефон: две колонки товаров в пол-экрана, свайп ---------- */
 @media (max-width: 767px) {
 	.nd-cmp {
 		--nd-cmp-col: calc((100vw - 32px) / 2);
 	}
-	.nd-cmp__row,
-	.nd-cmp__sticky-in {
-		grid-template-columns: repeat(var(--nd-cmp-slots), var(--nd-cmp-col));
-	}
 	.nd-cmp__lbl {
-		grid-column: 1 / -1;
-		width: calc(100vw - 32px);
-		box-sizing: border-box;
-		padding: 10px 0 0;
-		font-size: 13px;
-		line-height: 18px;
-		font-weight: 700;
-		color: #2b2b38;
-	}
-	.nd-cmp__lbl--head,
-	.nd-cmp__sticky-in .nd-cmp__lbl,
-	.nd-cmp__row--links .nd-cmp__lbl {
-		display: none;
+		padding: 10px 0 0 8px;
+		font-size: 12px;
+		line-height: 16px;
 	}
 	.nd-cmp__cell {
-		padding: 6px 8px 10px 0;
+		padding: 2px 10px 10px 8px;
 		font-size: 14px;
 		line-height: 19px;
 	}
@@ -360,10 +362,6 @@
 	}
 	.nd-cmp__bar {
 		flex-wrap: wrap;
-	}
-	.nd-cmp__h2 {
-		font-size: 24px;
-		line-height: 30px;
 	}
 	.nd-cmp__add {
 		min-height: 200px;

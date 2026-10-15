@@ -1,5 +1,5 @@
-/* Страница сравнения: раскладка плиток по колонкам, «только различия»,
-   удаление, липкая шапка, список товаров в заявку менеджеру.
+/* Страница сравнения: вкладки без перезагрузки, «только различия», удаление,
+   липкая шапка, список товаров в заявку менеджеру.
    Запросы к списку — window.ndCompare.request (js/newdesign-compare.js). */
 (function () {
 	'use strict';
@@ -16,32 +16,69 @@
 		var root = document.getElementById('nd-cmp');
 		if (!root) return;
 
-		/* Плитки стоят в первой строке таблицы. Помечаем каждую ID товара
-		   (по нему липкая шапка находит «В корзину») и ставим крестик удаления. */
-		var blocks = root.querySelectorAll('[data-nd-cmp-tiles] .item_block');
-		for (var i = 0; i < blocks.length; i++) {
-			var marker = blocks[i].querySelector('[data-product-id], [data-item]');
-			var id = marker ? (marker.getAttribute('data-product-id') || marker.getAttribute('data-item')) : '';
-			if (!id) continue;
-			blocks[i].setAttribute('data-nd-cmp-tile', id);
-			var rm = document.createElement('button');
-			rm.type = 'button';
-			rm.className = 'nd-cmp__remove';
-			rm.setAttribute('data-nd-cmp-remove', id);
-			rm.title = 'Убрать из сравнения';
-			rm.setAttribute('aria-label', 'Убрать из сравнения');
-			rm.textContent = '×';
-			blocks[i].appendChild(rm);
+		var panels = root.querySelectorAll('[data-nd-cmp-panel]');
+
+		function activePanel() {
+			return root.querySelector('[data-nd-cmp-panel].is-active');
 		}
 
-		/* «Показывать только различия» — по умолчанию включено при трёх товарах и больше. */
-		var diff = root.querySelector('[data-nd-cmp-diff]');
-		function applyDiff() {
-			root.classList.toggle('is-diff', !!(diff && diff.checked));
+		/* Вкладки без перезагрузки: панели уже на странице, переключаем классы
+		   и адрес (?tab= — чтобы обновление и «назад» открывали ту же вкладку). */
+		root.addEventListener('click', function (e) {
+			var tab = e.target.closest('[data-nd-cmp-tab]');
+			if (!tab) return;
+			e.preventDefault();
+			var key = tab.getAttribute('data-nd-cmp-tab');
+			var tabs = root.querySelectorAll('[data-nd-cmp-tab]');
+			for (var t = 0; t < tabs.length; t++) {
+				var on = tabs[t] === tab;
+				tabs[t].classList.toggle('is-active', on);
+				tabs[t].setAttribute('aria-selected', on ? 'true' : 'false');
+			}
+			for (var p = 0; p < panels.length; p++) {
+				panels[p].classList.toggle('is-active', panels[p].getAttribute('data-nd-cmp-panel') === key);
+			}
+			root.setAttribute('data-tab', key);
+			if (window.history && history.replaceState) {
+				history.replaceState(null, '', location.pathname + '?tab=' + encodeURIComponent(key));
+			}
+			window.dispatchEvent(new Event('resize')); // ленты и плитки пересчитывают ширину
+			updateSticky();
+		});
+
+		for (var p = 0; p < panels.length; p++) {
+			setupPanel(panels[p]);
 		}
-		if (diff) {
-			diff.addEventListener('change', applyDiff);
-			applyDiff();
+
+		function setupPanel(panel) {
+			/* Плитки стоят в первой строке таблицы. Помечаем каждую ID товара
+			   (по нему липкая шапка находит «В корзину») и ставим крестик удаления. */
+			var blocks = panel.querySelectorAll('[data-nd-cmp-tiles] .item_block');
+			for (var i = 0; i < blocks.length; i++) {
+				var marker = blocks[i].querySelector('[data-product-id], [data-item]');
+				var id = marker ? (marker.getAttribute('data-product-id') || marker.getAttribute('data-item')) : '';
+				if (!id) continue;
+				blocks[i].setAttribute('data-nd-cmp-tile', id);
+				var rm = document.createElement('button');
+				rm.type = 'button';
+				rm.className = 'nd-cmp__remove';
+				rm.setAttribute('data-nd-cmp-remove', id);
+				rm.title = 'Убрать из сравнения';
+				rm.setAttribute('aria-label', 'Убрать из сравнения');
+				rm.textContent = '×';
+				blocks[i].appendChild(rm);
+			}
+
+			/* «Показывать только различия» — по умолчанию включено при трёх товарах и больше. */
+			var diff = panel.querySelector('[data-nd-cmp-diff]');
+			var applyDiff = function () {
+				panel.classList.toggle('is-diff', !!(diff && diff.checked));
+				updateSticky();
+			};
+			if (diff) {
+				diff.addEventListener('change', applyDiff);
+				applyDiff();
+			}
 		}
 
 		function reloadTab() {
@@ -68,7 +105,8 @@
 			var buy = e.target.closest('[data-nd-cmp-buy]');
 			if (buy) {
 				e.preventDefault();
-				var cell = root.querySelector('[data-nd-cmp-tile="' + buy.getAttribute('data-nd-cmp-buy') + '"]');
+				var panel = activePanel();
+				var cell = panel ? panel.querySelector('[data-nd-cmp-tile="' + buy.getAttribute('data-nd-cmp-buy') + '"]') : null;
 				var btn = cell ? cell.querySelector('.to-cart:not([style*="display: none"]), .in-cart:not([style*="display: none"]), .nd-buy-ph') : null;
 				if (btn) {
 					btn.click();
@@ -78,68 +116,92 @@
 			}
 		});
 
-		/* Липкая шапка: видна, пока плитки ушли за верх экрана, а таблица ещё на экране.
-		   По горизонтали повторяет прокрутку таблицы. */
-		var sticky = root.querySelector('[data-nd-cmp-sticky]');
-		var scroll = root.querySelector('[data-nd-cmp-scroll]');
-		var head = root.querySelector('.nd-cmp__row--head');
-		var grid = root.querySelector('.nd-cmp__grid');
-		if (sticky && scroll && head && grid) {
-			var inner = sticky.firstElementChild;
-			/* Шапка сайта на прокрутке прибита к верху — встаём под неё. Ищем
-			   прибитый элемент в верхней точке экрана (кроме самой липкой шапки). */
-			var headerBottom = function () {
-				var bottom = 0;
-				var els = document.elementsFromPoint(window.innerWidth / 2, 2);
-				for (var k = 0; k < els.length; k++) {
-					for (var el = els[k]; el && el !== document.body; el = el.parentElement) {
-						if (sticky.contains(el)) break;
-						var pos = getComputedStyle(el).position;
-						if (pos === 'fixed' || pos === 'sticky') {
-							bottom = Math.max(bottom, el.getBoundingClientRect().bottom);
-							break;
-						}
+		/* Липкая шапка активной вкладки: видна, пока плитки ушли под шапку сайта,
+		   а таблица ещё на экране. По горизонтали повторяет прокрутку таблицы. */
+		function headerBottom(except) {
+			var bottom = 0;
+			var els = document.elementsFromPoint(window.innerWidth / 2, 2);
+			for (var k = 0; k < els.length; k++) {
+				for (var el = els[k]; el && el !== document.body; el = el.parentElement) {
+					if (except && except.contains(el)) break;
+					var pos = getComputedStyle(el).position;
+					if (pos === 'fixed' || pos === 'sticky') {
+						bottom = Math.max(bottom, el.getBoundingClientRect().bottom);
+						break;
 					}
 				}
-				return bottom;
-			};
-			var update = function () {
+			}
+			return bottom;
+		}
+
+		function updateSticky() {
+			for (var p = 0; p < panels.length; p++) {
+				var panel = panels[p];
+				var sticky = panel.querySelector('[data-nd-cmp-sticky]');
+				if (!sticky) continue;
+				if (!panel.classList.contains('is-active')) {
+					sticky.classList.remove('is-visible');
+					continue;
+				}
+				var scroll = panel.querySelector('[data-nd-cmp-scroll]');
+				var head = panel.querySelector('.nd-cmp__row--head');
+				var grid = panel.querySelector('.nd-cmp__grid');
+				var top = headerBottom(sticky);
 				var h = head.getBoundingClientRect();
 				var g = grid.getBoundingClientRect();
-				var top = sticky.classList.contains('is-visible') ? parseFloat(sticky.style.top) || 0 : headerBottom();
 				var show = h.bottom < top && g.bottom > top + 120;
 				sticky.classList.toggle('is-visible', show);
 				if (show) {
-					sticky.style.top = headerBottom() + 'px';
 					var s = scroll.getBoundingClientRect();
+					sticky.style.top = top + 'px';
 					sticky.style.left = s.left + 'px';
 					sticky.style.width = scroll.clientWidth + 'px';
-					inner.style.transform = 'translateX(' + (-scroll.scrollLeft) + 'px)';
+					sticky.firstElementChild.style.transform = 'translateX(' + (-scroll.scrollLeft) + 'px)';
 				}
-			};
-			window.addEventListener('scroll', update, {passive: true});
-			window.addEventListener('resize', update);
-			scroll.addEventListener('scroll', update, {passive: true});
-			update();
+			}
 		}
+		window.addEventListener('scroll', updateSticky, {passive: true});
+		window.addEventListener('resize', updateSticky);
+		var scrolls = root.querySelectorAll('[data-nd-cmp-scroll]');
+		for (var sc = 0; sc < scrolls.length; sc++) {
+			scrolls[sc].addEventListener('scroll', updateSticky, {passive: true});
+		}
+		updateSticky();
 
 		/* Заявка менеджеру: список сравниваемых товаров — в поле вопроса формы.
 		   Форма приходит ajax'ом после клика; поле не блокируем — можно дописать. */
-		var calc = root.querySelector('[data-nd-cmp-list]');
-		if (calc) {
-			calc.addEventListener('click', function () {
+		root.addEventListener('click', function (e) {
+			var calc = e.target.closest('[data-nd-cmp-list]');
+			if (calc) {
 				var text = calc.getAttribute('data-nd-cmp-list');
 				var tries = 0;
 				var timer = setInterval(function () {
 					var field = document.querySelector('.jqmWindow [data-sid="QUESTION"], .popup [data-sid="QUESTION"], form [data-sid="QUESTION"]');
 					if (field) {
-						if (!field.value) field.value = text;
 						clearInterval(timer);
+						/* В «Общей форме» вопрос — однострочное поле, а список товаров
+						   длинный: подменяем на многострочное с тем же именем и
+						   атрибутами — форма отправляется как прежде. */
+						if (field.tagName === 'INPUT') {
+							var area = document.createElement('textarea');
+							for (var a = 0; a < field.attributes.length; a++) {
+								var attr = field.attributes[a];
+								if (attr.name !== 'type' && attr.name !== 'value') area.setAttribute(attr.name, attr.value);
+							}
+							area.rows = 5;
+							area.value = field.value;
+							field.parentNode.replaceChild(area, field);
+							field = area;
+						}
+						if (!field.value) field.value = text;
+						// подпись поля поднимается по событию input (js/newdesign-forms.js)
+						field.dispatchEvent(new Event('input', {bubbles: true}));
+						field.dispatchEvent(new Event('change', {bubbles: true}));
 					} else if (++tries > 40) {
 						clearInterval(timer);
 					}
 				}, 150);
-			});
-		}
+			}
+		});
 	});
 })();
