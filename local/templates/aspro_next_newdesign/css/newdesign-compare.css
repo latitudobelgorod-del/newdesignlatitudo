@@ -59,7 +59,7 @@
 	display: flex;
 	margin-top: 8px;
 }
-/* В карточке — квадрат с иконкой в ряду покупки, слева от «В корзину»
+/* В карточке — квадрат с иконкой в ряду покупки, первым, слева от счётчика
    (js/newdesign-compare.js, placeDetail). Счётчик держит прежнюю половину ряда,
    ужимается только «В корзину». */
 .catalog_detail .info_item .buy_block .counter_wrapp:has(> .nd-cmp-btn--detail) > :not(.button_block):not(.nd-cmp-btn--detail):not(script):not(.nd-cart-note) {

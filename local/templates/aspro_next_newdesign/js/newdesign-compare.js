@@ -42,8 +42,8 @@
 		if (el && el.textContent !== text) el.textContent = text;
 	}
 
-	/* В карточке кнопка — квадрат с иконкой в ряду покупки, слева от
-	   «В корзину» (Ирина, 15.10.2026): счётчик | сравнение | В корзину.
+	/* В карточке кнопка — квадрат с иконкой в ряду покупки, первой
+	   (Ирина, 15.10.2026): сравнение | счётчик | В корзину.
 	   Рядов в разметке два (товар и торговое предложение) — берём видимый;
 	   тема перерисовывает ряд при смене предложения, поэтому зовём на каждую
 	   мутацию (paint) и ставим заново, если кнопку вынесло. */
@@ -66,7 +66,8 @@
 		for (var i = 0; i < rows.length; i++) {
 			var cart = rows[i].querySelector(':scope > .button_block');
 			if (!cart || !rows[i].offsetParent) continue;
-			if (btn.nextElementSibling !== cart) rows[i].insertBefore(btn, cart);
+			// первой в ряду — слева от счётчика (Ирина, 15.10.2026)
+			if (rows[i].firstElementChild !== btn) rows[i].insertBefore(btn, rows[i].firstElementChild);
 			return;
 		}
 	}

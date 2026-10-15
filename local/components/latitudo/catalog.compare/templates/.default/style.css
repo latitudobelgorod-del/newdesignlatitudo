@@ -287,20 +287,34 @@
 	top: 24px; /* под номером товара, мимо плашек слева */
 	right: 10px;
 	z-index: 5;
-	width: 28px;
-	height: 28px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
 	padding: 0;
 	border: 0;
 	border-radius: 4px;
 	background: rgba(82, 82, 100, 0.1);
 	color: #525264;
-	font-size: 20px;
-	line-height: 28px;
 	cursor: pointer;
+	/* видна при наведении на карточку, как у ДНС */
+	opacity: 0;
+	transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+.nd-cmp__tiles .item_block:hover .nd-cmp__remove,
+.nd-cmp__remove:focus-visible {
+	opacity: 1;
 }
 .nd-cmp__remove:hover {
 	background: #c60000;
 	color: #fff;
+}
+/* на сенсорных экранах наведения нет — значок виден всегда */
+@media (hover: none) {
+	.nd-cmp__remove {
+		opacity: 1;
+	}
 }
 
 /* пустой слот «Добавить товар» */
