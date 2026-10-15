@@ -38,6 +38,16 @@ if (!empty($arResult["PROPERTIES"]["COLOR_MAIN_EL"]["VALUE"])) {
         }
     }
 }
+/* Цвет без свотча в справочнике (Millargo «Грецкий орех», «Цитрус», 15.10.2026) —
+   название из свойства цвета ротанга/ясеня, иначе после «Цвет ротанга:» пусто. */
+if (empty($arResult["MAIN_COLOR"]["NAME"])) {
+    foreach (['ROTANG_COLOR', 'ASH_COLOR'] as $ndColorCode) {
+        if (!empty($arResult["PROPERTIES"][$ndColorCode]["VALUE"])) {
+            $arResult["MAIN_COLOR"]["NAME"] = $arResult["PROPERTIES"][$ndColorCode]["VALUE"];
+            break;
+        }
+    }
+}
 
 // ПРИВЯЗАННЫЕ ЭЛЕМЕНТЫ (у них COLOR_MAIN_EL тоже одиночное)
 if (!empty($arResult["PROPERTIES"]["ASSOCIATED"]["VALUE"])) {
@@ -72,7 +82,9 @@ if (!empty($arResult["PROPERTIES"]["ASSOCIATED"]["VALUE"])) {
             "DETAIL_PAGE_URL" => $arFields["DETAIL_PAGE_URL"],
             "PREVIEW_PICTURE" => $arFields['PREVIEW_PICTURE'],
             "PREVIEW_PICTURE_PATH" => $previewPicturePath,
-            "COLOR_XML_ID" => $arProps["COLOR_MAIN_EL"]["VALUE"] ?? '' // Одно значение
+            "COLOR_XML_ID" => $arProps["COLOR_MAIN_EL"]["VALUE"] ?? '', // Одно значение
+            // цвет ротанга/ясеня Millargo — подпись кружка без свотча
+            "COLOR_NAME" => ($arProps["ROTANG_COLOR"]["VALUE"] ?? '') ?: ($arProps["ASH_COLOR"]["VALUE"] ?? ''),
         ];
     }
     
@@ -125,7 +137,7 @@ if (!empty($arResult["PROPERTIES"]["ASSOCIATED"]["VALUE"])) {
         // Если картинки цвета нет, используем картинку анонса
         if (!$hasColorImage && !empty($element["PREVIEW_PICTURE_PATH"])) {
             $colorData = [
-                'NAME' => $element["NAME"],
+                'NAME' => $element["COLOR_NAME"] ?: $element["NAME"],
                 'FILE_PATH' => $element["PREVIEW_PICTURE_PATH"],
                 'FILE_ID' => $element["PREVIEW_PICTURE"],
                 'IS_PREVIEW' => true // Флаг, что это картинка анонса
