@@ -245,11 +245,14 @@ function ndSitemapReadSource($path, $host)
    каждого домена и правка переживает ночную пересборку. */
 function ndSitemapAddHomepage($content, $host)
 {
-    $home = 'https://' . $host . '/';
-
-    if (strpos($content, '<loc>' . $home . '</loc>') !== false) {
-        return $content;
-    }
+    /* Кроме главной — страницы из папок без .section.php: логический обход их
+       не видит вовсе, галочки в настройках генератора не помогают.
+       /company/reviews/ — отзывы (16.10.2026, аудит дублей): .section.php в
+       /company/ не кладём, иначе в крошках отзывов появится /company/ (он 301). */
+    $pages = [
+        '/' => '/index.php',
+        '/company/reviews/' => '/company/reviews/index.php',
+    ];
 
     $openTag = strpos($content, '<urlset');
 
@@ -263,11 +266,26 @@ function ndSitemapAddHomepage($content, $host)
         return $content;
     }
 
-    $index = $_SERVER['DOCUMENT_ROOT'] . '/index.php';
-    $lastmod = date('c', file_exists($index) ? filemtime($index) : time());
-    $url = '<url><loc>' . $home . '</loc><lastmod>' . $lastmod . '</lastmod></url>';
+    $urls = '';
 
-    return substr($content, 0, $openEnd + 1) . $url . substr($content, $openEnd + 1);
+    foreach ($pages as $path => $file) {
+        $loc = 'https://' . $host . $path;
+
+        if (strpos($content, '<loc>' . $loc . '</loc>') !== false) {
+            continue;
+        }
+
+        $abs = $_SERVER['DOCUMENT_ROOT'] . $file;
+
+        if ($path !== '/' && !file_exists($abs)) {
+            continue;
+        }
+
+        $lastmod = date('c', file_exists($abs) ? filemtime($abs) : time());
+        $urls .= '<url><loc>' . $loc . '</loc><lastmod>' . $lastmod . '</lastmod></url>';
+    }
+
+    return substr($content, 0, $openEnd + 1) . $urls . substr($content, $openEnd + 1);
 }
 
 /* Исходный файл сейчас непригоден (идёт пересборка). Лучше отдать вчерашнюю
