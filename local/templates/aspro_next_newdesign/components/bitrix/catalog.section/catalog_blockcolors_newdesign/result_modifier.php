@@ -1137,4 +1137,21 @@ if ($ndLineIds) {
 	unset($ndItem);
 }
 
+/* Видео у товара БЕЗ торговых предложений (перголы 34833/34834, 16.10.2026):
+   HAS_VIDEO выше ставится только в переборе предложений, и у простого товара
+   «Видео в попапе» (POPUP_VIDEO) не показывалось. Адрес кладём в ND_VIDEO —
+   шаблон отдаёт его в data-nd-video, js/newdesign-catalog.js (updateVideo)
+   берёт его, когда предложения нет. */
+foreach ($arResult['ITEMS'] as &$ndItem) {
+	if (!empty($ndItem['OFFERS'])) {
+		continue;
+	}
+	$ndVideo = trim((string) ($ndItem['PROPERTIES']['POPUP_VIDEO']['VALUE'] ?? ''));
+	if ($ndVideo !== '') {
+		$ndItem['HAS_VIDEO'] = $arResult['HAS_VIDEO'] = true;
+		$ndItem['ND_VIDEO'] = $ndVideo;
+	}
+}
+unset($ndItem);
+
 ?>

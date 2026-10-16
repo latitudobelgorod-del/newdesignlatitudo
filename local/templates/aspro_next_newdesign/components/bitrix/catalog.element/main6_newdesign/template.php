@@ -516,7 +516,7 @@ if ($ndProfileVal) {
 
 			<? /* Значок ▶ идёт ПОСЛЕ надписи — так в макете (Figma Left_Action). */ ?>
 			<? if ($arResult['HAS_VIDEO']): ?>
-				<a class="nd-pd__video" href="javascript:void(0)" data-fancybox data-type="iframe" hidden>
+				<a class="nd-pd__video" href="javascript:void(0)" data-fancybox data-type="iframe"<? if ($arResult['ND_VIDEO']): ?> data-nd-video="<?= htmlspecialcharsbx($arResult['ND_VIDEO']) ?>"<? endif; ?> hidden>
 					<span>Смотреть видео</span>
 					<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x=".75" y=".75" width="18.5" height="18.5" rx="4.25" stroke="#fff" stroke-width="1.5"/><path d="M8 6.5l5 3.5-5 3.5v-7z" fill="#fff"/></svg>
 				</a>

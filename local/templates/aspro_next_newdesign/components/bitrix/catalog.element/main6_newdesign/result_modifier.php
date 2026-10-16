@@ -1565,6 +1565,15 @@ $cp = $this->__component;
 if (is_object($cp))
 $cp->SetResultCacheKeys(array('DETAIL_PAGE_URL'));
 /*canonical*/
+/* Товар без торговых предложений: перебора предложений выше не было, и
+   «Видео в попапе» не включало кнопку ▶ (перголы, 16.10.2026). Адрес — в
+   ND_VIDEO, шаблон кладёт его в data-nd-video кнопки (newdesign-element.js,
+   syncVideo). */
+$arResult['ND_VIDEO'] = '';
+if (empty($arResult['OFFERS']) && trim((string)($arResult['PROPERTIES']['POPUP_VIDEO']['VALUE'] ?? '')) !== '') {
+	$hasVideo = true;
+	$arResult['ND_VIDEO'] = trim((string)$arResult['PROPERTIES']['POPUP_VIDEO']['VALUE']);
+}
 $arResult['HAS_VIDEO'] = false;
 if($hasVideo){
     $arResult['HAS_VIDEO'] = true;

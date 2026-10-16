@@ -222,6 +222,9 @@
 		/* адрес ролика тема держит в скрытой галерее — у активного оффера */
 		var src = $('.img_wrapper .rut-video.active a') || $('.img_wrapper .rut-video a');
 		var href = src && src.getAttribute('href');
+		/* у товара без предложений скрытой галереи с роликом нет — адрес
+		   шаблон кладёт прямо в кнопку (data-nd-video) */
+		if (!href || !/^https?:\/\//i.test(href)) href = btn.getAttribute('data-nd-video');
 
 		if (!href || !/^https?:\/\//i.test(href)) {
 			btn.hidden = true;

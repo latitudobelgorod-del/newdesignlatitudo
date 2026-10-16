@@ -597,7 +597,7 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
                    
                         	   <?if($arItem['HAS_VIDEO']){?>
                             
-								    <a data-fancybox href="" class="colproduct_video">Смотрите видео</a>
+								    <a data-fancybox href="" class="colproduct_video"<?if(!empty($arItem['ND_VIDEO'])):?> data-nd-video="<?=htmlspecialcharsbx($arItem['ND_VIDEO'])?>"<?endif;?>>Смотрите видео</a>
 																
                             <?}?> 
 						</div>
