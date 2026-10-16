@@ -212,16 +212,6 @@ class LatitudoFilterRedirect
 			$parent = CIBlockSection::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'ID' => $pid, 'CHECK_PERMISSIONS' => 'N'), false, array('ID', 'IBLOCK_SECTION_ID'))->Fetch();
 			$pid = $parent ? (int)$parent['IBLOCK_SECTION_ID'] : 0;
 		}
-		/* Дошли до корня каталога — это раздел первого уровня (или ветка, целиком
-		   одного бренда от самого верха). Разделы брендов у нас всегда вложенные,
-		   а среди соседей верхнего уровня одномарочных хватает («Грили», «МПК»),
-		   и «Перголы» (16.10.2026, пока одна LATITUDO) получали галочку бренда
-		   сразу при открытии и «Сбросить» в корень каталога. */
-		if ($pid <= 0) {
-			$CACHE_MANAGER->EndTagCache();
-			$cache->endDataCache(0);
-			return 0;
-		}
 		$brands = array();
 		$rs = CIBlockSection::GetList(array(), array('IBLOCK_ID' => self::IBLOCK_CATALOG, 'SECTION_ID' => $pid, 'ACTIVE' => 'Y', 'CHECK_PERMISSIONS' => 'N'), false, array('ID'));
 		while ($child = $rs->Fetch()) {
