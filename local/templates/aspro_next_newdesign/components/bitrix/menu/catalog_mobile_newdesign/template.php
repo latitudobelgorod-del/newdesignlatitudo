@@ -135,7 +135,7 @@ $ndSectionImg = function($arItem) use ($ndUfIcons) {
 		// Вырезка из макета: у пунктов не из каталога («Перголы») раздела нет,
 		// но файл под их код в шаблоне лежит.
 		$code = basename(rtrim((string)parse_url($link, PHP_URL_PATH), '/'));
-		if($code !== '' && mb_strpos($code, 'pergola') !== false)
+		if($code !== '' && mb_strpos($code, 'pergol') !== false)
 			$code = 'pergola';
 
 		if($code !== '' && preg_match('/^[a-z0-9_-]+$/i', $code))

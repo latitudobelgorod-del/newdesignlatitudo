@@ -172,10 +172,9 @@ $ndSectionIcon = function($arItem) {
 	$path = parse_url((string)$arItem['LINK'], PHP_URL_PATH);
 	$code = basename(rtrim((string)$path, '/'));
 
-	// «Перголы» ведут не в каталог, а на статью в «Материалах» — раздела
-	// с таким кодом нет, но иконка для них в макете есть (в плитках каталога
-	// она тоже прописана отдельно).
-	if($code !== '' && mb_strpos($code, 'pergola') !== false)
+	// «Перголы»: файл иконки из макета называется pergola.png, а код раздела
+	// с 16.10.2026 — pergoly (раньше пункт вёл на статью в «Материалах»).
+	if($code !== '' && mb_strpos($code, 'pergol') !== false)
 		$code = 'pergola';
 
 	if($code === '' || !preg_match('/^[a-z0-9_-]+$/i', $code))
@@ -306,7 +305,7 @@ $ndSectionMenuImage = function($link) use ($ndPicWithoutFatPng) {
 		$path = parse_url((string)$link, PHP_URL_PATH);
 		$code = basename(rtrim((string)$path, '/'));
 
-		if($code !== '' && mb_strpos($code, 'pergola') !== false)
+		if($code !== '' && mb_strpos($code, 'pergol') !== false)
 			$code = 'pergola';
 
 		if($code === '' || !preg_match('/^[a-z0-9_-]+$/i', $code))

@@ -161,20 +161,6 @@ padding:30px;
 			</div>
 			<?endforeach;?>
 			
-			<? // Добавляем "псевдо-раздел" в последний ряд
-			if ($isLastChunk): ?>
-			<div class="col-md-4 col-sm-4 col-xs-12 front-sect">
-				<div class="section_item item" id="bx_1847241719_503">
-					<div class="section_info">
-						<div>
-							<div class="name">
-								<a href="/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/" class="dark_link"><span>Перголы</span></a>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<? endif; ?>
 			
 			</div>
 		<?endforeach;?>

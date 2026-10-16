@@ -172,7 +172,7 @@ $iVisibleItemsMenu = ($arTheme['MAX_VISIBLE_ITEMS_MENU']['VALUE'] ? $arTheme['MA
                                 <a href="<?= $arSubItem["LINK"] ?>" class="megamenu-view-all-link">Смотреть все →</a>
                             </div>
                             <div class="megamenu-header-right">
-                                <a href="/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/" class="megamenu-banner-link">
+                                <a href="/catalog/pergoly/" class="megamenu-banner-link">
                                     <div class="megamenu-banner-img-wrapper">
                                         <?/* Затемнения и подписи поверх больше нет: текст
                                              «Беседка-пергола уже в продаже» нарисован в самой картинке. */?>

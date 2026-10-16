@@ -33,11 +33,12 @@ $regionID = ($arRegion ? $arRegion['ID'] : '');
    (region 9278) показывалась своя пара половинных баннеров: переезд офиса и
    рассрочка. Теперь регион ничем не отличается от остальных.
 
-   На самой странице перголы баннер не печатаем: он туда и ведёт. */?>
-<?if(strpos($APPLICATION->GetCurPage(false), '/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/') !== 0):?>
+   На странице раздела «Перголы» баннер не печатаем: он туда и ведёт
+   (с 16.10.2026 — раздел каталога /catalog/pergoly/, раньше вёл на статью). */?>
+<?if(strpos($APPLICATION->GetCurPage(false), '/catalog/pergoly/') !== 0):?>
 <div class="top_inner_block_wrapper">
 <div class="maxwidth-theme">
-<div class="banner_gradient banner_gradient--pergola"><a href="/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/"><img  alt="Комплект Пергола + мебель" title="Комплект Пергола + мебель" src="/images/banners/banner_pergola.jpg" loading="lazy" ></a></div>
+<div class="banner_gradient banner_gradient--pergola"><a href="/catalog/pergoly/"><img  alt="Комплект Пергола + мебель" title="Комплект Пергола + мебель" src="/images/banners/banner_pergola.jpg" loading="lazy" ></a></div>
 </div>
 </div>
 <?endif;?>

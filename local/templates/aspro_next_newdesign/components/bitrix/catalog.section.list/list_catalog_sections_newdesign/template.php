@@ -22,8 +22,6 @@ if (empty($arResult['ND_SECTIONS'])) {
 	return;
 }
 
-$ndPergolaUrl = '/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/';
-$ndPergolaIcon = SITE_TEMPLATE_PATH.'/images/newdesign/catalog/pergola.png';
 ?>
 <div class="nd-catalog">
 	<? foreach ($arResult['ND_SECTIONS'] as $arSection): ?>
@@ -57,10 +55,4 @@ $ndPergolaIcon = SITE_TEMPLATE_PATH.'/images/newdesign/catalog/pergola.png';
 		</div>
 	<? endforeach; ?>
 
-	<div class="nd-catalog__item">
-		<a class="nd-catalog__head" href="<?= $ndPergolaUrl ?>">
-			<img class="nd-catalog__icon" src="<?= $ndPergolaIcon ?>" alt="Перголы" width="64" height="64" loading="lazy">
-			<span class="nd-catalog__name">Перголы</span>
-		</a>
-	</div>
 </div>

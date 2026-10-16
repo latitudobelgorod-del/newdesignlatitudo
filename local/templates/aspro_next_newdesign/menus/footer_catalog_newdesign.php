@@ -12,7 +12,7 @@ $aMenuLinks = Array(
 	),
 	Array(
 		"Перголы", 
-		"/materials/umnaya-pergola-3kh3-s-mebelyu-i-led-podsvetkoy-gotovyy-komplekt-dlya-idealnogo-otdykha/", 
+		"/catalog/pergoly/", 
 		Array(), 
 		Array(), 
 		"" 
