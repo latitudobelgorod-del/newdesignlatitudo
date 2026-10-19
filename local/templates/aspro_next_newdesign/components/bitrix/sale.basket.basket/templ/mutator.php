@@ -105,6 +105,43 @@ if (!function_exists('ndBasketFormatStoreName'))
 	}
 }
 
+/* Скидка на комплект (Ирина, 19.10.2026): правило корзины с XML_ID «nd_set_…»
+   (первое — пергола 34833 + мебель 34834, скрипт local/tools/nd_set_discount.php).
+   Цены самих товаров не перечёркиваем — у товаров комплекта показываем полную
+   цену, а скидку видно только в итогах: «Скидка» и подпись «Ваша выгода при
+   покупке комплекта». Товары комплекта — элементы из действия правила. */
+$ndSetProductIds = array();
+
+if (!empty($result['APPLIED_DISCOUNT_LIST']) && CModule::IncludeModule('sale'))
+{
+	$ndSetRes = \Bitrix\Sale\Internals\DiscountTable::getList(array(
+		'select' => array('ID', 'ACTIONS_LIST'),
+		'filter' => array(
+			'@ID' => array_map('intval', array_keys($result['APPLIED_DISCOUNT_LIST'])),
+			'%=XML_ID' => 'nd_set_%',
+		),
+	));
+
+	while ($ndSet = $ndSetRes->fetch())
+	{
+		foreach ((array)$ndSet['ACTIONS_LIST']['CHILDREN'] as $ndAction)
+		{
+			foreach ((array)$ndAction['CHILDREN'] as $ndCond)
+			{
+				if ($ndCond['CLASS_ID'] === 'CondIBElement')
+				{
+					foreach ((array)$ndCond['DATA']['value'] as $ndId)
+					{
+						$ndSetProductIds[(int)$ndId] = true;
+					}
+				}
+			}
+		}
+	}
+}
+
+$ndSetBenefit = 0;
+
 $allVolume = 0;
 //echo "<pre>"; print_r($this); echo "</pre>";
 
@@ -211,6 +248,20 @@ foreach ($this->basketItems as &$row)
 			$rowData['DISCOUNT_PRICE'] = $discountPrice;
 			$rowData['DISCOUNT_PRICE_FORMATED'] = CCurrencyLang::CurrencyFormat($discountPrice, $rowData['CURRENCY'], true);
 		}
+	}
+
+	// Товар комплекта: полная цена без перечёркивания, скидка — только в итогах
+	if (isset($ndSetProductIds[(int)$rowData['PRODUCT_ID']]) && (float)$row['DISCOUNT_PRICE'] > 0)
+	{
+		$ndSetBenefit += (float)$row['SUM_DISCOUNT_PRICE'];
+
+		$rowData['PRICE'] = $rowData['FULL_PRICE'];
+		$rowData['PRICE_FORMATED'] = $rowData['FULL_PRICE_FORMATED'];
+		$rowData['SUM_PRICE'] = $rowData['SUM_FULL_PRICE'];
+		$rowData['SUM_PRICE_FORMATED'] = $rowData['SUM_FULL_PRICE_FORMATED'];
+		$rowData['SHOW_DISCOUNT_PRICE'] = false;
+		$rowData['DISCOUNT_PRICE'] = 0;
+		$rowData['DISCOUNT_PRICE_PERCENT'] = 0;
 	}
 
 	$rowData['SHOW_PRICE_FOR'] = (float)$rowData['QUANTITY'] !== (float)$rowData['MEASURE_RATIO'];
@@ -611,6 +662,12 @@ if ($allVolume){
 if ($result['DISCOUNT_PRICE_ALL'] > 0)
 {
 	$totalData['DISCOUNT_PRICE_FORMATED'] = $result['DISCOUNT_PRICE_FORMATED'];
+}
+
+if ($ndSetBenefit > 0)
+{
+	// «Ваша выгода при покупке комплекта: 68 000 ₽» под строкой «Скидка»
+	$totalData['ND_SET_BENEFIT_FORMATED'] = CCurrencyLang::CurrencyFormat(PriceMaths::roundPrecision($ndSetBenefit), $result['CURRENCY'], true);
 }
 
 if ($result['allWeight'] > 0)

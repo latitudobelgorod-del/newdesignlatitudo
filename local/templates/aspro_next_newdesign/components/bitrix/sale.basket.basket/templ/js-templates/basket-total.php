@@ -74,6 +74,11 @@ use Bitrix\Main\Localization\Loc;
 						<span class="nd-total__row-value">{{{DISCOUNT_PRICE_FORMATED}}}</span>
 					</div>
 				{{/DISCOUNT_PRICE_FORMATED}}
+
+				<?/* Скидка на комплект (правило корзины nd_set_…, см. mutator.php) */?>
+				{{#ND_SET_BENEFIT_FORMATED}}
+					<div class="nd-total__set-note"><?=Loc::getMessage('SBB_ND_SET_BENEFIT')?> {{{ND_SET_BENEFIT_FORMATED}}}</div>
+				{{/ND_SET_BENEFIT_FORMATED}}
 			</div>
 
 			<div class="nd-total__sum">

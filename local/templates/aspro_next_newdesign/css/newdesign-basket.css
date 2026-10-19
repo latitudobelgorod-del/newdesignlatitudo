@@ -747,6 +747,15 @@
 #basket-root .nd-total__row--discount .nd-total__row-value {
     color: #ff4130;
 }
+/* Подпись под «Скидкой», когда сработала скидка на комплект (mutator.php) */
+#basket-root .nd-total__set-note {
+    margin-top: -6px;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    color: #ff4130;
+}
 
 /* «Итого» — крупной строкой, под ней черта до кнопки. */
 #basket-root .nd-total__sum {
