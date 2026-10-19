@@ -127,6 +127,19 @@ if (!empty($arParams['LABEL_PROP_POSITION']))
 							{{#DETAIL_PAGE_URL}}
 								</a>
 							{{/DETAIL_PAGE_URL}}
+
+							<?// Плашки товара под названием (Ирина, 19.10.2026) — те же, что на фото
+							   // в карточке: метки HIT и тексты SALE_TEXT. Данные и классы цвета —
+							   // ND_STICKERS из mutator.php. Внутри заголовка, а не отдельным
+							   // блоком: у строки товара сетка с именованными областями
+							   // (name/stock/…), лишняя ячейка в ней встала бы куда попало.?>
+							{{#SHOW_ND_STICKERS}}
+							<span class="nd-basket-stickers">
+								{{#ND_STICKERS}}
+									<span class="nd-basket-sticker {{CLASS}}">{{VALUE}}</span>
+								{{/ND_STICKERS}}
+							</span>
+							{{/SHOW_ND_STICKERS}}
 						</h2>
 						<?// Наличие под названием (Ирина, 02.10.2026): плашки всех складов
 						   // сразу, без выпадашки «В наличии ▼» над фото. Нет остатка ни на

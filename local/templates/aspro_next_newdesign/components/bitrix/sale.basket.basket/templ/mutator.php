@@ -142,6 +142,70 @@ if (!empty($result['APPLIED_DISCOUNT_LIST']) && CModule::IncludeModule('sale'))
 
 $ndSetBenefit = 0;
 
+/* Плашки товара под названием (Ирина, 19.10.2026): те же, что на фото в карточке
+   (catalog.element/main6_newdesign/template.php) — метки списка HIT («Хиты месяца»…)
+   и тексты SALE_TEXT («Бесплатная доставка*»…). У торгового предложения свойства
+   берём у товара. Классы — как в карточке, цвета — css/newdesign-basket.css. */
+$ndStickers = array();
+
+if (CModule::IncludeModule('iblock') && CModule::IncludeModule('catalog') && !empty($ndStoreProductIds))
+{
+	$ndParentOf = array();
+	$ndSkuInfo = CCatalogSku::getProductList(array_unique($ndStoreProductIds));
+
+	foreach (array_unique($ndStoreProductIds) as $ndPid)
+	{
+		$ndParentOf[$ndPid] = !empty($ndSkuInfo[$ndPid]['ID']) ? (int)$ndSkuInfo[$ndPid]['ID'] : $ndPid;
+	}
+
+	$ndProps = array();
+	CIBlockElement::GetPropertyValuesArray(
+		$ndProps,
+		19,
+		array('ID' => array_values(array_unique($ndParentOf))),
+		array('CODE' => array('HIT', 'SALE_TEXT'))
+	);
+
+	foreach ($ndParentOf as $ndPid => $ndParent)
+	{
+		$ndList = array();
+		$ndItemProps = isset($ndProps[$ndParent]) ? $ndProps[$ndParent] : array();
+
+		if (!empty($ndItemProps['HIT']) && class_exists('CNext'))
+		{
+			foreach (CNext::GetItemStickers($ndItemProps['HIT']) as $ndSticker)
+			{
+				$ndList[] = array('VALUE' => $ndSticker['VALUE'], 'CLASS' => $ndSticker['CLASS']);
+			}
+		}
+
+		if (!empty($ndItemProps['SALE_TEXT']['VALUE']))
+		{
+			foreach ((array)$ndItemProps['SALE_TEXT']['VALUE'] as $ndVal)
+			{
+				$ndVal = trim(html_entity_decode(strip_tags($ndVal), ENT_QUOTES, 'UTF-8'));
+				if ($ndVal === '')
+				{
+					continue;
+				}
+
+				// Цвет по смыслу — то же правило, что в карточке
+				$ndT = mb_strtolower($ndVal, 'UTF-8');
+				$ndTagClass = '';
+				if (mb_strpos($ndT, 'остатк') !== false || mb_strpos($ndT, 'склад') !== false) $ndTagClass = 'nd-tag--rest';
+				elseif (mb_strpos($ndT, 'распродаж') !== false || mb_strpos($ndT, 'акци') !== false) $ndTagClass = 'nd-tag--sale';
+				elseif (mb_strpos($ndT, 'усилен') !== false) $ndTagClass = 'nd-tag--strong';
+				elseif (mb_strpos($ndT, 'новинк') !== false) $ndTagClass = 'nd-tag--new';
+				elseif (mb_strpos($ndT, 'доставк') !== false) $ndTagClass = 'nd-tag--delivery';
+
+				$ndList[] = array('VALUE' => $ndVal, 'CLASS' => trim('sticker_sale_text ' . $ndTagClass));
+			}
+		}
+
+		$ndStickers[$ndPid] = $ndList;
+	}
+}
+
 $allVolume = 0;
 //echo "<pre>"; print_r($this); echo "</pre>";
 
@@ -263,6 +327,9 @@ foreach ($this->basketItems as &$row)
 		$rowData['DISCOUNT_PRICE'] = 0;
 		$rowData['DISCOUNT_PRICE_PERCENT'] = 0;
 	}
+
+	$rowData['ND_STICKERS'] = isset($ndStickers[(int)$rowData['PRODUCT_ID']]) ? $ndStickers[(int)$rowData['PRODUCT_ID']] : array();
+	$rowData['SHOW_ND_STICKERS'] = !empty($rowData['ND_STICKERS']);
 
 	$rowData['SHOW_PRICE_FOR'] = (float)$rowData['QUANTITY'] !== (float)$rowData['MEASURE_RATIO'];
 	// Подпись к цене за единицу в строке товара нового дизайна: «за шт.», «за уп.».
