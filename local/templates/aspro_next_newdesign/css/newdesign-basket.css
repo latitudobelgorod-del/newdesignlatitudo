@@ -747,14 +747,21 @@
 #basket-root .nd-total__row--discount .nd-total__row-value {
     color: #ff4130;
 }
-/* Подпись под «Скидкой», когда сработала скидка на комплект (mutator.php) */
+/* Подпись под «Скидкой», когда сработала скидка на комплект (mutator.php):
+   плашкой во всю ширину карточки, цвета — как у метки «Бесплатная доставка*»
+   в карточке товара (newdesign-element.css, .sticker_sale_text). */
 #basket-root .nd-total__set-note {
-    margin-top: -6px;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border-radius: 2px;
+    background: #ffecea;
     font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 14px;
     line-height: 20px;
-    color: #ff4130;
+    color: #c60000;
 }
 
 /* «Итого» — крупной строкой, под ней черта до кнопки. */
