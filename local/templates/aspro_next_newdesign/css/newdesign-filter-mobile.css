@@ -305,6 +305,11 @@
     }
 
     /* ---------- Цена ---------- */
+    /* На десктопе «Цену» теперь можно свернуть (newdesign.css), а свёртку тема
+       помнит в куке — на телефоне поля цены показываем всегда (19.10.2026). */
+    body .nd-filter .price_numbers .bx_filter_block {
+        display: block !important;
+    }
     body .nd-filter .price_numbers .bx_filter_parameters_box_container {
         display: block;
     }

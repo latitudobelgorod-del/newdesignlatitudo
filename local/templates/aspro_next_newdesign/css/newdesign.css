@@ -3860,9 +3860,12 @@ body .nd-filter .bx_filter_param_text:after {
 }
 
 /* Цена: тема прячет поля до инициализации ползунка, а ползунок мы убрали —
-   возвращаем видимость полям принудительно. */
+   возвращаем видимость полям принудительно. Сам блок полей — только у
+   раскрытой группы (.active): с !important без условия «Цена» не сворачивалась
+   по клику на заголовок — slideUp ставит display:none, а правило его перебивало
+   (Ирина, 19.10.2026). */
 body .nd-filter .bx_filter_parameters_box.price_numbers,
-body .nd-filter .price_numbers .bx_filter_block,
+body .nd-filter .price_numbers.active .bx_filter_block,
 body .nd-filter .price_numbers .bx_filter_parameters_box_container,
 body .nd-filter .price_numbers .wrapp_all_inputs {
     display: block !important;
