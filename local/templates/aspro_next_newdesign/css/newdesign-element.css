@@ -1439,6 +1439,27 @@
     margin: 0;
     padding: 0;
 }
+/* Товар без цены: тема кладёт под «Заказать» подпись .more_text («Вам нужен
+   этот товар?…») внутрь .button_block. Блок становился выше кнопки сравнения,
+   и при align-items:center «Заказать» подскакивала вверх. Разворачиваем блок
+   (display:contents): кнопка встаёт в ряд вровень со сравнением, подпись —
+   отдельной строкой под обеими кнопками (Ирина, 19.10.2026). */
+@media (min-width: 768px) {
+    .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block:has(> .more_text) {
+        display: contents;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block:has(> .more_text) > .btn {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block > .more_text {
+        flex: 0 0 100%;
+        order: 10;
+        margin: -4px 0 0;
+        padding: 0;
+        text-align: left;
+    }
+}
 .catalog_detail.element_newdesign .right_info .info_item .buy_block .button_block .btn {
     display: flex;
     align-items: center;
