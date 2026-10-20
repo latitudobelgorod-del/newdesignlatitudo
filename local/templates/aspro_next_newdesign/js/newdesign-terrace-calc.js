@@ -185,8 +185,32 @@ var LtdCore = (function () {
     r.joistSegs = lines.reduce(function (t, l) { return t + l.segs.length; }, 0);
     r.joistMeters = lines.reduce(function (t, l) { return t + l.len; }, 0);
     r.joistLen = across;
+    // Двойные лаги: стык двух досок лежит на ближайшей линии лаг, под ним ставится вторая лага,
+    // чтобы у каждого торца была своя опора. Удваивается отрезок линии, на который приходится хотя бы один стык.
+    var dbl = {}, jointCount = 0;
+    if (!diag && lines.length) {
+      r.rowCuts.forEach(function (row, i) {
+        var yc = Math.min((i + 0.5) * useful, across - 1e-6);
+        row.forEach(function (ps, si) {
+          var x = r.rowSegs[i][si][0];
+          ps.slice(0, -1).forEach(function (p) {
+            x += p; jointCount++;
+            var li = 0;
+            lines.forEach(function (l, k) { if (Math.abs(l.x - x) < Math.abs(lines[li].x - x)) li = k; });
+            lines[li].segs.forEach(function (q, qi) { if (yc >= q[0] - 1e-6 && yc <= q[1] + 1e-6) dbl[li + ':' + qi] = 1; });
+          });
+        });
+      });
+    }
+    r.joints = jointCount;
+    r.extra = [];   // вторые лаги под стыками: { x, seg: [y0, y1] }
+    Object.keys(dbl).forEach(function (key) { var p = key.split(':'), l = lines[+p[0]]; r.extra.push({ x: l.x, seg: l.segs[+p[1]] }); });
+    r.extraLines = r.extra.reduce(function (t, e) { return t.indexOf(e.x) < 0 ? t.concat([e.x]) : t; }, []).length;
+    r.extraMeters = r.extra.reduce(function (t, e) { return t + e.seg[1] - e.seg[0]; }, 0);
+    r.joistMeters += r.extraMeters;
     if (s.lagLen > 0) {
-      r.lagPieces = lines.reduce(function (t, l) { return t + l.segs.reduce(function (u, q) { return u + ceil((q[1] - q[0]) / s.lagLen); }, 0); }, 0);
+      r.lagPieces = lines.reduce(function (t, l) { return t + l.segs.reduce(function (u, q) { return u + ceil((q[1] - q[0]) / s.lagLen); }, 0); }, 0) +
+        r.extra.reduce(function (t, e) { return t + ceil((e.seg[1] - e.seg[0]) / s.lagLen); }, 0);
     }
 
     // Клипсы: пересечения доска × лага
@@ -198,9 +222,10 @@ var LtdCore = (function () {
     } else {
       lines.forEach(function (l) { l.segs.forEach(function (q) { cross += ceil((q[1] - q[0]) / (useful * Math.SQRT2)); }); });
     }
+    cross += jointCount;   // у стыка второй торец крепится к своей лаге
     r.cross = cross;
     r.clips = ceil(cross * 1.1);
-    r.startClips = r.joistSegs * 2;
+    r.startClips = (r.joistSegs + r.extra.length) * 2;
 
     // Торцевая планка 2 м
     r.planks = ceil(perimeter / 2);
@@ -209,7 +234,8 @@ var LtdCore = (function () {
     // Опоры: по каждой лаге с шагом supStep, плюс опора на конце
     if (s.supStep > 0) {
       var st = s.supStep / 100;
-      r.supports = lines.reduce(function (t, l) { return t + l.segs.reduce(function (u, q) { return u + ceil((q[1] - q[0]) / st) + 1; }, 0); }, 0);
+      r.supports = lines.reduce(function (t, l) { return t + l.segs.reduce(function (u, q) { return u + ceil((q[1] - q[0]) / st) + 1; }, 0); }, 0) +
+        r.extra.reduce(function (t, e) { return t + ceil((e.seg[1] - e.seg[0]) / st) + 1; }, 0);
       r.supStepM = st;
     }
 
@@ -439,11 +465,9 @@ var LtdCore = (function () {
     if (s.lagOn) {
       var lg = s.lag != null ? I[s.lag] : null;
       if (lg && lg[3]) {
-        var Lj = lg[3] / 1000, pcs = 0;
-        r.lines.forEach(function (l) { l.segs.forEach(function (q) { pcs += ceil((q[1] - q[0]) / Lj); }); });
-        rows.push({ key: 'lag', name: link(lg), text: lg[0], qty: pcs, unit: 'шт', price: lg[1], sub: r.joists + ' ' + plural(r.joists, 'линия', 'линии', 'линий') + ', ' + fmt(r.joistMeters, 1) + ' пог. м, шаг ' + fmt(r.step * 100, 1) + ' см' });
+        rows.push({ key: 'lag', name: link(lg), text: lg[0], qty: r.lagPieces, unit: 'шт', price: lg[1], sub: joistText(r) });
       } else {
-        rows.push({ key: 'lag', name: 'Лаги', text: 'Лаги', qty: r.joists, unit: 'шт', price: null, sub: 'по ' + fmt(r.joistLen, 2) + ' м, всего ' + fmt(r.joistMeters, 1) + ' пог. м, шаг ' + fmt(r.step * 100, 1) + ' см' });
+        rows.push({ key: 'lag', name: 'Лаги', text: 'Лаги', qty: r.joists + r.extra.length, unit: 'шт', price: null, sub: 'по ' + fmt(r.joistLen, 2) + ' м, ' + joistText(r) });
       }
     }
     var cl = pickIdx('clip'), st = START_CLIP >= 0 ? START_CLIP : pickIdx('start');
@@ -593,8 +617,18 @@ var LtdCore = (function () {
     }
     return o + '</g>';
   }
+  function joistText(r) {
+    return r.joists + ' ' + plural(r.joists, 'линия', 'линии', 'линий') + (r.extraLines ? ' + ' + r.extraLines + ' ' + plural(r.extraLines, 'двойная', 'двойные', 'двойных') + ' под стыками' : '') +
+      ', ' + fmt(r.joistMeters, 1) + ' пог. м, шаг ' + fmt(r.step * 100, 1) + ' см';
+  }
   function joistLayer(s, r, f, withSup) {
     var o = '', jw = Math.max(1.5, Math.min(5, 0.04 * f.sc));
+    r.extra.forEach(function (e) {
+      var d = jw * 1.3 / f.sc, x = Math.min(e.x, r.along - 0.04) + (e.x + d > r.along - 0.04 ? -d : d);
+      var a = P(r, s, x, e.seg[0]), b = P(r, s, x, e.seg[1]);
+      if (s.dir === 'wid') o += '<rect x="' + f.X(a[0]) + '" y="' + (f.Y(a[1]) - jw / 2) + '" width="' + ((b[0] - a[0]) * f.sc) + '" height="' + jw + '" fill="var(--ltd-joint)"/>';
+      else o += '<rect x="' + (f.X(a[0]) - jw / 2) + '" y="' + f.Y(a[1]) + '" width="' + jw + '" height="' + ((b[1] - a[1]) * f.sc) + '" fill="var(--ltd-joint)"/>';
+    });
     r.lines.forEach(function (l) {
       var x = Math.min(l.x, r.along - 0.04);
       l.segs.forEach(function (q) {
@@ -641,8 +675,9 @@ var LtdCore = (function () {
   /* ---------- Рендер ---------- */
   function render() {
     var s = read();
-    if (!resTouched) { $('ltdRes').value = s.dir === 'diag' ? 15 : 7; s.res = num($('ltdRes').value); }
-    $('ltdResHint').textContent = s.dir === 'diag' ? 'Диагональ: 15%' : 'Прямая укладка: 7%';
+    var resDef = s.dir === 'diag' ? 15 : s.pattern === 'stagger' ? 10 : 7;
+    if (!resTouched) { $('ltdRes').value = resDef; s.res = resDef; }
+    $('ltdResHint').textContent = (s.dir === 'diag' ? 'Диагональ' : s.pattern === 'stagger' ? 'Вразбежку' : 'Прямой рисунок') + ': ' + resDef + '%';
     var cuts = CUT[s.shape];
     $('ltdCutBox').hidden = !cuts;
     if (cuts) { $('ltdALabel').textContent = cuts[0]; $('ltdBLabel').textContent = cuts[1] || ''; $('ltdCutHint').textContent = LtdCore.SHAPES[s.shape].hint; }
@@ -696,7 +731,7 @@ var LtdCore = (function () {
     drawJoists(s, r, 'ltdSvgJoists', false);
     drawAll(s, r);
     TAB_CAP.all = s.supOn ? 'доски, лаги и опоры' : 'доски и лаги · включите опоры, чтобы увидеть их';
-    $('ltdJoistCap').textContent = r.joists + ' ' + plural(r.joists, 'линия', 'линии', 'линий') + ', ' + fmt(r.joistMeters, 1) + ' пог. м, шаг ' + fmt(r.step * 100, 1) + ' см';
+    $('ltdJoistCap').textContent = joistText(r);
     TAB_CAP.joists = $('ltdJoistCap').textContent;
     $('ltdTabSup').disabled = !s.supOn;
     $('ltdTabSup').title = s.supOn ? '' : 'Включите «Добавить опоры»';
