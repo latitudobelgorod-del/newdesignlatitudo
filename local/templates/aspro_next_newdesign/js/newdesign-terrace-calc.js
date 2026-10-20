@@ -5,8 +5,9 @@
  */
 /* Ядро расчёта калькулятора террасы Латитудо (без DOM).
    Все размеры в метрах, кроме: ширина доски и зазор — мм, шаг лаг и шаг опор — см.
-   Форма террасы = набор непересекающихся прямоугольников [x, y, w, h]:
-   x — вдоль длины террасы, y — вдоль ширины. */
+   Форма террасы — либо набор непересекающихся прямоугольников [x, y, w, h] (rects),
+   либо один выпуклый многоугольник [[x, y], ...] по часовой стрелке на экране (poly):
+   x — вдоль длины террасы, y — вдоль ширины (вниз). Внутри всё считается по выпуклым кускам. */
 var LtdCore = (function () {
   var EPS = 1e-9;
   function ceil(x) { return Math.ceil(x - EPS); }
@@ -23,6 +24,10 @@ var LtdCore = (function () {
     tshape: { name: 'Т-образная', params: ['a', 'b'], hint: 'Верх на всю длину глубиной b, ножка шириной a',
       rects: function (p) { return [[0, 0, p.L, p.b], [(p.L - p.a) / 2, p.b, p.a, p.W - p.b]]; },
       perimeter: function (p) { return 2 * (p.L + p.W); } },
+    trap: { name: 'Трапеция', params: ['a'], hint: 'Длина — нижняя сторона, a — верхняя сторона (по центру)',
+      poly: function (p) { var s = (p.L - p.a) / 2; return [[s, 0], [s + p.a, 0], [p.L, p.W], [0, p.W]]; } },
+    bevel: { name: 'Скошенный угол', params: ['a', 'b'], hint: 'Скос в углу: a — по длине, b — по ширине',
+      poly: function (p) { return [[0, 0], [p.L - p.a, 0], [p.L, p.b], [p.L, p.W], [0, p.W]]; } },
     pool: { name: 'Вокруг бассейна', params: ['a', 'b'], hint: 'Бассейн по центру: a — по длине, b — по ширине',
       rects: function (p) { var x1 = (p.L - p.a) / 2, y1 = (p.W - p.b) / 2;
         return [[0, 0, p.L, y1], [0, y1 + p.b, p.L, p.W - y1 - p.b], [0, y1, x1, p.b], [x1 + p.a, y1, p.L - x1 - p.a, p.b]]; },
@@ -32,59 +37,115 @@ var LtdCore = (function () {
   function validShape(p) {
     var sh = SHAPES[p.shape];
     if (!sh || !sh.params.length) return '';
-    if (!(p.a > 0) || !(p.b > 0)) return 'Укажите размеры выреза';
+    if (!(p.a > 0) || (sh.params.length > 1 && !(p.b > 0))) return 'Укажите размеры выреза';
     if (p.shape === 'tshape') { if (p.a >= p.L) return 'Ширина ножки a должна быть меньше длины'; if (p.b >= p.W) return 'Глубина верха b должна быть меньше ширины'; return ''; }
+    if (p.shape === 'trap') return p.a >= p.L ? 'Верхняя сторона a должна быть меньше длины' : '';
+    if (p.shape === 'bevel') { if (p.a >= p.L) return 'Скос a должен быть меньше длины'; if (p.b >= p.W) return 'Скос b должен быть меньше ширины'; return ''; }
     if (p.a >= p.L - 0.2) return 'Вырез a должен быть меньше длины хотя бы на 0,2 м';
     if (p.b >= p.W - 0.2) return 'Вырез b должен быть меньше ширины хотя бы на 0,2 м';
     return '';
   }
 
-  /* Отрезки пересечения линии с формой. axis 'y' — горизонтальная линия на высоте v (отрезки по x). */
-  function cut(rects, axis, v) {
-    var segs = [];
-    rects.forEach(function (r) {
-      var x = r[0], y = r[1], w = r[2], h = r[3];
-      if (w <= EPS || h <= EPS) return;
-      if (axis === 'y') { if (v >= y - EPS && v <= y + h + EPS) segs.push([x, x + w]); }
-      else { if (v >= x - EPS && v <= x + w + EPS) segs.push([y, y + h]); }
+  function rectPoly(q) { return [[q[0], q[1]], [q[0] + q[2], q[1]], [q[0] + q[2], q[1] + q[3]], [q[0], q[1] + q[3]]]; }
+  /* Выпуклые куски формы в координатах террасы */
+  function pieces(s) {
+    var sh = SHAPES[s.shape] || SHAPES.rect;
+    return sh.poly ? [sh.poly(s)] : sh.rects(s).filter(function (q) { return q[2] > EPS && q[3] > EPS; }).map(rectPoly);
+  }
+  function polyArea(pl) { var t = 0; for (var i = 0; i < pl.length; i++) { var p = pl[i], q = pl[(i + 1) % pl.length]; t += p[0] * q[1] - q[0] * p[1]; } return Math.abs(t) / 2; }
+  function polyPerimeter(pl) { var t = 0; for (var i = 0; i < pl.length; i++) { var p = pl[i], q = pl[(i + 1) % pl.length]; t += Math.hypot(q[0] - p[0], q[1] - p[1]); } return t; }
+
+  /* Отрезки пересечения линии с формой. axis 'y' — горизонтальная линия на высоте v (отрезки по x),
+     axis 'x' — вертикальная линия x = v (отрезки по y). */
+  function cut(polys, axis, v) {
+    var a = axis === 'y' ? 1 : 0, b = 1 - a, segs = [];
+    polys.forEach(function (pl) {
+      var lo = Infinity, hi = -Infinity;
+      for (var i = 0; i < pl.length; i++) {
+        var p = pl[i], q = pl[(i + 1) % pl.length];
+        var p1 = Math.min(p[a], q[a]), p2 = Math.max(p[a], q[a]);
+        if (v < p1 - 1e-7 || v > p2 + 1e-7) continue;
+        if (p2 - p1 < 1e-9) { lo = Math.min(lo, p[b], q[b]); hi = Math.max(hi, p[b], q[b]); continue; }
+        var t = p[b] + (v - p[a]) * (q[b] - p[b]) / (q[a] - p[a]);
+        lo = Math.min(lo, t); hi = Math.max(hi, t);
+      }
+      if (hi - lo > 1e-6) segs.push([lo, hi]);
     });
-    segs.sort(function (a, b) { return a[0] - b[0]; });
+    segs.sort(function (m, n) { return m[0] - n[0]; });
     var out = [];
-    segs.forEach(function (s) {
+    segs.forEach(function (sg) {
       var last = out[out.length - 1];
-      if (last && s[0] <= last[1] + 1e-6) last[1] = Math.max(last[1], s[1]); else out.push([s[0], s[1]]);
+      if (last && sg[0] <= last[1] + 1e-6) last[1] = Math.max(last[1], sg[1]); else out.push([sg[0], sg[1]]);
+    });
+    return out;
+  }
+  /* Отрезки ряда досок в полосе [y0, y1]: объединение срезов по краям и середине полосы
+     (у косой стороны доска режется по самой длинной кромке) */
+  function bandSegs(polys, y0, y1) {
+    var d = Math.min(1e-4, (y1 - y0) / 4), all = [];
+    [y0 + d, (y0 + y1) / 2, y1 - d].forEach(function (y) { all = all.concat(cut(polys, 'y', y)); });
+    all.sort(function (m, n) { return m[0] - n[0]; });
+    var out = [];
+    all.forEach(function (sg) {
+      var last = out[out.length - 1];
+      if (last && sg[0] <= last[1] + 1e-6) last[1] = Math.max(last[1], sg[1]); else out.push([sg[0], sg[1]]);
     });
     return out;
   }
 
   /* Поворот формы так, чтобы доски всегда шли по оси x («вдоль»). */
-  function orient(rects, dir) {
-    if (dir !== 'wid') return rects;
-    return rects.map(function (r) { return [r[1], r[0], r[3], r[2]]; });
+  function orient(polys, dir) {
+    if (dir !== 'wid') return polys;
+    return polys.map(function (pl) { return pl.map(function (p) { return [p[1], p[0]]; }); });
+  }
+
+  /* Сдвиг стыков в чётных (2-м, 4-м…) рядах при укладке вразбежку: половина доски, на ближайшей лаге */
+  function staggerOffset(bl, step) { var o = Math.max(step, Math.round((bl / 2) / step) * step); return o >= bl - 1e-6 ? bl / 2 : o; }
+
+  /* Куски досок в ряду: от начала ряда, первый кусок короче при сдвиге */
+  function rowPieces(len, bl, off) {
+    var out = [], x = 0;
+    if (off > 0 && off < len - 1e-6) { out.push(off); x = off; }
+    while (len - x > 1e-6) { var p = Math.min(bl, len - x); out.push(p); x += p; }
+    return out;
   }
 
   function calc(s) {
     var sh = SHAPES[s.shape] || SHAPES.rect;
-    var base = sh.rects(s);
-    var area = base.reduce(function (t, r) { return t + r[2] * r[3]; }, 0);
-    var perimeter = sh.perimeter ? sh.perimeter(s) : 2 * (s.L + s.W);
+    var base = pieces(s);
+    var area = base.reduce(function (t, pl) { return t + polyArea(pl); }, 0);
+    var perimeter = sh.perimeter ? sh.perimeter(s) : sh.poly ? polyPerimeter(base[0]) : 2 * (s.L + s.W);
     var diag = s.dir === 'diag';
-    var rects = orient(base, s.dir);
+    var polys = orient(base, s.dir);
     var along = s.dir === 'wid' ? s.W : s.L;     // габарит вдоль досок
     var across = s.dir === 'wid' ? s.L : s.W;    // габарит поперёк
     var useful = (s.bw + s.gap) / 1000;
     var k = 1 + s.res / 100;
-    var r = { area: area, perimeter: perimeter, along: along, across: across, useful: useful, diag: diag, rects: rects, base: base };
+    var stagger = s.pattern === 'stagger';
+    var r = { area: area, perimeter: perimeter, along: along, across: across, useful: useful, diag: diag, polys: polys, base: base,
+      poly: sh.poly ? base[0] : null, rectsBase: sh.poly ? null : sh.rects(s), stagger: stagger };
+
+    r.step = s.step / 100 * (diag ? 0.7 : 1);
 
     // Доски
     if (!diag) {
       r.rows = ceil(across / useful);
-      var raw = 0, rowSegs = [];
+      r.offset = stagger ? staggerOffset(s.bl, r.step) : 0;
+      var raw = 0, rowSegs = [], pool = [];
       for (var i = 0; i < r.rows; i++) {
-        var yc = Math.min((i + 0.5) * useful, across - 1e-6);
-        var segs = cut(rects, 'y', yc);
+        var segs = bandSegs(polys, i * useful, Math.min((i + 1) * useful, across));
         rowSegs.push(segs);
-        segs.forEach(function (sg) { raw += ceil((sg[1] - sg[0]) / s.bl); });
+        segs.forEach(function (sg) {
+          // целые доски — новые; укороченный кусок берём из подходящего обрезка, иначе режем новую доску
+          rowPieces(sg[1] - sg[0], s.bl, i % 2 ? r.offset : 0).forEach(function (p) {
+            if (p >= s.bl - 1e-6) { raw++; return; }
+            var best = -1;
+            pool.forEach(function (o, j) { if (o >= p - 1e-6 && (best < 0 || o < pool[best])) best = j; });
+            var rest;
+            if (best >= 0) { rest = pool[best] - p; pool.splice(best, 1); } else { raw++; rest = s.bl - p; }
+            if (rest >= 0.3) pool.push(rest);
+          });
+        });
       }
       r.rowSegs = rowSegs;
       r.perRow = ceil(along / s.bl);
@@ -97,13 +158,12 @@ var LtdCore = (function () {
     }
 
     // Лаги: линии поперёк досок с шагом step
-    r.step = s.step / 100 * (diag ? 0.7 : 1);
     var n = ceil(along / r.step) + 1;
     var lines = [];
     for (var j = 0; j < n; j++) {
       var x = Math.min(j * r.step, along);
       var xs = Math.min(Math.max(x, 1e-6), along - 1e-6);
-      var ys = cut(rects, 'x', xs);
+      var ys = cut(polys, 'x', xs);
       if (ys.length) lines.push({ x: x, segs: ys, len: ys.reduce(function (t, q) { return t + q[1] - q[0]; }, 0) });
     }
     r.lines = lines;
@@ -156,7 +216,7 @@ var LtdCore = (function () {
     return r;
   }
 
-  return { SHAPES: SHAPES, calc: calc, cut: cut, validShape: validShape };
+  return { SHAPES: SHAPES, calc: calc, cut: cut, validShape: validShape, staggerOffset: staggerOffset, rowPieces: rowPieces };
 })();
 
 (function () {
@@ -187,15 +247,19 @@ var LtdCore = (function () {
     lshape: '<path d="M4 5h26v10h14v14H4z"/>',
     ushape: '<path d="M4 5h12v12h16V5h12v24H4z"/>',
     tshape: '<path d="M4 5h40v10H31v14H17V15H4z"/>',
+    trap: '<path d="M14 5h20l10 24H4z"/>',
+    bevel: '<path d="M4 5h28l12 10v14H4z"/>',
     pool: '<rect x="4" y="5" width="40" height="24"/><rect x="16" y="12" width="16" height="10"/>'
   };
   var CUT = {
     lshape: ['Вырез по длине a, м', 'Вырез по ширине b, м'],
     ushape: ['Вырез по длине a, м', 'Вырез по ширине b, м'],
     tshape: ['Ширина ножки a, м', 'Глубина верха b, м'],
+    trap: ['Верхняя сторона a, м'],
+    bevel: ['Скос по длине a, м', 'Скос по ширине b, м'],
     pool: ['Бассейн по длине a, м', 'Бассейн по ширине b, м']
   };
-  var SHAPE_LABEL = { rect: 'Прямо­угольник', lshape: 'Г-образная', ushape: 'П-образная', tshape: 'Т-образная', pool: 'Вокруг бассейна' };
+  var SHAPE_LABEL = { rect: 'Прямо­угольник', lshape: 'Г-образная', ushape: 'П-образная', tshape: 'Т-образная', trap: 'Трапеция', bevel: 'Скошенный угол', pool: 'Вокруг бассейна' };
   $('ltdShapes').innerHTML = Object.keys(LtdCore.SHAPES).map(function (k, i) {
     return '<label lang="ru"><input type="radio" name="ltdShape" value="' + k + '"' + (i ? '' : ' checked') + '><span><svg viewBox="0 0 48 34" aria-hidden="true">' + SHAPE_ICONS[k] + '</svg>' + SHAPE_LABEL[k] + '</span></label>';
   }).join('');
@@ -319,7 +383,7 @@ var LtdCore = (function () {
     var bl = c ? off[0] / 1000 : (blSel === 'custom' ? num($('ltdBL').value) : num(blSel));
     var lagSel = $('ltdLag').value, supSel = $('ltdSup').value;
     return {
-      shape: g('ltdShape'), dir: g('ltdDir'), L: num($('ltdL').value), W: num($('ltdW').value), a: num($('ltdA').value), b: num($('ltdB').value),
+      shape: g('ltdShape'), dir: g('ltdDir'), pattern: g('ltdPattern'), L: num($('ltdL').value), W: num($('ltdW').value), a: num($('ltdA').value), b: num($('ltdB').value),
       own: !c, bw: c ? model().w : num($('ltdBW').value), bt: c ? model().t : null, bl: bl, blCustom: blSel === 'custom',
       lengths: c ? c.o.map(function (o) { return o[0] / 1000; }) : [3, 4, 6],
       price: c ? off[1] : ($('ltdPrice').value === '' ? 0 : num($('ltdPrice').value)),
@@ -333,7 +397,7 @@ var LtdCore = (function () {
     if (!(s.L >= 0.5 && s.L <= 50)) e.L = 'От 0,5 до 50 м';
     if (!(s.W >= 0.5 && s.W <= 50)) e.W = 'От 0,5 до 50 м';
     if (LtdCore.SHAPES[s.shape].params.length) {
-      if (!(s.a > 0)) e.a = 'Положительное число'; if (!(s.b > 0)) e.b = 'Положительное число';
+      if (!(s.a > 0)) e.a = 'Положительное число'; if (LtdCore.SHAPES[s.shape].params.length > 1 && !(s.b > 0)) e.b = 'Положительное число';
       var m = LtdCore.validShape(s); if (m && !e.a && !e.b) e.a = m;
     }
     if (!(s.bw > 0)) e.bw = 'Положительное число';
@@ -404,9 +468,20 @@ var LtdCore = (function () {
     var x0 = drag ? drag.x0 : pad[3] + (VW - pad[3] - pad[1] - w) / 2, y0 = drag ? drag.y0 : pad[0] + (VH - pad[0] - pad[2] - h) / 2;
     return { sc: sc, x0: x0, y0: y0, w: w, h: h, X: function (x) { return x0 + x * sc; }, Y: function (y) { return y0 + y * sc; } };
   }
-  function shapePath(base, f) { return base.map(function (q) { return '<rect x="' + f.X(q[0]) + '" y="' + f.Y(q[1]) + '" width="' + (q[2] * f.sc) + '" height="' + (q[3] * f.sc) + '"/>'; }).join(''); }
-  /* Стороны контура формы (объединение прямоугольников): отрезки с нормалью наружу */
-  function edges(base) {
+  function shapePath(r, f) {
+    if (r.poly) return '<path d="' + r.poly.map(function (p, i) { return (i ? 'L' : 'M') + f.X(p[0]) + ' ' + f.Y(p[1]); }).join('') + 'Z"/>';
+    return r.rectsBase.map(function (q) { return '<rect x="' + f.X(q[0]) + '" y="' + f.Y(q[1]) + '" width="' + (q[2] * f.sc) + '" height="' + (q[3] * f.sc) + '"/>'; }).join('');
+  }
+  /* Стороны контура: у многоугольника — его рёбра (обход по часовой, нормаль наружу), иначе — по прямоугольникам */
+  function edges(r) {
+    if (r.poly) return r.poly.map(function (p, i) {
+      var q = r.poly[(i + 1) % r.poly.length], len = Math.hypot(q[0] - p[0], q[1] - p[1]);
+      return { x1: p[0], y1: p[1], x2: q[0], y2: q[1], nx: (q[1] - p[1]) / len, ny: -(q[0] - p[0]) / len };
+    });
+    return rectEdges(r.rectsBase);
+  }
+  /* Стороны контура объединения прямоугольников: отрезки с нормалью наружу */
+  function rectEdges(base) {
     var xs = [], ys = [], eps = 1e-6;
     base.forEach(function (q) { xs.push(q[0], q[0] + q[2]); ys.push(q[1], q[1] + q[3]); });
     var uniq = function (a) { a.sort(function (m, n) { return m - n; }); return a.filter(function (v, i) { return !i || v - a[i - 1] > eps; }); };
@@ -430,21 +505,26 @@ var LtdCore = (function () {
     }
     return out;
   }
-  function outline(base, f) {
-    return edges(base).map(function (e) { return 'M' + f.X(e.x1) + ' ' + f.Y(e.y1) + 'L' + f.X(e.x2) + ' ' + f.Y(e.y2); }).join('');
+  function outline(r, f) {
+    return edges(r).map(function (e) { return 'M' + f.X(e.x1) + ' ' + f.Y(e.y1) + 'L' + f.X(e.x2) + ' ' + f.Y(e.y2); }).join('');
   }
   /* подписи длины каждой стороны (кроме общих габаритов сверху и слева: они в dims) */
-  function edgeLabels(s, base, f) {
+  function edgeLabels(s, r, f) {
     var o = '', eps = 1e-6;
-    edges(base).forEach(function (e) {
-      var len = Math.abs(e.x2 - e.x1) + Math.abs(e.y2 - e.y1);
+    edges(r).forEach(function (e) {
+      var len = Math.hypot(e.x2 - e.x1, e.y2 - e.y1);
       if (len * f.sc < 26) return;
-      if (e.ny === -1 && Math.abs(e.y1) < eps && Math.abs(len - s.L) < eps) return;
-      if (e.nx === -1 && Math.abs(e.x1) < eps && Math.abs(len - s.W) < eps) return;
-      var mx = f.X((e.x1 + e.x2) / 2) + e.nx * 9, my = f.Y((e.y1 + e.y2) / 2) + e.ny * 9;
+      if (Math.abs(e.ny + 1) < eps && Math.abs(e.y1) < eps && Math.abs(len - s.L) < eps) return;
+      if (Math.abs(e.nx + 1) < eps && Math.abs(e.x1) < eps && Math.abs(len - s.W) < eps) return;
+      // у верхней и левой кромки снаружи стоят общие габариты — подпись части стороны ставим внутрь
+      var inner = (Math.abs(e.ny + 1) < eps && Math.abs(e.y1) < eps) || (Math.abs(e.nx + 1) < eps && Math.abs(e.x1) < eps) ? -1 : 1;
+      var mx = f.X((e.x1 + e.x2) / 2) + e.nx * 9 * inner, my = f.Y((e.y1 + e.y2) / 2) + e.ny * 9 * inner;
       var txt = fmt(Math.round(len * 1000)) + ' мм';
       var attr = 'fill="var(--ltd-ink)" font-size="10" text-anchor="middle" dominant-baseline="middle" paint-order="stroke" stroke="var(--ltd-panel)" stroke-width="3" style="font-variant-numeric:tabular-nums"';
-      o += e.nx ? '<text x="' + mx + '" y="' + my + '" ' + attr + ' transform="rotate(-90 ' + mx + ' ' + my + ')">' + txt + '</text>' : '<text x="' + mx + '" y="' + my + '" ' + attr + '>' + txt + '</text>';
+      // подпись вдоль стороны: читается слева направо или снизу вверх
+      var ang = Math.atan2(e.y2 - e.y1, e.x2 - e.x1) * 180 / Math.PI;
+      if (ang > 90) ang -= 180; if (ang <= -90) ang += 180; if (Math.abs(ang - 90) < 1e-6) ang = -90;
+      o += Math.abs(ang) > 0.01 ? '<text x="' + mx + '" y="' + my + '" ' + attr + ' transform="rotate(' + ang.toFixed(2) + ' ' + mx + ' ' + my + ')">' + txt + '</text>' : '<text x="' + mx + '" y="' + my + '" ' + attr + '>' + txt + '</text>';
     });
     return o;
   }
@@ -461,6 +541,8 @@ var LtdCore = (function () {
     if (s.shape === 'lshape') return [s.L - s.a, s.b];
     if (s.shape === 'ushape') return [(s.L + s.a) / 2, s.b];
     if (s.shape === 'tshape') return [(s.L + s.a) / 2, s.b];
+    if (s.shape === 'trap') return [(s.L + s.a) / 2, 0];
+    if (s.shape === 'bevel') return [s.L - s.a, s.b];
     if (s.shape === 'pool') return [(s.L + s.a) / 2, (s.W + s.b) / 2];
     return null;
   }
@@ -471,7 +553,7 @@ var LtdCore = (function () {
   }
   function boardLayer(s, r, f, clipId) {
     var u = r.useful, o = '';
-    o += '<defs><clipPath id="' + clipId + '">' + shapePath(r.base, f) + '</clipPath></defs>';
+    o += '<defs><clipPath id="' + clipId + '">' + shapePath(r, f) + '</clipPath></defs>';
     o += '<g clip-path="url(#' + clipId + ')"><rect x="' + f.x0 + '" y="' + f.y0 + '" width="' + f.w + '" height="' + f.h + '" fill="var(--ltd-board)"/>';
     var seamW = Math.max(0.6, Math.min(2, u * f.sc * 0.12));
     if (!r.diag) {
@@ -484,7 +566,7 @@ var LtdCore = (function () {
           o += '<rect x="' + f.X(x) + '" y="' + f.Y(y) + '" width="' + (w * f.sc) + '" height="' + (h * f.sc) + '" fill="' + (i % 2 ? 'var(--ltd-board-2)' : 'var(--ltd-board)') + '"/>';
           var len = sg[1] - sg[0];
           if (Lb < len - 0.001) {
-            var off = (i % 2) ? Math.max(r.step, Math.round((Lb / 2) / r.step) * r.step) : Lb;
+            var off = (r.stagger && i % 2) ? r.offset : Lb;
             for (var j = off; j < len - 0.05; j += Lb) {
               var q0 = P(r, s, sg[0] + j, a0), q1 = P(r, s, sg[0] + j, a1);
               o += '<line x1="' + f.X(q0[0]) + '" y1="' + f.Y(q0[1]) + '" x2="' + f.X(q1[0]) + '" y2="' + f.Y(q1[1]) + '" stroke="var(--ltd-joint)" stroke-width="2"/>';
@@ -525,7 +607,7 @@ var LtdCore = (function () {
   }
   function drawBoards(s, r) {
     var f = frame(s, 640, 360, [34, 30, 20, 40]);
-    var o = boardLayer(s, r, f, 'ltdClipB') + '<path d="' + outline(r.base, f) + '" fill="none" stroke="var(--ltd-ink)" stroke-width="1.6"/>' + dims(s, f) + edgeLabels(s, r.base, f);
+    var o = boardLayer(s, r, f, 'ltdClipB') + '<path d="' + outline(r, f) + '" fill="none" stroke="var(--ltd-ink)" stroke-width="1.6"/>' + dims(s, f) + edgeLabels(s, r, f);
     o += '<circle class="ltd-handle" data-h="LW" cx="' + f.X(s.L) + '" cy="' + f.Y(s.W) + '" r="8" fill="var(--ltd-accent)" stroke="var(--ltd-bg)" stroke-width="2"/>';
     var cc = cutCorner(s);
     if (cc) o += '<circle class="ltd-handle" data-h="ab" cx="' + f.X(cc[0]) + '" cy="' + f.Y(cc[1]) + '" r="7" fill="var(--ltd-bg)" stroke="var(--ltd-accent)" stroke-width="3"/>';
@@ -535,12 +617,12 @@ var LtdCore = (function () {
   function drawAll(s, r) {
     var f = fixedFrame(s, 640, 360, [34, 30, 20, 40]);
     $('ltdSvgAll').innerHTML = '<g opacity=".5">' + boardLayer(s, r, f, 'ltdClipA') + '</g>' + joistLayer(s, r, f, s.supOn) +
-      '<path d="' + outline(r.base, f) + '" fill="none" stroke="var(--ltd-ink)" stroke-width="1.6"/>' + dims(s, f) + edgeLabels(s, r.base, f);
+      '<path d="' + outline(r, f) + '" fill="none" stroke="var(--ltd-ink)" stroke-width="1.6"/>' + dims(s, f) + edgeLabels(s, r, f);
   }
   function drawJoists(s, r, svgId, withSup) {
     var f = fixedFrame(s, 400, 300, [34, 20, 20, 40]);
-    var o = '<defs><clipPath id="' + svgId + 'C">' + shapePath(r.base, f) + '</clipPath></defs><g clip-path="url(#' + svgId + 'C)"><rect x="' + f.x0 + '" y="' + f.y0 + '" width="' + f.w + '" height="' + f.h + '" fill="var(--ltd-bg)"/></g>';
-    o += joistLayer(s, r, f, withSup) + '<path d="' + outline(r.base, f) + '" fill="none" stroke="var(--ltd-ink)" stroke-width="1.4"/>' + stepMark(s, r, f);
+    var o = '<defs><clipPath id="' + svgId + 'C">' + shapePath(r, f) + '</clipPath></defs><g clip-path="url(#' + svgId + 'C)"><rect x="' + f.x0 + '" y="' + f.y0 + '" width="' + f.w + '" height="' + f.h + '" fill="var(--ltd-bg)"/></g>';
+    o += joistLayer(s, r, f, withSup) + '<path d="' + outline(r, f) + '" fill="none" stroke="var(--ltd-ink)" stroke-width="1.4"/>' + stepMark(s, r, f);
     $(svgId).innerHTML = o;
   }
 
@@ -551,7 +633,9 @@ var LtdCore = (function () {
     $('ltdResHint').textContent = s.dir === 'diag' ? 'Диагональ: 15%' : 'Прямая укладка: 7%';
     var cuts = CUT[s.shape];
     $('ltdCutBox').hidden = !cuts;
-    if (cuts) { $('ltdALabel').textContent = cuts[0]; $('ltdBLabel').textContent = cuts[1]; $('ltdCutHint').textContent = LtdCore.SHAPES[s.shape].hint; }
+    if (cuts) { $('ltdALabel').textContent = cuts[0]; $('ltdBLabel').textContent = cuts[1] || ''; $('ltdCutHint').textContent = LtdCore.SHAPES[s.shape].hint; }
+    root.querySelector('[data-f=b]').hidden = !cuts || cuts.length < 2;
+    $('ltdPatternBox').hidden = s.dir === 'diag';
     $('ltdCatBox').hidden = s.own; $('ltdOwnBox').hidden = !s.own;
     $('ltdBLwrap').hidden = !s.blCustom;
     $('ltdLagWrap').classList.toggle('is-off', !s.lagOn);
@@ -567,7 +651,7 @@ var LtdCore = (function () {
     if (bad) { $('ltdInvalid').textContent = 'Проверьте поля, отмеченные красным. Результат пересчитается автоматически.'; return; }
 
     var lg = s.lagOn && s.lag != null ? I[s.lag] : null;
-    var r = LtdCore.calc({ shape: s.shape, L: s.L, W: s.W, a: s.a, b: s.b, dir: s.dir, bw: s.bw, gap: s.gap, bl: s.bl, res: s.res, step: s.step,
+    var r = LtdCore.calc({ shape: s.shape, L: s.L, W: s.W, a: s.a, b: s.b, dir: s.dir, pattern: s.pattern, bw: s.bw, gap: s.gap, bl: s.bl, res: s.res, step: s.step,
       lengths: s.lengths, supStep: s.supOn ? s.supStepCm : 0, lagLen: lg && lg[3] ? lg[3] / 1000 : 0 });
     $('ltdStepHint').textContent = r.diag ? 'Диагональ: × 0,7 = ' + fmt(r.step * 100, 1) + ' см' : '';
 
@@ -617,7 +701,8 @@ var LtdCore = (function () {
     if (drag) {
       var x = Math.round(((pt.x - drag.x0) / drag.sc) * 10) / 10, y = Math.round(((pt.y - drag.y0) / drag.sc) * 10) / 10, s = last ? last.s : read();
       if (drag.h === 'LW') { $('ltdL').value = Math.min(50, Math.max(0.5, x)); $('ltdW').value = Math.min(50, Math.max(0.5, y)); }
-      else if (s.shape === 'lshape') { $('ltdA').value = Math.max(0.1, Math.round((s.L - x) * 10) / 10); $('ltdB').value = Math.max(0.1, y); }
+      else if (s.shape === 'trap') { $('ltdA').value = Math.max(0.1, Math.round((2 * x - s.L) * 10) / 10); }
+      else if (s.shape === 'lshape' || s.shape === 'bevel') { $('ltdA').value = Math.max(0.1, Math.round((s.L - x) * 10) / 10); $('ltdB').value = Math.max(0.1, y); }
       else if (s.shape === 'ushape' || s.shape === 'tshape') { $('ltdA').value = Math.max(0.1, Math.round((2 * x - s.L) * 10) / 10); $('ltdB').value = Math.max(0.1, y); }
       else if (s.shape === 'pool') { $('ltdA').value = Math.max(0.1, Math.round((2 * x - s.L) * 10) / 10); $('ltdB').value = Math.max(0.1, Math.round((2 * y - s.W) * 10) / 10); }
       render(); tip.hidden = true; return;
@@ -663,7 +748,7 @@ var LtdCore = (function () {
   function summary() {
     var s = last.s, r = last.r;
     var lines = ['Терраса: ' + LtdCore.SHAPES[s.shape].name + ', ' + fmt(s.L) + ' × ' + fmt(s.W) + ' м' + (CUT[s.shape] ? ' (a ' + fmt(s.a) + ' м, b ' + fmt(s.b) + ' м)' : '') + ', ' + fmt(r.area, 2) + ' м²',
-      'Укладка: ' + { len: 'вдоль длины', wid: 'вдоль ширины', diag: 'по диагонали 45°' }[s.dir] + ', зазор ' + fmt(s.gap) + ' мм, запас ' + fmt(s.res) + '%'];
+      'Укладка: ' + { len: 'вдоль длины', wid: 'вдоль ширины', diag: 'по диагонали 45°' }[s.dir] + (s.dir !== 'diag' ? (s.pattern === 'stagger' ? ', вразбежку' : ', прямой рисунок') : '') + ', зазор ' + fmt(s.gap) + ' мм, запас ' + fmt(s.res) + '%'];
     last.rows.forEach(function (x) { if (x.off) return; lines.push(x.text + ': ' + fmt(x.qty) + ' ' + x.unit + (x.sum != null ? ' = ' + rub(x.sum) : '')); });
     if (last.total) lines.push('Итого по позициям с ценой: ' + rub(last.total));
     return lines.join('\n');

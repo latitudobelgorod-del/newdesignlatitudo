@@ -50,6 +50,12 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
             <label><input type="radio" name="ltdDir" value="diag"><span><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="2" y="2" width="44" height="30" rx="1"/><path d="M2 14L14 2M2 26L26 2M8 32L38 2M20 32L46 6M32 32L46 18"/></svg>Диагональ 45°</span></label>
           </div>
         </div>
+        <div class="ltd-field" id="ltdPatternBox"><span>Рисунок укладки</span>
+          <div class="ltd-tiles" role="radiogroup" aria-label="Рисунок укладки">
+            <label><input type="radio" name="ltdPattern" value="straight"><span><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="2" y="2" width="44" height="30" rx="1"/><path d="M2 9.5h44M2 17h44M2 24.5h44M28 2v30"/></svg>Прямой</span></label>
+            <label><input type="radio" name="ltdPattern" value="stagger" checked><span><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="2" y="2" width="44" height="30" rx="1"/><path d="M2 9.5h44M2 17h44M2 24.5h44M30 2v7.5M16 9.5v7.5M30 17v7.5M16 24.5v7.5"/></svg>Вразбежку</span></label>
+          </div>
+        </div>
       </section>
 
       <section class="ltd-step">
