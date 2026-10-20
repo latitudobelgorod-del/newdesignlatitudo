@@ -706,7 +706,7 @@ var LtdCore = (function () {
     var shortRows = !r.diag && r.rowSegs.every(function (segs) { return segs.every(function (sg) { return sg[1] - sg[0] <= s.bl + 1e-6; }); });
     $('ltdPatternHint').textContent = r.diag ? '' : !joints ? 'Ряд не длиннее доски (' + fmt(s.bl, 2) + ' м): доски кладутся целиком, без стыков.'
       : s.pattern === 'stagger' && shortRows ? 'Ряд короче доски: каждый ряд собирается из двух кусков, стыки в соседних рядах разнесены. Обрезок одного куска идёт на следующий.' : '';
-    $('ltdStepHint').textContent = r.diag ?'Диагональ: × 0,7 = ' + fmt(r.step * 100, 1) + ' см' : '';
+    $('ltdStepHint').textContent = 'Шаг лаг по осям, не больше ' + STEP_MAX + ' см.' + (r.diag ? ' Диагональ: × 0,7 = ' + fmt(r.step * 100, 1) + ' см.' : '');
 
     $('ltdBoards').innerHTML = fmt(r.total) + '<small>' + plural(r.total, 'доска', 'доски', 'досок') + ' по ' + fmt(s.bl) + ' м</small>';
     $('ltdBoardsSub').innerHTML = 'С запасом ' + fmt(s.res) + '%. Без запаса <b>' + fmt(r.raw) + '</b>' + (r.diag ? '' : ' · ' + r.rows + ' ' + plural(r.rows, 'ряд', 'ряда', 'рядов'));
