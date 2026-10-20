@@ -729,6 +729,9 @@ if ($allVolume){
 if ($result['DISCOUNT_PRICE_ALL'] > 0)
 {
 	$totalData['DISCOUNT_PRICE_FORMATED'] = $result['DISCOUNT_PRICE_FORMATED'];
+	// Числа для мгновенного пересчёта итогов при удалении позиции (template.php)
+	$totalData['ND_DISCOUNT'] = (float)$result['DISCOUNT_PRICE_ALL'];
+	$totalData['ND_PRICE_FULL'] = (float)$result['allSum'] + (float)$result['DISCOUNT_PRICE_ALL'];
 }
 
 if ($ndSetBenefit > 0)

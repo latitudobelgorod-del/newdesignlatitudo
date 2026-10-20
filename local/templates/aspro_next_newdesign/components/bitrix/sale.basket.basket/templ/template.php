@@ -1160,8 +1160,71 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 
 			return orig.apply(this, arguments);
 		};
+
+		/* «Итого» без «докрутки» цифр. Когда сумма уменьшалась, компонент
+		   рисовал прежнюю и анимацией вёл её к новой, а «Товары» уже стояли
+		   новые — после удаления позиции суммы расходились (Ирина, 20.10.2026). */
+		bc.checkTotalAnimation = function (totalData) { return totalData; };
+
 		return true;
 	}
+
+	/* Удаление позиции: итоги пересчитываем сразу по нажатию, не дожидаясь
+	   сервера (ответ идёт секунду и больше). Точные цифры — со скидками и
+	   комплектом — приходят с ответом и перерисовывают панель; до этого
+	   панель приглушена (.nd-total--busy). Обработчик на документе в фазе
+	   захвата: кнопки строк компонент перерисовывает, а сам он ещё не успел
+	   пометить позицию удалённой. */
+	function money(bc, v, cur) {
+		return bc.getFormatPrice(Math.max(0, Math.round(v * 100) / 100), cur);
+	}
+
+	function markBusy() {
+		var card = document.querySelector('[data-entity="basket-total-block"] .nd-total__card');
+		if (!card) return;
+		card.classList.add('nd-total--busy');
+		/* Ответ не пришёл — не держим панель приглушённой вечно. */
+		setTimeout(function () { card.classList.remove('nd-total--busy'); }, 10000);
+	}
+
+	document.addEventListener('click', function (e) {
+		var btn = e.target.closest && e.target.closest('[data-entity="basket-item-delete"]');
+		if (!btn) return;
+		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+		var row = btn.closest('[data-entity="basket-item"]');
+		var t = bc && bc.result && bc.result.TOTAL_RENDER_DATA;
+		var item = row && bc && bc.items ? bc.items[row.getAttribute('data-id')] : null;
+		if (!t || !item || item.SHOW_RESTORE || item.SHOW_LOADING || item.__ndCounted) return;
+		item.__ndCounted = true;
+
+		/* У товара комплекта SUM_PRICE подменена на полную (mutator.php),
+		   реально оплачиваемая — полная минус скидка. */
+		var full = parseFloat(item.SUM_FULL_PRICE) || 0;
+		var disc = parseFloat(item.SUM_DISCOUNT_PRICE) || 0;
+		var cur = t.CURRENCY;
+
+		t.PRICE = Math.max(0, (parseFloat(t.PRICE) || 0) - (full - disc));
+		t.PRICE_FORMATED = money(bc, t.PRICE, cur);
+		delete t.PRICE_NEW;
+		delete t.PRICE_FORMATED_NEW;
+
+		var count = (parseFloat(t.COUNT_ITEMS) || 0) - (parseFloat(item.QUANTITY) || 0);
+		t.COUNT_ITEMS = count > 0 ? String(Math.round(count * 1000) / 1000) : '';
+
+		if (t.DISCOUNT_PRICE_FORMATED && t.ND_PRICE_FULL != null) {
+			t.ND_PRICE_FULL = Math.max(0, t.ND_PRICE_FULL - full);
+			t.ND_DISCOUNT = Math.max(0, (t.ND_DISCOUNT || 0) - disc);
+			t.PRICE_WITHOUT_DISCOUNT_FORMATED = money(bc, t.ND_PRICE_FULL, cur);
+			if (t.ND_DISCOUNT > 0) {
+				t.DISCOUNT_PRICE_FORMATED = money(bc, t.ND_DISCOUNT, cur);
+			} else {
+				delete t.DISCOUNT_PRICE_FORMATED;
+			}
+		}
+
+		bc.fillTotalBlocks();
+		markBusy();
+	}, true);
 
 	if (!patch()) {
 		/* Компонент поднимается ниже по странице — ждём его недолго. */
