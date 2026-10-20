@@ -205,7 +205,8 @@ var LtdCore = (function () {
     [/шоколад|орех|walnut|каштан|кофе|мокка/i, '#5b3a27'], [/натур|бежев|песоч|светл|сосна|клён|клен/i, '#c3a27a'], [/тик|кедр|cedar|дуб|oak|амбар|мербау/i, '#9a6b42'], [/бел/i, '#e6e2dc']];
   function swatch(name) { for (var i = 0; i < SW.length; i++) if (SW[i][0].test(name)) return SW[i][1]; return '#8a5a3c'; }
   var sel = { m: 0, c: 0, o: 0 };
-  $('ltdBrand').innerHTML = DATA.B.map(function (b, i) { return opt(i, b.n + ' (' + b.m.reduce(function (t, m) { return t + m.c.length; }, 0) + ')', i === 0); }).join('') + opt('own', 'Своя доска (ввести размеры)');
+  var DEF_BRAND = Math.max(0, DATA.B.findIndex(function (b) { return b.n === 'EasyDecking'; }));   // бренд по умолчанию
+  $('ltdBrand').innerHTML = DATA.B.map(function (b, i) { return opt(i, b.n + ' (' + b.m.reduce(function (t, m) { return t + m.c.length; }, 0) + ')', i === DEF_BRAND); }).join('') + opt('own', 'Своя доска (ввести размеры)');
   function brand() { var v = $('ltdBrand').value; return v === 'own' ? null : DATA.B[+v]; }
   function model() { var b = brand(); return b ? b.m[sel.m] : null; }
   function color() { var m = model(); return m ? m.c[sel.c] : null; }
