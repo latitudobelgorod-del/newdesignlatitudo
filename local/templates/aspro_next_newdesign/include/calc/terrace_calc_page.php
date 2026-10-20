@@ -64,7 +64,7 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
         <label class="ltd-field"><span>Бренд</span><select class="iks-ignore" id="ltdBrand"></select></label>
         <div class="ltd-row3">
           <label class="ltd-field"><span>Длина доски</span><select class="iks-ignore" id="ltdBLsel"></select></label>
-          <label class="ltd-field" data-f="gap"><span>Зазор, мм</span><select class="iks-ignore" id="ltdGap"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select><em class="ltd-err"></em></label>
+          <label class="ltd-field" data-f="gap"><span>Зазор, мм</span><select class="iks-ignore" id="ltdGap"><option value="3">3</option><option value="3.5">3,5</option><option value="4">4</option><option value="4.5">4,5</option><option value="5" selected>5</option></select><em class="ltd-err"></em></label>
           <label class="ltd-field" data-f="res"><span>Запас, %</span><input type="number" id="ltdRes" inputmode="decimal" min="0" step="1" value="7"><em class="ltd-err"></em></label>
         </div>
         <small class="ltd-hint" id="ltdResHint"></small>
@@ -88,7 +88,7 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
         <div class="ltd-step-h"><b>3</b>Лаги и опоры</div>
         <div class="ltd-optrow">
           <label class="ltd-toggle"><input type="checkbox" id="ltdLagOn" checked>Лаги</label>
-          <label class="ltd-field" data-f="step"><span>Шаг по осям, см</span><input type="number" id="ltdStep" inputmode="decimal" min="10" max="40" step="1" value="35"><em class="ltd-err"></em></label>
+          <label class="ltd-field" data-f="step"><span>Шаг по осям, см</span><input type="number" id="ltdStep" inputmode="decimal" min="10" max="40" step="1" value="40"><em class="ltd-err"></em></label>
           <label class="ltd-field" id="ltdLagWrap"><span>Модель</span><select class="iks-ignore" id="ltdLag"></select></label>
         </div>
         <small class="ltd-hint" id="ltdStepHint"></small>
