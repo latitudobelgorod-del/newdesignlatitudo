@@ -206,6 +206,7 @@ var LtdCore = (function () {
   function swatch(name) { for (var i = 0; i < SW.length; i++) if (SW[i][0].test(name)) return SW[i][1]; return '#8a5a3c'; }
   var sel = { m: 0, c: 0, o: 0 };
   var DEF_BRAND = Math.max(0, DATA.B.findIndex(function (b) { return b.n === 'EasyDecking'; }));   // бренд по умолчанию
+  var GAP_MAX = 5;                                                                                    // зазор между досками, мм
   var DEF_COLOR = 'Венге';                                                                            // и его цвет
   $('ltdBrand').innerHTML = DATA.B.map(function (b, i) { return opt(i, b.n + ' (' + b.m.reduce(function (t, m) { return t + m.c.length; }, 0) + ')', i === DEF_BRAND); }).join('') + opt('own', 'Своя доска (ввести размеры)');
   function brand() { var v = $('ltdBrand').value; return v === 'own' ? null : DATA.B[+v]; }
@@ -337,7 +338,7 @@ var LtdCore = (function () {
     }
     if (!(s.bw > 0)) e.bw = 'Положительное число';
     if (s.blCustom && !(s.bl > 0)) e.bl = 'Положительное число';
-    if (!(s.gap >= 0)) e.gap = 'Не меньше 0';
+    if (!(s.gap >= 0)) e.gap = 'Не меньше 0'; else if (s.gap > GAP_MAX) e.gap = 'Не больше ' + GAP_MAX + ' мм';
     if (!(s.res >= 0)) e.res = 'Не меньше 0';
     if (!(s.step > 0)) e.step = 'Положительное число';
     if (!(s.price >= 0)) e.price = 'Не меньше 0';
@@ -638,6 +639,8 @@ var LtdCore = (function () {
   svgB.addEventListener('pointerleave', function () { if (!drag) tip.hidden = true; });
 
   /* ---------- События ---------- */
+  // зазор не больше GAP_MAX: при выходе из поля большее значение срезается до максимума
+  $('ltdGap').addEventListener('change', function () { if (num(this.value) > GAP_MAX) { this.value = GAP_MAX; this.dispatchEvent(new Event('input', { bubbles: true })); } });
   $('ltdBrand').addEventListener('change', function () { if (brand()) fillModels(); else { fillLengths(); fillAcc(); } });
   $('ltdTable').addEventListener('change', function (ev) {
     var k = ev.target.getAttribute && ev.target.getAttribute('data-key'); if (!k) return;

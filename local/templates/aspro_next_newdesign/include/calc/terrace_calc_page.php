@@ -57,7 +57,7 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
         <label class="ltd-field"><span>Бренд</span><select class="iks-ignore" id="ltdBrand"></select></label>
         <div class="ltd-row3">
           <label class="ltd-field"><span>Длина доски</span><select class="iks-ignore" id="ltdBLsel"></select></label>
-          <label class="ltd-field" data-f="gap"><span>Зазор, мм</span><input type="number" id="ltdGap" inputmode="decimal" min="0" step="0.5" value="6"><em class="ltd-err"></em></label>
+          <label class="ltd-field" data-f="gap"><span>Зазор, мм</span><input type="number" id="ltdGap" inputmode="decimal" min="0" max="5" step="0.5" value="5"><em class="ltd-err"></em></label>
           <label class="ltd-field" data-f="res"><span>Запас, %</span><input type="number" id="ltdRes" inputmode="decimal" min="0" step="1" value="7"><em class="ltd-err"></em></label>
         </div>
         <small class="ltd-hint" id="ltdResHint"></small>
