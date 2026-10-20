@@ -1171,20 +1171,12 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 
 	/* Удаление позиции: итоги пересчитываем сразу по нажатию, не дожидаясь
 	   сервера (ответ идёт секунду и больше). Точные цифры — со скидками и
-	   комплектом — приходят с ответом и перерисовывают панель; до этого
-	   панель приглушена (.nd-total--busy). Обработчик на документе в фазе
+	   комплектом — приходят с ответом и перерисовывают панель; приглушать её
+	   до ответа не стали (Ирина, 20.10.2026). Обработчик на документе в фазе
 	   захвата: кнопки строк компонент перерисовывает, а сам он ещё не успел
 	   пометить позицию удалённой. */
 	function money(bc, v, cur) {
 		return bc.getFormatPrice(Math.max(0, Math.round(v * 100) / 100), cur);
-	}
-
-	function markBusy() {
-		var card = document.querySelector('[data-entity="basket-total-block"] .nd-total__card');
-		if (!card) return;
-		card.classList.add('nd-total--busy');
-		/* Ответ не пришёл — не держим панель приглушённой вечно. */
-		setTimeout(function () { card.classList.remove('nd-total--busy'); }, 10000);
 	}
 
 	document.addEventListener('click', function (e) {
@@ -1223,7 +1215,6 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 		}
 
 		bc.fillTotalBlocks();
-		markBusy();
 	}, true);
 
 	if (!patch()) {
