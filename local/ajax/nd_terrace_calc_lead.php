@@ -1,14 +1,12 @@
 <?php
-/* Заявка из калькулятора террасы (/info/kalkulyator-terrasy/) → лид в Битрикс24 с расчётом в PDF
+/* Расчёт из калькулятора террасы (/info/kalkulyator-terrasy/) → PDF в сессию посетителя
    (Ирина, 20.10.2026).
 
-   Браузер присылает контакты, параметры террасы, строки сметы и картинку плана (JPEG).
-   Здесь собираем PDF (tFPDF из модуля sale, шрифт PT Sans из модуля main), создаём лид
-   (crm.lead.add — тот же вебхук и те же поля, что у заказа в один клик) и прикладываем
-   PDF комментарием в ленту лида (crm.timeline.comment.add).
-
-   Вебхук — ~/.latitudo_b24.php вне папки сайта и вне git (см. oneclickbuy.next/script.php).
-   Нет файла (локальная сборка) — лид не создаём, отвечаем ok:false.
+   Кнопка «Рассчитать с менеджером» открывает общую форму MAINFORM и одновременно шлёт сюда
+   параметры террасы, строки сметы и картинку плана (JPEG). Здесь собираем PDF и запоминаем
+   его вместе с текстом сметы (ndTerraceCalcRemember). Когда посетитель отправит форму,
+   PDF уйдёт вложением в письмо и в ленту лида Битрикс24 —
+   см. local/php_interface/include/latitudo_terrace_calc_crm.php.
 
    Цены и количества пришли из браузера: это расчёт клиента, в лиде он так и подписан.
 
@@ -37,37 +35,16 @@ if (!is_array($ndTcData)) {
 	$ndTcAnswer(false, 'Не удалось прочитать расчёт.');
 }
 
-// бот заполнил скрытое поле — делаем вид, что всё хорошо
-if (trim((string)($ndTcData['website'] ?? '')) !== '') {
-	$ndTcAnswer(true);
-}
-
-// не чаще раза в 20 секунд и не больше 5 заявок за сессию
-$ndTcNow = time();
-$ndTcSent = array_filter((array)($_SESSION['ND_TC_LEAD'] ?? array()), 'is_int');
-if (count($ndTcSent) >= 5 || ($ndTcSent && $ndTcNow - max($ndTcSent) < 20)) {
-	$ndTcAnswer(false, 'Заявка уже отправлена. Если нужно что-то поправить — позвоните нам: +7 (495) 135-93-05.');
+// расчёт пересылается при каждом открытии формы — не больше 30 за сессию
+$_SESSION['ND_TC_PREPARE'] = (int)($_SESSION['ND_TC_PREPARE'] ?? 0) + 1;
+if ($_SESSION['ND_TC_PREPARE'] > 30) {
+	$ndTcAnswer(false, 'Слишком много расчётов. Обновите страницу.');
 }
 
 $ndTcStr = function ($v, $max = 300) {
 	$v = trim(preg_replace('/\s+/u', ' ', strip_tags((string)$v)));
 	return mb_substr($v, 0, $max);
 };
-$ndTcName = $ndTcStr($ndTcData['name'] ?? '', 100);
-$ndTcPhone = $ndTcStr($ndTcData['phone'] ?? '', 40);
-$ndTcPhoneDigits = preg_replace('/\D/', '', $ndTcPhone);
-$ndTcEmail = $ndTcStr($ndTcData['email'] ?? '', 100);
-$ndTcComment = mb_substr(trim(strip_tags((string)($ndTcData['comment'] ?? ''))), 0, 1000);
-
-if (strlen($ndTcPhoneDigits) < 10) {
-	$ndTcAnswer(false, 'Укажите телефон.');
-}
-if ($ndTcEmail !== '' && !check_email($ndTcEmail)) {
-	$ndTcAnswer(false, 'Проверьте e-mail.');
-}
-if (($ndTcData['agree'] ?? '') !== 'Y') {
-	$ndTcAnswer(false, 'Нужно согласие на обработку персональных данных.');
-}
 
 // расчёт: параметры террасы, строки сметы, итог
 $ndTcCalc = is_array($ndTcData['calc'] ?? null) ? $ndTcData['calc'] : array();
@@ -110,84 +87,13 @@ $ndTcMoney = function ($v) {
 
 /* ---------- PDF ---------- */
 require_once($_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_terrace_pdf.php');
-$ndTcPdfBody = ndTerraceCalcPdf($ndTcParams, $ndTcRows, $ndTcTotal, $ndTcPlan, $ndTcName, $ndTcPage);
+$ndTcPdfBody = ndTerraceCalcPdf($ndTcParams, $ndTcRows, $ndTcTotal, $ndTcPlan, '', $ndTcPage);
 
-/* ---------- Лид в Битрикс24 ---------- */
-$ndB24 = @include dirname(dirname($_SERVER['DOCUMENT_ROOT'])) . '/.latitudo_b24.php';
-$ndTcHook = (is_array($ndB24) && !empty($ndB24['webhook'])) ? $ndB24['webhook'] : '';
-if ($ndTcHook === '') {
-	$ndTcAnswer(false, 'Отправка временно недоступна. Позвоните нам: +7 (495) 135-93-05.');
-}
-
-$ndTcCall = function ($method, array $params) use ($ndTcHook) {
-	$ch = curl_init();
-	curl_setopt_array($ch, array(
-		CURLOPT_POST => 1,
-		CURLOPT_HEADER => 0,
-		CURLOPT_RETURNTRANSFER => 1,
-		CURLOPT_TIMEOUT => 20,
-		CURLOPT_URL => $ndTcHook.$method.'.json',
-		CURLOPT_POSTFIELDS => http_build_query($params),
-	));
-	$res = curl_exec($ch);
-	curl_close($ch);
-	return is_string($res) ? json_decode($res, true) : null;
-};
-
-// UTM — из сессии, как у заказа в один клик; utm_content без метки — тип устройства
-$ndTcUtm = array();
-foreach (array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_geo') as $key) {
-	$ndTcUtm[$key] = !empty($_SESSION['UTM'][$key]) ? (string)$_SESSION['UTM'][$key] : 'empty';
-}
-if ($ndTcUtm['utm_content'] === 'empty') {
-	$ndTcUtm['utm_content'] = preg_match('/Mobile|Android|iPhone|iPad/i', (string)($_SERVER['HTTP_USER_AGENT'] ?? '')) ? 'mobile' : 'desktop';
-}
-
-$ndTcText = "<b><font color=red size=4>Расчёт из калькулятора террасы</font></b>\n"
-	.($ndTcComment !== '' ? "<b>Сообщение клиента:</b>\n".htmlspecialcharsbx($ndTcComment)."\n\n" : '')
-	."<b>Параметры:</b>\n".htmlspecialcharsbx(implode("\n", $ndTcParams))."\n\n<b>Смета (расчёт клиента на сайте):</b>\n";
+/* ---------- Текст сметы для ленты лида ---------- */
+$ndTcText = implode("\n", $ndTcParams)."\n\nСмета (расчёт клиента на сайте):\n";
 foreach ($ndTcRows as $row) {
-	$ndTcText .= htmlspecialcharsbx($row['name']).': '.htmlspecialcharsbx($row['qty'])
-		.($row['sum'] !== null ? ' = '.$ndTcMoney($row['sum']) : '')."\n";
+	$ndTcText .= $row['name'].': '.$row['qty'].($row['sum'] !== null ? ' = '.$ndTcMoney($row['sum']) : '')."\n";
 }
-$ndTcText .= '<b>Итого:</b> '.$ndTcMoney($ndTcTotal).($ndTcPdfBody !== '' ? "\nPDF с планом и сметой — в ленте лида." : '');
+$ndTcText .= 'Итого: '.$ndTcMoney($ndTcTotal)."\nСтраница: ".$ndTcPage;
 
-$ndTcLead = $ndTcCall('crm.lead.add', array(
-	'fields' => array(
-		'TITLE' => 'Расчёт террасы с сайта RU',
-		'NAME' => $ndTcName,
-		'UF_CRM_1670914333154' => 'latitudo.ru',          // домен сайта
-		'UF_CRM_1670914240846' => $ndTcPage,             // страница заявки
-		'UF_CRM_1674473471' => $ndTcUtm['utm_source'],
-		'UF_CRM_1674473492' => $ndTcUtm['utm_campaign'],
-		'UF_CRM_1674473502' => $ndTcUtm['utm_content'],
-		'UF_CRM_1674473509' => $ndTcUtm['utm_term'],
-		'UF_CRM_1674473526' => $ndTcUtm['utm_medium'],
-		'UF_CRM_1674473518' => $ndTcUtm['utm_geo'],
-		'OPPORTUNITY' => round($ndTcTotal),
-		'COMMENTS' => $ndTcText,
-		'PHONE' => array('n0' => array('VALUE' => $ndTcPhoneDigits, 'VALUE_TYPE' => 'WORK')),
-		'EMAIL' => $ndTcEmail !== '' ? array('n0' => array('VALUE' => $ndTcEmail, 'VALUE_TYPE' => 'WORK')) : array(),
-		'ASSIGNED_BY_ID' => 1,
-	),
-	'params' => array('REGISTER_SONET_EVENT' => 'Y'),
-));
-$ndTcLeadId = (int)($ndTcLead['result'] ?? 0);
-if ($ndTcLeadId <= 0) {
-	$ndTcAnswer(false, 'Не удалось отправить заявку. Позвоните нам: +7 (495) 135-93-05.');
-}
-
-$_SESSION['ND_TC_LEAD'][] = $ndTcNow;
-
-if ($ndTcPdfBody !== '') {
-	$ndTcCall('crm.timeline.comment.add', array(
-		'fields' => array(
-			'ENTITY_ID' => $ndTcLeadId,
-			'ENTITY_TYPE' => 'lead',
-			'COMMENT' => 'Расчёт террасы из калькулятора на сайте (PDF с планом и сметой)',
-			'FILES' => array(array('raschet-terrasy-'.date('Y-m-d').'.pdf', base64_encode($ndTcPdfBody))),
-		),
-	));
-}
-
-$ndTcAnswer(true);
+$ndTcAnswer(ndTerraceCalcRemember($ndTcPdfBody, $ndTcText, $ndTcTotal), $ndTcPdfBody === '' ? 'PDF не собрался' : '');

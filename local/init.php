@@ -317,6 +317,15 @@ AddEventHandler('main', 'OnEndBufferContent', 'ndCompareTokens', 10035);
 });
 
 /**
+ * Калькулятор террасы: «Рассчитать с менеджером» открывает общую форму, а PDF
+ * расчёта уходит вложением в письмо и агентом в ленту лида Битрикс24.
+ * Подключаем всегда: агент Latitudo_TerraceCalcAttach запускается на любом хите.
+ *
+ * Логика в local/php_interface/include/latitudo_terrace_calc_crm.php.
+ */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_terrace_calc_crm.php';
+
+/**
  * «Полный товарный фид <город>» в модуле «Маркет для продавцов»: наполнение
  * карточки — доп. фото, видео, характеристики, описание, бренд латиницей.
  *

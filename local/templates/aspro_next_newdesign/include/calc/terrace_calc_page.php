@@ -154,25 +154,11 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
       <p class="ltd-disclaimer">Расчёт ориентировочный, уточните у менеджера. Цены взяты из каталога сайта.</p>
 
       <div class="ltd-pdf">
-        <button type="button" class="ltd-btn" id="ltdPdfOpen">Рассчитать с менеджером</button>
+        <?/* Открывает общую форму MAINFORM, как «Оставить заявку» в шапке; заголовок окна и NAMEFORM —
+             из data-nd-form-title (js/newdesign-header.js). По этой подписи сервер узнаёт заявку из
+             калькулятора и прикладывает PDF расчёта к письму и лиду (latitudo_terrace_calc_crm.php). */?>
+        <button type="button" class="ltd-btn animate-load" id="ltdPdfOpen" data-event="jqm" data-param-form_id="MAINFORM" data-name="question" data-nd-form-title="Рассчитать с менеджером">Рассчитать с менеджером</button>
         <span class="ltd-hint">Отправим ваш расчёт менеджеру: он проверит смету, пришлёт PDF с планом и ответит на вопросы.</span>
-      </div>
-      <div class="ltd-modal" id="ltdModal" hidden role="dialog" aria-modal="true" aria-labelledby="ltdModalH">
-        <div class="ltd-modal-box">
-          <button type="button" class="ltd-modal-x" id="ltdModalX" aria-label="Закрыть">×</button>
-          <form class="ltd-lead-form" id="ltdLead" novalidate>
-            <h3 id="ltdModalH">Рассчитать с менеджером</h3>
-            <p>Менеджер получит ваш расчёт с планом и сметой, проверит его и свяжется с вами.</p>
-            <label class="ltd-field"><span>Имя</span><input type="text" id="ltdLeadName" autocomplete="name" maxlength="100"></label>
-            <label class="ltd-field"><span>Телефон *</span><input type="tel" id="ltdLeadPhone" autocomplete="tel" inputmode="tel" maxlength="40" placeholder="+7 (___) ___-__-__"></label>
-            <label class="ltd-field"><span>E-mail</span><input type="email" id="ltdLeadEmail" autocomplete="email" maxlength="100"></label>
-            <label class="ltd-field"><span>Комментарий</span><textarea id="ltdLeadComment" maxlength="1000" rows="3"></textarea></label>
-            <label class="ltd-hp" aria-hidden="true">Сайт<input type="text" id="ltdLeadWebsite" tabindex="-1" autocomplete="off"></label>
-            <label class="ltd-check"><input type="checkbox" id="ltdLeadAgree"><span>Я согласен на обработку персональных данных в соответствии с <a href="/info/licenses_detail/" target="_blank" rel="noopener">политикой конфиденциальности</a></span></label>
-            <button type="submit" class="ltd-btn" id="ltdLeadBtn">Отправить расчёт</button>
-            <div class="ltd-lead-status" id="ltdLeadStatus" role="status" aria-live="polite"></div>
-          </form>
-        </div>
       </div>
     </section>
   </div>
