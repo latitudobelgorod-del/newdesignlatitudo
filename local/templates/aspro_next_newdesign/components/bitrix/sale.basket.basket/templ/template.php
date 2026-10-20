@@ -1169,52 +1169,78 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 		return true;
 	}
 
-	/* Удаление позиции: итоги пересчитываем сразу по нажатию, не дожидаясь
-	   сервера (ответ идёт секунду и больше). Точные цифры — со скидками и
-	   комплектом — приходят с ответом и перерисовывают панель; приглушать её
-	   до ответа не стали (Ирина, 20.10.2026). Обработчик на документе в фазе
-	   захвата: кнопки строк компонент перерисовывает, а сам он ещё не успел
-	   пометить позицию удалённой. */
+	/* Удаление и «Восстановить»: итоги пересчитываем сразу по нажатию, не
+	   дожидаясь сервера (ответ идёт секунду и больше). Точные цифры — со
+	   скидками и комплектом — приходят с ответом и перерисовывают панель;
+	   приглушать её до ответа не стали (Ирина, 20.10.2026). Обработчик на
+	   документе в фазе захвата: кнопки строк компонент перерисовывает, а сам
+	   он ещё не успел поменять состояние позиции. */
 	function money(bc, v, cur) {
 		return bc.getFormatPrice(Math.max(0, Math.round(v * 100) / 100), cur);
 	}
 
-	document.addEventListener('click', function (e) {
-		var btn = e.target.closest && e.target.closest('[data-entity="basket-item-delete"]');
-		if (!btn) return;
-		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
-		var row = btn.closest('[data-entity="basket-item"]');
-		var t = bc && bc.result && bc.result.TOTAL_RENDER_DATA;
-		var item = row && bc && bc.items ? bc.items[row.getAttribute('data-id')] : null;
-		if (!t || !item || item.SHOW_RESTORE || item.SHOW_LOADING || item.__ndCounted) return;
-		item.__ndCounted = true;
-
+	/* sign: -1 — позиция ушла из корзины, +1 — вернулась. */
+	function shiftTotal(bc, item, sign) {
+		var t = bc.result.TOTAL_RENDER_DATA;
 		/* У товара комплекта SUM_PRICE подменена на полную (mutator.php),
 		   реально оплачиваемая — полная минус скидка. */
 		var full = parseFloat(item.SUM_FULL_PRICE) || 0;
 		var disc = parseFloat(item.SUM_DISCOUNT_PRICE) || 0;
 		var cur = t.CURRENCY;
 
-		t.PRICE = Math.max(0, (parseFloat(t.PRICE) || 0) - (full - disc));
+		t.PRICE = Math.max(0, (parseFloat(t.PRICE) || 0) + sign * (full - disc));
 		t.PRICE_FORMATED = money(bc, t.PRICE, cur);
 		delete t.PRICE_NEW;
 		delete t.PRICE_FORMATED_NEW;
 
-		var count = (parseFloat(t.COUNT_ITEMS) || 0) - (parseFloat(item.QUANTITY) || 0);
+		var count = (parseFloat(t.COUNT_ITEMS) || 0) + sign * (parseFloat(item.QUANTITY) || 0);
 		t.COUNT_ITEMS = count > 0 ? String(Math.round(count * 1000) / 1000) : '';
 
-		if (t.DISCOUNT_PRICE_FORMATED && t.ND_PRICE_FULL != null) {
-			t.ND_PRICE_FULL = Math.max(0, t.ND_PRICE_FULL - full);
-			t.ND_DISCOUNT = Math.max(0, (t.ND_DISCOUNT || 0) - disc);
+		if (t.ND_PRICE_FULL == null) {
+			/* Скидок в корзине не было — сумма без скидки равна итоговой. */
+			t.ND_PRICE_FULL = t.PRICE - sign * (full - disc);
+			t.ND_DISCOUNT = 0;
+		}
+		t.ND_PRICE_FULL = Math.max(0, t.ND_PRICE_FULL + sign * full);
+		t.ND_DISCOUNT = Math.max(0, (t.ND_DISCOUNT || 0) + sign * disc);
+		if (t.ND_DISCOUNT > 0) {
 			t.PRICE_WITHOUT_DISCOUNT_FORMATED = money(bc, t.ND_PRICE_FULL, cur);
-			if (t.ND_DISCOUNT > 0) {
-				t.DISCOUNT_PRICE_FORMATED = money(bc, t.ND_DISCOUNT, cur);
-			} else {
-				delete t.DISCOUNT_PRICE_FORMATED;
-			}
+			t.DISCOUNT_PRICE_FORMATED = money(bc, t.ND_DISCOUNT, cur);
+		} else {
+			delete t.DISCOUNT_PRICE_FORMATED;
 		}
 
 		bc.fillTotalBlocks();
+	}
+
+	document.addEventListener('click', function (e) {
+		var del = e.target.closest && e.target.closest('[data-entity="basket-item-delete"]');
+		var back = !del && e.target.closest && e.target.closest('[data-entity="basket-item-restore-button"]');
+		if (!del && !back) return;
+		var bc = window.BX && BX.Sale && BX.Sale.BasketComponent;
+		var row = (del || back).closest('[data-entity="basket-item"]');
+		var id = row ? row.getAttribute('data-id') : null;
+		var item = id && bc && bc.items ? bc.items[id] : null;
+		if (!item || !bc.result || !bc.result.TOTAL_RENDER_DATA || item.SHOW_LOADING) return;
+
+		if (del) {
+			if (item.SHOW_RESTORE || item.__ndCounted) return;
+			item.__ndCounted = true;
+			shiftTotal(bc, item, -1);
+			return;
+		}
+
+		if (!item.SHOW_RESTORE || !item.__ndCounted) return;
+		item.__ndCounted = false;
+		shiftTotal(bc, item, 1);
+		/* Компонент сейчас перерисует строку с белой пеленой до ответа сервера.
+		   Пелену оставляем (она не даёт нажать «Удалить» на позицию, у которой
+		   сервер ещё не выдал новый номер), но делаем прозрачной — строка
+		   сразу выглядит восстановленной. Ответ рисует строку заново, без класса. */
+		setTimeout(function () {
+			var node = document.getElementById('basket-item-' + id);
+			if (node) node.classList.add('nd-restoring');
+		}, 0);
 	}, true);
 
 	if (!patch()) {

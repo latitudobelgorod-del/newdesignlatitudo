@@ -725,6 +725,13 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+/* Удаление и «Восстановить»: до ответа сервера строку закрывает белая пелена
+   компонента — делаем её прозрачной, клики она по-прежнему не пропускает
+   (template.php); -expend — плашка «Товар … был удалён» */
+#basket-root .basket-items-list-item-container-expend .basket-items-list-item-overlay,
+#basket-root .nd-restoring .basket-items-list-item-overlay {
+    opacity: 0;
 }#basket-root .nd-total__row {
     display: flex;
     align-items: baseline;
