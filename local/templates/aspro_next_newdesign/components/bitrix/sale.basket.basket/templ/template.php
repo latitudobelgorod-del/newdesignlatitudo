@@ -1120,6 +1120,10 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 		if (typeof origDelete === 'function') {
 			bc.deleteBasketItems = function (ids) {
 				this.__ndLastDeleted = (ids && ids.length) ? ids.length : 0;
+				/* Сервер подтвердил удаление — из ожидающих его убираем. */
+				for (var k in (ids || {})) {
+					if (ids.hasOwnProperty(k)) delete pendingDelete[String(ids[k])];
+				}
 				return origDelete.apply(this, arguments);
 			};
 		}
@@ -1158,8 +1162,39 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 			   от прошлого удаления и заплатка молча выключается навсегда. */
 			this.__ndLastDeleted = 0;
 
-			return orig.apply(this, arguments);
+			var res = orig.apply(this, arguments);
+
+			/* Удалили ещё один товар, пока сервер отвечал на прошлое удаление:
+			   в этом ответе позиция ещё есть, и «Итого» прыгало вверх, а через
+			   полсекунды обратно (Ирина, 20.10.2026). Вычитаем её снова, пока
+			   сервер не подтвердит удаление. */
+			var present = {};
+			for (var r in (rows || {})) {
+				if (rows.hasOwnProperty(r)) present[String(rows[r].ID || r)] = true;
+			}
+			for (var id in pendingDelete) {
+				if (!pendingDelete.hasOwnProperty(id)) continue;
+				if (present[id]) shiftTotal(this, pendingDelete[id], -1);
+				else delete pendingDelete[id];
+			}
+
+			return res;
 		};
+
+		/* Удаление уходит на сервер сразу. Пул действий компонента ждёт 300 мс,
+		   чтобы собрать нажатия «+»/«−» в один запрос, — удалению это не нужно. */
+		var pool = bc.actionPool;
+		if (pool && typeof pool.deleteItem === 'function') {
+			var origPoolDelete = pool.deleteItem;
+			pool.deleteItem = function () {
+				var res = origPoolDelete.apply(this, arguments);
+				if (!this.isProcessing() && !this.isPoolEmpty()) {
+					clearTimeout(this.updateTimer);
+					this.trySendPool();
+				}
+				return res;
+			};
+		}
 
 		/* «Итого» без «докрутки» цифр. Когда сумма уменьшалась, компонент
 		   рисовал прежнюю и анимацией вёл её к новой, а «Товары» уже стояли
@@ -1204,6 +1239,9 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 	}
 
 	var deleteAfterRestore = {};
+	/* Позиции, удалённые в браузере, но ещё не подтверждённые сервером:
+	   номер → данные позиции на момент нажатия. */
+	var pendingDelete = {};
 	var deleteQueue = [];
 
 	/* Удаление и «Восстановить»: итоги пересчитываем сразу по нажатию, не
@@ -1279,12 +1317,14 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 		if (del) {
 			if (item.SHOW_RESTORE || item.__ndCounted) return;
 			item.__ndCounted = true;
+			pendingDelete[String(id)] = item;
 			shiftTotal(bc, item, -1);
 			return;
 		}
 
 		if (!item.SHOW_RESTORE || !item.__ndCounted) return;
 		item.__ndCounted = false;
+		delete pendingDelete[String(id)];
 		shiftTotal(bc, item, 1);
 		/* Компонент сейчас перерисует строку с белой пеленой до ответа сервера.
 		   Пелену делаем прозрачной и сквозной (.nd-restoring) — строка сразу
