@@ -37,7 +37,7 @@
   .ltd-calc .ltd-step-h b { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--ltd-ink); color: var(--ltd-bg); font-size: 12.8px; flex: none; }
   .ltd-calc .ltd-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .ltd-calc .ltd-compact { gap: 8px; }
-  .ltd-calc .ltd-optrow { display: grid; grid-template-columns: 74px minmax(0, .8fr) minmax(0, 1.4fr); gap: 8px; align-items: end; }
+  .ltd-calc .ltd-optrow { display: grid; grid-template-columns: 92px minmax(0, .8fr) minmax(0, 1.4fr); gap: 8px; align-items: end; }
   .ltd-calc .ltd-optrow .ltd-toggle { height: 42px; font-weight: 600; }
   .ltd-calc .ltd-optrow .ltd-field.is-off { opacity: .4; pointer-events: none; }
   .ltd-calc .ltd-toggle small { display: block; font-size: 11.2px; font-weight: 400; color: var(--ltd-muted); line-height: 1.1; white-space: nowrap; }
