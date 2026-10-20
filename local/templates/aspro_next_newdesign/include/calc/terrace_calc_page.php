@@ -55,6 +55,7 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
             <label><input type="radio" name="ltdPattern" value="straight"><span><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="2" y="2" width="44" height="30" rx="1"/><path d="M2 9.5h44M2 17h44M2 24.5h44M28 2v30"/></svg>Прямой</span></label>
             <label><input type="radio" name="ltdPattern" value="stagger" checked><span><svg viewBox="0 0 48 34" aria-hidden="true"><rect x="2" y="2" width="44" height="30" rx="1"/><path d="M2 9.5h44M2 17h44M2 24.5h44M30 2v7.5M16 9.5v7.5M30 17v7.5M16 24.5v7.5"/></svg>Вразбежку</span></label>
           </div>
+          <small class="ltd-hint" id="ltdPatternHint"></small>
         </div>
       </section>
 

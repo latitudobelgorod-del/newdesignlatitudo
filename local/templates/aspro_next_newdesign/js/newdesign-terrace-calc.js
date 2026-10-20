@@ -653,7 +653,10 @@ var LtdCore = (function () {
     var lg = s.lagOn && s.lag != null ? I[s.lag] : null;
     var r = LtdCore.calc({ shape: s.shape, L: s.L, W: s.W, a: s.a, b: s.b, dir: s.dir, pattern: s.pattern, bw: s.bw, gap: s.gap, bl: s.bl, res: s.res, step: s.step,
       lengths: s.lengths, supStep: s.supOn ? s.supStepCm : 0, lagLen: lg && lg[3] ? lg[3] / 1000 : 0 });
-    $('ltdStepHint').textContent = r.diag ? 'Диагональ: × 0,7 = ' + fmt(r.step * 100, 1) + ' см' : '';
+    // ряды не длиннее доски — стыков нет, и рисунок на плане не отличается
+    var joints = !r.diag && r.rowSegs.some(function (segs) { return segs.some(function (sg) { return sg[1] - sg[0] > s.bl + 1e-6; }); });
+    $('ltdPatternHint').textContent = r.diag || joints ? '' : 'Ряд не длиннее доски (' + fmt(s.bl, 2) + ' м): каждая доска кладётся целиком, без стыков, поэтому рисунок не меняется. Разница появится, когда терраса длиннее доски.';
+    $('ltdStepHint').textContent = r.diag ?'Диагональ: × 0,7 = ' + fmt(r.step * 100, 1) + ' см' : '';
 
     $('ltdBoards').innerHTML = fmt(r.total) + '<small>' + plural(r.total, 'доска', 'доски', 'досок') + ' по ' + fmt(s.bl) + ' м</small>';
     $('ltdBoardsSub').innerHTML = 'С запасом ' + fmt(s.res) + '%. Без запаса <b>' + fmt(r.raw) + '</b>' + (r.diag ? '' : ' · ' + r.rows + ' ' + plural(r.rows, 'ряд', 'ряда', 'рядов'));
