@@ -57,6 +57,8 @@
   .ltd-calc input:focus-visible, .ltd-calc select:focus-visible, .ltd-calc button:focus-visible { outline: 2px solid var(--ltd-accent); outline-offset: 1px; }
   .ltd-calc .ltd-field.is-bad input { border-color: var(--ltd-accent); background: var(--ltd-accent-soft); }
   .ltd-calc .ltd-err { color: var(--ltd-accent); font-size: 12.48px; font-style: normal; }
+  .ltd-calc .ltd-optrow .ltd-err { display: none; }
+  .ltd-calc .ltd-hint.is-bad { color: var(--ltd-accent); }
   .ltd-calc .ltd-hint { color: var(--ltd-muted); font-size: 12.48px; }
 
   .ltd-calc .ltd-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 6px; }

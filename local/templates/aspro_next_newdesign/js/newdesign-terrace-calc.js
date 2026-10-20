@@ -455,7 +455,12 @@ var LtdCore = (function () {
       var msg = e[f.getAttribute('data-f')] || ''; f.classList.toggle('is-bad', !!msg);
       var em = f.querySelector('.ltd-err'); if (em) em.textContent = msg;
     });
+    // в строках «Лаги» и «Опоры» ошибка выводится не под полем, а в пояснении под строкой, чтобы строка не прыгала
+    var stepHint = $('ltdStepHint'), supHint = $('ltdSupHint'), supMsg = e.h || e.sup;
+    stepHint.classList.toggle('is-bad', !!e.step); stepHint.textContent = e.step ? 'Шаг лаг: ' + e.step.toLowerCase() : 'Шаг лаг по осям, не больше ' + STEP_MAX + ' см.';
+    supHint.classList.toggle('is-bad', !!supMsg); supHint.textContent = supMsg ? (e.h ? 'Высота опоры: ' : 'Шаг опор: ') + supMsg.toLowerCase() : SUP_HINT;
   }
+  var SUP_HINT = $('ltdSupHint').textContent;
 
   /* ---------- Смета ---------- */
   function estimate(s, r) {
