@@ -54,9 +54,9 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
 
       <section class="ltd-step">
         <div class="ltd-step-h"><b>2</b>Террасная доска</div>
-        <label class="ltd-field"><span>Бренд</span><select id="ltdBrand"></select></label>
+        <label class="ltd-field"><span>Бренд</span><select class="iks-ignore" id="ltdBrand"></select></label>
         <div class="ltd-row3">
-          <label class="ltd-field"><span>Длина доски</span><select id="ltdBLsel"></select></label>
+          <label class="ltd-field"><span>Длина доски</span><select class="iks-ignore" id="ltdBLsel"></select></label>
           <label class="ltd-field" data-f="gap"><span>Зазор, мм</span><input type="number" id="ltdGap" inputmode="decimal" min="0" step="0.5" value="6"><em class="ltd-err"></em></label>
           <label class="ltd-field" data-f="res"><span>Запас, %</span><input type="number" id="ltdRes" inputmode="decimal" min="0" step="1" value="7"><em class="ltd-err"></em></label>
         </div>
@@ -82,7 +82,7 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
         <div class="ltd-optrow">
           <label class="ltd-toggle"><input type="checkbox" id="ltdLagOn" checked>Лаги</label>
           <label class="ltd-field" data-f="step"><span>Шаг, см</span><input type="number" id="ltdStep" inputmode="decimal" min="1" step="1" value="35"><em class="ltd-err"></em></label>
-          <label class="ltd-field" id="ltdLagWrap"><span>Модель</span><select id="ltdLag"></select></label>
+          <label class="ltd-field" id="ltdLagWrap"><span>Модель</span><select class="iks-ignore" id="ltdLag"></select></label>
         </div>
         <small class="ltd-hint" id="ltdStepHint"></small>
         <div class="ltd-optrow">
@@ -90,7 +90,7 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
           <label class="ltd-field" data-f="h"><span>Высота, мм</span><input type="number" id="ltdH" inputmode="numeric" min="1" step="1" value="60"><em class="ltd-err"></em></label>
           <label class="ltd-field" data-f="sup"><span>Шаг, см</span><input type="number" id="ltdSupStep" inputmode="numeric" min="10" step="5" value="50"><em class="ltd-err"></em></label>
         </div>
-        <label class="ltd-field" id="ltdSupBox" hidden><span>Опора</span><select id="ltdSup"></select></label>
+        <label class="ltd-field" id="ltdSupBox" hidden><span>Опора</span><select class="iks-ignore" id="ltdSup"></select></label>
         <small class="ltd-hint" id="ltdSupHint">Высота опоры: от основания до низа лаги. Шаг лаг влияет и на число кляммеров.</small>
       </section>
     </form>
