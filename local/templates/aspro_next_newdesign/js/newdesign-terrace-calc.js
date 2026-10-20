@@ -813,18 +813,75 @@ var LtdCore = (function () {
     if (last.total) lines.push('Итого по позициям с ценой: ' + rub(last.total));
     return lines.join('\n');
   }
-  if ($('ltdLead')) $('ltdLead').addEventListener('submit', function (ev) {
+  /* ---------- Расчёт в PDF: окно с формой → /local/ajax/nd_terrace_calc_lead.php → лид в Битрикс24 ---------- */
+  var modal = $('ltdModal'), lastFocus = null;
+  // окно — в конец body: внутри страницы шаблон держит слой z-index 0, и шапка сайта ложится поверх окна
+  var modalHost = document.createElement('div'); modalHost.className = 'ltd-calc ltd-modal-host';
+  document.body.appendChild(modalHost); modalHost.appendChild(modal);
+  function openModal() { lastFocus = document.activeElement; modal.hidden = false; $('ltdLeadStatus').textContent = ''; setTimeout(function () { $('ltdLeadName').focus(); }, 0); }
+  function closeModal() { modal.hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  $('ltdPdfOpen').addEventListener('click', openModal);
+  $('ltdModalX').addEventListener('click', closeModal);
+  modal.addEventListener('click', function (ev) { if (ev.target === modal) closeModal(); });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !modal.hidden) closeModal(); });
+  // поля окна не должны пересчитывать смету
+  $('ltdLead').addEventListener('input', function (ev) { ev.stopPropagation(); });
+  $('ltdLead').addEventListener('change', function (ev) { ev.stopPropagation(); });
+
+  /* План «Всё вместе» → JPEG: переменные цвета подставляем значениями, точки перетаскивания убираем */
+  function planJpeg() {
+    return new Promise(function (resolve) {
+      try {
+        var svg = $('ltdSvgAll'), cs = getComputedStyle(root), W = 1280, H = 720;
+        // XMLSerializer, а не outerHTML: в подписях &nbsp;, а в SVG-картинке такой сущности нет — она не загрузится
+        var src = new XMLSerializer().serializeToString(svg).replace(/var\((--ltd-[a-z0-9-]+)\)/g, function (m, v) { return cs.getPropertyValue(v).trim() || '#000'; })
+          .replace(/^<svg /, '<svg width="' + W + '" height="' + H + '" font-family="Arial, sans-serif" ');
+        var img = new Image();
+        img.onload = function () {
+          var c = document.createElement('canvas'); c.width = W; c.height = H;
+          var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.drawImage(img, 0, 0, W, H);
+          try { resolve(c.toDataURL('image/jpeg', 0.85)); } catch (e) { resolve(''); }
+        };
+        img.onerror = function () { resolve(''); };
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src);
+      } catch (e) { resolve(''); }
+    });
+  }
+  function leadPayload() {
+    var s = last.s, r = last.r, sum = summary().split('\n');
+    var params = sum.slice(0, 2);
+    var c = color();
+    params.push('Доска: ' + (c ? boardTitle(brand(), model(), c, offer()) : 'своя, ' + fmt(s.bw) + ' мм × ' + fmt(s.bl) + ' м'));
+    if (s.lagOn) params.push('Лаги: шаг по осям ' + fmt(s.step) + ' см' + (r.extraLines ? ', двойные лаги под стыками: ' + r.extraLines : ''));
+    if (s.supOn) params.push('Опоры: высота ' + fmt(s.h) + ' мм, шаг ' + fmt(s.supStepCm) + ' см');
+    return {
+      params: params,
+      rows: last.rows.filter(function (x) { return !x.off; }).map(function (x) {
+        return { name: x.text, note: String(x.sub || '').replace(/<[^>]*>/g, ''), qty: fmt(x.qty) + ' ' + x.unit, price: x.price, sum: x.sum };
+      }),
+      total: last.total
+    };
+  }
+  $('ltdLead').addEventListener('submit', function (ev) {
     ev.preventDefault();
     var st = $('ltdLeadStatus'), phone = $('ltdLeadPhone').value.replace(/\D/g, '');
-    if (phone.length < 10) { st.style.color = 'var(--ltd-accent)'; st.textContent = 'Укажите телефон, чтобы менеджер мог перезвонить.'; return; }
-    if (!$('ltdLeadAgree').checked) { st.style.color = 'var(--ltd-accent)'; st.textContent = 'Отметьте согласие на обработку данных.'; return; }
-    if (!last) { st.textContent = 'Сначала заполните параметры террасы.'; return; }
-    var data = { name: $('ltdLeadName').value.trim(), phone: $('ltdLeadPhone').value.trim(), text: summary(), input: last.s };
-    if (typeof window.ltdCalcSendLead !== 'function') { st.style.color = 'var(--ltd-muted)'; st.textContent = 'Демо-версия: заявка не отправляется. На сайте форма подключается к Битрикс24.'; return; }
-    var btn = $('ltdLeadBtn'); btn.disabled = true; st.style.color = 'var(--ltd-muted)'; st.textContent = 'Отправляем…';
-    Promise.resolve().then(function () { return window.ltdCalcSendLead(data); })
-      .then(function () { st.style.color = 'var(--ltd-ok-ink)'; st.textContent = 'Заявка отправлена. Менеджер свяжется с вами.'; })
-      .catch(function () { st.style.color = 'var(--ltd-accent)'; st.textContent = 'Не удалось отправить заявку. Позвоните нам: +7 (495) 135-93-05.'; })
+    var say = function (t, bad) { st.style.color = bad ? 'var(--ltd-accent)' : 'var(--ltd-muted)'; st.textContent = t; };
+    if (phone.length < 10) { say('Укажите телефон, чтобы менеджер мог связаться с вами.', true); $('ltdLeadPhone').focus(); return; }
+    if (!$('ltdLeadAgree').checked) { say('Отметьте согласие на обработку персональных данных.', true); return; }
+    if (!last || !last.rows) { say('Сначала заполните параметры террасы.', true); return; }
+    var url = window.LTD_CALC_LEAD_URL, sessid = window.BX && BX.bitrix_sessid ? BX.bitrix_sessid() : '';
+    if (!url) { say('Демо-версия: на сайте расчёт уходит менеджеру в Битрикс24.'); return; }
+    var btn = $('ltdLeadBtn'); btn.disabled = true; say('Отправляем расчёт…');
+    planJpeg().then(function (plan) {
+      var data = { name: $('ltdLeadName').value.trim(), phone: $('ltdLeadPhone').value.trim(), email: $('ltdLeadEmail').value.trim(),
+        comment: $('ltdLeadComment').value.trim(), website: $('ltdLeadWebsite').value, agree: 'Y', page: location.href.split('#')[0],
+        calc: leadPayload(), plan: plan };
+      var body = new FormData(); body.append('sessid', sessid); body.append('data', JSON.stringify(data));
+      return fetch(url, { method: 'POST', body: body, credentials: 'same-origin' }).then(function (res) { return res.json(); });
+    }).then(function (ans) {
+      if (ans && ans.ok) { say('Спасибо! Расчёт отправлен менеджеру, он свяжется с вами в рабочее время.'); st.style.color = 'var(--ltd-ok-ink)'; $('ltdLead').reset(); }
+      else say((ans && ans.error) || 'Не удалось отправить. Позвоните нам: +7 (495) 135-93-05.', true);
+    }).catch(function () { say('Не удалось отправить. Позвоните нам: +7 (495) 135-93-05.', true); })
       .then(function () { btn.disabled = false; });
   });
 
