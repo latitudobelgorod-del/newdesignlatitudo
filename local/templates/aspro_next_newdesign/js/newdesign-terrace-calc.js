@@ -639,8 +639,6 @@ var LtdCore = (function () {
   svgB.addEventListener('pointerleave', function () { if (!drag) tip.hidden = true; });
 
   /* ---------- События ---------- */
-  // зазор не больше GAP_MAX: при выходе из поля большее значение срезается до максимума
-  $('ltdGap').addEventListener('change', function () { if (num(this.value) > GAP_MAX) { this.value = GAP_MAX; this.dispatchEvent(new Event('input', { bubbles: true })); } });
   $('ltdBrand').addEventListener('change', function () { if (brand()) fillModels(); else { fillLengths(); fillAcc(); } });
   $('ltdTable').addEventListener('change', function (ev) {
     var k = ev.target.getAttribute && ev.target.getAttribute('data-key'); if (!k) return;
