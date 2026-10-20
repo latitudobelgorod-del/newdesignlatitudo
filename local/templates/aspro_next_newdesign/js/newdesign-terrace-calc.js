@@ -110,6 +110,16 @@ var LtdCore = (function () {
     return out;
   }
 
+  /* Ряд не длиннее доски при укладке вразбежку: один стык на лаге, в соседних рядах — около 1/3 и 2/3
+     длины ряда, чтобы стыки не шли в линию. Обрезок от одного куска идёт на второй кусок того же ряда или следующего.
+     x0 — начало ряда (лаги стоят на x, кратных step). Слишком короткий ряд кладётся целиком. */
+  function shortRowPieces(x0, len, step, odd) {
+    var snap = function (t) { return Math.round((x0 + t) / step) * step - x0; };
+    var p = snap(len * (odd ? 2 : 1) / 3);
+    if (p < 0.3 - 1e-6 || len - p < 0.3 - 1e-6) return [len];
+    return [p, len - p];
+  }
+
   function calc(s) {
     var sh = SHAPES[s.shape] || SHAPES.rect;
     var base = pieces(s);
@@ -131,13 +141,15 @@ var LtdCore = (function () {
     if (!diag) {
       r.rows = ceil(across / useful);
       r.offset = stagger ? staggerOffset(s.bl, r.step) : 0;
-      var raw = 0, rowSegs = [], pool = [];
+      var raw = 0, rowSegs = [], rowCuts = [], pool = [];
       for (var i = 0; i < r.rows; i++) {
         var segs = bandSegs(polys, i * useful, Math.min((i + 1) * useful, across));
         rowSegs.push(segs);
-        segs.forEach(function (sg) {
+        rowCuts.push(segs.map(function (sg) {
+          var len = sg[1] - sg[0];
+          var ps = stagger && len <= s.bl + 1e-6 ? shortRowPieces(sg[0], len, r.step, i % 2) : rowPieces(len, s.bl, stagger && i % 2 ? r.offset : 0);
           // целые доски — новые; укороченный кусок берём из подходящего обрезка, иначе режем новую доску
-          rowPieces(sg[1] - sg[0], s.bl, i % 2 ? r.offset : 0).forEach(function (p) {
+          ps.forEach(function (p) {
             if (p >= s.bl - 1e-6) { raw++; return; }
             var best = -1;
             pool.forEach(function (o, j) { if (o >= p - 1e-6 && (best < 0 || o < pool[best])) best = j; });
@@ -145,9 +157,11 @@ var LtdCore = (function () {
             if (best >= 0) { rest = pool[best] - p; pool.splice(best, 1); } else { raw++; rest = s.bl - p; }
             if (rest >= 0.3) pool.push(rest);
           });
-        });
+          return ps;
+        }));
       }
       r.rowSegs = rowSegs;
+      r.rowCuts = rowCuts;   // куски досок по рядам и отрезкам — по ним рисуются стыки
       r.perRow = ceil(along / s.bl);
       r.raw = raw;
       r.total = ceil(raw * k);
@@ -557,21 +571,19 @@ var LtdCore = (function () {
     o += '<g clip-path="url(#' + clipId + ')"><rect x="' + f.x0 + '" y="' + f.y0 + '" width="' + f.w + '" height="' + f.h + '" fill="var(--ltd-board)"/>';
     var seamW = Math.max(0.6, Math.min(2, u * f.sc * 0.12));
     if (!r.diag) {
-      var Lb = s.bl;
       r.rowSegs.forEach(function (segs, i) {
         var a0 = i * u, a1 = Math.min((i + 1) * u, r.across);
-        segs.forEach(function (sg) {
+        segs.forEach(function (sg, si) {
           var p0 = P(r, s, sg[0], a0), p1 = P(r, s, sg[1], a1);
           var x = Math.min(p0[0], p1[0]), y = Math.min(p0[1], p1[1]), w = Math.abs(p1[0] - p0[0]), h = Math.abs(p1[1] - p0[1]);
           o += '<rect x="' + f.X(x) + '" y="' + f.Y(y) + '" width="' + (w * f.sc) + '" height="' + (h * f.sc) + '" fill="' + (i % 2 ? 'var(--ltd-board-2)' : 'var(--ltd-board)') + '"/>';
-          var len = sg[1] - sg[0];
-          if (Lb < len - 0.001) {
-            var off = (r.stagger && i % 2) ? r.offset : Lb;
-            for (var j = off; j < len - 0.05; j += Lb) {
-              var q0 = P(r, s, sg[0] + j, a0), q1 = P(r, s, sg[0] + j, a1);
-              o += '<line x1="' + f.X(q0[0]) + '" y1="' + f.Y(q0[1]) + '" x2="' + f.X(q1[0]) + '" y2="' + f.Y(q1[1]) + '" stroke="var(--ltd-joint)" stroke-width="2"/>';
-            }
-          }
+          // стыки — между кусками досок, как их разложило ядро (r.rowCuts)
+          var ps = r.rowCuts[i][si], j = 0;
+          ps.slice(0, -1).forEach(function (p) {
+            j += p;
+            var q0 = P(r, s, sg[0] + j, a0), q1 = P(r, s, sg[0] + j, a1);
+            o += '<line x1="' + f.X(q0[0]) + '" y1="' + f.Y(q0[1]) + '" x2="' + f.X(q1[0]) + '" y2="' + f.Y(q1[1]) + '" stroke="var(--ltd-joint)" stroke-width="2"/>';
+          });
         });
         if (i) { var e0 = P(r, s, 0, a0), e1 = P(r, s, r.along, a0); o += '<line x1="' + f.X(e0[0]) + '" y1="' + f.Y(e0[1]) + '" x2="' + f.X(e1[0]) + '" y2="' + f.Y(e1[1]) + '" stroke="var(--ltd-bg)" stroke-opacity=".8" stroke-width="' + seamW + '"/>'; }
       });
@@ -653,9 +665,11 @@ var LtdCore = (function () {
     var lg = s.lagOn && s.lag != null ? I[s.lag] : null;
     var r = LtdCore.calc({ shape: s.shape, L: s.L, W: s.W, a: s.a, b: s.b, dir: s.dir, pattern: s.pattern, bw: s.bw, gap: s.gap, bl: s.bl, res: s.res, step: s.step,
       lengths: s.lengths, supStep: s.supOn ? s.supStepCm : 0, lagLen: lg && lg[3] ? lg[3] / 1000 : 0 });
-    // ряды не длиннее доски — стыков нет, и рисунок на плане не отличается
-    var joints = !r.diag && r.rowSegs.some(function (segs) { return segs.some(function (sg) { return sg[1] - sg[0] > s.bl + 1e-6; }); });
-    $('ltdPatternHint').textContent = r.diag || joints ? '' : 'Ряд не длиннее доски (' + fmt(s.bl, 2) + ' м): каждая доска кладётся целиком, без стыков, поэтому рисунок не меняется. Разница появится, когда терраса длиннее доски.';
+    // пояснение к рисунку: прямой без стыков — доски целиком; вразбежку на рядах короче доски — из двух кусков
+    var joints = !r.diag && r.rowCuts.some(function (row) { return row.some(function (ps) { return ps.length > 1; }); });
+    var shortRows = !r.diag && r.rowSegs.every(function (segs) { return segs.every(function (sg) { return sg[1] - sg[0] <= s.bl + 1e-6; }); });
+    $('ltdPatternHint').textContent = r.diag ? '' : !joints ? 'Ряд не длиннее доски (' + fmt(s.bl, 2) + ' м): доски кладутся целиком, без стыков.'
+      : s.pattern === 'stagger' && shortRows ? 'Ряд короче доски: каждый ряд собирается из двух кусков, стыки в соседних рядах разнесены. Обрезок одного куска идёт на следующий.' : '';
     $('ltdStepHint').textContent = r.diag ?'Диагональ: × 0,7 = ' + fmt(r.step * 100, 1) + ' см' : '';
 
     $('ltdBoards').innerHTML = fmt(r.total) + '<small>' + plural(r.total, 'доска', 'доски', 'досок') + ' по ' + fmt(s.bl) + ' м</small>';
