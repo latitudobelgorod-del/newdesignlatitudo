@@ -1166,8 +1166,45 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 		   новые — после удаления позиции суммы расходились (Ирина, 20.10.2026). */
 		bc.checkTotalAnimation = function (totalData) { return totalData; };
 
+		/* «Удалить», нажатое на строке, которую ещё восстанавливает сервер
+		   (см. обработчик ниже): позиция вернулась под новым номером —
+		   удаляем её уже под ним, сразу после перерисовки строк, чтобы
+		   восстановленная строка не успела мелькнуть. */
+		var origRestore = bc.restoreBasketItems;
+		bc.restoreBasketItems = function (items) {
+			for (var oldId in (items || {})) {
+				if (items.hasOwnProperty(oldId) && deleteAfterRestore[oldId]) {
+					delete deleteAfterRestore[oldId];
+					deleteQueue.push(String(items[oldId]));
+				}
+			}
+			return origRestore.apply(this, arguments);
+		};
+		var origEdit = bc.editBasketItems;
+		bc.editBasketItems = function () {
+			var res = origEdit.apply(this, arguments);
+			while (deleteQueue.length) {
+				var newId = deleteQueue.shift();
+				var item = this.items[newId];
+				var node = document.getElementById('basket-item-' + newId);
+				if (!item || item.SHOW_RESTORE || !node) continue;
+				var btn = [].filter.call(node.querySelectorAll('[data-entity="basket-item-delete"]'), function (b) {
+					return b.offsetParent !== null;
+				})[0];
+				if (!btn) continue;
+				/* Итоги из этого ответа — уже с вернувшейся позицией: клик снова
+				   вычитает её (обработчик ниже), а editTotal следом рисует панель
+				   из исправленных данных — без скачка суммы вверх. */
+				btn.click();
+			}
+			return res;
+		};
+
 		return true;
 	}
+
+	var deleteAfterRestore = {};
+	var deleteQueue = [];
 
 	/* Удаление и «Восстановить»: итоги пересчитываем сразу по нажатию, не
 	   дожидаясь сервера (ответ идёт секунду и больше). Точные цифры — со
@@ -1221,6 +1258,22 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 		var row = (del || back).closest('[data-entity="basket-item"]');
 		var id = row ? row.getAttribute('data-id') : null;
 		var item = id && bc && bc.items ? bc.items[id] : null;
+
+		/* Строку восстанавливают, сервер ещё не выдал ей новый номер: компоненту
+		   клик не отдаём (он удалил бы старый номер), показываем «удалён» сразу,
+		   а само удаление делает restoreBasketItems/editBasketItems выше. */
+		if (row && row.closest('.nd-restoring')) {
+			e.stopPropagation();
+			e.preventDefault();
+			if (!del || !item || item.__ndCounted || deleteAfterRestore[id]) return;
+			deleteAfterRestore[id] = true;
+			item.__ndCounted = true;
+			shiftTotal(bc, item, -1);
+			item.SHOW_RESTORE = true;
+			bc.redrawBasketItemNode(id);
+			return;
+		}
+
 		if (!item || !bc.result || !bc.result.TOTAL_RENDER_DATA || item.SHOW_LOADING) return;
 
 		if (del) {
@@ -1234,13 +1287,20 @@ if ($ndRelatedIds && $ndRelatedIblockId):
 		item.__ndCounted = false;
 		shiftTotal(bc, item, 1);
 		/* Компонент сейчас перерисует строку с белой пеленой до ответа сервера.
-		   Пелену оставляем (она не даёт нажать «Удалить» на позицию, у которой
-		   сервер ещё не выдал новый номер), но делаем прозрачной — строка
-		   сразу выглядит восстановленной. Ответ рисует строку заново, без класса. */
+		   Пелену делаем прозрачной и сквозной (.nd-restoring) — строка сразу
+		   выглядит восстановленной, а клики по ней разбирает ветка выше.
+		   Ответ рисует строку заново, без класса. */
 		setTimeout(function () {
 			var node = document.getElementById('basket-item-' + id);
 			if (node) node.classList.add('nd-restoring');
 		}, 0);
+	}, true);
+
+	/* В восстанавливаемой строке поле количества до ответа не трогаем. */
+	document.addEventListener('mousedown', function (e) {
+		if (e.target.closest && e.target.closest('.nd-restoring') && !e.target.closest('[data-entity="basket-item-delete"]')) {
+			e.preventDefault();
+		}
 	}, true);
 
 	if (!patch()) {

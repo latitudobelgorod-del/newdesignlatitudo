@@ -732,6 +732,10 @@
 #basket-root .basket-items-list-item-container-expend .basket-items-list-item-overlay,
 #basket-root .nd-restoring .basket-items-list-item-overlay {
     opacity: 0;
+}
+/* Восстанавливаемую строку можно сразу удалить — клики разбирает template.php */
+#basket-root .nd-restoring .basket-items-list-item-overlay {
+    pointer-events: none;
 }#basket-root .nd-total__row {
     display: flex;
     align-items: baseline;
