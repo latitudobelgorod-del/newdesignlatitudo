@@ -65,6 +65,13 @@ $aMenuLinks = Array(
 		"" 
 	),
 	Array(
+		"Калькулятор террасы",
+		"/info/kalkulyator-terrasy/",
+		Array(),
+		Array(),
+		""
+	),
+	Array(
 		"Инструкции и схемы монтажа", 
 		"/materials/montazhnye-skhemy-i-instruktsii/", 
 		Array(), 
