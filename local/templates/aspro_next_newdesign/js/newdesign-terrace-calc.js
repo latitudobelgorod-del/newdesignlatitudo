@@ -206,6 +206,7 @@ var LtdCore = (function () {
   function swatch(name) { for (var i = 0; i < SW.length; i++) if (SW[i][0].test(name)) return SW[i][1]; return '#8a5a3c'; }
   var sel = { m: 0, c: 0, o: 0 };
   var DEF_BRAND = Math.max(0, DATA.B.findIndex(function (b) { return b.n === 'EasyDecking'; }));   // бренд по умолчанию
+  var DEF_COLOR = 'Венге';                                                                            // и его цвет
   $('ltdBrand').innerHTML = DATA.B.map(function (b, i) { return opt(i, b.n + ' (' + b.m.reduce(function (t, m) { return t + m.c.length; }, 0) + ')', i === DEF_BRAND); }).join('') + opt('own', 'Своя доска (ввести размеры)');
   function brand() { var v = $('ltdBrand').value; return v === 'own' ? null : DATA.B[+v]; }
   function model() { var b = brand(); return b ? b.m[sel.m] : null; }
@@ -215,8 +216,9 @@ var LtdCore = (function () {
   function fillModels() {
     var b = brand(); if (!b) return;
     var mi = Math.max(0, b.m.findIndex(function (m) { return m.n === 'Евро'; }));
-    var oi = Math.max(0, b.m[mi].c[0].o.findIndex(function (o) { return o[0] === 4000; }));
-    sel = { m: mi, c: 0, o: oi }; $('ltdFind').value = '';
+    var ci = b === DATA.B[DEF_BRAND] ? Math.max(0, b.m[mi].c.findIndex(function (c) { return c.n === DEF_COLOR; })) : 0;
+    var oi = Math.max(0, b.m[mi].c[ci].o.findIndex(function (o) { return nominal(o[0]) === 4000; }));
+    sel = { m: mi, c: ci, o: oi }; $('ltdFind').value = '';
     renderList(); fillLengths(); fillAcc();
     var on = $('ltdList').querySelector('[aria-selected=true]');
     if (on) $('ltdList').scrollTop = on.offsetTop - $('ltdList').offsetTop - 4;
