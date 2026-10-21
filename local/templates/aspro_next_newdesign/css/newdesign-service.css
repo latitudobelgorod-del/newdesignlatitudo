@@ -99,8 +99,9 @@
 .services_newdesign #page_str_terras.terras-pod-klyuch .nd-srv-hero__card {
     background-image: url('/images/services/terras-pod-klyuch-2026.jpg');
 }
+/* Монтаж террасной доски — новое фото 21 октября 2026 (торцовка доски ДПК). */
 .services_newdesign #page_str_terras.montaj_service .nd-srv-hero__card {
-    background-image: url('/images/services/montaj_service.jpg');
+    background-image: url('/images/services/montaj_service-2026.jpg');
 }
 .services_newdesign #page_str_terras.ekspluatiruemaya_krovlya .nd-srv-hero__card {
     background-image: url('/images/services/krovlya_fon_2026.jpg');
