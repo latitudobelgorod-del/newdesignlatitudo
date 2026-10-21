@@ -13,7 +13,8 @@
  *    - PDF вкладывается в письмо FORM_FILLING_MAINFORM (OnBeforeEventAdd, тот же запрос);
  *    - ставится агент Latitudo_TerraceCalcAttach: лид создаёт штатная связь «Веб-формы → CRM»
  *      с задержкой до нескольких минут, агент ждёт его, находит по телефону и кладёт в ленту
- *      комментарий со сметой и PDF, а пустую сумму лида заполняет итогом расчёта.
+ *      комментарий со сметой и PDF, PDF — ещё и в поле «Дополнительные файлы» (21.10.2026),
+ *      а пустую сумму лида заполняет итогом расчёта.
  *    Та же схема, что у файла претензий (bitrix/php_interface/include/claim_file_crm.php).
  *
  * Вебхук — ~/.latitudo_b24.php вне папки сайта и вне git. Лог только ошибок:
@@ -24,6 +25,7 @@ const ND_TC_FORM_SID = 'MAINFORM';
 const ND_TC_FORM_TITLE = 'Рассчитать с менеджером';
 const ND_TC_MAX_AGE = 25 * 60;     // сколько агент ждёт появления лида
 const ND_TC_SESSION_TTL = 3 * 3600; // сколько расчёт в сессии считается свежим
+const ND_TC_LEAD_FILE_UF = 'UF_CRM_1772713891'; // поле лида «Дополнительные файлы»
 
 function ndTerraceCalcLog($msg)
 {
@@ -176,15 +178,38 @@ function Latitudo_TerraceCalcAttach($resultId, $submitTs)
 		$comment = array('ENTITY_ID' => $leadId, 'ENTITY_TYPE' => 'lead', 'COMMENT' => "Расчёт террасы из калькулятора на сайте\n\n".$calc['text']);
 		$file = $calc['file'] ? CFile::GetFileArray((int)$calc['file']) : null;
 		$path = $file ? $_SERVER['DOCUMENT_ROOT'].$file['SRC'] : '';
+		$pdf = null;
 		if ($path !== '' && is_file($path)) {
-			$comment['FILES'] = array(array($file['ORIGINAL_NAME'] ?: $file['FILE_NAME'], base64_encode(file_get_contents($path))));
+			$pdf = array($file['ORIGINAL_NAME'] ?: $file['FILE_NAME'], base64_encode(file_get_contents($path)));
+			$comment['FILES'] = array($pdf);
 		}
 		$res = ndTerraceCalcB24('crm.timeline.comment.add', array('fields' => $comment));
 		if (empty($res['result'])) {
 			ndTerraceCalcLog("агент $resultId: комментарий в лид $leadId не добавлен: ".substr(json_encode($res, JSON_UNESCAPED_UNICODE), 0, 300));
 		}
+
+		// PDF — ещё и в поле лида «Дополнительные файлы», как файл претензии
+		// (claim_file_crm.php). Поле множественное: уже лежащие файлы передаём
+		// обратно по id, иначе update их сотрёт.
+		$fields = array();
+		if ($pdf) {
+			$keep = array();
+			foreach ((array)($lead['result'][ND_TC_LEAD_FILE_UF] ?? array()) as $f) {
+				if (!empty($f['id'])) {
+					$keep[] = array('id' => (int)$f['id']);
+				}
+			}
+			$fields[ND_TC_LEAD_FILE_UF] = array_merge($keep, array(array('fileData' => $pdf)));
+		}
 		if ((float)($lead['result']['OPPORTUNITY'] ?? 0) <= 0 && $calc['total'] > 0) {
-			ndTerraceCalcB24('crm.lead.update', array('id' => $leadId, 'fields' => array('OPPORTUNITY' => round($calc['total']), 'CURRENCY_ID' => 'RUB')));
+			$fields['OPPORTUNITY'] = round($calc['total']);
+			$fields['CURRENCY_ID'] = 'RUB';
+		}
+		if ($fields) {
+			$res = ndTerraceCalcB24('crm.lead.update', array('id' => $leadId, 'fields' => $fields));
+			if (empty($res['result'])) {
+				ndTerraceCalcLog("агент $resultId: лид $leadId не обновлён: ".substr(json_encode($res, JSON_UNESCAPED_UNICODE), 0, 300));
+			}
 		}
 		return $done();
 	} catch (\Throwable $e) {
