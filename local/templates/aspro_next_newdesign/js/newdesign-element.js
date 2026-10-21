@@ -825,7 +825,9 @@
 	document.addEventListener('click', function (ev) {
 		var a = ev.target.closest && ev.target.closest('.nd-pd__tcalc');
 		if (!a) return;
-		var len = document.querySelector('.bx_item_detail_size[data-nd-name="Длина"] li.active .cnt');
+		var name = document.querySelector('.item_main_info .info_item [data-nd-name="Длина"]');
+		var len = name && name.closest('.bx_item_detail_size');
+		len = len && len.querySelector('li.active .cnt');
 		var mm = len ? parseInt(len.textContent, 10) : 0;
 		var href = a.getAttribute('href').replace(/&len=\d*/, '');
 		a.setAttribute('href', mm > 0 ? href + '&len=' + mm : href);
