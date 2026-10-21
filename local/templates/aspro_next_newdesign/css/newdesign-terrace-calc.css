@@ -116,7 +116,7 @@
   .ltd-calc .ltd-big small { font-size: 16.8px; font-weight: 600; letter-spacing: 0; margin-left: 6px; }
   .ltd-calc .ltd-head p { margin: 0; color: var(--ltd-muted); font-size: 14.72px; }
   .ltd-calc .ltd-head b { color: var(--ltd-ink); font-variant-numeric: tabular-nums; }
-  .ltd-calc .ltd-sum { text-align: right; }
+  .ltd-calc .ltd-sum { text-align: right; justify-self: end; border: 2px solid var(--ltd-accent); background: var(--ltd-accent-soft); border-radius: var(--ltd-radius); padding: 8px 16px 10px; }
   .ltd-calc .ltd-sum div { font-size: 12.8px; color: var(--ltd-muted); }
   .ltd-calc .ltd-sum strong { font-size: 25.6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
@@ -143,7 +143,7 @@
   .ltd-calc tfoot th, .ltd-calc tfoot td { border-bottom: 0; font-size: 16.8px; font-weight: 700; padding-top: 12px; }
   /* Телефон: название и подпись во всю ширину, под ними строка «кол-во · цена · сумма»; итог по смете слева */
   @media (max-width: 600px) {
-    .ltd-calc .ltd-sum { text-align: left; }
+    .ltd-calc .ltd-sum { text-align: left; justify-self: start; margin-top: 6px; }
     .ltd-calc .ltd-tbl table, .ltd-calc .ltd-tbl tbody, .ltd-calc .ltd-tbl tfoot { display: block; }
     .ltd-calc .ltd-tbl thead { display: none; }
     .ltd-calc .ltd-tbl tbody tr { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 4px 16px; padding: 12px 0; border-bottom: 1px solid var(--ltd-line); }
