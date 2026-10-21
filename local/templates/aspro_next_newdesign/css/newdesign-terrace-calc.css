@@ -126,7 +126,7 @@
   .ltd-calc .ltd-plans figcaption { font-size: 13.6px; font-weight: 600; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   .ltd-calc .ltd-plans figcaption em { font-weight: 400; font-style: normal; color: var(--ltd-muted); font-size: 12.48px; }
   .ltd-calc .ltd-plans svg { display: block; width: 100%; height: auto; max-height: 380px; touch-action: none; }
-  .ltd-calc .ltd-plans svg { cursor: zoom-in; }
+  .ltd-calc .ltd-plans svg { cursor: pointer; }
   .ltd-calc .ltd-handle { cursor: grab; }
   .ltd-calc .ltd-zoom { font: inherit; font-size: 13.6px; font-weight: 600; padding: 7px 12px 7px 32px; border-radius: var(--ltd-radius); border: 1px solid var(--ltd-line); color: var(--ltd-ink); cursor: pointer;
     background: var(--ltd-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23101014' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4'/%3E%3C/svg%3E") 11px center / 14px no-repeat; }
