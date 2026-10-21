@@ -206,15 +206,17 @@ var LtdCore = (function () {
     r.joistMeters = lines.reduce(function (t, l) { return t + l.len; }, 0);
     r.joistLen = across;
     // Диагональ: стыки в рядах — на последней лаге, до которой достаёт доска; в нечётных рядах
-    // первый кусок вдвое короче, чтобы стыки соседних рядов не шли в линию. Только для рисунка.
+    // первый кусок вдвое короче, чтобы стыки соседних рядов не шли в линию. Под стыками — вторая лага, как в прямой укладке.
     r.diagJoints = [];
     if (diag) {
-      var dd = useful * Math.SQRT2, mx = s.bl / Math.SQRT2;
+      // стыки сводятся на редкую сетку линий лаг (шаг g — около полудоски), иначе вторая лага
+      // понадобилась бы почти под каждой линией; соседние ряды — через одну линию сетки
+      var dd = useful * Math.SQRT2, mx = s.bl / Math.SQRT2, g = Math.max(1, Math.floor(mx / 2 / r.step + 1e-9)) * r.step;
       for (var k2 = 0; k2 * dd < s.L + s.W && k2 < 2000; k2++) {
         diagSegs(polys, (k2 + 0.5) * dd).forEach(function (sg) {
           var pos = sg[0], lim = k2 % 2 ? mx / 2 : mx;
           while (sg[1] - pos > lim + 1e-6) {
-            var jx = Math.floor((pos + lim) / r.step + 1e-9) * r.step;
+            var jx = Math.floor((pos + lim) / g + 1e-9) * g;
             if (jx <= pos + 1e-6) jx = pos + lim;
             r.diagJoints.push({ x: jx, c0: k2 * dd, c1: (k2 + 1) * dd });
             pos = jx; lim = mx;
@@ -237,6 +239,15 @@ var LtdCore = (function () {
             lines[li].segs.forEach(function (q, qi) { if (yc >= q[0] - 1e-6 && yc <= q[1] + 1e-6) dbl[li + ':' + qi] = 1; });
           });
         });
+      });
+    }
+    // то же для диагонали: стык лежит на своей линии лаг, удваивается отрезок под серединой ряда
+    if (diag && lines.length) {
+      r.diagJoints.forEach(function (jt) {
+        var yc = (jt.c0 + jt.c1) / 2 - jt.x, li = 0;
+        jointCount++;
+        lines.forEach(function (l, k) { if (Math.abs(l.x - jt.x) < Math.abs(lines[li].x - jt.x)) li = k; });
+        lines[li].segs.forEach(function (q, qi) { if (yc >= q[0] - 1e-6 && yc <= q[1] + 1e-6) dbl[li + ':' + qi] = 1; });
       });
     }
     r.joints = jointCount;
@@ -830,7 +841,7 @@ var LtdCore = (function () {
   });
 
   /* вкладки планов */
-  var planFig = root.querySelector('.ltd-main'), planHome = planFig.parentNode, planLayer = null;
+  var planFig = root.querySelector('.ltd-main');
   var tab = 'boards', TAB_CAP = { boards: 'тяните за красные точки, чтобы изменить размеры' };
   function showTab(t) {
     tab = t;
@@ -838,25 +849,16 @@ var LtdCore = (function () {
     planFig.querySelectorAll('[data-pane]').forEach(function (p) { p.hidden = p.getAttribute('data-pane') !== t; });
     $('ltdTabCap').textContent = TAB_CAP[t] || '';
   }
-  /* план на весь экран. Обёртка страницы — свой слой (z-index), шапка сайта его перекрывает,
-     поэтому на время увеличения план переносится в слой прямо в body (с теми же классами — стили те же) */
-  function zoomPlan(on) {
-    var fig = planFig, b = $('ltdZoom');
-    if (on) {
-      if (!planLayer) { planLayer = document.createElement('div'); planLayer.className = 'ltd-calc ltd-zoom-layer'; planLayer.innerHTML = '<div class="ltd-plans"></div>'; }
-      document.body.appendChild(planLayer); planLayer.firstChild.appendChild(fig);
-    } else if (planLayer && planLayer.parentNode) {
-      planHome.appendChild(fig); planLayer.parentNode.removeChild(planLayer);
-    }
-    fig.classList.toggle('is-zoom', on);
-    document.documentElement.classList.toggle('ltd-zoom-open', on);
-    b.textContent = on ? 'Закрыть' : 'Увеличить';
-    b.setAttribute('aria-expanded', on ? 'true' : 'false');
-    // на узком экране план шире экрана — ставим его серединой в окно
-    if (on) fig.querySelectorAll('[data-pane]').forEach(function (p) { if (!p.hidden) p.scrollLeft = (p.scrollWidth - p.clientWidth) / 2; });
-  }
-  $('ltdZoom').addEventListener('click', function () { zoomPlan(!planFig.classList.contains('is-zoom')); });
-  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && planFig.classList.contains('is-zoom')) zoomPlan(false); });
+  /* «Увеличить»: открытый план — крупной картинкой в fancybox, как фото на всём сайте */
+  var TAB_NAME = { boards: 'План укладки доски', joists: 'План лаг', sup: 'План опор', all: 'Доски, лаги и опоры вместе' };
+  $('ltdZoom').addEventListener('click', function () {
+    var svg = planFig.querySelector('[data-pane="' + tab + '"] svg'), vb = svg.viewBox.baseVal, W = 2400, H = Math.round(W * vb.height / vb.width);
+    planImage(svg, W, H, 'image/png').then(function (src) {
+      if (!src) return;
+      if (window.jQuery && jQuery.fancybox) jQuery.fancybox.open({ src: src, type: 'image', opts: { caption: TAB_NAME[tab] || '' } });
+      else window.open().document.write('<img src="' + src + '" style="max-width:100%">');
+    });
+  });
   planFig.querySelector('.ltd-tabs').addEventListener('click', function (ev) { var b = ev.target.closest('[role=tab]'); if (b && !b.disabled) showTab(b.getAttribute('data-tab')); });
   $('ltdH').addEventListener('input', fillSupports);
   $('ltdRes').addEventListener('input', function () { resTouched = true; });
@@ -878,10 +880,11 @@ var LtdCore = (function () {
      (local/php_interface/include/latitudo_terrace_calc_crm.php). */
 
   /* План «Всё вместе» → JPEG: переменные цвета подставляем значениями, точки перетаскивания убираем */
-  function planJpeg() {
+  /* SVG плана → картинка (data URL): для PDF заявки и для «Увеличить» */
+  function planImage(svg, W, H, type, q) {
     return new Promise(function (resolve) {
       try {
-        var svg = $('ltdSvgAll'), cs = getComputedStyle(root), W = 1280, H = 720;
+        var cs = getComputedStyle(root);
         // XMLSerializer, а не outerHTML: в подписях &nbsp;, а в SVG-картинке такой сущности нет — она не загрузится
         var src = new XMLSerializer().serializeToString(svg).replace(/var\((--ltd-[a-z0-9-]+)\)/g, function (m, v) { return cs.getPropertyValue(v).trim() || '#000'; })
           .replace(/^<svg /, '<svg width="' + W + '" height="' + H + '" font-family="Arial, sans-serif" ');
@@ -889,13 +892,14 @@ var LtdCore = (function () {
         img.onload = function () {
           var c = document.createElement('canvas'); c.width = W; c.height = H;
           var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.drawImage(img, 0, 0, W, H);
-          try { resolve(c.toDataURL('image/jpeg', 0.85)); } catch (e) { resolve(''); }
+          try { resolve(c.toDataURL(type, q)); } catch (e) { resolve(''); }
         };
         img.onerror = function () { resolve(''); };
         img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src);
       } catch (e) { resolve(''); }
     });
   }
+  function planJpeg() { return planImage($('ltdSvgAll'), 1280, 720, 'image/jpeg', 0.85); }
   function leadPayload() {
     var s = last.s, r = last.r, sum = summary().split('\n');
     var params = sum.slice(0, 2);
