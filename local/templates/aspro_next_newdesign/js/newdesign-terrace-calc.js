@@ -938,7 +938,8 @@ var LtdCore = (function () {
     if (!url || !last || !last.rows || !window.BX || !BX.bitrix_sessid) return;
     var calc = leadPayload(), page = location.href.split('#')[0];
     planJpeg().then(function (plan) {
-      var body = new FormData(); body.append('sessid', BX.bitrix_sessid());
+      // обычная форма (urlencoded), не multipart: 21.10.2026 хостинг отбивал multipart-запросы с 403
+      var body = new URLSearchParams(); body.append('sessid', BX.bitrix_sessid());
       body.append('data', JSON.stringify({ calc: calc, plan: plan, page: page }));
       return fetch(url, { method: 'POST', body: body, credentials: 'same-origin' });
     }).catch(function () {}); // не вышло — заявка всё равно уйдёт, просто без PDF

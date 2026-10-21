@@ -10,6 +10,8 @@
 
    Цены и количества пришли из браузера: это расчёт клиента, в лиде он так и подписан.
 
+   Тот же обработчик принимает расчёт калькулятора ограждений: data.kind = 'fence' (21.10.2026).
+
    POST: sessid, data (JSON). Ответ — JSON {ok, error?}. */
 
 define('STOP_STATISTICS', true);
@@ -65,7 +67,7 @@ foreach (array_slice((array)($ndTcCalc['rows'] ?? array()), 0, 30) as $row) {
 }
 $ndTcTotal = is_numeric($ndTcCalc['total'] ?? null) ? (float)$ndTcCalc['total'] : 0;
 if (!$ndTcRows) {
-	$ndTcAnswer(false, 'Сначала заполните параметры террасы.');
+	$ndTcAnswer(false, 'Сначала заполните параметры расчёта.');
 }
 
 // картинка плана: только JPEG, до 2 МБ
@@ -77,9 +79,13 @@ if (preg_match('#^data:image/jpeg;base64,([A-Za-z0-9+/=]+)$#', (string)($ndTcDat
 	}
 }
 
+// какой калькулятор прислал расчёт: террасы (по умолчанию) или ограждений (21.10.2026)
+$ndTcKind = ($ndTcData['kind'] ?? '') === 'fence'
+	? array('title' => 'Расчёт ограждения', 'slug' => 'raschet-ograzhdeniya', 'page' => 'https://latitudo.ru/info/kalkulyator-ograzhdeniy/')
+	: array('title' => 'Расчёт террасы', 'slug' => 'raschet-terrasy', 'page' => 'https://latitudo.ru/info/kalkulyator-terrasy/');
 $ndTcPage = $ndTcStr($ndTcData['page'] ?? '', 300);
 if (strpos($ndTcPage, 'https://latitudo.ru/') !== 0) {
-	$ndTcPage = 'https://latitudo.ru/info/kalkulyator-terrasy/';
+	$ndTcPage = $ndTcKind['page'];
 }
 $ndTcMoney = function ($v) {
 	return number_format(round($v), 0, ',', ' ').' руб.';
@@ -87,7 +93,7 @@ $ndTcMoney = function ($v) {
 
 /* ---------- PDF ---------- */
 require_once($_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_terrace_pdf.php');
-$ndTcPdfBody = ndTerraceCalcPdf($ndTcParams, $ndTcRows, $ndTcTotal, $ndTcPlan, '', $ndTcPage);
+$ndTcPdfBody = ndTerraceCalcPdf($ndTcParams, $ndTcRows, $ndTcTotal, $ndTcPlan, '', $ndTcPage, $ndTcKind['title']);
 
 /* ---------- Текст сметы для ленты лида ---------- */
 $ndTcText = implode("\n", $ndTcParams)."\n\nСмета (расчёт клиента на сайте):\n";
@@ -96,4 +102,4 @@ foreach ($ndTcRows as $row) {
 }
 $ndTcText .= 'Итого: '.$ndTcMoney($ndTcTotal)."\nСтраница: ".$ndTcPage;
 
-$ndTcAnswer(ndTerraceCalcRemember($ndTcPdfBody, $ndTcText, $ndTcTotal), $ndTcPdfBody === '' ? 'PDF не собрался' : '');
+$ndTcAnswer(ndTerraceCalcRemember($ndTcPdfBody, $ndTcText, $ndTcTotal, $ndTcKind['title'], $ndTcKind['slug']), $ndTcPdfBody === '' ? 'PDF не собрался' : '');

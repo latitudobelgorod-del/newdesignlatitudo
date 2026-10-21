@@ -14,7 +14,7 @@
  * @param string   $plan   JPEG плана (двоичные данные) или ''
  * @return string содержимое PDF или '' при ошибке
  */
-function ndTerraceCalcPdf(array $params, array $rows, $total, $plan, $name, $page)
+function ndTerraceCalcPdf(array $params, array $rows, $total, $plan, $name, $page, $title = 'Расчёт террасы')
 {
 	if (!defined('FPDF_FONTPATH')) {
 		define('FPDF_FONTPATH', $_SERVER['DOCUMENT_ROOT'].'/upload/tmp/nd_terrace_calc_fonts/');
@@ -55,7 +55,7 @@ function ndTerraceCalcPdf(array $params, array $rows, $total, $plan, $name, $pag
 
 		$pdf->SetTextColor(28, 27, 26);
 		$pdf->SetFont('PT', 'B', 16);
-		$pdf->Cell(0, 8, 'Расчёт террасы', 0, 1);
+		$pdf->Cell(0, 8, $title, 0, 1);
 		$pdf->SetFont('PT', '', 9);
 		$pdf->SetTextColor(110, 106, 101);
 		$pdf->Cell(0, 5, 'от '.date('d.m.Y').($name !== '' ? ' · для: '.$name : ''), 0, 1);

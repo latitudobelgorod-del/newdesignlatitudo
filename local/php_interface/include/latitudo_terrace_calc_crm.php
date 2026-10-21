@@ -32,14 +32,15 @@ function ndTerraceCalcLog($msg)
 	@file_put_contents($_SERVER['DOCUMENT_ROOT'].'/upload/tmp/nd_terrace_calc_crm.log', date('Y-m-d H:i:s').' '.$msg."\n", FILE_APPEND);
 }
 
-/** Запомнить расчёт посетителя: PDF → файл Битрикса, текст сметы и итог → сессия. */
-function ndTerraceCalcRemember($pdfBody, $text, $total)
+/** Запомнить расчёт посетителя: PDF → файл Битрикса, текст сметы и итог → сессия.
+ *  $title — «Расчёт террасы» или «Расчёт ограждения» (калькулятор ограждений, 21.10.2026), $slug — имя PDF. */
+function ndTerraceCalcRemember($pdfBody, $text, $total, $title = 'Расчёт террасы', $slug = 'raschet-terrasy')
 {
 	$old = $_SESSION['ND_TC_CALC'] ?? null;
 	$fileId = 0;
 	if ($pdfBody !== '') {
 		$fileId = (int)CFile::SaveFile(array(
-			'name' => 'raschet-terrasy-'.date('Y-m-d').'.pdf',
+			'name' => $slug.'-'.date('Y-m-d').'.pdf',
 			'type' => 'application/pdf',
 			'content' => $pdfBody,
 			'MODULE_ID' => 'form',
@@ -49,7 +50,7 @@ function ndTerraceCalcRemember($pdfBody, $text, $total)
 	if (is_array($old) && !empty($old['file']) && empty($old['sent'])) {
 		CFile::Delete((int)$old['file']);
 	}
-	$_SESSION['ND_TC_CALC'] = array('file' => $fileId, 'text' => (string)$text, 'total' => (float)$total, 'ts' => time());
+	$_SESSION['ND_TC_CALC'] = array('file' => $fileId, 'text' => (string)$text, 'total' => (float)$total, 'title' => (string)$title, 'ts' => time());
 	return $fileId > 0;
 }
 
@@ -110,7 +111,7 @@ AddEventHandler('form', 'onAfterResultAdd', function ($formId, $resultId) {
 		}
 		$name = 'Latitudo_TerraceCalcAttach('.(int)$resultId.','.time().');';
 		COption::SetOptionString('main', 'nd_tc_'.(int)$resultId, serialize(array(
-			'file' => $fileId, 'text' => $calc['text'], 'total' => $calc['total'],
+			'file' => $fileId, 'text' => $calc['text'], 'total' => $calc['total'], 'title' => $calc['title'] ?? 'Расчёт террасы',
 		)));
 		CAgent::AddAgent($name, 'form', 'N', 90, '', 'Y', ConvertTimeStamp(time() + 90, 'FULL'), 100);
 	} catch (\Throwable $e) {
@@ -175,7 +176,7 @@ function Latitudo_TerraceCalcAttach($resultId, $submitTs)
 			return $self; // это старый лид клиента — ждём новый
 		}
 
-		$comment = array('ENTITY_ID' => $leadId, 'ENTITY_TYPE' => 'lead', 'COMMENT' => "Расчёт террасы из калькулятора на сайте\n\n".$calc['text']);
+		$comment = array('ENTITY_ID' => $leadId, 'ENTITY_TYPE' => 'lead', 'COMMENT' => ($calc['title'] ?? 'Расчёт террасы')." из калькулятора на сайте\n\n".$calc['text']);
 		$file = $calc['file'] ? CFile::GetFileArray((int)$calc['file']) : null;
 		$path = $file ? $_SERVER['DOCUMENT_ROOT'].$file['SRC'] : '';
 		$pdf = null;

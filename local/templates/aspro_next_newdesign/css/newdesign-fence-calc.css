@@ -1,0 +1,8 @@
+/* Калькулятор ограждений (/info/kalkulyator-ograzhdeniy/). Основа — стили калькулятора террасы (.ltd-calc),
+   здесь только своё: варианты серии, подпись над схемой, строка серии в списке. */
+  .ltd-calc.lfc .lfc-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .ltd-calc.lfc .lfc-opts:empty { display: none; }
+  .ltd-calc.lfc .lfc-cap { font-size: 13.6px; font-weight: 600; align-self: center; margin-right: 4px; }
+  .ltd-calc.lfc .ltd-opt b { font-weight: 600; font-size: 12.8px; }
+  .ltd-calc.lfc .ltd-prod a { color: var(--ltd-ink); }
+  .ltd-calc.lfc #lfcSvg { cursor: pointer; }
