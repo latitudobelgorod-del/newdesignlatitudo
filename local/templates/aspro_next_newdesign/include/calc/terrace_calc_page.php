@@ -119,8 +119,8 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
             <button type="button" role="tab" data-tab="joists" aria-selected="false">План лаг</button>
             <button type="button" role="tab" data-tab="sup" aria-selected="false" id="ltdTabSup">План опор</button>
             <button type="button" role="tab" data-tab="all" aria-selected="false">Всё вместе</button>
+            <button type="button" class="ltd-zoom" id="ltdZoom" title="Увеличить" aria-label="Увеличить план"></button>
             <em id="ltdTabCap">тяните за красные точки, чтобы изменить размеры</em>
-            <button type="button" class="ltd-zoom" id="ltdZoom">Увеличить</button>
           </div>
           <div data-pane="boards">
             <svg id="ltdSvgBoards" viewBox="0 0 640 360" role="img" aria-label="План укладки террасной доски"></svg>

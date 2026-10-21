@@ -718,7 +718,9 @@ var LtdCore = (function () {
   }
   function drawAll(s, r) {
     var f = fixedFrame(s, 640, 360, [34, 30, 20, 40]);
-    $('ltdSvgAll').innerHTML = '<g opacity=".5">' + boardLayer(s, r, f, 'ltdClipA') + '</g>' + joistLayer(s, r, f, s.supOn) +
+    // лаги выключены (в форме или галочкой в смете) — на общем плане их нет, он же уходит картинкой в PDF
+    var lagsOn = s.lagOn && !excluded.lag;
+    $('ltdSvgAll').innerHTML = '<g' + (lagsOn ? ' opacity=".5"' : '') + '>' + boardLayer(s, r, f, 'ltdClipA') + '</g>' + (lagsOn ? joistLayer(s, r, f, s.supOn) : '') +
       '<path d="' + outline(r, f) + '" fill="none" stroke="var(--ltd-ink)" stroke-width="1.6"/>' + dims(s, f) + edgeLabels(s, r, f);
   }
   function drawJoists(s, r, svgId, withSup) {
@@ -792,7 +794,10 @@ var LtdCore = (function () {
     $('ltdTabSup').disabled = !s.supOn;
     $('ltdTabSup').title = s.supOn ? '' : 'Включите «Добавить опоры»';
     if (s.supOn) { drawJoists(s, r, 'ltdSvgSup', true); $('ltdSupCap').textContent = fmt(r.supports) + ' шт., шаг ' + fmt(s.supStepCm) + ' см'; TAB_CAP.sup = $('ltdSupCap').textContent; }
-    if (tab === 'sup' && !s.supOn) showTab('boards'); else $('ltdTabCap').textContent = TAB_CAP[tab] || '';
+    // лаги не считаются — «План лаг» и «Всё вместе» выключены, как «План опор» без опор
+    var lagsOn = s.lagOn && !excluded.lag;
+    root.querySelectorAll('[data-tab=joists], [data-tab=all]').forEach(function (b) { b.disabled = !lagsOn; b.title = lagsOn ? '' : 'Лаги не считаются: включите «Лаги»'; });
+    if ((tab === 'sup' && !s.supOn) || (!lagsOn && (tab === 'joists' || tab === 'all'))) showTab('boards'); else $('ltdTabCap').textContent = TAB_CAP[tab] || '';
 
     last = { s: s, r: r, rows: rows, total: total };
   }
