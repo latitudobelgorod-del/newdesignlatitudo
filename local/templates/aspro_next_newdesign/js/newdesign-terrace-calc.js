@@ -863,6 +863,31 @@ var LtdCore = (function () {
     }).catch(function () {}); // не вышло — заявка всё равно уйдёт, просто без PDF
   });
 
+  /* Переход с карточки доски (кнопка «Калькулятор террасы», 21.10.2026):
+     ?board=<символьный код товара>&len=<длина, мм> — сразу выбираем эту доску
+     и её длину. Код не нашёлся в снимке каталога — остаётся доска по умолчанию. */
+  function pickFromUrl() {
+    var q = new URLSearchParams(location.search), code = q.get('board'), len = nominal(+q.get('len') || 0);
+    if (!code) return;
+    for (var bi = 0; bi < DATA.B.length; bi++) {
+      for (var mi = 0; mi < DATA.B[bi].m.length; mi++) {
+        var cs = DATA.B[bi].m[mi].c;
+        for (var ci = 0; ci < cs.length; ci++) {
+          if (cs[ci].u !== code) continue;
+          var oi = len ? cs[ci].o.findIndex(function (o) { return nominal(o[0]) === len; }) : -1;
+          if (oi < 0) oi = Math.max(0, cs[ci].o.findIndex(function (o) { return nominal(o[0]) === 4000; }));
+          $('ltdBrand').value = bi;
+          sel = { m: mi, c: ci, o: oi }; $('ltdFind').value = '';
+          renderList(); fillLengths(); fillAcc();
+          var on = $('ltdList').querySelector('[aria-selected=true]');
+          if (on) $('ltdList').scrollTop = on.offsetTop - $('ltdList').offsetTop - 4;
+          return;
+        }
+      }
+    }
+  }
+
   fillModels();
+  pickFromUrl();
   render();
 })();

@@ -818,6 +818,19 @@
 		}
 	}
 
+	/* «Калькулятор террасы»: ссылку с кодом доски печатает шаблон, а длину
+	   выбранного сейчас предложения дописываем на клике — шаблон кешируется,
+	   и длину посетитель переключает уже на странице (Ирина, 21 октября 2026).
+	   Калькулятор по ?board= и &len= сразу выбирает эту доску. */
+	document.addEventListener('click', function (ev) {
+		var a = ev.target.closest && ev.target.closest('.nd-pd__tcalc');
+		if (!a) return;
+		var len = document.querySelector('.bx_item_detail_size[data-nd-name="Длина"] li.active .cnt');
+		var mm = len ? parseInt(len.textContent, 10) : 0;
+		var href = a.getAttribute('href').replace(/&len=\d*/, '');
+		a.setAttribute('href', mm > 0 ? href + '&len=' + mm : href);
+	}, true);
+
 	/* «Цена:», «руб» и «Экономия» правим текстом, а не стилями. В макете цена
 	   выглядит как «4 000₽/шт» и скидка как «скидка N₽», а тема печатает
 	   «Цена: 4 501 руб/м²» и «Экономия»: из-за длины этих подписей строка цены

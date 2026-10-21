@@ -1615,10 +1615,43 @@ if (!empty($arResult["PROPERTIES"]["ROTANG_COLOR"]["VALUE"])) {
       Открывает штатную форму темы (data-event="jqm"); заголовок окна и поле
       NAMEFORM берутся из подписи — их проставляет tagCalcButton()
       в js/newdesign-element.js. */ ?>
+<?
+/* Кнопка «Калькулятор террасы» — справа от «Рассчитать вместе с менеджером»,
+   только у товаров раздела «Террасная доска» и его подразделов (Ирина,
+   21 октября 2026). Ведёт на калькулятор с этой доской: ?board=<код товара>,
+   длину выбранного предложения (&len=) дописывает на клике
+   js/newdesign-element.js — шаблон кешируется, а длину посетитель меняет.
+   Раздел проверяем по границам дерева, как приписку про склад выше. */
+$ndTerraceCalcUrl = '';
+if (CModule::IncludeModule('iblock'))
+{
+	$ndDeckRoot = CIBlockSection::GetList(
+		array(),
+		array('IBLOCK_ID' => $arResult['IBLOCK_ID'], '=CODE' => 'terrasnaya-doska-iz-dpk', 'DEPTH_LEVEL' => 1),
+		false,
+		array('ID', 'LEFT_MARGIN', 'RIGHT_MARGIN')
+	)->Fetch();
+	if ($ndDeckRoot)
+	{
+		$rsGroups = CIBlockElement::GetElementGroups($arResult['ID'], true, array('ID', 'LEFT_MARGIN'));
+		while ($arGroup = $rsGroups->Fetch())
+		{
+			if ($arGroup['LEFT_MARGIN'] >= $ndDeckRoot['LEFT_MARGIN'] && $arGroup['LEFT_MARGIN'] <= $ndDeckRoot['RIGHT_MARGIN'])
+			{
+				$ndTerraceCalcUrl = '/info/kalkulyator-terrasy/?board='.rawurlencode($arResult['CODE']);
+				break;
+			}
+		}
+	}
+}
+?>
 	<div class="">
 					<span class="btn btn-default btn-lg  type_block transition_bg one_click" data-item="<?=$arResult["ID"]?>" data-event="jqm" data-iblockID="<?=$arParams["IBLOCK_ID"]?>" data-param-form_id="MAINFORM" data-name="question">
 					<span>Рассчитать вместе с менеджером</span>
 					</span>
+					<?if($ndTerraceCalcUrl):?>
+					<a class="nd-pd__tcalc" href="<?=htmlspecialcharsbx($ndTerraceCalcUrl)?>">Калькулятор террасы</a>
+					<?endif;?>
 					</div>
 	<?// Метка кнопки «Сравнить» — кнопку ставит ndCompareTokens на отдаче страницы,
 	// только группе тестирования (шаблон кешируется; см. latitudo_compare.php).?>

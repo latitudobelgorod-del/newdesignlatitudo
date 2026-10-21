@@ -906,6 +906,46 @@
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M6 3l5 5-5 5' stroke='%23c60000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center / contain;
 }
 
+/* «Калькулятор террасы» — справа в строке «Рассчитать вместе с менеджером»,
+   у досок раздела «Террасная доска» (Ирина, 21 октября 2026). Оформление —
+   как у «Сбросить фильтры» в фильтре каталога (css/newdesign.css,
+   .nd-filter__reset): белая, рамка 2px, радиус 6, подпись w700; по высоте
+   ниже, чтобы строка под счётчиком не раздувалась. */
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__tcalc {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 20px;
+    border: 2px solid #101014;
+    border-radius: 6px;
+    background: #fff;
+    color: #101014;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color .2s;
+}
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__tcalc:hover,
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__tcalc:focus {
+    background-color: rgba(82, 82, 100, .05);
+    color: #101014;
+    text-decoration: none;
+}
+/* В нижней панели покупки на телефоне кнопке места нет — там только ссылка. */
+#nd-pd-buybar .nd-pd__tcalc {
+    display: none;
+}
+
 /* Цвет */
 .catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__title {
     font-size: 18px;
