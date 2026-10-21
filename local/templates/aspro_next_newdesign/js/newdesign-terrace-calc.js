@@ -827,7 +827,8 @@ var LtdCore = (function () {
     tip.textContent = 'Ряд ' + (i + 1) + ': ' + fmt(len, 2) + ' м, ' + nb + ' ' + plural(nb, 'доска', 'доски', 'досок');
     tip.hidden = false;
   });
-  function endDrag() { if (drag) { drag = null; render(); } }
+  var dragEnd = 0;
+  function endDrag() { if (drag) { drag = null; dragEnd = Date.now(); render(); } }
   svgB.addEventListener('pointerup', endDrag); svgB.addEventListener('pointercancel', endDrag);
   svgB.addEventListener('pointerleave', function () { if (!drag) tip.hidden = true; });
 
@@ -851,12 +852,20 @@ var LtdCore = (function () {
   }
   /* «Увеличить»: открытый план — крупной картинкой в fancybox, как фото на всём сайте */
   var TAB_NAME = { boards: 'План укладки доски', joists: 'План лаг', sup: 'План опор', all: 'Доски, лаги и опоры вместе' };
-  $('ltdZoom').addEventListener('click', function () {
+  function zoomPlan() {
     var svg = planFig.querySelector('[data-pane="' + tab + '"] svg'), vb = svg.viewBox.baseVal, W = 2400, H = Math.round(W * vb.height / vb.width);
     planImage(svg, W, H, 'image/png').then(function (src) {
       if (!src) return;
       if (window.jQuery && jQuery.fancybox) jQuery.fancybox.open({ src: src, type: 'image', opts: { caption: TAB_NAME[tab] || '' } });
       else window.open().document.write('<img src="' + src + '" style="max-width:100%">');
+    });
+  }
+  $('ltdZoom').addEventListener('click', zoomPlan);
+  // по клику на сам план — тоже, как фото на сайте; кроме красных точек и отпускания после перетаскивания
+  planFig.querySelectorAll('[data-pane] svg').forEach(function (svg) {
+    svg.addEventListener('click', function (ev) {
+      if (ev.target.closest && ev.target.closest('.ltd-handle') || Date.now() - dragEnd < 400) return;
+      zoomPlan();
     });
   });
   planFig.querySelector('.ltd-tabs').addEventListener('click', function (ev) { var b = ev.target.closest('[role=tab]'); if (b && !b.disabled) showTab(b.getAttribute('data-tab')); });
