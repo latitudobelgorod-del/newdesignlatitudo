@@ -79,6 +79,26 @@ var LtdCore = (function () {
     });
     return out;
   }
+  /* Отрезки пересечения диагонали x + y = c с формой (по x) — средняя линия ряда при укладке 45° */
+  function diagSegs(polys, c) {
+    var segs = [];
+    polys.forEach(function (pl) {
+      var xs = [];
+      for (var i = 0; i < pl.length; i++) {
+        var p = pl[i], q = pl[(i + 1) % pl.length], g1 = p[0] + p[1] - c, g2 = q[0] + q[1] - c;
+        if ((g1 <= 0) !== (g2 <= 0)) xs.push(p[0] + g1 / (g1 - g2) * (q[0] - p[0]));
+      }
+      xs.sort(function (m, n) { return m - n; });
+      for (var j = 0; j + 1 < xs.length; j += 2) if (xs[j + 1] - xs[j] > 1e-6) segs.push([xs[j], xs[j + 1]]);
+    });
+    segs.sort(function (m, n) { return m[0] - n[0]; });
+    var out = [];
+    segs.forEach(function (sg) {
+      var last = out[out.length - 1];
+      if (last && sg[0] <= last[1] + 1e-6) last[1] = Math.max(last[1], sg[1]); else out.push([sg[0], sg[1]]);
+    });
+    return out;
+  }
   /* Отрезки ряда досок в полосе [y0, y1]: объединение срезов по краям и середине полосы
      (у косой стороны доска режется по самой длинной кромке) */
   function bandSegs(polys, y0, y1) {
@@ -185,6 +205,23 @@ var LtdCore = (function () {
     r.joistSegs = lines.reduce(function (t, l) { return t + l.segs.length; }, 0);
     r.joistMeters = lines.reduce(function (t, l) { return t + l.len; }, 0);
     r.joistLen = across;
+    // Диагональ: стыки в рядах — на последней лаге, до которой достаёт доска; в нечётных рядах
+    // первый кусок вдвое короче, чтобы стыки соседних рядов не шли в линию. Только для рисунка.
+    r.diagJoints = [];
+    if (diag) {
+      var dd = useful * Math.SQRT2, mx = s.bl / Math.SQRT2;
+      for (var k2 = 0; k2 * dd < s.L + s.W && k2 < 2000; k2++) {
+        diagSegs(polys, (k2 + 0.5) * dd).forEach(function (sg) {
+          var pos = sg[0], lim = k2 % 2 ? mx / 2 : mx;
+          while (sg[1] - pos > lim + 1e-6) {
+            var jx = Math.floor((pos + lim) / r.step + 1e-9) * r.step;
+            if (jx <= pos + 1e-6) jx = pos + lim;
+            r.diagJoints.push({ x: jx, c0: k2 * dd, c1: (k2 + 1) * dd });
+            pos = jx; lim = mx;
+          }
+        });
+      }
+    }
     // Двойные лаги: стык двух досок лежит на ближайшей линии лаг, под ним ставится вторая лага,
     // чтобы у каждого торца была своя опора. Удваивается отрезок линии, на который приходится хотя бы один стык.
     var dbl = {}, jointCount = 0;
@@ -620,6 +657,8 @@ var LtdCore = (function () {
     } else {
       var d = u * Math.SQRT2 * f.sc;
       for (var p = -f.h, k = 0; p < f.w && k < 800; p += d, k++) o += '<line x1="' + (f.x0 + p) + '" y1="' + (f.y0 + f.h) + '" x2="' + (f.x0 + p + f.h) + '" y2="' + f.y0 + '" stroke="var(--ltd-bg)" stroke-opacity=".8" stroke-width="' + seamW + '"/>';
+      // стыки — отрезок лаги поперёк ряда
+      r.diagJoints.forEach(function (j) { o += '<line x1="' + f.X(j.x) + '" y1="' + f.Y(j.c0 - j.x) + '" x2="' + f.X(j.x) + '" y2="' + f.Y(j.c1 - j.x) + '" stroke="var(--ltd-joint)" stroke-width="2"/>'; });
     }
     return o + '</g>';
   }
@@ -791,14 +830,34 @@ var LtdCore = (function () {
   });
 
   /* вкладки планов */
+  var planFig = root.querySelector('.ltd-main'), planHome = planFig.parentNode, planLayer = null;
   var tab = 'boards', TAB_CAP = { boards: 'тяните за красные точки, чтобы изменить размеры' };
   function showTab(t) {
     tab = t;
-    root.querySelectorAll('.ltd-tabs [role=tab]').forEach(function (b) { b.setAttribute('aria-selected', b.getAttribute('data-tab') === t ? 'true' : 'false'); });
-    root.querySelectorAll('[data-pane]').forEach(function (p) { p.hidden = p.getAttribute('data-pane') !== t; });
+    planFig.querySelectorAll('.ltd-tabs [role=tab]').forEach(function (b) { b.setAttribute('aria-selected', b.getAttribute('data-tab') === t ? 'true' : 'false'); });
+    planFig.querySelectorAll('[data-pane]').forEach(function (p) { p.hidden = p.getAttribute('data-pane') !== t; });
     $('ltdTabCap').textContent = TAB_CAP[t] || '';
   }
-  root.querySelector('.ltd-tabs').addEventListener('click', function (ev) { var b = ev.target.closest('[role=tab]'); if (b && !b.disabled) showTab(b.getAttribute('data-tab')); });
+  /* план на весь экран. Обёртка страницы — свой слой (z-index), шапка сайта его перекрывает,
+     поэтому на время увеличения план переносится в слой прямо в body (с теми же классами — стили те же) */
+  function zoomPlan(on) {
+    var fig = planFig, b = $('ltdZoom');
+    if (on) {
+      if (!planLayer) { planLayer = document.createElement('div'); planLayer.className = 'ltd-calc ltd-zoom-layer'; planLayer.innerHTML = '<div class="ltd-plans"></div>'; }
+      document.body.appendChild(planLayer); planLayer.firstChild.appendChild(fig);
+    } else if (planLayer && planLayer.parentNode) {
+      planHome.appendChild(fig); planLayer.parentNode.removeChild(planLayer);
+    }
+    fig.classList.toggle('is-zoom', on);
+    document.documentElement.classList.toggle('ltd-zoom-open', on);
+    b.textContent = on ? 'Закрыть' : 'Увеличить';
+    b.setAttribute('aria-expanded', on ? 'true' : 'false');
+    // на узком экране план шире экрана — ставим его серединой в окно
+    if (on) fig.querySelectorAll('[data-pane]').forEach(function (p) { if (!p.hidden) p.scrollLeft = (p.scrollWidth - p.clientWidth) / 2; });
+  }
+  $('ltdZoom').addEventListener('click', function () { zoomPlan(!planFig.classList.contains('is-zoom')); });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && planFig.classList.contains('is-zoom')) zoomPlan(false); });
+  planFig.querySelector('.ltd-tabs').addEventListener('click', function (ev) { var b = ev.target.closest('[role=tab]'); if (b && !b.disabled) showTab(b.getAttribute('data-tab')); });
   $('ltdH').addEventListener('input', fillSupports);
   $('ltdRes').addEventListener('input', function () { resTouched = true; });
   $('ltdForm').addEventListener('input', render);
