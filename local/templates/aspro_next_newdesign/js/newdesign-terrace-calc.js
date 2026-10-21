@@ -677,25 +677,29 @@ var LtdCore = (function () {
     return r.joists + ' ' + plural(r.joists, 'линия', 'линии', 'линий') + (r.extraLines ? ' + ' + r.extraLines + ' ' + plural(r.extraLines, 'двойная', 'двойные', 'двойных') + ' под стыками' : '') +
       ', ' + fmt(r.joistMeters, 1) + ' пог. м, шаг ' + fmt(r.step * 100, 1) + ' см';
   }
+  /* Лаги. Под стыком — пара лаг по обе стороны стыка, с зазором: торец каждой доски лежит на своей лаге */
   function joistLayer(s, r, f, withSup) {
-    var o = '', jw = Math.max(1.5, Math.min(5, 0.04 * f.sc));
+    var o = '', jw = Math.max(1.5, Math.min(5, 0.04 * f.sc)), off = Math.max(jw * 2, 5) / f.sc, edge = r.along - 0.04, pair = {};
+    function bar(x, q, fill) {
+      var a = P(r, s, x, q[0]), b = P(r, s, x, q[1]);
+      if (s.dir === 'wid') o += '<rect x="' + f.X(a[0]) + '" y="' + (f.Y(a[1]) - jw / 2) + '" width="' + ((b[0] - a[0]) * f.sc) + '" height="' + jw + '" fill="' + fill + '"/>';
+      else o += '<rect x="' + (f.X(a[0]) - jw / 2) + '" y="' + f.Y(a[1]) + '" width="' + jw + '" height="' + ((b[1] - a[1]) * f.sc) + '" fill="' + fill + '"/>';
+      if (withSup && r.supStepM) {
+        var n = ceil((q[1] - q[0]) / r.supStepM);
+        for (var i = 0; i <= n; i++) { var pt = P(r, s, x, Math.min(q[0] + i * r.supStepM, q[1])); o += '<circle cx="' + f.X(pt[0]) + '" cy="' + f.Y(pt[1]) + '" r="' + Math.max(1.8, Math.min(3.6, jw * .9)) + '" fill="var(--ltd-support)"/>'; }
+      }
+    }
+    // пара: основная лага сдвигается на off в одну сторону, вторая — на off в другую; у дальнего края обе внутрь
     r.extra.forEach(function (e) {
-      var d = jw * 1.3 / f.sc, x = Math.min(e.x, r.along - 0.04) + (e.x + d > r.along - 0.04 ? -d : d);
-      var a = P(r, s, x, e.seg[0]), b = P(r, s, x, e.seg[1]);
-      if (s.dir === 'wid') o += '<rect x="' + f.X(a[0]) + '" y="' + (f.Y(a[1]) - jw / 2) + '" width="' + ((b[0] - a[0]) * f.sc) + '" height="' + jw + '" fill="var(--ltd-joint)"/>';
-      else o += '<rect x="' + (f.X(a[0]) - jw / 2) + '" y="' + f.Y(a[1]) + '" width="' + jw + '" height="' + ((b[1] - a[1]) * f.sc) + '" fill="var(--ltd-joint)"/>';
+      var x = Math.min(e.x, edge), x1 = x - off, x2 = x + off;
+      if (x2 > edge) { x1 = edge - 2 * off; x2 = edge; }
+      if (x1 < 0) { x1 = 0; x2 = 2 * off; }
+      pair[e.x + ':' + e.seg[0]] = x1;
+      bar(x2, e.seg, 'var(--ltd-joint)');
     });
     r.lines.forEach(function (l) {
-      var x = Math.min(l.x, r.along - 0.04);
-      l.segs.forEach(function (q) {
-        var a = P(r, s, x, q[0]), b = P(r, s, x, q[1]);
-        if (s.dir === 'wid') o += '<rect x="' + f.X(a[0]) + '" y="' + (f.Y(a[1]) - jw / 2) + '" width="' + ((b[0] - a[0]) * f.sc) + '" height="' + jw + '" fill="var(--ltd-joist)"/>';
-        else o += '<rect x="' + (f.X(a[0]) - jw / 2) + '" y="' + f.Y(a[1]) + '" width="' + jw + '" height="' + ((b[1] - a[1]) * f.sc) + '" fill="var(--ltd-joist)"/>';
-        if (withSup && r.supStepM) {
-          var L = q[1] - q[0], n = ceil(L / r.supStepM);
-          for (var i = 0; i <= n; i++) { var t = Math.min(q[0] + i * r.supStepM, q[1]); var pt = P(r, s, x, t); o += '<circle cx="' + f.X(pt[0]) + '" cy="' + f.Y(pt[1]) + '" r="' + Math.max(1.8, Math.min(3.6, jw * .9)) + '" fill="var(--ltd-support)"/>'; }
-        }
-      });
+      var x = Math.min(l.x, edge);
+      l.segs.forEach(function (q) { var k = l.x + ':' + q[0]; bar(k in pair ? pair[k] : x, q, 'var(--ltd-joist)'); });
     });
     return o;
   }

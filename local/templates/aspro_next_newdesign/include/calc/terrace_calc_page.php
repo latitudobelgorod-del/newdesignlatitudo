@@ -129,11 +129,11 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
           </div>
           <div data-pane="joists" hidden>
             <svg id="ltdSvgJoists" viewBox="0 0 400 300" role="img" aria-label="План укладки лаг"></svg>
-            <div class="ltd-legend"><span><i style="background:var(--ltd-joist);height:4px"></i>лага</span><span id="ltdJoistCap"></span></div>
+            <div class="ltd-legend"><span><i style="background:var(--ltd-joist);height:4px"></i>лага</span><span><i style="background:var(--ltd-joint);height:4px"></i>вторая лага под стыком</span><span id="ltdJoistCap"></span></div>
           </div>
           <div data-pane="all" hidden>
             <svg id="ltdSvgAll" viewBox="0 0 640 360" role="img" aria-label="Доски, лаги и опоры вместе"></svg>
-            <div class="ltd-legend"><span><i style="background:var(--ltd-board);opacity:.55"></i>доска</span><span><i style="background:var(--ltd-joist);height:4px"></i>лага</span><span><i style="background:var(--ltd-support);border-radius:50%;width:8px"></i>опора</span></div>
+            <div class="ltd-legend"><span><i style="background:var(--ltd-board);opacity:.55"></i>доска</span><span><i style="background:var(--ltd-joist);height:4px"></i>лага</span><span><i style="background:var(--ltd-joint);height:4px"></i>вторая лага под стыком</span><span><i style="background:var(--ltd-support);border-radius:50%;width:8px"></i>опора</span></div>
           </div>
           <div data-pane="sup" hidden>
             <svg id="ltdSvgSup" viewBox="0 0 400 300" role="img" aria-label="Схема расстановки опор"></svg>
