@@ -3,7 +3,8 @@
    кнопка «Добавить всё в корзину» (Ирина, 22.10.2026).
 
    Браузер присылает строки сметы: ID товара (калькулятор ограждений — ID есть в его снимке каталога)
-   или точное название товара (калькулятор террасы — в его снимке ID нет), и количество.
+   или артикул (калькулятор террасы; у товара — свойство CML2_ARTICLE, у предложения — ARTICLE),
+   а на случай пустого артикула — точное название товара, и количество.
    Цену берёт корзина из каталога, как при обычном «В корзину». Кладём только активные товары
    каталога (ИБ 19) и торговые предложения (ИБ 20), не «родителей» с предложениями.
    Товар, который уже лежит в корзине, — количество прибавляется.
@@ -11,7 +12,7 @@
    Название ищем без крайних пробелов: у части предложений в каталоге имя начинается или кончается
    пробелом (« Террасная доска Террапол Антик 147х23х4000 Аргос»), в снимке калькулятора — без них.
 
-   POST: sessid, items (JSON [{id?, name?, qty}]). Ответ — JSON {ok, added, failed[названия], error?}. */
+   POST: sessid, items (JSON [{id?, art?, name?, qty}]). Ответ — JSON {ok, added, failed[названия], error?}. */
 
 define('STOP_STATISTICS', true);
 define('NO_AGENT_CHECK', true);
@@ -44,6 +45,7 @@ foreach (array_slice((array)json_decode((string)($_POST['items'] ?? ''), true), 
 	if (!is_array($row)) continue;
 	$qty = (int)($row['qty'] ?? 0);
 	$name = trim(preg_replace('/\s+/u', ' ', (string)($row['name'] ?? '')));
+	$art = trim((string)($row['art'] ?? ''));
 	if ($qty < 1 || $qty > 10000) continue;
 
 	$id = 0;
@@ -51,7 +53,19 @@ foreach (array_slice((array)json_decode((string)($_POST['items'] ?? ''), true), 
 		if ($el = CIBlockElement::GetList(array(), array_merge($ndCbFilter, array('ID' => (int)$row['id'])), false, false, $ndCbSelect)->Fetch()) {
 			$id = $el['CATALOG_TYPE'] == 3 ? 0 : (int)$el['ID'];
 		}
-	} elseif ($name !== '' && mb_strlen($name) <= 255) {
+	}
+	if (!$id && $art !== '' && mb_strlen($art) <= 100) {
+		foreach (array(19 => 'PROPERTY_CML2_ARTICLE', 20 => 'PROPERTY_ARTICLE') as $ib => $prop) {
+			$res = CIBlockElement::GetList(array('ID' => 'ASC'), array('IBLOCK_ID' => $ib, 'ACTIVE' => 'Y', '='.$prop => $art), false, array('nTopCount' => 5), $ndCbSelect);
+			while ($el = $res->Fetch()) {
+				if ($el['CATALOG_TYPE'] != 3) {
+					$id = (int)$el['ID'];
+					break 2;
+				}
+			}
+		}
+	}
+	if (!$id && empty($row['id']) && $name !== '' && mb_strlen($name) <= 255) {
 		$res = CIBlockElement::GetList(array('ID' => 'ASC'), array_merge($ndCbFilter, array('NAME' => '%'.$name.'%')), false, array('nTopCount' => 20), $ndCbSelect);
 		while ($el = $res->Fetch()) {
 			if ($el['CATALOG_TYPE'] != 3 && trim(preg_replace('/\s+/u', ' ', $el['NAME'])) === $name) {
