@@ -72,6 +72,13 @@ $aMenuLinks = Array(
 		""
 	),
 	Array(
+		"Калькулятор ограждений",
+		"/info/kalkulyator-ograzhdeniy/",
+		Array(),
+		Array(),
+		""
+	),
+	Array(
 		"Инструкции и схемы монтажа", 
 		"/materials/montazhnye-skhemy-i-instruktsii/", 
 		Array(), 

@@ -13,16 +13,9 @@
  * пересборка — tools/fence-calc/build.py. Правила сборки серий — RULES в js/newdesign-fence-calc.js.
  * «Рассчитать с менеджером» — та же общая форма и тот же обработчик PDF, что у террасы (data.kind = 'fence').
  *
- * 22.10.2026: пока калькулятор в работе, он виден только администраторам — остальным 404
- * (просьба Ирины). Из меню шапки пункт убран там же, где собирается меню (page_blocks/header_drops_newdesign.php).
- * Когда откроем — убрать проверку ниже и код страницы из $ndHiddenInfoCodes в header_drops_newdesign.php.
+ * 22.10.2026: открыт всем (до этого — только администраторам, остальным 404). Ссылки: меню шапки,
+ * подвал «Клиентам», кнопка в карточках раздела «Ограждения из ДПК» (?series=).
  */
-global $USER;
-if (!(is_object($USER) && $USER->IsAdmin())) {
-	\Bitrix\Main\Loader::includeModule('iblock');
-	\Bitrix\Iblock\Component\Tools::process404('', true, true, true);
-	return;
-}
 
 $ndCalcBase = '/local/templates/aspro_next_newdesign';
 
@@ -42,7 +35,6 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
 }
 ?>
 <div class="ltd-calc lfc" id="lfcCalc">
-  <div class="ltd-note warn lfc-admin"><b>Страница скрыта от посетителей</b>Калькулятор видят только администраторы, остальным открывается «Страница не найдена» и в меню его нет.</div>
   <p class="ltd-lead">Укажите длину ограждения в погонных метрах и высоту, выберите вид ограждения и серию из каталога: калькулятор расставит столбы, посчитает перила, балясины, крепёж, крышки и соберёт смету по ценам сайта.</p>
 
   <div class="ltd-grid">

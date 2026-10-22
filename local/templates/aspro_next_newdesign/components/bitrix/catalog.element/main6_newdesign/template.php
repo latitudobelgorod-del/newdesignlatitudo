@@ -1647,9 +1647,7 @@ if (CModule::IncludeModule('iblock'))
 /* Кнопка «Калькулятор ограждений» — там же, у товаров раздела «Ограждения из ДПК»
    и его подразделов (Ирина, 22 октября 2026). ?series=<код самого глубокого раздела товара>:
    калькулятор сразу выбирает эту серию, если код — одна из его серий, иначе открывается с первой.
-   Пока калькулятор скрыт от посетителей (include/calc/fence_calc_page.php), кнопка печатается
-   с hidden, а показывает её администраторам component_epilog.php — шаблон кешируется на всех.
-   Когда калькулятор откроют — убрать hidden и показ в component_epilog.php. */
+   До 22.10.2026, пока калькулятор был скрыт, кнопку видели только администраторы. */
 $ndFenceCalcUrl = '';
 if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
 {
@@ -1686,7 +1684,7 @@ if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
 					<a class="nd-pd__tcalc" href="<?=htmlspecialcharsbx($ndTerraceCalcUrl)?>">Калькулятор террасы</a>
 					<?endif;?>
 					<?if($ndFenceCalcUrl):?>
-					<a class="nd-pd__tcalc nd-pd__fcalc" href="<?=htmlspecialcharsbx($ndFenceCalcUrl)?>" hidden>Калькулятор ограждений</a>
+					<a class="nd-pd__tcalc nd-pd__fcalc" href="<?=htmlspecialcharsbx($ndFenceCalcUrl)?>">Калькулятор ограждений</a>
 					<?endif;?>
 					</div>
 	<?// Метка кнопки «Сравнить» — кнопку ставит ndCompareTokens на отдаче страницы,

@@ -1954,13 +1954,6 @@ BX.ready(
 <?}?>
 
 <?
-// «Калькулятор ограждений» в карточке: пока калькулятор скрыт от посетителей, кнопку видят
-// только администраторы (печатает её template.php с hidden; см. там же).
-global $USER;
-if (is_object($USER) && $USER->IsAdmin()) {?>
-	<script>document.querySelectorAll('.nd-pd__fcalc[hidden]').forEach(function (a) { a.hidden = false; });</script>
-<?}
-
 $arExt = [];
 
 if ($arParams['USE_REVIEW'])

@@ -88,10 +88,10 @@ $ndDropServices = function() {
  * (`.partneram_company.menu.php`) для панели мало.
  *
  * $ndHiddenInfoCodes — страницы в работе, которые пока видят только администраторы
- * (калькулятор ограждений, 22.10.2026: сама страница отдаёт 404 остальным,
- * include/calc/fence_calc_page.php). В меню их не показываем никому: панель кэшируется одна на всех.
+ * (так был скрыт калькулятор ограждений, открыт 22.10.2026). В меню их не показываем никому:
+ * панель кэшируется одна на всех. Сейчас скрытых нет.
  */
-$ndHiddenInfoCodes = array('kalkulyator-ograzhdeniy');
+$ndHiddenInfoCodes = array();
 $ndDropPartners = function() use ($ndHiddenInfoCodes) {
 	$arItems = array();
 	$res = CIBlockElement::GetList(
