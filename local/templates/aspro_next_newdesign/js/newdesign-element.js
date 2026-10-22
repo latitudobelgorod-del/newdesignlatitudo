@@ -985,7 +985,12 @@
 		   Сравниваем именно с nextElementSibling: пробельные текстовые узлы
 		   считать соседями нельзя, иначе перестановка повторялась бы на каждом
 		   проходе, а каждая перестановка будит MutationObserver. */
-		if (row.parentNode !== buy || row.nextElementSibling) buy.appendChild(row);
+		/* На телефоне последней идёт строка «Рассчитать вместе с менеджером» с калькулятором
+		   и сравнением (applyCalcButton), итог — сразу над ней, под счётчиком (Ирина, 22.10.2026). */
+		var calcRow = buy.querySelector(':scope > .nd-pd__calc');
+		if (calcRow) {
+			if (row.parentNode !== buy || row.nextElementSibling !== calcRow) buy.insertBefore(row, calcRow);
+		} else if (row.parentNode !== buy || row.nextElementSibling) buy.appendChild(row);
 		return row;
 	}
 
@@ -1212,9 +1217,9 @@
 
 	   Кладём её в .buy_block — тот целиком уезжает в панель, поэтому ссылка
 	   едет с ним и на десктопе возвращается на место вместе с остальными.
-	   Вставляем ПЕРЕД строкой «Общая стоимость», если та уже собрана: порядок
-	   макета — счётчик, ссылка, итог. Если строки ещё нет, дописываем в конец,
-	   а ensureTotalRow() потом сам поставит итог последним.
+	   С 22.10.2026 (Ирина) порядок — счётчик, итог «Общая стоимость», затем эта
+	   строка (в ней же калькулятор и сравнение): ставим её последней, итог над
+	   ней держит ensureTotalRow().
 
 	   Проверка parentNode обязательна: applyBuyBar дёргает MutationObserver
 	   правой колонки, и безусловный перенос будил бы его бесконечно. */
@@ -1226,10 +1231,10 @@
 
 		if (isMobile) {
 			var buy = root.querySelector('.buy_block');
-			if (!buy || calc.parentNode === buy) return;
-			var total = buy.querySelector('.nd-pd-total');
-			if (total) buy.insertBefore(calc, total);
-			else buy.appendChild(calc);
+			// последней в блоке, под строкой «Общая стоимость» (Ирина, 22.10.2026)
+			if (!buy || (calc.parentNode === buy && !calc.nextElementSibling)) return;
+			buy.appendChild(calc);
+			ensureTotalRow();
 		} else if (home && home.parent && calc.parentNode !== home.parent) {
 			home.parent.insertBefore(calc, home.next);
 		}
