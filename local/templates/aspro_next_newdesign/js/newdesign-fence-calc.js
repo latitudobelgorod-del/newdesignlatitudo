@@ -122,6 +122,8 @@
   function variants() {
     var S = series(), v = [], sizes = postSizes();
     if (sizes.length > 1) v.push({ key: 'post', label: 'Столб', opts: sizes.map(function (z) { return [z, z.replace('х', '×') + ' мм']; }), def: S.id === 357 ? '125х125' : sizes[0] });
+    if (rule(S).alt && (S.p.post || []).some(function (it) { return has(it, 'small'); }))
+      v.push({ key: 'posts', label: 'Столбы', opts: [['alt', 'большие и малые через один'], ['big', 'только большие']], def: 'alt' });
     var bal = S.p.bal || [];
     if (ftype().vert && bal.some(function (it) { return has(it, 'alu'); }) && bal.some(function (it) { return !has(it, 'alu'); }))
       v.push({ key: 'bal', label: 'Балясины', opts: [['wpc', 'ДПК'], ['alu', 'алюминиевые']], def: 'wpc' });
@@ -196,7 +198,8 @@
 
     var size = opt('post') || postSizes()[0];
     var post = pick('post', function (it) { return !has(it, 'small') && (!size || it[3] === size); });
-    var small = R.alt ? pick('post', function (it) { return has(it, 'small'); }) : null;
+    // Террапол Классик: по инструкции большие и малые через один; можно выбрать «только большие»
+    var small = R.alt && opt('posts') !== 'big' ? pick('post', function (it) { return has(it, 'small'); }) : null;
     var pw = sec(post) || 0.1;
 
     // секции: прямой участок делим поровну с шагом не больше заданного
@@ -227,7 +230,7 @@
     function cut(len, piece, per) { return per || Math.max(1, Math.floor((len / 1000 + KERF) / (piece + KERF))); }
 
     // столбы
-    row('post', post, ceil(big / R.postPer), 'Нужно ' + fmt(big) + ' ' + plural(big, 'столб', 'столба', 'столбов') + (R.alt && small ? ' больших' : '') + ' по ~' + fmt(Math.round(R.h * 10) / 10) + ' м — из одного столба' + mm(post) + ' выходит ' + R.postPer);
+    row('post', post, ceil(big / R.postPer), 'Нужно ' + fmt(big) + ' ' + (R.alt && small ? plural(big, 'большой столб', 'больших столба', 'больших столбов') : plural(big, 'столб', 'столба', 'столбов')) + ' по ~' + fmt(Math.round(R.h * 10) / 10) + ' м — из одного столба' + mm(post) + ' выходит ' + R.postPer);
     if (small && nSmall) row('postS', small, ceil(nSmall / R.postPer), 'Нужно ' + fmt(nSmall) + ' ' + plural(nSmall, 'малый столб', 'малых столба', 'малых столбов') + ' — из одного столба' + mm(small) + ' выходит ' + R.postPer + ', из остатков — подпорки под подбалясенник');
 
     // перила, поручни, подбалясенники
@@ -371,6 +374,7 @@
     $('lfcBig').innerHTML = fmt(r.spans) + '<small>' + plural(r.spans, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм</small>';
     $('lfcBigSub').innerHTML = 'Столбов <b>' + r.N + '</b>' + (r.small ? ' (' + r.big + ' больших, ' + r.small + ' малых)' : '') + ' · шаг ' + fmt(Math.round(r.axis * 1000)) + ' мм · ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + ' на секцию';
     $('lfcRules').innerHTML = '<b>Как считаем ' + esc(seriesName(S)) + '</b>' + esc(r.R.note || '') +
+      (r.R.alt && !r.small ? ' Выбраны только большие столбы: малые не ставятся, подпорки под нижний подбалясенник режутся из обрезков.' : '') +
       (r.T.id !== 1 ? ' Вид «' + esc(r.T.name) + '»: детали заполнения нарезаются из балясин серии, сколько балясин купить — посчитано с учётом распила.' : '');
     draw(r);
     var total = 0, priced = 0;
