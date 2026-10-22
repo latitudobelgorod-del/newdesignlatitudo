@@ -64,7 +64,7 @@
      [x1, y1, x2, y2] в метрах: x — от левого края просвета, y — от верха нижних перил до низа верхних.
      mid — средние перила (двойные перила): на этой высоте от верха снизу вниз, выше — короткие балясины.
      vert — заполнение только вертикальное (тогда годятся и алюминиевые балясины). */
-  var MID = 0.12;
+  var MID = 0.12, SUP_GAP = 0.5;
   function verts(n, x0, x1, y0, y1, bw) { var out = [], g = (x1 - x0 - n * bw) / (n + 1); for (var j = 0; j < n; j++) { var x = x0 + g + j * (bw + g) + bw / 2; out.push([x, y0, x, y1]); } return out; }
   function hors(h, bw, gap) { var k = Math.max(2, Math.floor((h - gap) / (bw + gap) + EPS)), g = (h - k * bw) / (k + 1), ys = []; for (var i = 0; i < k; i++) ys.push(g + i * (bw + g) + bw / 2); return { ys: ys, g: g }; }
   function cross(x0, x1, y0, y1) { return [[x0, y0, x1, y1], [x0, y1, x1, y0]]; }
@@ -95,7 +95,10 @@
   /** Сколько заготовок длиной W уйдёт на детали (первая подходящая по убыванию длины). */
   function whips(lens, W) {
     var bins = [];
-    lens.slice().sort(function (a, b) { return b - a; }).forEach(function (l) {
+    var all = [];
+    // деталь длиннее заготовки (горизонтальные в широком проёме) — целые заготовки и остаток, со стыком
+    lens.forEach(function (l) { while (l > W + EPS) { bins.push(0); l -= W; } all.push(l); });
+    all.sort(function (a, b) { return b - a; }).forEach(function (l) {
       var i = bins.findIndex(function (r) { return r >= l + KERF - EPS; });
       if (i < 0) bins.push(W - l - KERF); else bins[i] -= l + KERF;
     });
@@ -238,7 +241,9 @@
     if (bal && has(bal, 'alu')) alu = true;
     var bw = alu ? 0.02 : (sec(bal) || 0.05);
     var nb = R.perM ? Math.max(1, ceil(c * (alu && R.perMAlu ? R.perMAlu : R.perM) - 0.05)) : Math.max(1, ceil((c - R.gap) / (bw + R.gap)));
-    var nsup = R.sup ? R.sup(c) : 0;
+    // подпорки под нижними перилами — по правилу серии, но не реже чем через SUP_GAP по длине секции:
+    // в широком проёме (до 6 м без столбов) одной-двух мало (Ирина, 22.10.2026)
+    var nsup = R.sup ? Math.max(R.sup(c), ceil(c / SUP_GAP) - 1) : 0;
     // высота заполнения: от верха нижних перил до низа верхних (у Террапола ещё подбалясенник под перилами)
     var railH = Math.max(0.035, sec(pick('rail'), 1) || 0.045), botY = R.perM ? 0.11 : 0.1, topY = H - 0.06;
     var y0 = botY + railH, y1 = topY - railH - (R.rails.some(function (rl) { return rl[0] === 'bottom'; }) ? 0.035 : 0);
@@ -252,6 +257,13 @@
         price: it && it[1] ? it[1] : null, sub: sub + (it && it.guess ? ' · цвет уточнит менеджер' : '') });
     }
     function cut(len, piece, per) { return per || Math.max(1, Math.floor((len / 1000 + KERF) / (piece + KERF))); }
+    // сколько заготовок длиной len (мм) на n отрезков по piece (м): короче заготовки — по k из одной,
+    // длиннее — каждый собирается из нескольких со стыком над подпоркой
+    function railPcs(len, piece, n) { var W = len / 1000; return piece > W + EPS ? n * ceil(piece / W) : ceil(n / cut(len, piece)); }
+    function railTxt(it, piece, what) {
+      var W = it && it[2] ? it[2] / 1000 : 0;
+      return W && piece > W + EPS ? ' — длиннее ' + what + mm(it) + ', каждый собирается из ' + ceil(piece / W) + ' со стыком' : ' — из ' + (what === 'подбалясенника' ? 'одного подбалясенника' : 'одной перилины') + mm(it) + ' выходит ' + (W ? cut(it[2], piece) : 1);
+    }
 
     // столбы
     row('post', post, ceil(big / postPer), 'Нужно ' + fmt(big) + ' ' + (R.alt && small ? plural(big, 'большой столб', 'больших столба', 'больших столбов') : plural(big, 'столб', 'столба', 'столбов')) + ' по ' + fmt(Math.round(H * 1000)) + ' мм — из одного столба' + mm(post) + ' выходит ' + postPer);
@@ -267,14 +279,14 @@
       if (rl[2] === 'top') f = function (it) { return top === 'fig' ? has(it, 'fig') : !has(it, 'fig'); };
       if (rl[2] === 'bottom') f = function (it) { return !has(it, 'fig'); };
       var it = pick(kind, f), k = it && it[2] ? cut(it[2], c) : 1;
-      var pcs = rows * ceil(spans / k);
+      var pcs = it && it[2] ? rows * railPcs(it[2], c, spans) : rows * ceil(spans / k);
       var what = kind === 'bottom' ? 'подбалясенник' : rl[2] === 'bottom' ? 'нижние перила' : rl[2] === 'top' ? 'верхние перила' : rows === 2 ? 'верх и низ' : 'верх';
-      row('rail' + i, it, pcs, 'Нужно ' + rows * spans + ' ' + plural(rows * spans, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(c * 1000)) + ' мм (' + what + ') — из ' + (kind === 'bottom' ? 'одного подбалясенника' : 'одной перилины') + mm(it) + ' выходит ' + k);
+      row('rail' + i, it, pcs, 'Нужно ' + rows * spans + ' ' + plural(rows * spans, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(c * 1000)) + ' мм (' + what + ')' + railTxt(it, c, kind === 'bottom' ? 'подбалясенника' : 'перилины'));
     });
     // двойные перила: ещё один ряд прямоугольных перил посередине
     if (T.mid) {
       var mr = pick('rail', function (it) { return !has(it, 'fig'); }) || pick('rail'), mk = mr && mr[2] ? cut(mr[2], c) : 1;
-      row('railMid', mr, ceil(spans / mk), 'Нужно ' + spans + ' ' + plural(spans, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(c * 1000)) + ' мм (средние перила) — из одной перилины' + mm(mr) + ' выходит ' + mk);
+      row('railMid', mr, mr && mr[2] ? railPcs(mr[2], c, spans) : ceil(spans / mk), 'Нужно ' + spans + ' ' + plural(spans, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(c * 1000)) + ' мм (средние перила)' + railTxt(mr, c, 'перилины'));
     }
 
     // балясины и подпорки
