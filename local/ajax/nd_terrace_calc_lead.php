@@ -59,6 +59,7 @@ foreach (array_slice((array)($ndTcCalc['rows'] ?? array()), 0, 30) as $row) {
 	if (!is_array($row)) continue;
 	$ndTcRows[] = array(
 		'name' => $ndTcStr($row['name'] ?? '', 200),
+		'art' => preg_replace('/[^0-9A-Za-zА-Яа-яЁё._\/-]/u', '', mb_substr((string)($row['art'] ?? ''), 0, 40)), // артикул (22.10.2026)
 		'note' => $ndTcStr($row['note'] ?? '', 200),
 		'qty' => $ndTcStr($row['qty'] ?? '', 20),
 		'price' => is_numeric($row['price'] ?? null) ? (float)$row['price'] : null,
@@ -98,7 +99,7 @@ $ndTcPdfBody = ndTerraceCalcPdf($ndTcParams, $ndTcRows, $ndTcTotal, $ndTcPlan, '
 /* ---------- Текст сметы для ленты лида ---------- */
 $ndTcText = implode("\n", $ndTcParams)."\n\nСмета (расчёт клиента на сайте):\n";
 foreach ($ndTcRows as $row) {
-	$ndTcText .= $row['name'].': '.$row['qty'].($row['sum'] !== null ? ' = '.$ndTcMoney($row['sum']) : '')."\n";
+	$ndTcText .= $row['name'].($row['art'] !== '' ? ' (арт. '.$row['art'].')' : '').': '.$row['qty'].($row['sum'] !== null ? ' = '.$ndTcMoney($row['sum']) : '')."\n";
 }
 $ndTcText .= 'Итого: '.$ndTcMoney($ndTcTotal)."\nСтраница: ".$ndTcPage;
 

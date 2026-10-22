@@ -9,7 +9,7 @@
 
 /**
  * @param string[] $params строки «Терраса: …», «Укладка: …»
- * @param array    $rows   [['name', 'note', 'qty', 'price' => float|null, 'sum' => float|null], …]
+ * @param array    $rows   [['name', 'art' (артикул, может не быть), 'note', 'qty', 'price' => float|null, 'sum' => float|null], …]
  * @param float    $total  итог по позициям с ценой
  * @param string   $plan   JPEG плана (двоичные данные) или ''
  * @return string содержимое PDF или '' при ошибке
@@ -114,6 +114,9 @@ function ndTerraceCalcPdf(array $params, array $rows, $total, $plan, $name, $pag
 			$nameLines = $wrap($row['name'], $cols[0]);
 			$pdf->SetFont('PT', '', 8);
 			$noteLines = $row['note'] !== '' ? $wrap($row['note'], $cols[0]) : array();
+			if (($row['art'] ?? '') !== '') {
+				array_unshift($noteLines, 'арт. '.$row['art']); // артикул — первой серой строкой под названием (22.10.2026)
+			}
 			$h = count($nameLines) * 5 + count($noteLines) * 4 + 3;
 			if ($pdf->GetY() + $h > 282) {
 				$pdf->AddPage();

@@ -930,7 +930,7 @@ var LtdCore = (function () {
     return {
       params: params,
       rows: last.rows.filter(function (x) { return !x.off; }).map(function (x) {
-        return { name: x.text, note: String(x.sub || '').replace(/<[^>]*>/g, ''), qty: fmt(x.qty) + ' ' + x.unit, price: x.price, sum: x.sum };
+        return { name: x.text, art: x.ba || '', note: String(x.sub || '').replace(/<[^>]*>/g, ''), qty: fmt(x.qty) + ' ' + x.unit, price: x.price, sum: x.sum };
       }),
       total: last.total
     };

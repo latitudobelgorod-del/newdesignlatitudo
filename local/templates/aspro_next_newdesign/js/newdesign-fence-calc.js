@@ -426,7 +426,7 @@
       'Секций: ' + r.spans + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм, столбов ' + r.N + ', ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + ' на секцию'
     ];
     var calcData = { params: params, total: last.total,
-      rows: r.rows.filter(function (x) { return !x.off; }).map(function (x) { return { name: x.text, note: x.sub, qty: fmt(x.qty) + ' ' + x.unit, price: x.price, sum: x.sum }; }) };
+      rows: r.rows.filter(function (x) { return !x.off; }).map(function (x) { return { name: x.text, art: x.id ? String(x.id) : '', note: x.sub, qty: fmt(x.qty) + ' ' + x.unit, price: x.price, sum: x.sum }; }) };
     planImage(1280, 'image/jpeg', 0.85).then(function (plan) {
       var body = new URLSearchParams(); body.append('sessid', BX.bitrix_sessid());
       body.append('data', JSON.stringify({ kind: 'fence', calc: calcData, plan: plan, page: location.href.split('#')[0] }));
