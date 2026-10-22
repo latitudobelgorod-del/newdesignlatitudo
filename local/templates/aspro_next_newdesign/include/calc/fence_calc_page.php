@@ -12,35 +12,57 @@
  * Данные каталога (серии, цвета, детали, цены) — снимок js/newdesign-fence-calc-data.js,
  * пересборка — tools/fence-calc/build.py. Правила сборки серий — RULES в js/newdesign-fence-calc.js.
  * «Рассчитать с менеджером» — та же общая форма и тот же обработчик PDF, что у террасы (data.kind = 'fence').
+ *
+ * 22.10.2026: пока калькулятор в работе, он виден только администраторам — остальным 404
+ * (просьба Ирины). Из меню шапки пункт убран там же, где собирается меню (page_blocks/header_drops_newdesign.php).
+ * Когда откроем — убрать проверку ниже и код страницы из $ndHiddenInfoCodes в header_drops_newdesign.php.
  */
+global $USER;
+if (!(is_object($USER) && $USER->IsAdmin())) {
+	\Bitrix\Main\Loader::includeModule('iblock');
+	\Bitrix\Iblock\Component\Tools::process404('', true, true, true);
+	return;
+}
+
 $ndCalcBase = '/local/templates/aspro_next_newdesign';
+
+// Серии — плитками, как подразделы на странице «Ограждения из ДПК»: название и картинка раздела каталога
+// (ИБ 19, ветка раздела 104). Плитку без картинки калькулятор рисует с фото столба серии.
+$ndFenceSections = [];
+if (\Bitrix\Main\Loader::includeModule('iblock') && ($ndFenceRoot = CIBlockSection::GetByID(104)->Fetch())) {
+	$ndRes = CIBlockSection::GetList([], ['IBLOCK_ID' => 19, '>LEFT_MARGIN' => $ndFenceRoot['LEFT_MARGIN'], '<RIGHT_MARGIN' => $ndFenceRoot['RIGHT_MARGIN']], false, ['ID', 'NAME', 'PICTURE']);
+	while ($ndSec = $ndRes->Fetch()) {
+		$ndImg = $ndSec['PICTURE'] ? CFile::ResizeImageGet($ndSec['PICTURE'], ['width' => 240, 'height' => 160], BX_RESIZE_IMAGE_PROPORTIONAL) : null;
+		$ndFenceSections[(int)$ndSec['ID']] = ['n' => trim(preg_replace('/\s+/u', ' ', $ndSec['NAME'])), 'img' => $ndImg ? $ndImg['src'] : ''];
+	}
+}
 foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $ndCalcFile) {
 	$ndCalcPath = $_SERVER['DOCUMENT_ROOT'].$ndCalcBase.'/'.$ndCalcFile;
 	?><link href="<?=$ndCalcBase.'/'.$ndCalcFile.'?'.(file_exists($ndCalcPath) ? filemtime($ndCalcPath) : '')?>" rel="stylesheet"><?
 }
 ?>
 <div class="ltd-calc lfc" id="lfcCalc">
-  <p class="ltd-lead">Укажите длину ограждения и выберите серию из каталога: калькулятор расставит столбы, посчитает перила, балясины, крепёж, крышки и соберёт смету по ценам сайта.</p>
+  <div class="ltd-note warn lfc-admin"><b>Страница скрыта от посетителей</b>Калькулятор видят только администраторы, остальным открывается «Страница не найдена» и в меню его нет.</div>
+  <p class="ltd-lead">Укажите длину ограждения в погонных метрах, выберите вид ограждения и серию из каталога: калькулятор расставит столбы, посчитает перила, балясины, крепёж, крышки и соберёт смету по ценам сайта.</p>
 
   <div class="ltd-grid">
     <form class="ltd-form" id="lfcForm" novalidate>
       <section class="ltd-step">
         <div class="ltd-step-h"><b>1</b>Ограждение</div>
         <div class="ltd-row2">
-          <label class="ltd-field" data-f="L"><span>Длина ограждения, м</span><input type="number" id="lfcL" inputmode="decimal" min="0.5" max="500" step="0.1" value="6"><em class="ltd-err"></em></label>
-          <label class="ltd-field" data-f="corners"><span>Углов, шт.</span><input type="number" id="lfcCorners" inputmode="numeric" min="0" max="50" step="1" value="0"><em class="ltd-err"></em></label>
+          <label class="ltd-field" data-f="L"><span>Длина ограждения, пог. м</span><input type="number" id="lfcL" inputmode="decimal" min="0.5" max="500" step="0.1" value="6"><em class="ltd-err"></em></label>
+          <label class="ltd-field" data-f="step"><span>Шаг столбов, м</span><input type="number" id="lfcStep" inputmode="decimal" min="0.5" step="0.05" value="1.5"><em class="ltd-err"></em></label>
         </div>
-        <small class="ltd-hint">Длина — все участки ограждения вместе, в погонных метрах. На каждом углу ставится свой столб.</small>
-        <label class="ltd-field" data-f="step"><span>Шаг столбов, м</span><input type="number" id="lfcStep" inputmode="decimal" min="0.5" step="0.05" value="1.5"><em class="ltd-err"></em></label>
         <small class="ltd-hint" id="lfcStepHint"></small>
+        <div class="ltd-field"><span>Вид ограждения</span>
+          <div class="ltd-tiles lfc-types" role="radiogroup" aria-label="Вид ограждения" id="lfcTypes"></div>
+        </div>
       </section>
 
       <section class="ltd-step">
         <div class="ltd-step-h"><b>2</b>Серия ограждения</div>
-        <label class="ltd-field"><span>Марка</span><select class="iks-ignore" id="lfcBrand"></select></label>
-        <div class="ltd-pick">
-          <div class="ltd-list" id="lfcList" role="listbox" aria-label="Серии ограждений"></div>
-        </div>
+        <label class="ltd-field"><span>Производитель</span><select class="iks-ignore" id="lfcBrand"></select></label>
+        <div class="ltd-tiles lfc-series" role="radiogroup" aria-label="Серии ограждений" id="lfcList"></div>
         <label class="ltd-field"><span>Цвет</span><select class="iks-ignore" id="lfcColor"></select></label>
         <div class="lfc-opts" id="lfcOpts"></div>
         <div class="ltd-prod" id="lfcSeriesInfo"></div>
@@ -77,7 +99,6 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
       </div>
 
       <div class="ltd-note info" id="lfcRules"></div>
-      <div class="ltd-note warn"><b>Другие виды ограждения</b>Калькулятор считает ограждение с вертикальными балясинами. Горизонтальные перекладины, «ранчо», кресты, V-образный рисунок и двойные перила посчитает менеджер — нажмите «Рассчитать с менеджером» и напишите, какой вид нужен.</div>
       <p class="ltd-disclaimer">Расчёт ориентировочный, уточните у менеджера. Цены взяты из каталога сайта. Метизы (саморезы, анкеры) в смету не входят.</p>
 
       <div class="ltd-pdf">
@@ -88,7 +109,7 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
       </div>
     </section>
   </div>
-<script>window.LFC_LEAD_URL = '/local/ajax/nd_terrace_calc_lead.php';</script>
+<script>window.LFC_LEAD_URL = '/local/ajax/nd_terrace_calc_lead.php'; window.LFC_IMG = '<?=$ndCalcBase?>/images/fence-calc/'; window.LFC_SECTIONS = <?=json_encode($ndFenceSections, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG)?>;</script>
 <script src="<?=$ndCalcBase?>/js/newdesign-fence-calc-data.js?<?=filemtime($_SERVER['DOCUMENT_ROOT'].$ndCalcBase.'/js/newdesign-fence-calc-data.js')?>"></script>
 <script src="<?=$ndCalcBase?>/js/newdesign-fence-calc.js?<?=filemtime($_SERVER['DOCUMENT_ROOT'].$ndCalcBase.'/js/newdesign-fence-calc.js')?>"></script>
 </div>

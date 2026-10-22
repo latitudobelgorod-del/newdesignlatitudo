@@ -6,3 +6,16 @@
   .ltd-calc.lfc .ltd-opt b { font-weight: 600; font-size: 12.8px; }
   .ltd-calc.lfc .ltd-prod a { color: var(--ltd-ink); }
   .ltd-calc.lfc #lfcSvg { cursor: pointer; }
+
+  /* Виды ограждений (10 рисунков из листовки) и серии марки — плитками, как формы террасы */
+  .ltd-calc.lfc .lfc-types { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .ltd-calc.lfc .lfc-types img { width: 100%; height: 44px; object-fit: contain; mix-blend-mode: multiply; }
+  .ltd-calc.lfc .lfc-series { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 4px 0 14px; }
+  .ltd-calc.lfc .lfc-series span { padding: 8px 6px 10px; font-size: 12.8px; align-content: start; }
+  .ltd-calc.lfc .lfc-series img, .ltd-calc.lfc .lfc-series i { width: 100%; height: 64px; object-fit: contain; display: block; }
+  .ltd-calc.lfc .lfc-types span, .ltd-calc.lfc .lfc-series span { align-content: start; }
+  @media (max-width: 560px) {
+    .ltd-calc.lfc .lfc-types { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .ltd-calc.lfc .lfc-series { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .ltd-calc.lfc .lfc-admin { margin: 0 0 16px; }

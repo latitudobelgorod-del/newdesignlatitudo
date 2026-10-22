@@ -1,6 +1,8 @@
 /* Калькулятор ограждений (/info/kalkulyator-ograzhdeniy/), 21.10.2026.
-   Длина ограждения и углы → секции и столбы → детали выбранной серии по правилам производителя → смета.
-   Данные каталога — window.LFC_DATA (js/newdesign-fence-calc-data.js), правила сборки — RULES ниже.
+   Длина ограждения (прямые участки, погонные метры) → секции и столбы → вид заполнения секции (TYPES)
+   → детали выбранной серии по правилам производителя → смета.
+   Данные каталога — window.LFC_DATA (js/newdesign-fence-calc-data.js), правила сборки — RULES ниже,
+   названия и картинки подразделов каталога — window.LFC_SECTIONS (со страницы, из инфоблока).
    Внешний вид — классы калькулятора террасы (ltd-*). */
 (function () {
   var DATA = window.LFC_DATA;
@@ -54,8 +56,51 @@
   };
   function rule(S) { var r = {}, k, o = RULES[S.id] || {}; for (k in BASE) r[k] = BASE[k]; for (k in o) r[k] = o[k]; return r; }
 
+  /* Виды ограждений — по листовке «Виды ограждений» LATITUDO (картинки — images/fence-calc/vid-N.jpg).
+     Заполнение секции режется из балясин серии; geo(c, h, nb, bw) отдаёт детали одной секции отрезками
+     [x1, y1, x2, y2] в метрах: x — от левого края просвета, y — от верха нижних перил до низа верхних.
+     mid — средние перила (двойные перила): на этой высоте от верха снизу вниз, выше — короткие балясины.
+     vert — заполнение только вертикальное (тогда годятся и алюминиевые балясины). */
+  var MID = 0.12;
+  function verts(n, x0, x1, y0, y1, bw) { var out = [], g = (x1 - x0 - n * bw) / (n + 1); for (var j = 0; j < n; j++) { var x = x0 + g + j * (bw + g) + bw / 2; out.push([x, y0, x, y1]); } return out; }
+  function hors(h, bw, gap) { var k = Math.max(2, Math.floor((h - gap) / (bw + gap) + EPS)), g = (h - k * bw) / (k + 1), ys = []; for (var i = 0; i < k; i++) ys.push(g + i * (bw + g) + bw / 2); return { ys: ys, g: g }; }
+  function cross(x0, x1, y0, y1) { return [[x0, y0, x1, y1], [x0, y1, x1, y0]]; }
+  var TYPES = [
+    { id: 1, name: 'Вертикальные', label: 'Верти­кальные', vert: true, geo: function (c, h, nb, bw) { return verts(nb, 0, c, 0, h, bw); } },
+    { id: 2, name: 'Горизонтальные с подпорками', label: 'Гори­зонталь­ные с под­порками', geo: function (c, h, nb, bw) {
+      var z = hors(h, bw, 0.08), out = z.ys.map(function (y) { return [0, y, c, y]; }), lv = [0].concat(z.ys.map(function (y) { return y + bw / 2; }));
+      // подпорки между рядами: через ряд две и одна, как на рисунке
+      lv.forEach(function (y, i) { var top = i < z.ys.length ? z.ys[i] - bw / 2 : h; (i % 2 ? [0.5] : [0.25, 0.75]).forEach(function (f) { out.push([c * f, y, c * f, top]); }); });
+      return out; } },
+    { id: 3, name: 'Горизонтальные', label: 'Гори­зонталь­ные', geo: function (c, h, nb, bw) { return hors(h, bw, 0.08).ys.map(function (y) { return [0, y, c, y]; }); } },
+    { id: 4, name: 'Вертикальные, двойные перила', label: 'Верти­кальные, двойные перила', vert: true, mid: MID, geo: function (c, h, nb, bw) {
+      var yM = h - MID; return verts(nb, 0, c, 0, yM, bw).concat(verts(Math.max(2, Math.round(nb / 2)), 0, c, yM, h, bw)); } },
+    { id: 5, name: 'Ранчо', geo: function (c, h, nb, bw) { return hors(h, bw, 0.04).ys.map(function (y) { return [0, y, c, y]; }); } },
+    { id: 6, name: 'Двойной крест', geo: function (c, h) { return [[0, 0, 0.65 * c, h], [0.35 * c, 0, c, h], [0, h, 0.65 * c, 0], [0.35 * c, h, c, 0]]; } },
+    { id: 7, name: 'V-образные', geo: function (c, h) {
+      var out = [[c / 2, 0, c / 2, h]], w = c / 2;
+      [0, w].forEach(function (x0) { out.push([x0, h, x0 + 0.35 * w, 0], [x0 + w / 2, 0, x0 + w / 2, h], [x0 + w, h, x0 + 0.65 * w, 0]); });
+      return out; } },
+    { id: 8, name: 'Крест', geo: function (c, h) { return cross(0, c, 0, h); } },
+    { id: 9, name: 'Крест, двойные перила', mid: MID, geo: function (c, h, nb, bw) {
+      var yM = h - MID, a = 0.06 * c, b = 0.94 * c;
+      return [[a, 0, a, yM], [c / 2, 0, c / 2, yM], [b, 0, b, yM]].concat(cross(a, c / 2, 0, yM), cross(c / 2, b, 0, yM), verts(Math.max(2, Math.round(nb / 2)), 0, c, yM, h, bw)); } },
+    { id: 10, name: 'Крест в балясинах', label: 'Крест в баля­синах', geo: function (c, h) { var a = 0.12 * c, b = 0.88 * c; return [[a, 0, a, h], [b, 0, b, h]].concat(cross(a, b, 0, h)); } }
+  ];
+  function ftype() { return TYPES.find(function (t) { return t.id === cur.type; }) || TYPES[0]; }
+  function segLen(s) { return Math.hypot(s[2] - s[0], s[3] - s[1]); }
+  /** Сколько заготовок длиной W уйдёт на детали (первая подходящая по убыванию длины). */
+  function whips(lens, W) {
+    var bins = [];
+    lens.slice().sort(function (a, b) { return b - a; }).forEach(function (l) {
+      var i = bins.findIndex(function (r) { return r >= l + KERF - EPS; });
+      if (i < 0) bins.push(W - l - KERF); else bins[i] -= l + KERF;
+    });
+    return bins.length;
+  }
+
   /* ---------- Выбор деталей ---------- */
-  var cur = { s: 0, color: '', opt: {} }, excluded = {};
+  var cur = { s: 0, type: 1, color: '', opt: {} }, excluded = {};
   function series() { return DATA.S[cur.s]; }
   /** Деталь серии нужного типа: сначала в цвет, потом без цвета, потом любая (цвет уточнит менеджер). */
   function pick(kind, f, brandWide) {
@@ -77,7 +122,7 @@
     var S = series(), v = [], sizes = postSizes();
     if (sizes.length > 1) v.push({ key: 'post', label: 'Столб', opts: sizes.map(function (z) { return [z, z.replace('х', '×') + ' мм']; }), def: S.id === 357 ? '125х125' : sizes[0] });
     var bal = S.p.bal || [];
-    if (bal.some(function (it) { return has(it, 'alu'); }) && bal.some(function (it) { return !has(it, 'alu'); }))
+    if (ftype().vert && bal.some(function (it) { return has(it, 'alu'); }) && bal.some(function (it) { return !has(it, 'alu'); }))
       v.push({ key: 'bal', label: 'Балясины', opts: [['wpc', 'ДПК'], ['alu', 'алюминиевые']], def: 'wpc' });
     var rails = S.p.rail || [];
     if (rails.some(function (it) { return has(it, 'fig'); }) && rails.some(function (it) { return !has(it, 'fig'); }))
@@ -100,18 +145,24 @@
 
   /* ---------- Форма ---------- */
   function brands() { var b = []; DATA.S.forEach(function (S) { if (b.indexOf(S.b) < 0) b.push(S.b); }); return b; }
-  function fillBrands() { $('lfcBrand').innerHTML = '<option value="">Все марки</option>' + brands().map(function (b) { return '<option>' + esc(b) + '</option>'; }).join(''); }
+  function fillBrands() { $('lfcBrand').innerHTML = brands().map(function (b) { return '<option' + (b === series().b ? ' selected' : '') + '>' + esc(b) + '</option>'; }).join(''); }
+  /* Серии марки — плитками, как подразделы в каталоге: картинка и название раздела из инфоблока (LFC_SECTIONS) */
+  function secInfo(S) { return (window.LFC_SECTIONS || {})[S.id] || {}; }
+  function seriesName(S) { return secInfo(S).n || S.n; }
   function renderList() {
-    var b = $('lfcBrand').value, html = '';
+    var b = series().b, html = '';
     DATA.S.forEach(function (S, i) {
-      if (b && S.b !== b) return;
-      var post = (S.p.post || [])[0], img = post && post[7] ? '<span class="ltd-thumb"><img src="' + post[7] + '" alt="" loading="lazy"></span>' : '<span class="ltd-thumb"></span>';
-      var from = (S.p.post || []).reduce(function (m, it) { return Math.min(m, it[1] || Infinity); }, Infinity);
-      html += '<button type="button" class="ltd-opt" role="option" aria-selected="' + (i === cur.s) + '" data-s="' + i + '">' + img +
-        '<span>' + esc(S.b + ' · ' + S.n.replace(S.b, '').replace(/\s+/g, ' ').trim()) + '<small>' + S.c.length + ' ' + plural(S.c.length, 'цвет', 'цвета', 'цветов') + '</small></span>' +
-        (isFinite(from) ? '<b>столб от ' + rub(from) + '</b>' : '<b></b>') + '</button>';
+      if (S.b !== b) return;
+      var post = (S.p.post || [])[0], src = secInfo(S).img || (post && post[7]);
+      html += '<label><input type="radio" name="lfcSeries" value="' + i + '"' + (i === cur.s ? ' checked' : '') + '><span>' +
+        (src ? '<img src="' + esc(src) + '" alt="" loading="lazy">' : '<i></i>') + esc(seriesName(S)) + '</span></label>';
     });
     $('lfcList').innerHTML = html;
+  }
+  function renderTypes() {
+    $('lfcTypes').innerHTML = TYPES.map(function (t) {
+      return '<label><input type="radio" name="lfcType" value="' + t.id + '"' + (t.id === cur.type ? ' checked' : '') + '><span><img src="' + window.LFC_IMG + 'vid-' + t.id + '.jpg" alt="" loading="lazy">' + esc(t.label || t.name) + '</span></label>';
+    }).join('');
   }
   function fillColors() {
     var S = series();
@@ -129,16 +180,15 @@
     cur.s = i; cur.opt = {}; excluded = {};
     var r = rule(series());
     $('lfcStep').value = r.stepDef || r.step;
-    renderList(); fillColors(); fillOpts(); render();
+    fillBrands(); renderList(); fillColors(); fillOpts(); render();
   }
 
   /* ---------- Расчёт ---------- */
   function calc() {
     var S = series(), R = rule(S);
-    var L = num($('lfcL').value), corners = Math.round(num($('lfcCorners').value)), step = num($('lfcStep').value);
+    var L = num($('lfcL').value), step = num($('lfcStep').value), T = ftype();
     var bad = {};
     if (!(L >= 0.5 && L <= 500)) bad.L = 'От 0,5 до 500 м';
-    if (!(corners >= 0 && corners <= 50)) bad.corners = 'От 0 до 50';
     if (!(step >= 0.5)) bad.step = 'Не меньше 0,5 м';
     else if (step > R.step + EPS) bad.step = 'Не больше ' + fmt(R.step) + ' м для этой серии';
     if (Object.keys(bad).length) return { bad: bad };
@@ -148,19 +198,25 @@
     var small = R.alt ? pick('post', function (it) { return has(it, 'small'); }) : null;
     var pw = sec(post) || 0.1;
 
-    // секции: по длине с шагом не больше заданного, на каждом углу — свой столб
-    var spans = Math.max(1, ceil(L / step)) + corners;
+    // секции: прямой участок делим поровну с шагом не больше заданного
+    var spans = Math.max(1, ceil(L / step));
     if (R.alt && small && spans % 2) spans++;            // Террапол: по краям большие, значит секций чётное число
     var axis = L / spans, c = Math.max(0.05, axis - pw);   // просвет секции между столбами
     var N = spans + 1, big = R.alt && small ? Math.ceil(N / 2) : N, nSmall = N - big;
 
-    var alu = opt('bal') === 'alu';
-    var bal = pick('bal', function (it) { return alu ? has(it, 'alu') : !has(it, 'alu'); }) || pick('bal');
+    // алюминиевые балясины — только у вертикальных видов; у EasyDecking Вуд-Икс других в серии нет
+    var alu = !!T.vert && opt('bal') === 'alu';
+    var bal = T.vert ? pick('bal', function (it) { return alu ? has(it, 'alu') : !has(it, 'alu'); }) || pick('bal') : pick('bal', function (it) { return !has(it, 'alu'); });
+    if (bal && has(bal, 'alu')) alu = true;
     var bw = alu ? 0.02 : (sec(bal) || 0.05);
     var nb = R.perM ? Math.max(1, ceil(c * (alu && R.perMAlu ? R.perMAlu : R.perM) - 0.05)) : Math.max(1, ceil((c - R.gap) / (bw + R.gap)));
     var nsup = R.sup ? R.sup(c) : 0;
-    var r = { S: S, R: R, L: L, corners: corners, step: step, spans: spans, axis: axis, c: c, N: N, big: big, small: nSmall, pw: pw,
-      nb: nb, nsup: nsup, alu: alu, bw: bw, size: size, rows: [] };
+    // высота заполнения: от верха нижних перил до низа верхних (у Террапола ещё подбалясенник под перилами)
+    var railH = Math.max(0.035, sec(pick('rail'), 1) || 0.045), botY = R.perM ? 0.11 : 0.1, topY = R.h - 0.06;
+    var y0 = botY + railH, y1 = topY - railH - (R.rails.some(function (rl) { return rl[0] === 'bottom'; }) ? 0.035 : 0);
+    var segs = T.geo(c, y1 - y0, nb, bw);
+    var r = { S: S, R: R, T: T, L: L, step: step, spans: spans, axis: axis, c: c, N: N, big: big, small: nSmall, pw: pw,
+      nb: nb, nsup: nsup, alu: alu, bw: bw, size: size, railH: railH, botY: botY, topY: topY, y0: y0, y1: y1, segs: segs, rows: [] };
 
     function row(key, it, qty, sub, fallback) {
       if (!qty) return;
@@ -184,10 +240,32 @@
       var what = kind === 'bottom' ? 'подбалясенник' : rl[2] === 'bottom' ? 'нижние перила' : rl[2] === 'top' ? 'верхние перила' : rows === 2 ? 'верх и низ' : 'верх';
       row('rail' + i, it, pcs, what + ': ' + rows * spans + ' ' + plural(rows * spans, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(c * 1000)) + ' мм, из заготовки — ' + k);
     });
+    // двойные перила: ещё один ряд прямоугольных перил посередине
+    if (T.mid) {
+      var mr = pick('rail', function (it) { return !has(it, 'fig'); }) || pick('rail'), mk = mr && mr[2] ? cut(mr[2], c) : 1;
+      row('railMid', mr, ceil(spans / mk), 'средние перила: ' + spans + ' ' + plural(spans, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(c * 1000)) + ' мм, из заготовки — ' + mk);
+    }
 
     // балясины и подпорки
     var nbAll = nb * spans, supAll = nsup * spans;
-    if (bal) {
+    if (T.id !== 1) {
+      // другие виды: детали заполнения режем из балясин серии, раскрой — по длинам деталей
+      var nSeg = segs.length, segAll = nSeg * spans, what2 = nSeg + ' ' + plural(nSeg, 'деталь', 'детали', 'деталей') + ' на секцию';
+      if (bal && alu) row('bal', bal, segAll, what2 + ', ' + fmt(segAll) + ' шт. всего');
+      else if (bal) {
+        var W = (bal[2] || 2900) / 1000, lens = [];
+        for (var s = 0; s < spans; s++) segs.forEach(function (g) { lens.push(segLen(g)); });
+        var supW = R.supLen && supAll && R.perM;
+        if (supW) for (var t = 0; t < supAll; t++) lens.push(R.supLen);
+        row('bal', bal, whips(lens, W), what2 + ', ' + fmt(segAll) + ' шт. всего, раскрой из заготовок ' + fmt(W * 1000) + ' мм' + (supW ? '; подпорки ' + fmt(supAll) + ' шт. по ' + fmt(R.supLen * 1000) + ' мм' : ''));
+      } else row('bal', null, segAll, what2 + ' — в серии только алюминиевые балясины 750 мм, деталь для этого вида подберёт менеджер', 'Детали заполнения «' + T.name + '»');
+      if (R.balFix) {
+        var bf2 = pick('balfix', function (it) { return (alu ? has(it, 'alu') : !has(it, 'alu')) && !has(it, 'turn'); }, true);
+        var qf2 = segAll * R.balFix + (R.perM ? supAll * (alu ? 2 : 1) : 0);
+        if (bf2) row('balfix', bf2, qf2, R.balFix + ' на деталь' + (R.perM ? ' и на подпорки' : '') + ', ' + Math.round(qf2 / spans) + ' на секцию');
+        else row('balfix', null, qf2, 'в каталоге нет — подберёт менеджер', 'Крепление деталей заполнения');
+      }
+    } else if (bal) {
       if (alu) row('bal', bal, nbAll, nb + ' на секцию' + (supAll ? ', подпорки — из обрезков' : ''));
       else {
         var per = R.balPer, supWhips = R.supLen && supAll && R.perM ? ceil(supAll / Math.floor(((bal[2] || 2900) / 1000) / (R.supLen + KERF))) : 0;
@@ -195,14 +273,14 @@
       }
     }
     // крепёж балясин: по 2 на балясину, у POLIVAN ещё на подпорки (у алюминиевых — по 2)
-    if (R.balFix) {
+    if (T.id === 1 && R.balFix) {
       var bf = pick('balfix', function (it) { return (alu ? has(it, 'alu') : !has(it, 'alu')) && !has(it, 'turn'); }, true);
       var qf = nbAll * R.balFix + (R.perM ? supAll * (alu ? 2 : 1) : 0);
       if (bf) row('balfix', bf, qf, R.balFix + ' на балясину' + (R.perM ? ' и на подпорки' : '') + ', ' + Math.round(qf / spans) + ' на секцию');
       else row('balfix', null, qf, 'в каталоге нет — подберёт менеджер', alu ? 'Крепление для алюминиевых балясин' : 'Крепление для балясин');
     }
     // крепёж перил: на каждый конец каждого ряда
-    var railRows = R.rails.reduce(function (t, rl) { return t + (rl[0] === 'rail' ? rl[1] : 0); }, 0);
+    var railRows = R.rails.reduce(function (t, rl) { return t + (rl[0] === 'rail' ? rl[1] : 0); }, 0) + (T.mid ? 1 : 0);
     if (R.railFix && S.p.railfix) {
       var rf = pick('railfix', function (it) { return !has(it, 'turn'); });
       row('railfix', rf, spans * railRows * 2, '2 на каждый поручень секции, прямые');
@@ -241,15 +319,16 @@
     var x0 = padL + (VW - padL - padR - widthM * sc) / 2, yB = VH - padB, X = function (m) { return x0 + m * sc; }, Y = function (m) { return yB - m * sc; };
     var o = '<rect x="0" y="0" width="' + VW + '" height="' + VH + '" fill="var(--ltd-panel)"/>';
     o += '<line x1="' + (x0 - 12) + '" y1="' + yB + '" x2="' + (X(widthM) + 12) + '" y2="' + yB + '" stroke="var(--ltd-muted)" stroke-width="1.5"/>';
-    var railH = Math.max(0.035, sec(pick('rail'), 1) || 0.045), botY = r.R.perM ? 0.11 : 0.1, topY = H - 0.06;
+    var railH = r.railH, botY = r.botY, topY = r.topY;
     for (var i = 0; i < show; i++) {
       var a = i * r.axis + r.pw, b = a + r.c;
-      // нижний и верхний ряды перил
-      [[botY, 'var(--ltd-board)'], [topY - railH, 'var(--ltd-board)']].forEach(function (q) { o += '<rect x="' + X(a) + '" y="' + Y(q[0] + railH) + '" width="' + (r.c * sc) + '" height="' + (railH * sc) + '" fill="' + q[1] + '"/>'; });
+      // заполнение секции по виду: детали — линиями толщиной в балясину, обрезаны по просвету секции
+      o += '<clipPath id="lfcClip' + i + '"><rect x="' + X(a) + '" y="' + Y(r.y1) + '" width="' + (r.c * sc) + '" height="' + ((r.y1 - r.y0) * sc) + '"/></clipPath><g clip-path="url(#lfcClip' + i + ')">';
+      r.segs.forEach(function (s) { o += '<line x1="' + X(a + s[0]) + '" y1="' + Y(r.y0 + s[1]) + '" x2="' + X(a + s[2]) + '" y2="' + Y(r.y0 + s[3]) + '" stroke="var(--ltd-board-2)" stroke-width="' + Math.max(1.2, r.bw * sc) + '"/>'; });
+      o += '</g>';
+      // нижний и верхний ряды перил (и средний у двойных перил)
+      [botY, topY - railH].concat(r.T.mid ? [r.y0 + (r.y1 - r.y0) - r.T.mid - railH / 2] : []).forEach(function (q) { o += '<rect x="' + X(a) + '" y="' + Y(q + railH) + '" width="' + (r.c * sc) + '" height="' + (railH * sc) + '" fill="var(--ltd-board)"/>'; });
       if (r.R.rails.some(function (rl) { return rl[0] === 'bottom'; })) o += '<rect x="' + X(a) + '" y="' + Y(topY - railH) + '" width="' + (r.c * sc) + '" height="' + (0.035 * sc) + '" fill="var(--ltd-board-2)"/>';
-      // балясины поровну по секции
-      var bw = r.bw, g = (r.c - r.nb * bw) / (r.nb + 1);
-      for (var j = 0; j < r.nb; j++) { var bx = a + g + j * (bw + g); o += '<rect x="' + X(bx) + '" y="' + Y(topY - railH) + '" width="' + Math.max(1.2, bw * sc) + '" height="' + ((topY - railH - botY - railH) * sc) + '" fill="var(--ltd-board-2)"/>'; }
       // подпорки под нижним рядом
       for (var k = 0; k < r.nsup; k++) { var sx = a + r.c * (k + 1) / (r.nsup + 1) - 0.02; o += '<rect x="' + X(sx) + '" y="' + Y(botY) + '" width="' + (0.04 * sc) + '" height="' + (botY * sc) + '" fill="var(--ltd-board-2)"/>'; }
       // размер секции
@@ -289,8 +368,9 @@
     var S = series();
     $('lfcSeriesInfo').innerHTML = '<a href="' + SITE + S.url + '" target="_blank" rel="noopener">Все товары серии в каталоге</a>';
     $('lfcBig').innerHTML = fmt(r.spans) + '<small>' + plural(r.spans, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм</small>';
-    $('lfcBigSub').innerHTML = 'Столбов <b>' + r.N + '</b>' + (r.small ? ' (' + r.big + ' больших, ' + r.small + ' малых)' : '') + ' · шаг ' + fmt(Math.round(r.axis * 1000)) + ' мм · балясин ' + r.nb + ' на секцию';
-    $('lfcRules').innerHTML = '<b>Как считаем ' + esc(S.b) + ' ' + esc(S.n.replace(S.b, '').trim()) + '</b>' + esc(r.R.note || '');
+    $('lfcBigSub').innerHTML = 'Столбов <b>' + r.N + '</b>' + (r.small ? ' (' + r.big + ' больших, ' + r.small + ' малых)' : '') + ' · шаг ' + fmt(Math.round(r.axis * 1000)) + ' мм · ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + ' на секцию';
+    $('lfcRules').innerHTML = '<b>Как считаем ' + esc(seriesName(S)) + '</b>' + esc(r.R.note || '') +
+      (r.T.id !== 1 ? ' Вид «' + esc(r.T.name) + '»: детали заполнения режутся из балясин серии, количество заготовок — по раскрою.' : '');
     draw(r);
     var total = 0, priced = 0;
     $('lfcTable').innerHTML = r.rows.map(function (x) {
@@ -335,9 +415,10 @@
     var url = window.LFC_LEAD_URL;
     if (!url || !last || !window.BX || !BX.bitrix_sessid) return;
     var r = last.r, S = r.S, params = [
-      'Ограждение: ' + fmt(r.L) + ' м' + (r.corners ? ', углов ' + r.corners : '') + ', шаг столбов ' + fmt(Math.round(r.axis * 1000)) + ' мм',
-      'Серия: ' + S.b + ' ' + S.n.replace(S.b, '').trim() + ', цвет ' + cur.color + (r.alu ? ', алюминиевые балясины' : ''),
-      'Секций: ' + r.spans + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм, столбов ' + r.N + ', балясин ' + r.nb + ' на секцию'
+      'Ограждение: ' + fmt(r.L) + ' пог. м, шаг столбов ' + fmt(Math.round(r.axis * 1000)) + ' мм',
+      'Вид ' + r.T.id + ': ' + r.T.name.toLowerCase(),
+      'Серия: ' + seriesName(S) + ', цвет ' + cur.color + (r.alu ? ', алюминиевые балясины' : ''),
+      'Секций: ' + r.spans + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм, столбов ' + r.N + ', ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + ' на секцию'
     ];
     var calcData = { params: params, total: last.total,
       rows: r.rows.filter(function (x) { return !x.off; }).map(function (x) { return { name: x.text, note: x.sub, qty: fmt(x.qty) + ' ' + x.unit, price: x.price, sum: x.sum }; }) };
@@ -350,19 +431,19 @@
 
   /* ---------- События ---------- */
   $('lfcBrand').addEventListener('change', function () {
-    renderList();
-    var b = this.value; if (b && series().b !== b) selectSeries(DATA.S.findIndex(function (S) { return S.b === b; }));
+    var b = this.value; if (series().b !== b) selectSeries(DATA.S.findIndex(function (S) { return S.b === b; }));
   });
-  $('lfcList').addEventListener('click', function (ev) { var o = ev.target.closest('.ltd-opt'); if (o) selectSeries(+o.getAttribute('data-s')); });
+  $('lfcList').addEventListener('change', function (ev) { if (ev.target.name === 'lfcSeries') selectSeries(+ev.target.value); });
+  $('lfcTypes').addEventListener('change', function (ev) { if (ev.target.name === 'lfcType') { cur.type = +ev.target.value; fillOpts(); render(); } });
   $('lfcColor').addEventListener('change', function () { cur.color = this.value; render(); });
   $('lfcOpts').addEventListener('change', function (ev) { var k = ev.target.getAttribute('data-opt'); if (k) { cur.opt[k] = ev.target.value; render(); } });
-  $('lfcForm').addEventListener('input', function (ev) { if (ev.target.id !== 'lfcColor' && !ev.target.getAttribute('data-opt')) render(); });
+  $('lfcForm').addEventListener('input', function (ev) { if (ev.target.type === 'number') render(); });
   $('lfcForm').addEventListener('submit', function (ev) { ev.preventDefault(); });
   $('lfcTable').addEventListener('change', function (ev) { var k = ev.target.getAttribute && ev.target.getAttribute('data-key'); if (k) { excluded[k] = !ev.target.checked; render(); } });
 
   // ?series=<код раздела> — сразу эта серия (ссылка из раздела каталога)
   var q = new URLSearchParams(location.search).get('series'), start = 0;
   if (q) { var fi = DATA.S.findIndex(function (S) { return S.url.indexOf(q + '/') >= 0; }); if (fi >= 0) start = fi; }
-  fillBrands();
+  renderTypes();
   selectSeries(start);
 })();

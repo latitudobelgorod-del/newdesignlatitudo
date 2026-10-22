@@ -86,12 +86,17 @@ $ndDropServices = function() {
  * даёт `.left_infoblock_menu.menu_ext.php` тем же запросом — все активные
  * элементы инфоблока по SORT ASC. Короткого списка «Партнерам»
  * (`.partneram_company.menu.php`) для панели мало.
+ *
+ * $ndHiddenInfoCodes — страницы в работе, которые пока видят только администраторы
+ * (калькулятор ограждений, 22.10.2026: сама страница отдаёт 404 остальным,
+ * include/calc/fence_calc_page.php). В меню их не показываем никому: панель кэшируется одна на всех.
  */
-$ndDropPartners = function() {
+$ndHiddenInfoCodes = array('kalkulyator-ograzhdeniy');
+$ndDropPartners = function() use ($ndHiddenInfoCodes) {
 	$arItems = array();
 	$res = CIBlockElement::GetList(
 		array('SORT' => 'ASC', 'ID' => 'DESC'),
-		array('IBLOCK_ID' => 25, 'ACTIVE' => 'Y'),
+		array('IBLOCK_ID' => 25, 'ACTIVE' => 'Y', '!CODE' => $ndHiddenInfoCodes),
 		false,
 		false,
 		array('ID', 'IBLOCK_ID', 'NAME', 'DETAIL_PAGE_URL')
