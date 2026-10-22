@@ -19,3 +19,7 @@
     .ltd-calc.lfc .lfc-series { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   .ltd-calc.lfc .lfc-admin { margin: 0 0 16px; }
+
+/* «По краям: столбы ДПК / блоки или стены» — радиокнопки в строку, под галочкой «Юбки на столбы» */
+.ltd-calc .lfc-ends { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 10px 0 4px; }
+.ltd-calc .lfc-ends .ltd-toggle { font-weight: 400; }

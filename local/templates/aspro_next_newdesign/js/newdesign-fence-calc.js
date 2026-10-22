@@ -125,9 +125,9 @@
 
   /* Варианты серии, из которых клиент выбирает: сечение столба, балясины, верхние перила, крышка */
   function variants() {
-    var S = series(), v = [], sizes = postSizes(), np = mountMode() === 'none';
-    if (sizes.length > 1 && !np) v.push({ key: 'post', label: 'Столб', opts: sizes.map(function (z) { return [z, z.replace('х', '×') + ' мм']; }), def: S.id === 357 ? '125х125' : sizes[0] });
-    if (!np && rule(S).alt && (S.p.post || []).some(function (it) { return has(it, 'small'); }))
+    var S = series(), v = [], sizes = postSizes();
+    if (sizes.length > 1) v.push({ key: 'post', label: 'Столб', opts: sizes.map(function (z) { return [z, z.replace('х', '×') + ' мм']; }), def: S.id === 357 ? '125х125' : sizes[0] });
+    if (rule(S).alt && (S.p.post || []).some(function (it) { return has(it, 'small'); }))
       v.push({ key: 'posts', label: 'Столбы', opts: [['alt', 'большие и малые через один'], ['big', 'только большие']], def: 'alt' });
     var bal = S.p.bal || [];
     if (ftype().vert && bal.some(function (it) { return has(it, 'alu'); }) && bal.some(function (it) { return !has(it, 'alu'); }))
@@ -136,9 +136,9 @@
     if (rails.some(function (it) { return has(it, 'fig'); }) && rails.some(function (it) { return !has(it, 'fig'); }))
       v.push({ key: 'top', label: 'Верхние перила', opts: [['fig', 'фигурные'], ['rect', 'прямоугольные']], def: 'fig' });
     var caps = (S.p.cap || []).map(capFamily).filter(function (x, i, a) { return a.indexOf(x) === i; });
-    if (caps.length > 1 && !np) v.push({ key: 'cap', label: 'Крышка столба', opts: caps.map(function (x) { return [x, x]; }), def: caps[0] });
+    if (caps.length > 1) v.push({ key: 'cap', label: 'Крышка столба', opts: caps.map(function (x) { return [x, x]; }), def: caps[0] });
     var ck = (S.p.capskirt || []).map(function (it) { return /алюмин/i.test(it[0]) ? 'алюминий' : 'ДПК'; }).filter(function (x, i, a) { return a.indexOf(x) === i; });
-    if (ck.length > 1 && !np) v.push({ key: 'ck', label: 'Крышка и юбка', opts: ck.map(function (x) { return [x, x]; }), def: 'ДПК' });
+    if (ck.length > 1) v.push({ key: 'ck', label: 'Крышка и юбка', opts: ck.map(function (x) { return [x, x]; }), def: 'ДПК' });
     return v;
   }
   function capFamily(it) {
@@ -149,10 +149,11 @@
     if (/3D/i.test(n)) return 'крышка 3D ДПК';
     return 'крышка';
   }
-  /* Установка (Ирина, 22.10.2026): deck — на террасу, как было; concrete — на бетонное основание,
-     столбы ДПК без юбок; none — проёмы между бетонными блоками или стенами, без столбов ДПК:
-     перила и балясины зашивают проём, крепятся к блокам. */
-  function mountMode() { return $('lfcMount').value; }
+  /* Два переключателя (Ирина, 22.10.2026, вместо списка «Установка»):
+     «Юбки на столбы» — галочка (на бетонном основании юбки не нужны);
+     «По краям» — столбы ДПК или бетонные блоки/стены: тогда считаются проёмы между блоками,
+     перила крепятся к блокам, а в широком проёме — промежуточные столбы ДПК по шагу. */
+  function wallEnds() { var e = root.querySelector('input[name="lfcEnds"]:checked'); return !!e && e.value === 'walls'; }
   function opt(key) { var v = variants().find(function (x) { return x.key === key; }); return v ? (cur.opt[key] || v.def) : null; }
 
   /* ---------- Форма ---------- */
@@ -200,17 +201,15 @@
   function calc() {
     var S = series(), R = rule(S);
     var L = num($('lfcL').value), step = num($('lfcStep').value), H = num($('lfcH').value) / 1000, T = ftype();
-    var mode = mountMode(), noPosts = mode === 'none', nOpen = Math.round(num($('lfcN').value));
+    var skirtOn = $('lfcSkirt').checked, noPosts = wallEnds(), nOpen = Math.round(num($('lfcN').value));
     var bad = {};
     if (noPosts) {
       // L — ширина одного проёма в свету, проёмов nOpen
-      if (!(L >= 0.3 && L <= 6)) bad.L = 'От 0,3 до 6 м';
+      if (!(L >= 0.3 && L <= 100)) bad.L = 'От 0,3 до 100 м';
       if (!(nOpen >= 1 && nOpen <= 100)) bad.N = 'От 1 до 100';
-    } else {
-      if (!(L >= 0.5 && L <= 500)) bad.L = 'От 0,5 до 500 м';
-      if (!(step >= 0.5)) bad.step = 'Не меньше 0,5 м';
-      else if (step > R.step + EPS) bad.step = 'Не больше ' + fmt(R.step) + ' м для этой серии';
-    }
+    } else if (!(L >= 0.5 && L <= 500)) bad.L = 'От 0,5 до 500 м';
+    if (!(step >= 0.5)) bad.step = 'Не меньше 0,5 м';
+    else if (step > R.step + EPS) bad.step = 'Не больше ' + fmt(R.step) + ' м для этой серии';
     var size = opt('post') || postSizes()[0];
     var post = pick('post', function (it) { return !has(it, 'small') && (!size || it[3] === size); });
     var postW = (post && post[2] || 3000) / 1000;
@@ -228,7 +227,7 @@
     // проём между блоками: узкий — одна секция во всю ширину без столбов ДПК; шире шага серии —
     // внутри промежуточные столбы ДПК, k секций по ≤ шага (Ирина, 22.10.2026: на 6 м без столба нельзя)
     var k = 1;
-    if (noPosts) { k = Math.max(1, ceil(L / R.step)); spans = nOpen * k; c = (L - (k - 1) * pw) / k; axis = c + pw; }
+    if (noPosts) { k = Math.max(1, ceil(L / step)); spans = nOpen * k; c = (L - (k - 1) * pw) / k; axis = c + pw; }
     var N = noPosts ? nOpen * (k - 1) : spans + 1, big = R.alt && small ? Math.ceil(N / 2) : N, nSmall = N - big;
     // сколько деталей длиной len выходит из заготовки W (м)
     function fit(W, len) { return Math.max(1, Math.floor((W + KERF) / (len + KERF) + EPS)); }
@@ -251,7 +250,7 @@
     var railH = Math.max(0.035, sec(pick('rail'), 1) || 0.045), botY = R.perM ? 0.11 : 0.1, topY = H - 0.06;
     var y0 = botY + railH, y1 = topY - railH - (R.rails.some(function (rl) { return rl[0] === 'bottom'; }) ? 0.035 : 0);
     var segs = T.geo(c, y1 - y0, nb, bw);
-    var r = { S: S, R: R, T: T, L: L, H: H, mode: mode, k: k, nOpen: nOpen, noPosts: noPosts, step: step, spans: spans, axis: axis, c: c, N: N, big: big, small: nSmall, pw: pw,
+    var r = { S: S, R: R, T: T, L: L, H: H, skirtOn: skirtOn, k: k, nOpen: nOpen, noPosts: noPosts, step: step, spans: spans, axis: axis, c: c, N: N, big: big, small: nSmall, pw: pw,
       nb: nb, nsup: nsup, alu: alu, bw: bw, size: size, railH: railH, botY: botY, topY: topY, y0: y0, y1: y1, segs: segs, rows: [] };
 
     function row(key, it, qty, sub, fallback) {
@@ -346,8 +345,8 @@
       var szOk = function (it) { return !size || it[3] === size || !(series().p.cap || []).some(function (x) { return x[3] === size; }); };
       var cap = pick('cap', function (it) { return (!capKind || capFamily(it) === capKind) && szOk(it); });
       row('cap', cap, big, '1 на ' + (R.alt && small ? 'большой ' : '') + 'столб');
-      if (mode !== 'deck') {
-        // на бетон и в проёмах юбки не нужны
+      if (!skirtOn) {
+        // галочка «Юбки на столбы» снята
       } else if (R.alt && small) {
         row('skirt', pick('skirt', function (it) { return has(it, 'big'); }), big, 'рамка на большой столб');
         row('skirtS', pick('skirt', function (it) { return has(it, 'small'); }), nSmall, 'рамка на малый столб');
@@ -359,7 +358,7 @@
     // крепление столбов: кронштейн, закладная или опора серии; к столбу 120×120 без своего — общий из каталога
     var mount = pick('mount', function (it) { return !size || it[3] === size || sec(it) <= pw; });
     if (size === '120х120' && mount && /кронштейн/i.test(mount[0]) && mount[3] !== '120х120') mount = DATA.common.find(function (it) { return /кронштейн/i.test(it[0]); }) || mount;
-    row('mount', mount, N, '1 на столб' + (mount && /кронштейн/i.test(mount[0]) ? (mode !== 'deck' ? ', крепится к бетону анкерами' : ', крепится к основанию террасы, не к доске') : ''));
+    row('mount', mount, N, '1 на столб' + (mount && /кронштейн/i.test(mount[0]) ? (!skirtOn || noPosts ? ', крепится к основанию анкерами' : ', крепится к основанию террасы, не к доске') : ''));
     // чего нет в каталоге — строкой без цены
     Object.keys(R.missing || {}).forEach(function (k) { var m = R.missing[k]; row('miss-' + k, null, k === 'railfix' ? spans * railRows * 2 : spans, m[1], m[0]); });
 
@@ -414,11 +413,10 @@
   function render() {
     root.querySelectorAll('.ltd-field[data-f]').forEach(function (f) { f.classList.remove('is-bad'); var e = f.querySelector('.ltd-err'); if (e) e.textContent = ''; });
     var R = rule(series());
-    var np = mountMode() === 'none';
-    $('lfcStepField').style.display = np ? 'none' : '';
+    var np = wallEnds();
     $('lfcNField').style.display = np ? '' : 'none';
     $('lfcLLabel').textContent = np ? 'Ширина проёма, м' : 'Длина ограждения, пог. м';
-    $('lfcStepHint').textContent = np ? 'Ширина проёма — в свету, между бетонными блоками или стенами. Перила и балясины зашивают проём и крепятся к блокам; если проём шире шага серии, внутри ставятся столбы ДПК. Высота — от основания до верха перил, у этой серии обычно ' + fmt(Math.round(R.h * 1000)) + ' мм.' : 'Шаг — по осям столбов, не больше ' + fmt(R.step) + ' м для этой серии' + (R.stepDef ? ', рекомендуемый ' + fmt(R.stepDef) + ' м' : '') + '. Калькулятор делит длину на равные секции. Высота — от основания до верха перил, у этой серии обычно ' + fmt(Math.round(R.h * 1000)) + ' мм.';
+    $('lfcStepHint').textContent = np ? 'Ширина проёма — в свету, между бетонными блоками или стенами. Перила крепятся к блокам; если проём шире шага, внутри ставятся столбы ДПК. Шаг — не больше ' + fmt(R.step) + ' м для этой серии. Высота — от основания до верха перил, у этой серии обычно ' + fmt(Math.round(R.h * 1000)) + ' мм.' : 'Шаг — по осям столбов, не больше ' + fmt(R.step) + ' м для этой серии' + (R.stepDef ? ', рекомендуемый ' + fmt(R.stepDef) + ' м' : '') + '. Калькулятор делит длину на равные секции. Высота — от основания до верха перил, у этой серии обычно ' + fmt(Math.round(R.h * 1000)) + ' мм.';
     var r = calc(), out = $('lfcOut');
     if (r.bad) {
       Object.keys(r.bad).forEach(function (k) { var f = root.querySelector('.ltd-field[data-f="' + k + '"]'); if (f) { f.classList.add('is-bad'); f.querySelector('.ltd-err').textContent = r.bad[k]; } });
@@ -434,7 +432,7 @@
     $('lfcBigSub').innerHTML = r.noPosts ? (r.k > 1 ? 'Промежуточных столбов ДПК <b>' + (r.k - 1) + '</b> на проём · ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм · ' + fill + ' на секцию' : 'Без столбов ДПК · ' + fill + ' на проём') : 'Столбов <b>' + r.N + '</b>' + (r.small ? ' (' + r.big + ' больших, ' + r.small + ' малых)' : '') + ' · шаг ' + fmt(Math.round(r.axis * 1000)) + ' мм · ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + ' на секцию';
     $('lfcRules').innerHTML = '<b>Как считаем ' + esc(seriesName(S)) + '</b>' + esc(r.R.note || '') +
       (r.noPosts ? ' Установка в проём между бетонными блоками или стенами: перила крепятся к блокам — анкеры и уголки подберёт менеджер.' + (r.k > 1 ? ' Проём шире ' + fmt(r.R.step) + ' м, поэтому внутри ' + (r.k - 1) + ' ' + plural(r.k - 1, 'промежуточный столб', 'промежуточных столба', 'промежуточных столбов') + ' ДПК: ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм, столбы крепятся к основанию, юбки не нужны.' : ' Столбов ДПК, крышек, юбок и креплений столбов в смете нет.') : '') +
-      (r.mode === 'concrete' ? ' Установка на бетонное основание: юбки столбов в смету не входят.' : '') +
+      (!r.skirtOn && r.N ? ' Юбки столбов в смету не входят.' : '') +
       (Math.abs(r.H - r.R.h) >= 0.001 ? ' Высота задана своя — ' + fmt(Math.round(r.H * 1000)) + ' мм вместо ' + fmt(Math.round(r.R.h * 1000)) + ' мм по правилам серии: длины столбов и балясин пересчитаны под неё, проверьте с менеджером.' : '') +
       (r.R.alt && !r.small && !r.noPosts ? ' Выбраны только большие столбы: малые не ставятся, подпорки под нижний подбалясенник режутся из обрезков.' : '') +
       (r.T.id !== 1 ? ' Вид «' + esc(r.T.name) + '»: детали заполнения нарезаются из балясин серии, сколько балясин купить — посчитано с учётом распила.' : '');
@@ -483,7 +481,7 @@
     if (!url || !last || !window.BX || !BX.bitrix_sessid) return;
     var r = last.r, S = r.S, params = [
       r.noPosts ? 'Ограждение: ' + r.nOpen + ' ' + plural(r.nOpen, 'проём', 'проёма', 'проёмов') + ' по ' + fmt(r.L) + ' м между бетонными блоками или стенами, ' + (r.k > 1 ? 'промежуточных столбов ДПК ' + (r.k - 1) + ' на проём' : 'без столбов ДПК') + ', высота ' + fmt(Math.round(r.H * 1000)) + ' мм'
-        : 'Ограждение: ' + fmt(r.L) + ' пог. м, высота ' + fmt(Math.round(r.H * 1000)) + ' мм, шаг столбов ' + fmt(Math.round(r.axis * 1000)) + ' мм' + (r.mode === 'concrete' ? ', на бетонное основание (без юбок)' : ''),
+        : 'Ограждение: ' + fmt(r.L) + ' пог. м, высота ' + fmt(Math.round(r.H * 1000)) + ' мм, шаг столбов ' + fmt(Math.round(r.axis * 1000)) + ' мм' + (r.skirtOn ? '' : ', без юбок'),
       'Вид ' + r.T.id + ': ' + r.T.name.toLowerCase(),
       'Серия: ' + seriesName(S) + ', цвет ' + cur.color + (r.alu ? ', алюминиевые балясины' : ''),
       r.noPosts ? 'Проёмов: ' + r.nOpen + (r.k > 1 ? ', в каждом ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм' : '') + ', ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + (r.k > 1 ? ' на секцию' : ' на проём') : 'Секций: ' + r.spans + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм, столбов ' + r.N + ', ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + ' на секцию'
@@ -509,7 +507,7 @@
   });
   $('lfcList').addEventListener('change', function (ev) { if (ev.target.name === 'lfcSeries') selectSeries(+ev.target.value); });
   $('lfcTypes').addEventListener('change', function (ev) { if (ev.target.name === 'lfcType') { cur.type = +ev.target.value; fillOpts(); render(); } });
-  $('lfcMount').addEventListener('change', function () { fillOpts(); render(); });
+  $('lfcForm').addEventListener('change', function (ev) { if (ev.target.id === 'lfcSkirt' || ev.target.name === 'lfcEnds') render(); });
   $('lfcColor').addEventListener('change', function () { cur.color = this.value; render(); });
   $('lfcOpts').addEventListener('change', function (ev) { var k = ev.target.getAttribute('data-opt'); if (k) { cur.opt[k] = ev.target.value; render(); } });
   $('lfcForm').addEventListener('input', function (ev) { if (ev.target.id === 'lfcH') cur.hSet = true; if (ev.target.type === 'number') render(); });
