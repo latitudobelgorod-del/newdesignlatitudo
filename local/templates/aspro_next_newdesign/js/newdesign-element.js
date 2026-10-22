@@ -824,7 +824,7 @@
 	   Калькулятор по ?board= и &len= сразу выбирает эту доску. */
 	document.addEventListener('click', function (ev) {
 		var a = ev.target.closest && ev.target.closest('.nd-pd__tcalc');
-		if (!a) return;
+		if (!a || a.classList.contains('nd-pd__fcalc')) return; // у калькулятора ограждений длины нет
 		var name = document.querySelector('.item_main_info .info_item [data-nd-name="Длина"]');
 		var len = name && name.closest('.bx_item_detail_size');
 		len = len && len.querySelector('li.active .cnt');

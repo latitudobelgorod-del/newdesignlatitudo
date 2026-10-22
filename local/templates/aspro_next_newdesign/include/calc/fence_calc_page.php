@@ -43,7 +43,7 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
 ?>
 <div class="ltd-calc lfc" id="lfcCalc">
   <div class="ltd-note warn lfc-admin"><b>Страница скрыта от посетителей</b>Калькулятор видят только администраторы, остальным открывается «Страница не найдена» и в меню его нет.</div>
-  <p class="ltd-lead">Укажите длину ограждения в погонных метрах, выберите вид ограждения и серию из каталога: калькулятор расставит столбы, посчитает перила, балясины, крепёж, крышки и соберёт смету по ценам сайта.</p>
+  <p class="ltd-lead">Укажите длину ограждения в погонных метрах и высоту, выберите вид ограждения и серию из каталога: калькулятор расставит столбы, посчитает перила, балясины, крепёж, крышки и соберёт смету по ценам сайта.</p>
 
   <div class="ltd-grid">
     <form class="ltd-form" id="lfcForm" novalidate>
@@ -52,6 +52,9 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
         <div class="ltd-row2">
           <label class="ltd-field" data-f="L"><span>Длина ограждения, пог. м</span><input type="number" id="lfcL" inputmode="decimal" min="0.5" max="500" step="0.1" value="6"><em class="ltd-err"></em></label>
           <label class="ltd-field" data-f="step"><span>Шаг столбов, м</span><input type="number" id="lfcStep" inputmode="decimal" min="0.5" step="0.05" value="1.5"><em class="ltd-err"></em></label>
+        </div>
+        <div class="ltd-row2">
+          <label class="ltd-field" data-f="H"><span>Высота ограждения, мм</span><input type="number" id="lfcH" inputmode="numeric" min="600" max="1500" step="10" value="1100"><em class="ltd-err"></em></label>
         </div>
         <small class="ltd-hint" id="lfcStepHint"></small>
         <div class="ltd-field"><span>Вид ограждения</span>

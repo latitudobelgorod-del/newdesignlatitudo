@@ -26,7 +26,7 @@
   /* Правила сборки по сериям (id раздела каталога). Источники: инструкции POLIVAN GROUP (Сингараджа,
      Денпасар, Нусадуа), инструкция «Террапол», каталог Латитудо (EasyDecking); NEXTWOOD — типовые.
      step     — наибольший шаг столбов по осям, м; stepDef — шаг по умолчанию
-     postPer  — сколько столбов выходит из одной заготовки; h — высота ограждения, м
+     postPer  — сколько столбов выходит из одной заготовки; h — высота ограждения по умолчанию, м (клиент может задать свою)
      rails    — ряды перил на секцию: rail (перила/поручень) и bottom (подбалясенник)
      balPer   — балясин из одной заготовки ДПК; perM — балясин на метр секции (иначе по просвету ≤ 110 мм)
      sup      — подпорки под нижним поручнем на секцию (функция от длины секции), supLen — их длина, м
@@ -101,7 +101,7 @@
   }
 
   /* ---------- Выбор деталей ---------- */
-  var cur = { s: 0, type: 1, color: '', opt: {} }, excluded = {};
+  var cur = { s: 0, type: 1, color: '', opt: {}, hSet: false }, excluded = {};
   function series() { return DATA.S[cur.s]; }
   /** Деталь серии нужного типа: сначала в цвет, потом без цвета, потом любая (цвет уточнит менеджер). */
   function pick(kind, f, brandWide) {
@@ -183,21 +183,24 @@
     cur.s = i; cur.opt = {}; excluded = {};
     var r = rule(series());
     $('lfcStep').value = r.stepDef || r.step;
+    if (!cur.hSet || !(num($('lfcH').value) > 0)) $('lfcH').value = Math.round(r.h * 1000); // свою высоту клиента при смене серии не сбрасываем
     fillBrands(); renderList(); fillColors(); fillOpts(); render();
   }
 
   /* ---------- Расчёт ---------- */
   function calc() {
     var S = series(), R = rule(S);
-    var L = num($('lfcL').value), step = num($('lfcStep').value), T = ftype();
+    var L = num($('lfcL').value), step = num($('lfcStep').value), H = num($('lfcH').value) / 1000, T = ftype();
     var bad = {};
     if (!(L >= 0.5 && L <= 500)) bad.L = 'От 0,5 до 500 м';
     if (!(step >= 0.5)) bad.step = 'Не меньше 0,5 м';
     else if (step > R.step + EPS) bad.step = 'Не больше ' + fmt(R.step) + ' м для этой серии';
-    if (Object.keys(bad).length) return { bad: bad };
-
     var size = opt('post') || postSizes()[0];
     var post = pick('post', function (it) { return !has(it, 'small') && (!size || it[3] === size); });
+    var postW = (post && post[2] || 3000) / 1000;
+    if (!(H >= 0.6 && H <= 1.5)) bad.H = 'От 600 до 1500 мм';
+    else if (H > postW + EPS) bad.H = 'Не больше ' + fmt(postW * 1000) + ' мм — это длина столба серии';
+    if (Object.keys(bad).length) return { bad: bad };
     // Террапол Классик: по инструкции большие и малые через один; можно выбрать «только большие»
     var small = R.alt && opt('posts') !== 'big' ? pick('post', function (it) { return has(it, 'small'); }) : null;
     var pw = sec(post) || 0.1;
@@ -207,6 +210,12 @@
     if (R.alt && small && spans % 2) spans++;            // Террапол: по краям большие, значит секций чётное число
     var axis = L / spans, c = Math.max(0.05, axis - pw);   // просвет секции между столбами
     var N = spans + 1, big = R.alt && small ? Math.ceil(N / 2) : N, nSmall = N - big;
+    // сколько деталей длиной len выходит из заготовки W (м)
+    function fit(W, len) { return Math.max(1, Math.floor((W + KERF) / (len + KERF) + EPS)); }
+    // столбов из заготовки — по высоте; если по правилам серии из заготовки выходит меньше, чем по длине
+    // (Террапол: 2 из 3050 мм), правило остаётся потолком, а выше нормы столбов выходит меньше
+    function postsPer(W, len, len0) { var g = fit(W, len); return fit(W, len0) > R.postPer ? Math.min(g, R.postPer) : g; }
+    var postPer = postsPer(postW, H, R.h);
 
     // алюминиевые балясины — только у вертикальных видов; у EasyDecking Вуд-Икс других в серии нет
     var alu = !!T.vert && opt('bal') === 'alu';
@@ -216,10 +225,10 @@
     var nb = R.perM ? Math.max(1, ceil(c * (alu && R.perMAlu ? R.perMAlu : R.perM) - 0.05)) : Math.max(1, ceil((c - R.gap) / (bw + R.gap)));
     var nsup = R.sup ? R.sup(c) : 0;
     // высота заполнения: от верха нижних перил до низа верхних (у Террапола ещё подбалясенник под перилами)
-    var railH = Math.max(0.035, sec(pick('rail'), 1) || 0.045), botY = R.perM ? 0.11 : 0.1, topY = R.h - 0.06;
+    var railH = Math.max(0.035, sec(pick('rail'), 1) || 0.045), botY = R.perM ? 0.11 : 0.1, topY = H - 0.06;
     var y0 = botY + railH, y1 = topY - railH - (R.rails.some(function (rl) { return rl[0] === 'bottom'; }) ? 0.035 : 0);
     var segs = T.geo(c, y1 - y0, nb, bw);
-    var r = { S: S, R: R, T: T, L: L, step: step, spans: spans, axis: axis, c: c, N: N, big: big, small: nSmall, pw: pw,
+    var r = { S: S, R: R, T: T, L: L, H: H, step: step, spans: spans, axis: axis, c: c, N: N, big: big, small: nSmall, pw: pw,
       nb: nb, nsup: nsup, alu: alu, bw: bw, size: size, railH: railH, botY: botY, topY: topY, y0: y0, y1: y1, segs: segs, rows: [] };
 
     function row(key, it, qty, sub, fallback) {
@@ -230,8 +239,11 @@
     function cut(len, piece, per) { return per || Math.max(1, Math.floor((len / 1000 + KERF) / (piece + KERF))); }
 
     // столбы
-    row('post', post, ceil(big / R.postPer), 'Нужно ' + fmt(big) + ' ' + (R.alt && small ? plural(big, 'большой столб', 'больших столба', 'больших столбов') : plural(big, 'столб', 'столба', 'столбов')) + ' по ~' + fmt(Math.round(R.h * 10) / 10) + ' м — из одного столба' + mm(post) + ' выходит ' + R.postPer);
-    if (small && nSmall) row('postS', small, ceil(nSmall / R.postPer), 'Нужно ' + fmt(nSmall) + ' ' + plural(nSmall, 'малый столб', 'малых столба', 'малых столбов') + ' — из одного столба' + mm(small) + ' выходит ' + R.postPer + ', из остатков — подпорки под подбалясенник');
+    row('post', post, ceil(big / postPer), 'Нужно ' + fmt(big) + ' ' + (R.alt && small ? plural(big, 'большой столб', 'больших столба', 'больших столбов') : plural(big, 'столб', 'столба', 'столбов')) + ' по ' + fmt(Math.round(H * 1000)) + ' мм — из одного столба' + mm(post) + ' выходит ' + postPer);
+    if (small && nSmall) {
+      var smallPer = postsPer((small[2] || 3000) / 1000, topY - railH, R.h - 0.06 - railH);
+      row('postS', small, ceil(nSmall / smallPer), 'Нужно ' + fmt(nSmall) + ' ' + plural(nSmall, 'малый столб', 'малых столба', 'малых столбов') + ' — из одного столба' + mm(small) + ' выходит ' + smallPer + ', из остатков — подпорки под подбалясенник');
+    }
 
     // перила, поручни, подбалясенники
     var top = opt('top');
@@ -270,9 +282,10 @@
         else row('balfix', null, qf2, 'в каталоге нет — подберёт менеджер', 'Крепление деталей заполнения');
       }
     } else if (bal) {
-      if (alu) row('bal', bal, nbAll, 'Нужно ' + fmt(nbAll) + ' ' + plural(nbAll, 'балясина', 'балясины', 'балясин') + ' (' + nb + ' на секцию)' + (supAll ? ', подпорки — из обрезков' : ''));
+      if (alu) row('bal', bal, nbAll, 'Нужно ' + fmt(nbAll) + ' ' + plural(nbAll, 'балясина', 'балясины', 'балясин') + ' (' + nb + ' на секцию)' + (supAll ? ', подпорки — из обрезков' : '') + (Math.abs(H - R.h) >= 0.001 ? ' · балясины готовой длины' + mm(bal) + ', подойдут ли к высоте ' + fmt(Math.round(H * 1000)) + ' мм — уточнит менеджер' : ''));
       else {
-        var per = R.balPer, supWhips = R.supLen && supAll && R.perM ? ceil(supAll / Math.floor(((bal[2] || 2900) / 1000) / (R.supLen + KERF))) : 0;
+        // балясин из заготовки — по высоте заполнения (при высоте серии по умолчанию — balPer из правил)
+        var per = Math.abs(H - R.h) < 0.001 ? R.balPer : fit((bal[2] || 2900) / 1000, y1 - y0), supWhips = R.supLen && supAll && R.perM ? ceil(supAll / Math.floor(((bal[2] || 2900) / 1000) / (R.supLen + KERF))) : 0;
         row('bal', bal, ceil(nbAll / per) + supWhips, 'Нужно ' + fmt(nbAll) + ' ' + plural(nbAll, 'балясина', 'балясины', 'балясин') + ' (' + nb + ' на секцию) — из одной балясины' + mm(bal) + ' выходит ' + per + (supWhips ? '; ещё ' + fmt(supAll) + ' ' + plural(supAll, 'подпорка', 'подпорки', 'подпорок') + ' по ' + fmt(R.supLen * 1000) + ' мм' : ''));
       }
     }
@@ -318,7 +331,7 @@
 
   /* ---------- Схема секций ---------- */
   function draw(r) {
-    var VW = 640, VH = 300, show = Math.min(r.spans, 4), H = r.R.h, padL = 30, padR = 20, padT = 46, padB = 52;
+    var VW = 640, VH = 300, show = Math.min(r.spans, 4), H = r.H, padL = 30, padR = 20, padT = 46, padB = 52;
     var widthM = show * r.axis + r.pw, sc = Math.min((VW - padL - padR) / widthM, (VH - padT - padB) / H);
     var x0 = padL + (VW - padL - padR - widthM * sc) / 2, yB = VH - padB, X = function (m) { return x0 + m * sc; }, Y = function (m) { return yB - m * sc; };
     var o = '<rect x="0" y="0" width="' + VW + '" height="' + VH + '" fill="var(--ltd-panel)"/>';
@@ -361,7 +374,7 @@
   function render() {
     root.querySelectorAll('.ltd-field[data-f]').forEach(function (f) { f.classList.remove('is-bad'); var e = f.querySelector('.ltd-err'); if (e) e.textContent = ''; });
     var R = rule(series());
-    $('lfcStepHint').textContent = 'По осям столбов, не больше ' + fmt(R.step) + ' м для этой серии' + (R.stepDef ? ', рекомендуемый ' + fmt(R.stepDef) + ' м' : '') + '. Калькулятор делит длину на равные секции.';
+    $('lfcStepHint').textContent = 'Шаг — по осям столбов, не больше ' + fmt(R.step) + ' м для этой серии' + (R.stepDef ? ', рекомендуемый ' + fmt(R.stepDef) + ' м' : '') + '. Калькулятор делит длину на равные секции. Высота — от основания до верха перил, у этой серии обычно ' + fmt(Math.round(R.h * 1000)) + ' мм.';
     var r = calc(), out = $('lfcOut');
     if (r.bad) {
       Object.keys(r.bad).forEach(function (k) { var f = root.querySelector('.ltd-field[data-f="' + k + '"]'); if (f) { f.classList.add('is-bad'); f.querySelector('.ltd-err').textContent = r.bad[k]; } });
@@ -374,6 +387,7 @@
     $('lfcBig').innerHTML = fmt(r.spans) + '<small>' + plural(r.spans, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм</small>';
     $('lfcBigSub').innerHTML = 'Столбов <b>' + r.N + '</b>' + (r.small ? ' (' + r.big + ' больших, ' + r.small + ' малых)' : '') + ' · шаг ' + fmt(Math.round(r.axis * 1000)) + ' мм · ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + ' на секцию';
     $('lfcRules').innerHTML = '<b>Как считаем ' + esc(seriesName(S)) + '</b>' + esc(r.R.note || '') +
+      (Math.abs(r.H - r.R.h) >= 0.001 ? ' Высота задана своя — ' + fmt(Math.round(r.H * 1000)) + ' мм вместо ' + fmt(Math.round(r.R.h * 1000)) + ' мм по правилам серии: длины столбов и балясин пересчитаны под неё, проверьте с менеджером.' : '') +
       (r.R.alt && !r.small ? ' Выбраны только большие столбы: малые не ставятся, подпорки под нижний подбалясенник режутся из обрезков.' : '') +
       (r.T.id !== 1 ? ' Вид «' + esc(r.T.name) + '»: детали заполнения нарезаются из балясин серии, сколько балясин купить — посчитано с учётом распила.' : '');
     draw(r);
@@ -420,7 +434,7 @@
     var url = window.LFC_LEAD_URL;
     if (!url || !last || !window.BX || !BX.bitrix_sessid) return;
     var r = last.r, S = r.S, params = [
-      'Ограждение: ' + fmt(r.L) + ' пог. м, шаг столбов ' + fmt(Math.round(r.axis * 1000)) + ' мм',
+      'Ограждение: ' + fmt(r.L) + ' пог. м, высота ' + fmt(Math.round(r.H * 1000)) + ' мм, шаг столбов ' + fmt(Math.round(r.axis * 1000)) + ' мм',
       'Вид ' + r.T.id + ': ' + r.T.name.toLowerCase(),
       'Серия: ' + seriesName(S) + ', цвет ' + cur.color + (r.alu ? ', алюминиевые балясины' : ''),
       'Секций: ' + r.spans + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм, столбов ' + r.N + ', ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + ' на секцию'
@@ -448,7 +462,7 @@
   $('lfcTypes').addEventListener('change', function (ev) { if (ev.target.name === 'lfcType') { cur.type = +ev.target.value; fillOpts(); render(); } });
   $('lfcColor').addEventListener('change', function () { cur.color = this.value; render(); });
   $('lfcOpts').addEventListener('change', function (ev) { var k = ev.target.getAttribute('data-opt'); if (k) { cur.opt[k] = ev.target.value; render(); } });
-  $('lfcForm').addEventListener('input', function (ev) { if (ev.target.type === 'number') render(); });
+  $('lfcForm').addEventListener('input', function (ev) { if (ev.target.id === 'lfcH') cur.hSet = true; if (ev.target.type === 'number') render(); });
   $('lfcForm').addEventListener('submit', function (ev) { ev.preventDefault(); });
   $('lfcTable').addEventListener('change', function (ev) { var k = ev.target.getAttribute && ev.target.getAttribute('data-key'); if (k) { excluded[k] = !ev.target.checked; render(); } });
 

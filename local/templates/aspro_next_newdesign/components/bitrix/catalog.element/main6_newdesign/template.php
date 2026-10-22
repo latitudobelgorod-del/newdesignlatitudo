@@ -1644,6 +1644,39 @@ if (CModule::IncludeModule('iblock'))
 		}
 	}
 }
+/* Кнопка «Калькулятор ограждений» — там же, у товаров раздела «Ограждения из ДПК»
+   и его подразделов (Ирина, 22 октября 2026). ?series=<код самого глубокого раздела товара>:
+   калькулятор сразу выбирает эту серию, если код — одна из его серий, иначе открывается с первой.
+   Пока калькулятор скрыт от посетителей (include/calc/fence_calc_page.php), кнопка печатается
+   с hidden, а показывает её администраторам component_epilog.php — шаблон кешируется на всех.
+   Когда калькулятор откроют — убрать hidden и показ в component_epilog.php. */
+$ndFenceCalcUrl = '';
+if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
+{
+	$ndFenceRoot = CIBlockSection::GetList(
+		array(),
+		array('IBLOCK_ID' => $arResult['IBLOCK_ID'], '=CODE' => 'ograzhdeniya-iz-dpk', 'DEPTH_LEVEL' => 1),
+		false,
+		array('ID', 'LEFT_MARGIN', 'RIGHT_MARGIN')
+	)->Fetch();
+	if ($ndFenceRoot)
+	{
+		$ndFenceSeries = null;
+		$rsGroups = CIBlockElement::GetElementGroups($arResult['ID'], true, array('ID', 'CODE', 'LEFT_MARGIN', 'DEPTH_LEVEL'));
+		while ($arGroup = $rsGroups->Fetch())
+		{
+			if ($arGroup['LEFT_MARGIN'] >= $ndFenceRoot['LEFT_MARGIN'] && $arGroup['LEFT_MARGIN'] <= $ndFenceRoot['RIGHT_MARGIN']
+				&& (!$ndFenceSeries || $arGroup['DEPTH_LEVEL'] > $ndFenceSeries['DEPTH_LEVEL']))
+			{
+				$ndFenceSeries = $arGroup;
+			}
+		}
+		if ($ndFenceSeries)
+		{
+			$ndFenceCalcUrl = '/info/kalkulyator-ograzhdeniy/'.($ndFenceSeries['DEPTH_LEVEL'] > 1 ? '?series='.rawurlencode($ndFenceSeries['CODE']) : '');
+		}
+	}
+}
 ?>
 	<div class="">
 					<span class="btn btn-default btn-lg  type_block transition_bg one_click" data-item="<?=$arResult["ID"]?>" data-event="jqm" data-iblockID="<?=$arParams["IBLOCK_ID"]?>" data-param-form_id="MAINFORM" data-name="question">
@@ -1651,6 +1684,9 @@ if (CModule::IncludeModule('iblock'))
 					</span>
 					<?if($ndTerraceCalcUrl):?>
 					<a class="nd-pd__tcalc" href="<?=htmlspecialcharsbx($ndTerraceCalcUrl)?>">Калькулятор террасы</a>
+					<?endif;?>
+					<?if($ndFenceCalcUrl):?>
+					<a class="nd-pd__tcalc nd-pd__fcalc" href="<?=htmlspecialcharsbx($ndFenceCalcUrl)?>" hidden>Калькулятор ограждений</a>
 					<?endif;?>
 					</div>
 	<?// Метка кнопки «Сравнить» — кнопку ставит ndCompareTokens на отдаче страницы,

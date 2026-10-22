@@ -941,6 +941,11 @@
     color: #101014;
     text-decoration: none;
 }
+/* «Калькулятор ограждений», пока калькулятор скрыт от посетителей: hidden снимает
+   component_epilog.php только администраторам (display:inline-flex выше иначе перебил бы hidden). */
+.catalog_detail.element_newdesign .right_info .info_item .nd-pd__fcalc[hidden] {
+    display: none;
+}
 /* В нижней панели покупки на телефоне кнопке места нет — там только ссылка. */
 #nd-pd-buybar .nd-pd__tcalc {
     display: none;
