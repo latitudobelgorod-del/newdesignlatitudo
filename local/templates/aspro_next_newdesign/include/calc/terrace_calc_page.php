@@ -163,7 +163,7 @@ if (!defined('ND_TERRACE_CALC_ASSETS')) {
         <?/* Открывает общую форму MAINFORM, как «Оставить заявку» в шапке; заголовок окна и NAMEFORM —
              из data-nd-form-title (js/newdesign-header.js). По этой подписи сервер узнаёт заявку из
              калькулятора и прикладывает PDF расчёта к письму и лиду (latitudo_terrace_calc_crm.php). */?>
-        <button type="button" class="ltd-btn ltd-btn2 animate-load" id="ltdPdfOpen" data-event="jqm" data-param-form_id="MAINFORM" data-name="question" data-nd-form-title="Рассчитать с менеджером">Рассчитать с менеджером</button>
+        <button type="button" class="ltd-btn animate-load" id="ltdPdfOpen" data-event="jqm" data-param-form_id="MAINFORM" data-name="question" data-nd-form-title="Рассчитать с менеджером">Рассчитать с менеджером</button>
         <span class="ltd-hint">Отправим ваш расчёт менеджеру: он проверит смету, пришлёт PDF с планом и ответит на вопросы.</span>
       </div>
     </section>

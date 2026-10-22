@@ -112,7 +112,7 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
       <div class="ltd-pdf">
         <?/* Общая форма MAINFORM, как у калькулятора террасы: по подписи «Рассчитать с менеджером» сервер
              прикладывает PDF расчёта к письму и лиду (latitudo_terrace_calc_crm.php). */?>
-        <button type="button" class="ltd-btn ltd-btn2 animate-load" id="lfcPdfOpen" data-event="jqm" data-param-form_id="MAINFORM" data-name="question" data-nd-form-title="Рассчитать с менеджером">Рассчитать с менеджером</button>
+        <button type="button" class="ltd-btn animate-load" id="lfcPdfOpen" data-event="jqm" data-param-form_id="MAINFORM" data-name="question" data-nd-form-title="Рассчитать с менеджером">Рассчитать с менеджером</button>
         <span class="ltd-hint">Отправим ваш расчёт менеджеру: он проверит смету, пришлёт PDF со схемой и ответит на вопросы.</span>
       </div>
     </section>
