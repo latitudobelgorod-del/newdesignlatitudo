@@ -41,11 +41,17 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
     <form class="ltd-form" id="lfcForm" novalidate>
       <section class="ltd-step">
         <div class="ltd-step-h"><b>1</b>Ограждение</div>
+        <label class="ltd-field"><span>Установка</span><select class="iks-ignore" id="lfcMount">
+          <option value="deck">На террасу — столбы ДПК с юбками</option>
+          <option value="concrete">На бетонное основание — столбы ДПК без юбок</option>
+          <option value="none">В проём между бетонными блоками или стенами — без столбов ДПК</option>
+        </select></label>
         <div class="ltd-row2">
-          <label class="ltd-field" data-f="L"><span>Длина ограждения, пог. м</span><input type="number" id="lfcL" inputmode="decimal" min="0.5" max="500" step="0.1" value="6"><em class="ltd-err"></em></label>
-          <label class="ltd-field" data-f="step"><span>Шаг столбов, м</span><input type="number" id="lfcStep" inputmode="decimal" min="0.5" step="0.05" value="1.5"><em class="ltd-err"></em></label>
+          <label class="ltd-field" data-f="L"><span id="lfcLLabel">Длина ограждения, пог. м</span><input type="number" id="lfcL" inputmode="decimal" min="0.5" max="500" step="0.1" value="6"><em class="ltd-err"></em></label>
+          <label class="ltd-field" data-f="step" id="lfcStepField"><span>Шаг столбов, м</span><input type="number" id="lfcStep" inputmode="decimal" min="0.5" step="0.05" value="1.5"><em class="ltd-err"></em></label>
         </div>
         <div class="ltd-row2">
+          <label class="ltd-field" data-f="N" id="lfcNField" style="display:none"><span>Количество проёмов</span><input type="number" id="lfcN" inputmode="numeric" min="1" max="100" step="1" value="1"><em class="ltd-err"></em></label>
           <label class="ltd-field" data-f="H"><span>Высота ограждения, мм</span><input type="number" id="lfcH" inputmode="numeric" min="600" max="1500" step="10" value="1100"><em class="ltd-err"></em></label>
         </div>
         <small class="ltd-hint" id="lfcStepHint"></small>
