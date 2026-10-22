@@ -62,6 +62,20 @@ if ($arRegion) {
 	}
 }
 
+// Все товары блока сняты с публикации («(OLD)») — блок не печатаем: catalog.section
+// без товаров выводит заглушку «Раздел сейчас наполняется» посреди статьи
+// (Ирина, 22.10.2026, /materials/idealnaya-terrasnaya-doska-dlya-restoranov-i-kafe/).
+$ndActiveIds = [];
+if (!empty($block['element_ids']) && CModule::IncludeModule('iblock')) {
+	$rsNdActive = CIBlockElement::GetList([], ['IBLOCK_ID' => $block['iblock_id'], 'ID' => $block['element_ids'], 'ACTIVE' => 'Y'], false, false, ['ID']);
+	while ($arNdActive = $rsNdActive->Fetch()) {
+		$ndActiveIds[] = $arNdActive['ID'];
+	}
+}
+if (!$ndActiveIds) {
+	return;
+}
+
 global $sprintSearchFilter;
 $sprintSearchFilter = [
 	'=ID' => $block['element_ids'],
