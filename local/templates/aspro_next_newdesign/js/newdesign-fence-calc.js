@@ -20,6 +20,7 @@
   // деталь: [название, цена, длина мм, сечение «100х100», цвет, метки, адрес, картинка]
   function link(it) { return '<a href="' + SITE + it[6] + '" target="_blank" rel="noopener">' + esc(it[0]) + '</a>'; }
   function sec(it, i) { var m = String(it && it[3] || '').split('х'); return (+m[i || 0] || 0) / 1000; }
+  function mm(it) { return it && it[2] ? ' ' + fmt(it[2]) + ' мм' : ''; }
   function has(it, tag) { return (' ' + it[5] + ' ').indexOf(' ' + tag + ' ') >= 0; }
 
   /* Правила сборки по сериям (id раздела каталога). Источники: инструкции POLIVAN GROUP (Сингараджа,
@@ -46,7 +47,7 @@
     358: { step: 1.56, postPer: 3, h: 0.964, balPer: 4, perM: 9 / 1.448, sup: function (c) { return Math.max(1, Math.round(c / 1.448 * 3)); }, supLen: 0.117,
       note: 'По инструкции POLIVAN: шаг столбов по осям — не больше 1560 мм, из столба 2900 мм выходит 3 столба по 964 мм, из поручня — 2 поручня по 1448 мм. На секцию — 9 балясин по 720 мм (из одной балясины — 4) и 3 подпорки, 21 крепление балясин.' },
     357: { step: 1.59, postPer: 3, h: 0.964, balPer: 4, perM: 9 / 1.448, perMAlu: 10 / 1.448, sup: function (c) { return Math.max(1, Math.round(c / 1.448 * 3)); }, supLen: 0.108,
-      note: 'По инструкции POLIVAN: шаг столбов по осям — не больше 1590 мм, столб 125×125, из заготовки 2900 мм — 3 столба по 964 мм. На секцию 1448 мм — 9 балясин ДПК (21 крепление) или 10 алюминиевых (26 креплений) и 3 подпорки под нижним поручнем.' },
+      note: 'По инструкции POLIVAN: шаг столбов по осям — не больше 1590 мм, столб 125×125, из одного столба 2900 мм выходит 3 по 964 мм. На секцию 1448 мм — 9 балясин ДПК (21 крепление) или 10 алюминиевых (26 креплений) и 3 подпорки под нижним поручнем.' },
     224: { step: 1.2, alt: true, rails: [['rail', 1], ['bottom', 2]], balFix: 0, sup: function (c) { return c > 0.8 + EPS ? 2 : 1; }, h: 1,
       note: 'По инструкции «Террапол»: шаг столбов — не больше 1200 мм, по краям и на углах большие столбы, между ними — малый. Сверху перила, под ними и внизу — подбалясенники; опорные элементы под нижним подбалясенником режутся из малого столба (1 на секцию до 800 мм, 2 — длиннее). Столбы надеваются на металлический армирующий профиль.',
       missing: { balfix: ['Крепление балясин 40×20×24 и уголки для перил', 'входят в комплект «Террапол», количество уточнит менеджер'] } },
@@ -226,8 +227,8 @@
     function cut(len, piece, per) { return per || Math.max(1, Math.floor((len / 1000 + KERF) / (piece + KERF))); }
 
     // столбы
-    row('post', post, ceil(big / R.postPer), fmt(big) + ' ' + plural(big, 'столб', 'столба', 'столбов') + (R.alt && small ? ' больших' : '') + ', из заготовки — ' + R.postPer + ' ' + plural(R.postPer, 'столб', 'столба', 'столбов'));
-    if (small && nSmall) row('postS', small, ceil(nSmall / R.postPer), fmt(nSmall) + ' малых, из заготовки — ' + R.postPer + '; из остатков — опорные элементы под подбалясенник');
+    row('post', post, ceil(big / R.postPer), 'Нужно ' + fmt(big) + ' ' + plural(big, 'столб', 'столба', 'столбов') + (R.alt && small ? ' больших' : '') + ' по ~' + fmt(Math.round(R.h * 10) / 10) + ' м — из одного столба' + mm(post) + ' выходит ' + R.postPer);
+    if (small && nSmall) row('postS', small, ceil(nSmall / R.postPer), 'Нужно ' + fmt(nSmall) + ' ' + plural(nSmall, 'малый столб', 'малых столба', 'малых столбов') + ' — из одного столба' + mm(small) + ' выходит ' + R.postPer + ', из остатков — подпорки под подбалясенник');
 
     // перила, поручни, подбалясенники
     var top = opt('top');
@@ -238,27 +239,27 @@
       var it = pick(kind, f), k = it && it[2] ? cut(it[2], c) : 1;
       var pcs = rows * ceil(spans / k);
       var what = kind === 'bottom' ? 'подбалясенник' : rl[2] === 'bottom' ? 'нижние перила' : rl[2] === 'top' ? 'верхние перила' : rows === 2 ? 'верх и низ' : 'верх';
-      row('rail' + i, it, pcs, what + ': ' + rows * spans + ' ' + plural(rows * spans, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(c * 1000)) + ' мм, из заготовки — ' + k);
+      row('rail' + i, it, pcs, 'Нужно ' + rows * spans + ' ' + plural(rows * spans, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(c * 1000)) + ' мм (' + what + ') — из ' + (kind === 'bottom' ? 'одного подбалясенника' : 'одной перилины') + mm(it) + ' выходит ' + k);
     });
     // двойные перила: ещё один ряд прямоугольных перил посередине
     if (T.mid) {
       var mr = pick('rail', function (it) { return !has(it, 'fig'); }) || pick('rail'), mk = mr && mr[2] ? cut(mr[2], c) : 1;
-      row('railMid', mr, ceil(spans / mk), 'средние перила: ' + spans + ' ' + plural(spans, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(c * 1000)) + ' мм, из заготовки — ' + mk);
+      row('railMid', mr, ceil(spans / mk), 'Нужно ' + spans + ' ' + plural(spans, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(c * 1000)) + ' мм (средние перила) — из одной перилины' + mm(mr) + ' выходит ' + mk);
     }
 
     // балясины и подпорки
     var nbAll = nb * spans, supAll = nsup * spans;
     if (T.id !== 1) {
       // другие виды: детали заполнения режем из балясин серии, раскрой — по длинам деталей
-      var nSeg = segs.length, segAll = nSeg * spans, what2 = nSeg + ' ' + plural(nSeg, 'деталь', 'детали', 'деталей') + ' на секцию';
-      if (bal && alu) row('bal', bal, segAll, what2 + ', ' + fmt(segAll) + ' шт. всего');
+      var nSeg = segs.length, segAll = nSeg * spans, what2 = 'Нужно ' + fmt(segAll) + ' ' + plural(segAll, 'деталь', 'детали', 'деталей') + ' (' + nSeg + ' на секцию)';
+      if (bal && alu) row('bal', bal, segAll, what2);
       else if (bal) {
         var W = (bal[2] || 2900) / 1000, lens = [];
         for (var s = 0; s < spans; s++) segs.forEach(function (g) { lens.push(segLen(g)); });
         var supW = R.supLen && supAll && R.perM;
         if (supW) for (var t = 0; t < supAll; t++) lens.push(R.supLen);
-        row('bal', bal, whips(lens, W), what2 + ', ' + fmt(segAll) + ' шт. всего, раскрой из заготовок ' + fmt(W * 1000) + ' мм' + (supW ? '; подпорки ' + fmt(supAll) + ' шт. по ' + fmt(R.supLen * 1000) + ' мм' : ''));
-      } else row('bal', null, segAll, what2 + ' — в серии только алюминиевые балясины 750 мм, деталь для этого вида подберёт менеджер', 'Детали заполнения «' + T.name + '»');
+        row('bal', bal, whips(lens, W), 'Нужно ' + fmt(segAll) + ' ' + plural(segAll, 'деталь', 'детали', 'деталей') + ' (' + nSeg + ' на секцию)' + (supW ? ' и ' + fmt(supAll) + ' ' + plural(supAll, 'подпорка', 'подпорки', 'подпорок') : '') + ' — режутся из балясин ' + fmt(W * 1000) + ' мм');
+      } else row('bal', null, segAll, what2 + ' — в этой серии только алюминиевые балясины 750 мм, для такого вида деталь подберёт менеджер', 'Детали заполнения «' + T.name + '»');
       if (R.balFix) {
         var bf2 = pick('balfix', function (it) { return (alu ? has(it, 'alu') : !has(it, 'alu')) && !has(it, 'turn'); }, true);
         var qf2 = segAll * R.balFix + (R.perM ? supAll * (alu ? 2 : 1) : 0);
@@ -266,10 +267,10 @@
         else row('balfix', null, qf2, 'в каталоге нет — подберёт менеджер', 'Крепление деталей заполнения');
       }
     } else if (bal) {
-      if (alu) row('bal', bal, nbAll, nb + ' на секцию' + (supAll ? ', подпорки — из обрезков' : ''));
+      if (alu) row('bal', bal, nbAll, 'Нужно ' + fmt(nbAll) + ' ' + plural(nbAll, 'балясина', 'балясины', 'балясин') + ' (' + nb + ' на секцию)' + (supAll ? ', подпорки — из обрезков' : ''));
       else {
         var per = R.balPer, supWhips = R.supLen && supAll && R.perM ? ceil(supAll / Math.floor(((bal[2] || 2900) / 1000) / (R.supLen + KERF))) : 0;
-        row('bal', bal, ceil(nbAll / per) + supWhips, nb + ' на секцию, ' + fmt(nbAll) + ' шт. всего, из заготовки — ' + per + (supWhips ? '; подпорки ' + fmt(supAll) + ' шт. по ' + fmt(R.supLen * 1000) + ' мм' : ''));
+        row('bal', bal, ceil(nbAll / per) + supWhips, 'Нужно ' + fmt(nbAll) + ' ' + plural(nbAll, 'балясина', 'балясины', 'балясин') + ' (' + nb + ' на секцию) — из одной балясины' + mm(bal) + ' выходит ' + per + (supWhips ? '; ещё ' + fmt(supAll) + ' ' + plural(supAll, 'подпорка', 'подпорки', 'подпорок') + ' по ' + fmt(R.supLen * 1000) + ' мм' : ''));
       }
     }
     // крепёж балясин: по 2 на балясину, у POLIVAN ещё на подпорки (у алюминиевых — по 2)
@@ -370,7 +371,7 @@
     $('lfcBig').innerHTML = fmt(r.spans) + '<small>' + plural(r.spans, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм</small>';
     $('lfcBigSub').innerHTML = 'Столбов <b>' + r.N + '</b>' + (r.small ? ' (' + r.big + ' больших, ' + r.small + ' малых)' : '') + ' · шаг ' + fmt(Math.round(r.axis * 1000)) + ' мм · ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + ' на секцию';
     $('lfcRules').innerHTML = '<b>Как считаем ' + esc(seriesName(S)) + '</b>' + esc(r.R.note || '') +
-      (r.T.id !== 1 ? ' Вид «' + esc(r.T.name) + '»: детали заполнения режутся из балясин серии, количество заготовок — по раскрою.' : '');
+      (r.T.id !== 1 ? ' Вид «' + esc(r.T.name) + '»: детали заполнения нарезаются из балясин серии, сколько балясин купить — посчитано с учётом распила.' : '');
     draw(r);
     var total = 0, priced = 0;
     $('lfcTable').innerHTML = r.rows.map(function (x) {
