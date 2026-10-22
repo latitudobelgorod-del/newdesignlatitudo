@@ -779,7 +779,7 @@ var LtdCore = (function () {
     $('ltdTable').innerHTML = rows.map(function (x) {
       x.off = !!excluded[x.key];
       if (x.sum != null && !x.off) { total += x.sum; priced++; }
-      return '<tr' + (x.off ? ' class="is-off"' : '') + '><th scope="row"><div class="ltd-rowname"><input type="checkbox" class="ltd-on" data-key="' + x.key + '"' + (x.off ? '' : ' checked') + ' aria-label="Включить в смету"><div>' + x.name + '<div class="ltd-hint">' + x.sub + '</div></div></div></th><td class="q">' + fmt(x.qty) + ' ' + x.unit + '</td><td class="n">' + (x.price != null ? rub(x.price) : '—') + '</td><td class="n">' + (x.sum != null ? rub(x.sum) : '—') + '</td></tr>';
+      return '<tr' + (x.off ? ' class="is-off"' : '') + '><th scope="row"><div class="ltd-rowname"><input type="checkbox" class="ltd-on" data-key="' + x.key + '"' + (x.off ? '' : ' checked') + ' aria-label="Включить в смету"><div>' + x.name + (x.ba ? ' <span class="ltd-art">арт. ' + esc(x.ba) + '</span>' : '') + '<div class="ltd-hint">' + x.sub + '</div></div></div></th><td class="q">' + fmt(x.qty) + ' ' + x.unit + '</td><td class="n">' + (x.price != null ? rub(x.price) : '—') + '</td><td class="n">' + (x.sum != null ? rub(x.sum) : '—') + '</td></tr>';
     }).join('');
     $('ltdFoot').innerHTML = priced ? '<tr><th scope="row" colspan="3">Итого по позициям с ценой</th><td class="n">' + rub(total) + '</td></tr>' : '';
     $('ltdSumBox').hidden = !priced; $('ltdSum').textContent = rub(total);
