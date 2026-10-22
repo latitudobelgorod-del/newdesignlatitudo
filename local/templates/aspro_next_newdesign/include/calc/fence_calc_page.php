@@ -101,15 +101,19 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
       <div class="ltd-note info" id="lfcRules"></div>
       <p class="ltd-disclaimer">Расчёт ориентировочный, уточните у менеджера. Цены взяты из каталога сайта. Метизы (саморезы, анкеры) в смету не входят.</p>
 
+      <div class="ltd-pdf lfc-cart">
+        <button type="button" class="ltd-btn" id="lfcCart">Добавить всё в корзину</button>
+        <span class="ltd-hint" id="lfcCartMsg" aria-live="polite">Положим в корзину все отмеченные позиции сметы с ценой в нужном количестве — заказ можно оформить сразу.</span>
+      </div>
       <div class="ltd-pdf">
         <?/* Общая форма MAINFORM, как у калькулятора террасы: по подписи «Рассчитать с менеджером» сервер
              прикладывает PDF расчёта к письму и лиду (latitudo_terrace_calc_crm.php). */?>
-        <button type="button" class="ltd-btn animate-load" id="lfcPdfOpen" data-event="jqm" data-param-form_id="MAINFORM" data-name="question" data-nd-form-title="Рассчитать с менеджером">Рассчитать с менеджером</button>
+        <button type="button" class="ltd-btn lfc-btn2 animate-load" id="lfcPdfOpen" data-event="jqm" data-param-form_id="MAINFORM" data-name="question" data-nd-form-title="Рассчитать с менеджером">Рассчитать с менеджером</button>
         <span class="ltd-hint">Отправим ваш расчёт менеджеру: он проверит смету, пришлёт PDF со схемой и ответит на вопросы.</span>
       </div>
     </section>
   </div>
-<script>window.LFC_LEAD_URL = '/local/ajax/nd_terrace_calc_lead.php'; window.LFC_IMG = '<?=$ndCalcBase?>/images/fence-calc/'; window.LFC_SECTIONS = <?=json_encode($ndFenceSections, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG)?>;</script>
+<script>window.LFC_LEAD_URL = '/local/ajax/nd_terrace_calc_lead.php'; window.LFC_BASKET_URL = '/local/ajax/nd_fence_calc_basket.php'; window.LFC_IMG = '<?=$ndCalcBase?>/images/fence-calc/'; window.LFC_SECTIONS = <?=json_encode($ndFenceSections, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG)?>;</script>
 <script src="<?=$ndCalcBase?>/js/newdesign-fence-calc-data.js?<?=filemtime($_SERVER['DOCUMENT_ROOT'].$ndCalcBase.'/js/newdesign-fence-calc-data.js')?>"></script>
 <script src="<?=$ndCalcBase?>/js/newdesign-fence-calc.js?<?=filemtime($_SERVER['DOCUMENT_ROOT'].$ndCalcBase.'/js/newdesign-fence-calc.js')?>"></script>
 </div>

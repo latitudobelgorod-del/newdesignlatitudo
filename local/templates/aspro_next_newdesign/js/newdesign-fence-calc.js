@@ -17,7 +17,7 @@
   function plural(n, a, b, c) { n = Math.abs(n) % 100; var n1 = n % 10; if (n > 10 && n < 20) return c; if (n1 > 1 && n1 < 5) return b; if (n1 === 1) return a; return c; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function ce(s) { return String(s || '').toLowerCase().replace(/ё/g, 'е'); }
-  // деталь: [название, цена, длина мм, сечение «100х100», цвет, метки, адрес, картинка]
+  // деталь: [название, цена, длина мм, сечение «100х100», цвет, метки, адрес, картинка, ID товара/предложения]
   function link(it) { return '<a href="' + SITE + it[6] + '" target="_blank" rel="noopener">' + esc(it[0]) + '</a>'; }
   function sec(it, i) { var m = String(it && it[3] || '').split('х'); return (+m[i || 0] || 0) / 1000; }
   function mm(it) { return it && it[2] ? ' ' + fmt(it[2]) + ' мм' : ''; }
@@ -224,7 +224,7 @@
 
     function row(key, it, qty, sub, fallback) {
       if (!qty) return;
-      r.rows.push({ key: key, name: it ? link(it) : esc(fallback), text: it ? it[0] : fallback, qty: qty, unit: 'шт',
+      r.rows.push({ key: key, id: it && it[8] || 0, name: it ? link(it) : esc(fallback), text: it ? it[0] : fallback, qty: qty, unit: 'шт',
         price: it && it[1] ? it[1] : null, sub: sub + (it && it.guess ? ' · цвет уточнит менеджер' : '') });
     }
     function cut(len, piece, per) { return per || Math.max(1, Math.floor((len / 1000 + KERF) / (piece + KERF))); }
@@ -432,6 +432,28 @@
       body.append('data', JSON.stringify({ kind: 'fence', calc: calcData, plan: plan, page: location.href.split('#')[0] }));
       return fetch(url, { method: 'POST', body: body, credentials: 'same-origin' });
     }).catch(function () {}); // не вышло — заявка всё равно уйдёт, просто без PDF
+  });
+
+  /* ---------- «Добавить всё в корзину»: строки сметы с ценой, кроме снятых галочек ---------- */
+  $('lfcCart').addEventListener('click', function () {
+    var btn = this, msg = $('lfcCartMsg');
+    if (!last || !window.BX || !BX.bitrix_sessid) return;
+    var items = last.r.rows.filter(function (x) { return !x.off && x.id && x.price != null; }).map(function (x) { return { id: x.id, qty: x.qty }; });
+    if (!items.length) { msg.textContent = 'В смете нет товаров с ценой.'; return; }
+    btn.disabled = true; msg.textContent = 'Добавляем…';
+    var body = new URLSearchParams(); body.append('sessid', BX.bitrix_sessid()); body.append('items', JSON.stringify(items));
+    fetch(window.LFC_BASKET_URL, { method: 'POST', body: body, credentials: 'same-origin' })
+      .then(function (res) { return res.json(); })
+      .then(function (d) {
+        if (!d.ok) { msg.textContent = d.error || 'Не удалось добавить товары в корзину.'; return; }
+        msg.innerHTML = 'Добавлено в корзину: ' + d.added + ' ' + plural(d.added, 'позиция', 'позиции', 'позиций') + (d.failed && d.failed.length ? ' (' + d.failed.length + ' не удалось)' : '') + '. <a href="/basket/">Перейти в корзину</a>';
+        // счётчик корзины в шапке — как после обычного «В корзину»
+        if (typeof window.getActualBasket === 'function') getActualBasket();
+        if (typeof window.reloadTopBasket === 'function' && window.jQuery && jQuery('#ajax_basket').length) reloadTopBasket('add', jQuery('#ajax_basket'), 200, 5000, 'N');
+        if (BX.onCustomEvent) BX.onCustomEvent('OnBasketChange');
+      })
+      .catch(function () { msg.textContent = 'Не удалось добавить товары в корзину. Попробуйте ещё раз.'; })
+      .then(function () { btn.disabled = false; });
   });
 
   /* ---------- События ---------- */

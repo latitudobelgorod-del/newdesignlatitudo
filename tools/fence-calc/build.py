@@ -126,7 +126,7 @@ for sid, sr in series.items():
             if 'подсветк' in low:
                 tags.append('led')
             parts.setdefault(k, []).append([on, o['p'], ln, size, col, ' '.join(tags),
-                                            it['url'].replace('/catalog/ograzhdeniya-iz-dpk/', ''), it['img']])
+                                            it['url'].replace('/catalog/ograzhdeniya-iz-dpk/', ''), it['img'], o['id']])
     OUT.append({'id': sid, 'b': brand, 'n': name, 'url': s['url'].replace('/catalog/ograzhdeniya-iz-dpk/', ''),
                 'c': colors, 'p': parts})
 
@@ -136,7 +136,7 @@ for it in d['items']:
     if it['s'] == 104 and kind(it['n']) == 'mount':
         o = it['o'][0]
         size, ln = size_len(o['n'])
-        common.append([norm(o['n']), o['p'], ln, size, '', '', it['url'].replace('/catalog/ograzhdeniya-iz-dpk/', ''), it['img']])
+        common.append([norm(o['n']), o['p'], ln, size, '', '', it['url'].replace('/catalog/ograzhdeniya-iz-dpk/', ''), it['img'], o['id']])
 
 # недостающие детали серии берём у соседней серии той же марки (NEXTWOOD 3D ← Классик: крышки, юбки,
 # кронштейн, крепёж; белые EasyDecking ← Вуд-Икс: закладная, крепление алюминиевых балясин)
