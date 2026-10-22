@@ -194,4 +194,9 @@
   .ltd-calc .ltd-check input[type=checkbox] { margin-top: 2px; }
   .ltd-calc .ltd-pdf { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; border-top: 2px solid var(--ltd-ink); padding-top: 16px; }
   .ltd-calc .ltd-pdf .ltd-hint { max-width: 420px; }
+  /* «Добавить всё в корзину» — сразу под сметой (оба калькулятора, js/newdesign-calc-basket.js) */
+  .ltd-calc .ltd-cart { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 4px 0 20px; }
+  .ltd-calc .ltd-cart .ltd-hint { flex: 1 1 260px; }
+  .ltd-calc .ltd-cart .ltd-hint a { color: var(--ltd-accent); font-weight: 600; }
+  .ltd-calc .ltd-btn2 { background: var(--ltd-bg); color: var(--ltd-accent); box-shadow: inset 0 0 0 2px var(--ltd-accent); }
   .ltd-calc .ltd-check a { color: inherit; text-decoration: underline; }

@@ -514,12 +514,13 @@ var LtdCore = (function () {
   function estimate(s, r) {
     var rows = [], c = color(), off = offer();
     var boardName = c ? (off[2] || 'Террасная доска ' + boardTitle(brand(), model(), c, off)) : 'Террасная доска ' + fmt(s.bw) + ' мм, ' + fmt(s.bl) + ' м';
-    rows.push({ key: 'board', name: c ? '<a href="' + SITE + 'terrasnaya-doska-iz-dpk/' + c.u + '/" target="_blank" rel="noopener">' + esc(boardName) + '</a>' : esc(boardName), text: boardName,
+    // bn — точное название товара в каталоге: по нему «Добавить всё в корзину» находит товар (у строк-заглушек его нет)
+    rows.push({ key: 'board', bn: c && off[2] ? off[2] : '', name: c ? '<a href="' + SITE + 'terrasnaya-doska-iz-dpk/' + c.u + '/" target="_blank" rel="noopener">' + esc(boardName) + '</a>' : esc(boardName), text: boardName,
       qty: r.total, unit: 'шт', price: s.price || null, sub: 'с запасом ' + fmt(s.res) + '%, без запаса ' + r.raw + ' · ' + fmt(r.boardMeters, 1) + ' пог. м · ' + fmt(r.area, 2) + ' м²' });
     if (s.lagOn) {
       var lg = s.lag != null ? I[s.lag] : null;
       if (lg && lg[3]) {
-        rows.push({ key: 'lag', name: link(lg), text: lg[0], qty: r.lagPieces, unit: 'шт', price: lg[1], sub: joistText(r) });
+        rows.push({ key: 'lag', bn: lg[0], name: link(lg), text: lg[0], qty: r.lagPieces, unit: 'шт', price: lg[1], sub: joistText(r) });
       } else {
         rows.push({ key: 'lag', name: 'Лаги', text: 'Лаги', qty: r.joists + r.extra.length, unit: 'шт', price: null, sub: 'по ' + fmt(r.joistLen, 2) + ' м, ' + joistText(r) });
       }
@@ -529,23 +530,23 @@ var LtdCore = (function () {
       var it = idx != null ? I[idx] : null;
       if (it && it[2] === 'уп') {
         var pack = packSize(it[0]);
-        if (pack) return { name: link(it), text: it[0], qty: ceil(qty / pack), unit: 'уп.', price: it[1], sub: sub + ' · нужно ' + fmt(qty) + ' шт, в упаковке ' + pack + ' шт' };
+        if (pack) return { bn: it[0], name: link(it), text: it[0], qty: ceil(qty / pack), unit: 'уп.', price: it[1], sub: sub + ' · нужно ' + fmt(qty) + ' шт, в упаковке ' + pack + ' шт' };
         return { name: link(it), text: it[0], qty: qty, unit: 'шт', price: null, sub: sub + ' · упаковка ' + rub(it[1]) + ', фасовку уточнит менеджер' };
       }
-      return { name: it ? link(it) : fallback, text: it ? it[0] : fallback, qty: qty, unit: 'шт', price: it ? it[1] : null, sub: sub };
+      return { bn: it ? it[0] : '', name: it ? link(it) : fallback, text: it ? it[0] : fallback, qty: qty, unit: 'шт', price: it ? it[1] : null, sub: sub };
     }
     var x1 = clipRow(cl, r.clips, 'Клипсы (кляммеры)', fmt(r.cross) + ' пересечений + 10%'); x1.key = 'clip'; rows.push(x1);
     var x2 = clipRow(st, r.startClips, 'Стартовые клипсы', '2 на каждую лагу'); x2.key = 'start'; rows.push(x2);
     var cor = pickIdx('corner');
     if (cor != null && I[cor][3]) {
       var Lc = I[cor][3] / 1000, n = ceil(r.perimeter / Lc);
-      rows.push({ key: 'corner', name: link(I[cor]), text: I[cor][0], qty: n, unit: 'шт', price: I[cor][1], sub: 'торцевая отделка по периметру ' + fmt(r.perimeter, 1) + ' м' + (pickGuess.corner ? ' · подобран по бренду, цвет уточните' : '') });
+      rows.push({ key: 'corner', bn: I[cor][0], name: link(I[cor]), text: I[cor][0], qty: n, unit: 'шт', price: I[cor][1], sub: 'торцевая отделка по периметру ' + fmt(r.perimeter, 1) + ' м' + (pickGuess.corner ? ' · подобран по бренду, цвет уточните' : '') });
     } else {
       rows.push({ key: 'corner', name: 'Торцевая планка / уголок 2 м', text: 'Торцевая планка 2 м', qty: r.planks, unit: 'шт', price: null, sub: 'периметр ' + fmt(r.perimeter, 1) + ' м' });
     }
     if (s.supOn && r.supports) {
       var sp = s.sup != null ? I[s.sup] : null;
-      rows.push({ key: 'sup', name: sp ? link(sp) : 'Регулируемые опоры', text: sp ? sp[0] : 'Регулируемые опоры', qty: r.supports, unit: 'шт', price: sp ? sp[1] : null,
+      rows.push({ key: 'sup', bn: sp ? sp[0] : '', name: sp ? link(sp) : 'Регулируемые опоры', text: sp ? sp[0] : 'Регулируемые опоры', qty: r.supports, unit: 'шт', price: sp ? sp[1] : null,
         sub: 'шаг ' + fmt(s.supStepCm) + ' см по каждой лаге' + (sp && !(s.h >= sp[4] && s.h <= sp[5]) ? ' · высота ' + s.h + ' мм вне диапазона опоры' : '') });
     }
     rows.forEach(function (x) { x.sum = x.price != null ? x.qty * x.price : null; });
@@ -933,6 +934,11 @@ var LtdCore = (function () {
       total: last.total
     };
   }
+  /* «Добавить всё в корзину»: строки сметы с ценой, кроме снятых галочек (js/newdesign-calc-basket.js) */
+  $('ltdCart').addEventListener('click', function () {
+    if (!last || !last.rows || !window.ndCalcBasket) return;
+    ndCalcBasket(this, $('ltdCartMsg'), last.rows.filter(function (x) { return !x.off && x.bn && x.price != null; }).map(function (x) { return { name: x.bn, qty: x.qty }; }));
+  });
   $('ltdPdfOpen').addEventListener('click', function () {
     var url = window.LTD_CALC_LEAD_URL;
     if (!url || !last || !last.rows || !window.BX || !BX.bitrix_sessid) return;

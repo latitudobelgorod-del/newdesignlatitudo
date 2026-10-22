@@ -19,7 +19,3 @@
     .ltd-calc.lfc .lfc-series { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   .ltd-calc.lfc .lfc-admin { margin: 0 0 16px; }
-  /* «Добавить всё в корзину» — главная кнопка, «Рассчитать с менеджером» под ней — второстепенная (обводка) */
-  .ltd-calc.lfc .lfc-cart + .ltd-pdf { border-top: 0; padding-top: 4px; margin-top: 12px; }
-  .ltd-calc.lfc .lfc-btn2 { background: var(--ltd-bg); color: var(--ltd-accent); box-shadow: inset 0 0 0 2px var(--ltd-accent); }
-  .ltd-calc.lfc #lfcCartMsg a { color: var(--ltd-accent); font-weight: 600; }
