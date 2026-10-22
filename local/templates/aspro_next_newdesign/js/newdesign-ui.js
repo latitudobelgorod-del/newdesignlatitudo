@@ -37,6 +37,16 @@
 			if (inSheet()) {
 				return;
 			}
+			// В выпадающем списке можно отметить несколько пунктов (Ирина, 22.10.2026:
+			// страница перезагружалась после первой же галочки). Форма уходит кнопкой
+			// «Применить» внизу списка или когда список закрывают (клик мимо, другой
+			// список). Переключатели «Есть отзыв/видео» — по-прежнему сразу.
+			// Горизонтальный фильтр поиска (.nd-filter--horizontal) — как был.
+			var drop = e.target.closest && e.target.closest('.nd-filter__drop');
+			if (drop && !filterForm.classList.contains('nd-filter--horizontal')) {
+				drop.classList.add('is-dirty');
+				return;
+			}
 			filterForm.submit();
 		});
 
@@ -95,6 +105,11 @@
 		});
 
 		filterForm.addEventListener('toggle', function (e) {
+			// закрыли список, в котором меняли галочки, — применяем выбор
+			if (!e.target.open && e.target.classList && e.target.classList.contains('is-dirty') && !inSheet()) {
+				filterForm.submit();
+				return;
+			}
 			if (!e.target.open || inSheet()) {
 				return;
 			}
