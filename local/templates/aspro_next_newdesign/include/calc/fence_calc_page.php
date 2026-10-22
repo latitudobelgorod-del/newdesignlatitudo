@@ -44,7 +44,7 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
         <label class="ltd-field"><span>Установка</span><select class="iks-ignore" id="lfcMount">
           <option value="deck">На террасу — столбы ДПК с юбками</option>
           <option value="concrete">На бетонное основание — столбы ДПК без юбок</option>
-          <option value="none">В проём между бетонными блоками или стенами — без столбов ДПК</option>
+          <option value="none">В проём между бетонными блоками или стенами</option>
         </select></label>
         <div class="ltd-row2">
           <label class="ltd-field" data-f="L"><span id="lfcLLabel">Длина ограждения, пог. м</span><input type="number" id="lfcL" inputmode="decimal" min="0.5" max="500" step="0.1" value="6"><em class="ltd-err"></em></label>
