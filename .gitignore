@@ -6,6 +6,7 @@
 # документация и скрипт запуска — общие для всех машин, их версионируем
 !/WORKFLOW.md
 !/CLAUDE.md
+!/WORKLOG-*.md
 !/start-latitudo-ru.cmd
 !/tools
 # внутри local исключаем служебное
