@@ -84,6 +84,15 @@
 		var btn = document.querySelector('.nd-cmp-btn--detail');
 		if (!btn) return;
 		var h1 = document.querySelector('.catalog_detail.element_newdesign > h1');
+		// телефон с нижней панелью покупки: кнопка в её строке «Рассчитать с менеджером», последней —
+		// панель всегда на виду, а у заголовка кнопка уезжала при прокрутке (Ирина, 22.10.2026)
+		var barRow = window.innerWidth < 768 && document.querySelector('#nd-pd-buybar .nd-pd__calc');
+		if (barRow) {
+			if (h1) h1.classList.remove('nd-has-cmp');
+			if (btn.style.top) btn.style.top = '';
+			if (barRow.lastElementChild !== btn) barRow.appendChild(btn);
+			return;
+		}
 		// телефон: ряд покупки узкий — кнопка справа от заголовка (в сам H1 нельзя:
 		// тема при загрузке переписывает его содержимое)
 		if (h1 && window.innerWidth < 768) {

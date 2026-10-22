@@ -1681,10 +1681,10 @@ if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
 					<span>Рассчитать вместе с менеджером</span>
 					</span>
 					<?if($ndTerraceCalcUrl):?>
-					<a class="nd-pd__tcalc" href="<?=htmlspecialcharsbx($ndTerraceCalcUrl)?>">Калькулятор террасы</a>
+					<a class="nd-pd__tcalc" href="<?=htmlspecialcharsbx($ndTerraceCalcUrl)?>">Калькулятор<span class="nd-pd__tcalc-w">&nbsp;террасы</span></a>
 					<?endif;?>
 					<?if($ndFenceCalcUrl):?>
-					<a class="nd-pd__tcalc nd-pd__fcalc" href="<?=htmlspecialcharsbx($ndFenceCalcUrl)?>">Калькулятор ограждений</a>
+					<a class="nd-pd__tcalc nd-pd__fcalc" href="<?=htmlspecialcharsbx($ndFenceCalcUrl)?>">Калькулятор<span class="nd-pd__tcalc-w">&nbsp;ограждений</span></a>
 					<?endif;?>
 					</div>
 	<?// Метка кнопки «Сравнить» — кнопку ставит ndCompareTokens на отдаче страницы,

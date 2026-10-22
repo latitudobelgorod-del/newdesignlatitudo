@@ -941,10 +941,6 @@
     color: #101014;
     text-decoration: none;
 }
-/* В нижней панели покупки на телефоне кнопке места нет — там только ссылка. */
-#nd-pd-buybar .nd-pd__tcalc {
-    display: none;
-}
 
 /* Цвет */
 .catalog_detail.element_newdesign .right_info .info_item .catalog-detail-sku__title {
@@ -2932,9 +2928,35 @@
        правила для .nd-pd__calc .btn выше по файлу продолжают действовать,
        ровно потому же — панель внутри .info_item. */
     #nd-pd-buybar .nd-pd__calc {
-        display: block;
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 8px;
         margin: 8px 0 0;
         padding: 0;
+    }
+    /* Калькулятор и сравнение на телефоне — справа в этой же строке панели
+       (Ирина, 22.10.2026): панель всегда на виду, а кнопка у заголовка
+       уезжала при прокрутке. Слово «террасы/ограждений» прячем — места мало. */
+    #nd-pd-buybar .nd-pd__calc > .btn {
+        flex: 1 1 auto;
+        min-width: 0;
+        text-align: left;
+    }
+    .catalog_detail.element_newdesign .right_info .info_item #nd-pd-buybar .nd-pd__tcalc {
+        display: inline-flex;
+        flex: 0 0 auto;
+        height: 36px;
+        padding: 0 12px;
+        font-size: 13px;
+    }
+    #nd-pd-buybar .nd-pd__tcalc-w {
+        display: none;
+    }
+    #nd-pd-buybar .nd-pd__calc > .nd-cmp-btn--detail {
+        flex: 0 0 36px;
+        width: 36px;
+        height: 36px;
     }
 
     /* В макете рассрочка идёт первой в колонке — до плашки о цене. Плашка и
