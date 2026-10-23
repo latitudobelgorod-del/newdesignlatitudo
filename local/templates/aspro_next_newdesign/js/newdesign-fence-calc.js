@@ -135,9 +135,18 @@
     if (need > 1 && b >= W - 0.2) return { err: 'Меньше ширины хотя бы на 0,2 м', f: 'Pb' };
     var pts = sh.poly(L, W, a, b), sides = pts.map(function (p, i) { var q = pts[(i + 1) % pts.length]; return { p: p, q: q, len: Math.hypot(q[0] - p[0], q[1] - p[1]) }; });
     if (plan.on.length !== sides.length) plan.on = sides.map(function () { return true; });
-    var runs = [], open = 0;
-    sides.forEach(function (s, i) { if (plan.on[i]) { runs.push(s.len); if (!plan.on[(i + sides.length - 1) % sides.length]) open++; } });
-    return { pts: pts, sides: sides, runs: runs, open: open, total: runs.reduce(function (t, x) { return t + x; }, 0), L: L, W: W };
+    var runs = [], open = 0, corners = [];
+    sides.forEach(function (s, i) {
+      var prev = (i + sides.length - 1) % sides.length;
+      if (!plan.on[i]) return;
+      runs.push(s.len);
+      if (!plan.on[prev]) { open++; return; }
+      // угол между двумя отмеченными сторонами — в вершине pts[i]: угол между перилами 0…180° (у внутреннего угла Г-формы тоже 90°)
+      var a = sides[prev].p, b = pts[i], c = s.q, ax = a[0] - b[0], ay = a[1] - b[1], cx = c[0] - b[0], cy = c[1] - b[1];
+      var deg = Math.acos(Math.max(-1, Math.min(1, (ax * cx + ay * cy) / (Math.hypot(ax, ay) * Math.hypot(cx, cy))))) * 180 / Math.PI;
+      corners.push({ at: i, deg: Math.round(deg), turn: Math.abs(deg - 90) > 3 });
+    });
+    return { pts: pts, sides: sides, runs: runs, open: open, corners: corners, total: runs.reduce(function (t, x) { return t + x; }, 0), L: L, W: W };
   }
   function renderShapes() {
     $('lfcShapes').innerHTML = Object.keys(SHAPES).map(function (k) {
@@ -177,6 +186,11 @@
         for (var k = 0; k <= u.spans; k++) { var t = k / u.spans, px = X(s.p[0] + (s.q[0] - s.p[0]) * t), py = Y(s.p[1] + (s.q[1] - s.p[1]) * t);
           o += '<rect x="' + (px - 4) + '" y="' + (py - 4) + '" width="8" height="8" rx="1.5" fill="var(--ltd-joist)" style="pointer-events:none"/>'; }
       }
+    });
+    // углы между отмеченными сторонами: угол между перилами; не 90° — цветом (там поворотный крепёж перил)
+    P.corners.forEach(function (k) {
+      var v = P.pts[k.at], dx = v[0] - cx, dy = v[1] - cy, dl = Math.hypot(dx, dy) || 1;
+      o += '<text x="' + (X(v[0]) + dx / dl * 16) + '" y="' + (Y(v[1]) + dy / dl * 16 + 4) + '" font-size="11" text-anchor="middle" fill="' + (k.turn ? 'var(--ltd-accent)' : 'var(--ltd-muted)') + '"' + (k.turn ? ' font-weight="700"' : '') + ' style="pointer-events:none">' + k.deg + '°</text>';
     });
     $('lfcPlan').innerHTML = o;
   }
@@ -443,10 +457,16 @@
     }
     // крепёж перил: на каждый конец каждого ряда
     var railRows = R.rails.reduce(function (t, rl) { return t + (rl[0] === 'rail' ? rl[1] : 0); }, 0) + (T.mid ? 1 : 0);
+    // углы не под 90° (трапеция, скос): на угловом столбе оба конца каждого ряда перил — на поворотном крепеже;
+    // у серий без поворотного крепежа в каталоге — строкой без цены
+    var turnN = pm ? P.corners.filter(function (k) { return k.turn; }).length : 0, turnEnds = turnN * 2 * railRows;
+    var rft = turnN && S.p.railfix ? pick('railfix', function (it) { return has(it, 'turn'); }) : null;
     if (R.railFix && S.p.railfix) {
       var rf = pick('railfix', function (it) { return !has(it, 'turn'); });
-      row('railfix', rf, spans * railRows * 2, '2 на каждый поручень секции, прямые');
+      row('railfix', rf, spans * railRows * 2 - (rft ? turnEnds : 0), '2 на каждый поручень секции, прямые' + (rft ? ' (кроме концов на углах не под 90°)' : ''));
+      if (rft) row('railfixT', rft, turnEnds, '2 на каждый ряд перил на угловом столбе: ' + turnN + ' ' + plural(turnN, 'угол', 'угла', 'углов') + ' не под 90°');
     }
+    if (turnN && !rft) row('miss-turn', null, turnEnds, 'на ' + turnN + ' ' + plural(turnN, 'угле', 'углах', 'углах') + ' не под 90° перила подходят к столбу под углом — поворотного крепежа у серии в каталоге нет, подберёт менеджер', 'Крепёж перил под углом');
     // крышки и юбки (Террапол Классик: крышка только на большие столбы)
     var ck = opt('ck'), capKind = opt('cap');
     if (S.p.capskirt && !S.p.cap) {
@@ -470,7 +490,7 @@
     if (size === '120х120' && mount && /кронштейн/i.test(mount[0]) && mount[3] !== '120х120') mount = DATA.common.find(function (it) { return /кронштейн/i.test(it[0]); }) || mount;
     row('mount', mount, N, '1 на столб' + (mount && /кронштейн/i.test(mount[0]) ? (!skirtOn || noPosts ? ', крепится к основанию анкерами' : ', крепится к основанию террасы, не к доске') : ''));
     // чего нет в каталоге — строкой без цены
-    Object.keys(R.missing || {}).forEach(function (k) { var m = R.missing[k]; row('miss-' + k, null, k === 'railfix' ? spans * railRows * 2 : spans, m[1], m[0]); });
+    Object.keys(R.missing || {}).forEach(function (k) { var m = R.missing[k]; row('miss-' + k, null, k === 'railfix' ? spans * railRows * 2 - (turnN && !rft ? turnEnds : 0) : spans, m[1], m[0]); });
 
     r.rows.forEach(function (x) { x.sum = x.price != null ? x.qty * x.price : null; });
     return r;
@@ -550,9 +570,9 @@
       : r.pm ? fmt(r.L, 2) + '<small>пог. м · ' + r.spans + ' ' + plural(r.spans, 'секция', 'секции', 'секций') + ' по ' + r.cTxt + ' мм</small>'
       : fmt(r.spans) + '<small>' + plural(r.spans, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм</small>';
     $('lfcBigSub').innerHTML = r.noPosts ? (r.k > 1 ? 'Промежуточных столбов ДПК <b>' + (r.k - 1) + '</b> на проём · ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм · ' + fill + ' на секцию' : 'Без столбов ДПК · ' + fill + ' на проём')
-      : 'Столбов <b>' + r.N + '</b>' + (r.small ? ' (' + r.big + ' больших, ' + r.small + ' малых)' : '') + (r.pm ? ' · ' + r.runs.length + ' ' + plural(r.runs.length, 'сторона', 'стороны', 'сторон') + (r.P.open ? '' : ', контур замкнут') : ' · шаг ' + fmt(Math.round(r.axis * 1000)) + ' мм') + ' · ' + fill + ' на секцию';
+      : 'Столбов <b>' + r.N + '</b>' + (r.small ? ' (' + r.big + ' больших, ' + r.small + ' малых)' : '') + (r.pm ? ' · ' + r.runs.length + ' ' + plural(r.runs.length, 'сторона', 'стороны', 'сторон') + (r.P.open ? '' : ', контур замкнут') + (r.P.corners.length ? ' · ' + plural(r.P.corners.length, 'угол', 'угла', 'углов').replace(/^/, r.P.corners.length + ' ') + (r.P.corners.some(function (k) { return k.turn; }) ? ', не под 90° — ' + r.P.corners.filter(function (k) { return k.turn; }).length : '') : '') : ' · шаг ' + fmt(Math.round(r.axis * 1000)) + ' мм') + ' · ' + fill + ' на секцию';
     $('lfcRules').innerHTML = '<b>Как считаем ' + esc(seriesName(S)) + '</b>' + esc(r.R.note || '') +
-      (r.pm ? ' По схеме террасы: каждая отмеченная сторона делится на равные секции с шагом не больше заданного; на углах между отмеченными сторонами — один общий столб' + (r.P.open ? ', на свободных концах — свои столбы' : '') + '. Перила на угловых столбах крепятся под углом — уголки и крепёж для углов уточнит менеджер.' : '') +
+      (r.pm ? ' По схеме террасы: каждая отмеченная сторона делится на равные секции с шагом не больше заданного; на углах между отмеченными сторонами — один общий столб' + (r.P.open ? ', на свободных концах — свои столбы' : '') + '. На углах 90° перила подходят к соседним граням углового столба — крепёж обычный; на углах не под 90° концы перил — на поворотном крепеже серии (нет в каталоге — подберёт менеджер).' : '') +
       (r.noPosts ? ' Установка в проём между бетонными блоками или стенами: перила крепятся к блокам — анкеры и уголки подберёт менеджер.' + (r.k > 1 ? ' Проём шире ' + fmt(r.R.step) + ' м, поэтому внутри ' + (r.k - 1) + ' ' + plural(r.k - 1, 'промежуточный столб', 'промежуточных столба', 'промежуточных столбов') + ' ДПК: ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм, столбы крепятся к основанию, юбки не нужны.' : ' Столбов ДПК, крышек, юбок и креплений столбов в смете нет.') : '') +
       (!r.skirtOn && r.N ? ' Юбки столбов в смету не входят.' : '') +
       (Math.abs(r.H - r.R.h) >= 0.001 ? ' Высота задана своя — ' + fmt(Math.round(r.H * 1000)) + ' мм вместо ' + fmt(Math.round(r.R.h * 1000)) + ' мм по правилам серии: длины столбов и балясин пересчитаны под неё, проверьте с менеджером.' : '') +
