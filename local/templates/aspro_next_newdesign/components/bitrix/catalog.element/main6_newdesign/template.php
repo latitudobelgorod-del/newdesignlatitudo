@@ -1096,6 +1096,9 @@ if (!empty($arResult["PROPERTIES"]["ROTANG_COLOR"]["VALUE"])) {
 	$ndColorLabel = 'Цвет ротанга';
 } elseif (!empty($arResult["PROPERTIES"]["ASH_COLOR"]["VALUE"])) {
 	$ndColorLabel = 'Цвет массива ясеня';
+} elseif ((int)$arResult["PROPERTIES"]["BRAND"]["VALUE"] === 28619) {
+	// 4SIS: варианты модели — другой каркас, роуп, основание (как «Доступные варианты» на 4sis.ru, 23.10.2026)
+	$ndColorLabel = 'Доступные варианты';
 }
 ?>
 <?if ($ndColorItems):?>

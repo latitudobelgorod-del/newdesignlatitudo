@@ -12,12 +12,15 @@ date = os.path.basename(sys.argv[1])[:10]
 
 # отчёт цен этого прогона: последняя папка *_apply от sync_4sis.php
 reports = sorted(d for d in glob.glob(os.path.expanduser('~/4sis-sync/' + date.replace('-', '-') + '_*_apply')) if '_new_' not in d and '_vendor_' not in d)
+# за ночь цены пишутся дважды (по фиду и по сайту 4sis.ru) — собираем изменения из всех прогонов этого дня
+reports = [d for d in reports if os.path.getmtime(d) > __import__('time').time() - 6 * 3600]
 changed = []
-report = reports[-1] + '/report.csv' if reports else ''
-if report and os.path.exists(report):
-    for r in csv.reader(io.open(report, encoding='utf-8-sig'), delimiter=';'):
-        if r and (r[0].startswith('поднять') or r[0].startswith('снизить') or r[0].startswith('поставить')):
-            changed.append(r)
+for d in reports:
+    if os.path.exists(d + '/report.csv'):
+        for r in csv.reader(io.open(d + '/report.csv', encoding='utf-8-sig'), delimiter=';'):
+            if r and (r[0].startswith('поднять') or r[0].startswith('снизить') or r[0].startswith('поставить')):
+                changed.append(r)
+report = reports[0] + '/report.csv' if reports else ''
 
 created = re.findall(r'^(\d+) (.+?) — фото \d+$', log, re.M)
 activated = re.findall(r'^  (\d+) (.+)$', log.split('== включить')[1].split('== цены')[0], re.M) if '== включить' in log and '== цены' in log else []
