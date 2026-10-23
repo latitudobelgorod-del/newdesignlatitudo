@@ -40,6 +40,10 @@ if [ -s daily/site_prices.tsv ]; then
 	echo "== цены с сайта 4sis.ru (товары не из фида, но продаются)"
 	$PHP sync_4sis.php --feed="$FEED" --site-prices="$HOME/4sis-sync/daily/site_prices.tsv" apply
 fi
+# по воскресеньям — весь сайт 4sis.ru: товары не из фида, «Доступные варианты»
+if [ "$(date +%u)" = "7" ]; then
+	./weekly_4sis.sh
+fi
 echo "== таблица сверки"
 $PHP export_cmp.php > daily/ours_cmp.tsv
 cp daily/feed.xml daily/feed_now.xml

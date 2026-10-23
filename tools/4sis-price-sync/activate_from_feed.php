@@ -41,9 +41,21 @@ foreach ($doc->shop->offers->offer as $o) {
 	$byVendor[trim((string)$o->vendorCode)][] = (string)$o['id'];
 }
 
+// Не включать никогда: дубли, выключенные людьми (у 4SIS две версии одного товара с одинаковым названием) —
+// ~/4sis-sync/keep_off.txt, ID в начале строки.
+$keepOff = [];
+foreach (@file(getenv('HOME') . '/4sis-sync/keep_off.txt') ?: [] as $line) {
+	if (preg_match('/^\s*(\d+)/', $line, $m)) {
+		$keepOff[(int)$m[1]] = true;
+	}
+}
+
 $list = [];
 $rs = CIBlockElement::GetList(['ID' => 'ASC'], ['IBLOCK_ID' => 19, 'PROPERTY_BRAND' => 28619, 'ACTIVE' => 'N'], false, false, ['ID', 'NAME', 'XML_ID']);
 while ($r = $rs->Fetch()) {
+	if (isset($keepOff[(int)$r['ID']])) {
+		continue;
+	}
 	$code = isset($feed[$r['XML_ID']]) ? $r['XML_ID'] : '';
 	if ($code === '') {
 		$pr = CIBlockElement::GetProperty(19, $r['ID'], [], ['CODE' => 'CML2_ATTRIBUTES']);

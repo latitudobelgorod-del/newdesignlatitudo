@@ -19,13 +19,15 @@
  *   - свойства фильтра (цвет, материал, плетение, подлокотники, форма) — как у такого же товара
  *     другого цвета (та же модель и вид), иначе по правилам заполнения садовой мебели.
  * Связи (С этим товаром покупают, вариации цветов) не ставим.
+ * --site=<site_goods.json> — заводить не из фида, а с карточек 4sis.ru (товары, которых нет в фиде, но 4SIS их
+ *   продаёт): название, «Розничный прайс-лист», описание, фото, характеристики как есть, артикул; XML_ID = SITE-<адрес>.
  * --names=<файл код 1С<TAB>название> — своё название вместо фидового: у 4SIS бывает, что у товара другого
  *   цвета/размера в фиде скопировано название соседнего (артикул другой), правильное — с 4sis.ru.
  */
 
 $args = array_slice($argv, 1);
 $opt = ['root' => getenv('HOME') . '/www/latitudo.ru', 'feed' => getenv('HOME') . '/4sis-sync/feed.xml',
-	'desc' => getenv('HOME') . '/4sis-sync/desc.json', 'limit' => '0', 'only' => '', 'names' => ''];
+	'desc' => getenv('HOME') . '/4sis-sync/desc.json', 'limit' => '0', 'only' => '', 'names' => '', 'site' => ''];
 $mode = 'dry';
 $rollbackFile = '';
 foreach ($args as $a) {
@@ -152,18 +154,87 @@ foreach ($colourVotes as $c => $v) {
 // --- план
 $plan = [];
 $rows = [];
-foreach ($doc->shop->offers->offer as $o) {
-	$xml = (string)$o['id'];
-	$name = $names[$xml] ?? trim((string)$o->name);
+// Источник: фид (по умолчанию) или карточки сайта 4sis.ru (--site=<site_goods.json от site_goods_4sis.py>) —
+// товары, которых нет в фиде, но 4SIS их продаёт. Дальше всё одинаково.
+$sources = [];
+if ($opt['site'] !== '') {
+	foreach (json_decode((string)file_get_contents($opt['site']), true) ?: [] as $g) {
+		if (mb_stripos($g['stock'] ?? '', 'нет в наличии') !== false || empty($g['price']) || empty($g['name'])) {
+			continue;
+		}
+		$props = [];
+		foreach ($g['props'] as $pr) {
+			$props[$pr[0]] = $pr[1];
+		}
+		// размеры и вес для каталога: «570×620×775мм», «5,5 кг»
+		$dims = preg_split('/[×x*х]/u', preg_replace('/[^\d×x*х.,]/u', '', $props['Габариты товара (ДШВ)'] ?? ''));
+		$kg = (float)str_replace(',', '.', preg_replace('/[^\d,.]/u', '', $props['Вес (Нетто)'] ?? ''));
+		$crumbs = mb_strtolower(implode(' ', $g['crumbs'] ?? []));
+		$sources[] = [
+			'xml' => 'SITE-' . substr(basename(rtrim((string)parse_url($g['url'], PHP_URL_PATH), '/')), 0, 200),
+			'name' => $g['name'],
+			'cat' => preg_match('/журнальн|кофейн/u', $crumbs) ? 'Журнальные столики' : '',
+			'par' => ['Длина' => $dims[0] ?? '', 'Ширина' => $dims[1] ?? '', 'Высота' => $dims[2] ?? '', 'Вес' => $kg ?: '',
+				'Цвет' => $props['Цвет плетения'] ?? ($props['Цвет'] ?? ($props['Цвет столешницы'] ?? '')),
+				'МатериалПлетения' => $props['Материал плетения'] ?? ''],
+			'attrs' => $props,
+			'text' => (string)$g['desc'],
+			'textFrom' => '4sis.ru',
+			'pics' => $g['photos'],
+			'regular' => (float)$g['price'],
+			'sale' => (float)($g['sale'] ?: $g['price']),
+			'vendor' => (string)$g['article'],
+		];
+	}
+} else {
+	foreach ($doc->shop->offers->offer as $o) {
+		$par = [];
+		foreach ($o->param as $p) {
+			$par[(string)$p['name']] = trim((string)$p);
+		}
+		$pics = [];
+		foreach ($o->picture as $p) {
+			$pics[] = trim((string)$p);
+		}
+		$sources[] = [
+			'xml' => (string)$o['id'],
+			'name' => trim((string)$o->name),
+			'cat' => $cats[(string)$o->categoryId] ?? '',
+			'par' => $par,
+			'attrs' => null,
+			'text' => trim(str_replace("\r", '', (string)$o->description)),
+			'textFrom' => 'фид',
+			'pics' => $pics,
+			'regular' => max((float)$o->price, (float)$o->oldprice),
+			'sale' => (float)$o->price,
+			'vendor' => trim((string)$o->vendorCode),
+		];
+	}
+}
+
+// Артикулы производителя, которые у нас уже есть: 4SIS переименовывает товары («интерьерный стол» → «стол»,
+// «052» → «15052»), и по одному названию переименованный товар заводился вторым экземпляром (23.10.2026 — 21 дубль).
+$usedVendor = [];
+$rs = $DB->Query("SELECT v.VALUE FROM b_iblock_element_property v INNER JOIN b_iblock_property p ON p.ID = v.IBLOCK_PROPERTY_ID "
+	. "AND p.IBLOCK_ID = " . ND_IBLOCK_ID . " AND p.CODE = 'CML2_ATTRIBUTES' WHERE v.DESCRIPTION = 'Артикул производителя'");
+while ($r = $rs->Fetch()) {
+	$usedVendor[ndVendorKey($r['VALUE'])] = true;
+}
+unset($usedVendor['']);
+
+foreach ($sources as $src) {
+	$xml = $src['xml'];
+	$name = $names[$xml] ?? $src['name'];
 	// товар с таким названием уже есть под другим кодом (в фиде у 4SIS бывают два кода на один товар)
 	if (isset($usedXml[$xml]) || $name === '' || isset($usedName[ndNorm($name)])) {
 		continue;
 	}
-	$par = [];
-	foreach ($o->param as $p) {
-		$par[(string)$p['name']] = trim((string)$p);
+	// тот же артикул производителя уже есть — переименованный у 4SIS товар (своё название из --names не проверяем)
+	if (!isset($names[$xml]) && isset($usedVendor[ndVendorKey($src['vendor'])])) {
+		continue;
 	}
-	$cat = $cats[(string)$o->categoryId] ?? '';
+	$par = $src['par'];
+	$cat = $src['cat'];
 	$section = ndSection($name, $cat);
 	$sib = $siblings[ndModelKey($name)] ?? null;
 	if ($sib && $sib['_SECTION'] !== $section) {
@@ -211,25 +282,22 @@ foreach ($doc->shop->offers->offer as $o) {
 		$text = $desc[$xml]['text'];
 		$descFrom = '4sis.ru';
 	} else {
-		$text = trim(str_replace("\r", '', (string)$o->description));
-		$descFrom = 'фид';
-		if (mb_strlen($text) >= 490 && preg_match('/^(.*[.!?»])[^.!?»]*$/us', $text, $m)) {
+		$text = $src['text'];
+		$descFrom = $src['textFrom'];
+		if ($descFrom === 'фид' && mb_strlen($text) >= 490 && preg_match('/^(.*[.!?»])[^.!?»]*$/us', $text, $m)) {
 			$text = $m[1];
 			$descFrom = 'фид, обрезан по предложению';
 		}
 	}
 	$text = preg_replace(["/\n\n(?=- )/u", "/\n{3,}/u"], ["\n", "\n\n"], trim($text));
 
-	$pics = [];
-	foreach ($o->picture as $p) {
-		$pics[] = trim((string)$p);
-	}
-	$regular = max((float)$o->price, (float)$o->oldprice);
+	$pics = $src['pics'];
+	$regular = $src['regular'];
 
 	$code = ndCode($name, $usedCode);
 	$usedCode[$code] = true;
-	$plan[] = compact('xml', 'name', 'code', 'section', 'par', 'f', 'text', 'pics', 'regular') + ['vendor' => trim((string)$o->vendorCode)];
-	$rows[] = [$xml, $name, $section, $cat, $regular, (float)$o->price, count($pics), $descFrom, mb_strlen($text),
+	$plan[] = compact('xml', 'name', 'code', 'section', 'par', 'f', 'text', 'pics', 'regular') + ['vendor' => $src['vendor'], 'attrs' => $src['attrs']];
+	$rows[] = [$xml, $name, $section, $cat, $regular, $src['sale'], count($pics), $descFrom, mb_strlen($text),
 		ndEnumNames($f['BASE_COLOUR']), ndEnumNames($f['ND_MATERIAL']), ndEnumNames($f['ND_PLETENIE']),
 		ndEnumNames($f['PODLOKOTNIKI']), ndEnumNames($f['FORMA_STOLA']), ndEnumNames($f['ND_FORMA']),
 		$sib ? $sib['_ID'] : '', $par['Цвет'] ?? '', $code];
@@ -275,7 +343,7 @@ foreach ($plan as $p) {
 		}
 	}
 	$attrs = [['VALUE' => $p['vendor'], 'DESCRIPTION' => 'Артикул производителя']];
-	foreach (ndAttributes($p['par']) as $k => $v) {
+	foreach ($p['attrs'] ?? ndAttributes($p['par']) as $k => $v) {
 		$attrs[] = ['VALUE' => $v, 'DESCRIPTION' => $k];
 	}
 	$par = $p['par'];
@@ -355,6 +423,13 @@ function ndShortLink(int $id): void
 	if ($code !== '') {
 		CIBlockElement::SetPropertyValuesEx($id, ND_IBLOCK_ID, [ND_SHORT_LINK_PROP => ND_SHORT_LINK_HOST . '/' . $code]);
 	}
+}
+
+// Артикул для сравнения: без регистра, лишних пробелов и пометки « OLD»; «б/а» (без артикула) — пусто
+function ndVendorKey(string $v): string
+{
+	$v = trim(preg_replace('/\s+/u', ' ', preg_replace('/\s+OLD\s*$/u', '', mb_strtolower($v))));
+	return $v === 'б/а' ? '' : $v;
 }
 
 function ndNorm(string $s): string
