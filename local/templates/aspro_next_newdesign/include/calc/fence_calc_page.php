@@ -35,13 +35,36 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
 }
 ?>
 <div class="ltd-calc lfc" id="lfcCalc">
-  <p class="ltd-lead">Укажите длину ограждения в погонных метрах и высоту, выберите вид ограждения и серию из каталога: калькулятор расставит столбы, посчитает перила, балясины, крепёж, крышки и соберёт смету по ценам сайта.</p>
+  <p class="ltd-lead">Укажите длину ограждения в погонных метрах — или форму и размеры террасы и отметьте стороны, где нужно ограждение. Выберите высоту, вид ограждения и серию из каталога: калькулятор расставит столбы, посчитает перила, балясины, крепёж, крышки и соберёт смету по ценам сайта.</p>
 
   <div class="ltd-grid">
     <form class="ltd-form" id="lfcForm" novalidate>
       <section class="ltd-step">
         <div class="ltd-step-h"><b>1</b>Ограждение</div>
-        <label class="ltd-field"><span>По краям</span><select class="iks-ignore" id="lfcEnds">
+        <?/* 23.10.2026 (менеджеры через Ирину): кроме длины в погонных метрах — по схеме террасы: форма как в калькуляторе
+             террасы, стороны с ограждением включаются кликом на плане или галочкой. */?>
+        <div class="ltd-field"><span>Как считать</span>
+          <div class="ltd-tiles lfc-mode" role="radiogroup" aria-label="Как считать ограждение">
+            <label><input type="radio" name="lfcMode" value="len" checked><span><svg viewBox="0 0 48 34" aria-hidden="true"><path d="M3 24h42M7 12v18M24 12v18M41 12v18M7 15h34"/></svg>По длине, пог. м</span></label>
+            <label><input type="radio" name="lfcMode" value="plan"><span><svg viewBox="0 0 48 34" aria-hidden="true"><path d="M4 5h26v10h14v14H4z"/></svg>По схеме террасы</span></label>
+          </div>
+        </div>
+        <div class="ltd-sub lfc-planbox" id="lfcPlanBox" hidden>
+          <div class="ltd-tiles" role="radiogroup" aria-label="Форма террасы" id="lfcShapes"></div>
+          <div class="ltd-row2">
+            <label class="ltd-field" data-f="PL"><span>Длина террасы, м</span><input type="number" id="lfcPL" inputmode="decimal" min="0.5" max="100" step="0.1" value="6"><em class="ltd-err"></em></label>
+            <label class="ltd-field" data-f="PW"><span>Ширина террасы, м</span><input type="number" id="lfcPW" inputmode="decimal" min="0.5" max="100" step="0.1" value="4"><em class="ltd-err"></em></label>
+          </div>
+          <div class="ltd-row2" id="lfcCutBox" hidden>
+            <label class="ltd-field" data-f="Pa"><span id="lfcALabel">a, м</span><input type="number" id="lfcPa" inputmode="decimal" min="0.1" step="0.1" value="2"><em class="ltd-err"></em></label>
+            <label class="ltd-field" data-f="Pb" id="lfcBField"><span id="lfcBLabel">b, м</span><input type="number" id="lfcPb" inputmode="decimal" min="0.1" step="0.1" value="1.5"><em class="ltd-err"></em></label>
+          </div>
+          <small class="ltd-hint" id="lfcCutHint"></small>
+          <div class="ltd-field" data-f="sides"><span>Стороны с ограждением — отметьте здесь или нажмите на сторону на плане</span>
+            <div class="lfc-sides" id="lfcSides"></div><em class="ltd-err"></em>
+          </div>
+        </div>
+        <label class="ltd-field" id="lfcEndsField"><span>По краям</span><select class="iks-ignore" id="lfcEnds">
           <option value="posts" selected>столбы ДПК</option>
           <option value="walls">блоки или стены</option>
         </select></label>
@@ -80,6 +103,11 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
       <div class="ltd-note bad" id="lfcInvalid" hidden></div>
 
       <div class="ltd-plans ltd-dim">
+        <figure class="ltd-main lfc-planfig" id="lfcPlanFig" hidden>
+          <div class="ltd-tabs"><span class="lfc-cap">План террасы</span><em>нажмите на сторону, чтобы поставить или убрать ограждение</em></div>
+          <svg id="lfcPlan" viewBox="0 0 640 360" role="img" aria-label="План террасы со сторонами ограждения"></svg>
+          <div class="ltd-legend"><span><i style="background:var(--ltd-accent);height:5px"></i>ограждение</span><span><i style="background:var(--ltd-muted);height:2px;opacity:.6"></i>без ограждения</span><span><i style="background:var(--ltd-joist);width:8px;height:8px;border-radius:2px"></i>столб</span></div>
+        </figure>
         <figure class="ltd-main">
           <div class="ltd-tabs">
             <span class="lfc-cap">Схема секций</span>

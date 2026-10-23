@@ -20,3 +20,15 @@
   }
   .ltd-calc.lfc .lfc-admin { margin: 0 0 16px; }
 
+
+  /* По схеме террасы (23.10.2026): выбор режима, стороны галочками, план со сторонами — клик по стороне */
+  .ltd-calc.lfc .lfc-mode { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ltd-calc.lfc .lfc-planbox { margin: 0 0 12px; }
+  .ltd-calc.lfc .lfc-planbox .ltd-tiles { margin-bottom: 10px; }
+  .ltd-calc.lfc .lfc-sides { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; }
+  .ltd-calc.lfc .lfc-sides .ltd-toggle { margin: 0; font-size: 13.6px; }
+  .ltd-calc.lfc .lfc-sides .ltd-toggle.is-on { font-weight: 600; }
+  .ltd-calc.lfc .lfc-planfig { margin-bottom: 14px; }
+  .ltd-calc.lfc #lfcPlan .lfc-side { cursor: pointer; }
+  .ltd-calc.lfc #lfcPlan .lfc-side:hover line + line { stroke-width: 7; opacity: 1; }
+  .ltd-calc.lfc #lfcPlan .lfc-side:not(.is-on):hover line + line { stroke: var(--ltd-accent); }
