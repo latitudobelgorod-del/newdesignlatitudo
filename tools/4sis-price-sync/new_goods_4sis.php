@@ -19,11 +19,13 @@
  *   - свойства фильтра (цвет, материал, плетение, подлокотники, форма) — как у такого же товара
  *     другого цвета (та же модель и вид), иначе по правилам заполнения садовой мебели.
  * Связи (С этим товаром покупают, вариации цветов) не ставим.
+ * --names=<файл код 1С<TAB>название> — своё название вместо фидового: у 4SIS бывает, что у товара другого
+ *   цвета/размера в фиде скопировано название соседнего (артикул другой), правильное — с 4sis.ru.
  */
 
 $args = array_slice($argv, 1);
 $opt = ['root' => getenv('HOME') . '/www/latitudo.ru', 'feed' => getenv('HOME') . '/4sis-sync/feed.xml',
-	'desc' => getenv('HOME') . '/4sis-sync/desc.json', 'limit' => '0', 'only' => ''];
+	'desc' => getenv('HOME') . '/4sis-sync/desc.json', 'limit' => '0', 'only' => '', 'names' => ''];
 $mode = 'dry';
 $rollbackFile = '';
 foreach ($args as $a) {
@@ -89,6 +91,15 @@ $cats = [];
 foreach ($doc->shop->categories->category as $c) {
 	$cats[(string)$c['id']] = (string)$c;
 }
+$names = [];
+if ($opt['names'] !== '') {
+	foreach (file($opt['names'], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+		$c = explode("	", $line, 2);
+		if (count($c) === 2) {
+			$names[trim($c[0])] = trim($c[1]);
+		}
+	}
+}
 $desc = is_file($opt['desc']) ? json_decode(file_get_contents($opt['desc']), true) : [];
 
 // --- что уже есть
@@ -143,7 +154,7 @@ $plan = [];
 $rows = [];
 foreach ($doc->shop->offers->offer as $o) {
 	$xml = (string)$o['id'];
-	$name = trim((string)$o->name);
+	$name = $names[$xml] ?? trim((string)$o->name);
 	// товар с таким названием уже есть под другим кодом (в фиде у 4SIS бывают два кода на один товар)
 	if (isset($usedXml[$xml]) || $name === '' || isset($usedName[ndNorm($name)])) {
 		continue;
