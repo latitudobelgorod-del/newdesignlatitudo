@@ -499,8 +499,8 @@ class LatitudoQuickSearch
 		$cache = \Bitrix\Main\Data\Cache::createInstance();
 		/* v2 — в кеш добавлена карта артикулов; v3 — вес марки у каждой записи.
 		   Версию в ключе поднимаем при смене формата: со старым ключом в кеше
-		   лежит запись без нужных полей. */
-		$key = 'v3|'.self::indexVersion();
+		   лежит запись без нужных полей. v4 — артикул производителя (23.10.2026). */
+		$key = 'v4|'.self::indexVersion();
 
 		if ($cache->initCache(self::CACHE_TTL, $key, self::CACHE_PATH)) {
 			$data = $cache->getVars();
@@ -661,6 +661,28 @@ class LatitudoQuickSearch
 				$raw[$id]['art'] .= ' '.$row['ARTICLE'];
 			}
 			self::addArticle($articles, $row['ARTICLE'], $id, (int)$row['OFFER_ID']);
+		}
+
+		/* Артикул производителя (23.10.2026, Ирина): строка «Артикул производителя»
+		   в «Характеристиках» (CML2_ATTRIBUTES, значение + описание) — у товаров 4SIS
+		   её пишут скрипты сверки из фида (tools/4sis-price-sync). Ищется как свой
+		   артикул: точное совпадение — первым в выдаче. «б/а» (без артикула) пропускаем. */
+		$rs = $DB->Query(
+			'SELECT v.IBLOCK_ELEMENT_ID AS ID, v.VALUE '
+			.'FROM b_iblock_element_property v '
+			.'INNER JOIN b_iblock_property p ON p.ID = v.IBLOCK_PROPERTY_ID '
+				.'AND p.IBLOCK_ID = '.self::IBLOCK_PRODUCTS.' AND p.CODE = \'CML2_ATTRIBUTES\' '
+			.'WHERE v.DESCRIPTION = \'Артикул производителя\''
+		);
+		while ($row = $rs->Fetch()) {
+			$id = (int)$row['ID'];
+			$vendor = trim((string)$row['VALUE']);
+			if (!isset($raw[$id]) || $vendor === '' || $vendor === 'б/а') {
+				continue;
+			}
+			$raw[$id]['hay'] .= ' '.$vendor;
+			$raw[$id]['art'] .= ' '.$vendor;
+			self::addArticle($articles, $vendor, $id, 0);
 		}
 
 		/* Названия разделов товара и всех разделов выше (21.09.2026, Ирина):
