@@ -12,7 +12,7 @@ W="$HOME/4sis-sync/weekly"
 mkdir -p "$W"
 
 echo "== еженедельно: обход сайта 4sis.ru"
-if ! curl -s -m 120 https://4sis.ru/sitemap.xml -o "$W/sitemap.xml" || [ "$(grep -c '/store/' "$W/sitemap.xml")" -lt 500 ]; then
+if ! curl -s -m 120 https://4sis.ru/sitemap.xml -o "$W/sitemap.xml" || [ "$(grep -o '/store/' "$W/sitemap.xml" | wc -l)" -lt 500 ]; then
 	echo "ОШИБКА: карта сайта 4sis.ru не скачалась — еженедельный шаг пропущен"
 	exit 0
 fi

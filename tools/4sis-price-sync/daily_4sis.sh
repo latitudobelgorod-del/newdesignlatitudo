@@ -14,7 +14,7 @@ mkdir -p daily
 exec >"$LOG" 2>&1
 echo "== $(date '+%d.%m.%Y %H:%M') сверка 4SIS"
 
-if ! curl -s -m 120 -o daily/feed.xml.tmp https://4sis.ru/images/111/XML_OCT_EACH.xml || [ "$(grep -c '<offer ' daily/feed.xml.tmp)" -lt 500 ]; then
+if ! curl -s -m 120 -o daily/feed.xml.tmp https://4sis.ru/images/111/XML_OCT_EACH.xml || [ "$(grep -o '<offer ' daily/feed.xml.tmp | wc -l)" -lt 500 ]; then
 	echo "ОШИБКА: фид не скачался или в нём мало товаров — ничего не меняю"
 	/usr/bin/python3 daily_report.py "$LOG"
 	exit 1
