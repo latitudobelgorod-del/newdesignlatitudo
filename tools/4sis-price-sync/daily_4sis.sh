@@ -28,6 +28,20 @@ echo "== включить вернувшиеся в фид"
 $PHP activate_from_feed.php --feed="$FEED" apply
 echo "== цены"
 $PHP sync_4sis.php --feed="$FEED" apply
+echo "== выключить пропавшие"
+REPORT=$(ls -dt "$HOME"/4sis-sync/*_apply | grep -v '_new_\|_vendor_' | head -1)/report.csv
+rm -f daily/off.txt
+/usr/bin/python3 check_missing_4sis.py "$REPORT" daily/off.txt
+if [ -s daily/off.txt ]; then
+	cp daily/off.txt "daily/off_$D.txt"
+	$PHP nd_activate.php N "$(cat daily/off.txt)"
+fi
+echo "== таблица сверки"
+$PHP export_cmp.php > daily/ours_cmp.tsv
+cp daily/feed.xml daily/feed_now.xml
+cp "$HOME/nd_4sis/4sis.tsv" daily/4sis.tsv 2>/dev/null || : > daily/4sis.tsv
+cat "$HOME"/nd_4sis/out_part_*.tsv > daily/4sis_parts.tsv 2>/dev/null || : > daily/4sis_parts.tsv
+PYTHONPATH="$HOME/nd_4sis/pkg" /usr/bin/python3 compare_4sis_xlsx.py daily "daily/Сверка_цен_4SIS_$D.xlsx"
 echo "== готово $(date '+%H:%M')"
 /usr/bin/python3 daily_report.py "$LOG"
 find daily -name '*.log' -mtime +60 -delete

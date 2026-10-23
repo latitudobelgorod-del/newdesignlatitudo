@@ -21,7 +21,9 @@ if report and os.path.exists(report):
 
 created = re.findall(r'^(\d+) (.+?) — фото \d+$', log, re.M)
 activated = re.findall(r'^  (\d+) (.+)$', log.split('== включить')[1].split('== цены')[0], re.M) if '== включить' in log and '== цены' in log else []
-error = 'ОШИБКА' in log
+deactivated = re.findall(r'^  выключить (\d+) (.+)$', log, re.M)
+error = 'ОШИБКА' in log or 'Traceback' in log
+xlsx = os.path.expanduser('~/4sis-sync/daily/Сверка_цен_4SIS_%s.xlsx' % date)
 
 lines = ['Ежедневная сверка товаров 4SIS с фидом поставщика (https://4sis.ru/images/111/XML_OCT_EACH.xml), ' + date + '.', '']
 if error:
@@ -33,14 +35,19 @@ if len(changed) > 100:
     lines.append('  … полный список во вложении')
 lines += ['', 'Включены (снова есть у 4SIS): %d' % len(activated)] + ['  %s %s' % a for a in activated]
 lines += ['', 'Заведены новые товары: %d' % len(created)] + ['  %s %s' % c for c in created]
-lines += ['', 'Цена у нас — цена 4SIS без акции. Товары, пропавшие из фида, не выключаются (фид у 4SIS неполный).',
+lines += ['', 'Выключены (нет в фиде, а на 4sis.ru нет или «нет в наличии»): %d' % len(deactivated)] + ['  %s %s' % d for d in deactivated]
+lines += ['', 'Цена у нас — цена 4SIS без акции. Во вложении — таблица сверки (xlsx) и отчёт по ценам (csv).',
           'Журнал на сервере: ~/4sis-sync/' + sys.argv[1], '', '--- журнал ---', log[-20000:]]
 
 msg = MIMEMultipart()
 msg['From'] = FROM
 msg['To'] = TO
-msg['Subject'] = Header('Сверка 4SIS %s: цен %d, включено %d, новых %d%s' % (date, len(changed), len(activated), len(created), ' — ЕСТЬ ОШИБКИ' if error else ''), 'utf-8')
+msg['Subject'] = Header('Сверка 4SIS %s: цен %d, включено %d, выключено %d, новых %d%s' % (date, len(changed), len(activated), len(deactivated), len(created), ' — ЕСТЬ ОШИБКИ' if error else ''), 'utf-8')
 msg.attach(MIMEText('\n'.join(lines), 'plain', 'utf-8'))
+if os.path.exists(xlsx):
+    part = MIMEApplication(open(xlsx, 'rb').read(), Name='4sis_%s.xlsx' % date)
+    part.add_header('Content-Disposition', 'attachment', filename=('utf-8', '', os.path.basename(xlsx)))
+    msg.attach(part)
 if report and os.path.exists(report):
     part = MIMEApplication(open(report, 'rb').read(), Name='4sis_prices_%s.csv' % date)
     part['Content-Disposition'] = 'attachment; filename="4sis_prices_%s.csv"' % date

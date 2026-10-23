@@ -1,5 +1,5 @@
-# Сверка цен 4SIS v2 (23.10.2026): наши товары против фида поставщика по коду 1С, ссылки на 4sis.ru из обхода.
-import io, re, sys, xml.etree.ElementTree as ET
+# Сверка цен 4SIS (с 23.10.2026; ночью из daily_4sis.sh): наши товары против фида поставщика по коду 1С, ссылки на 4sis.ru из обхода.
+import datetime, io, re, sys, xml.etree.ElementTree as ET
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
@@ -107,7 +107,7 @@ cnt = {}
 for r in out:
     cnt[r[0]] = cnt.get(r[0], 0) + 1
 s = wb.create_sheet('Итоги', 0)
-s.append(['Сверка цен 4SIS: latitudo.ru и фид поставщика — 23.10.2026']); s['A1'].font = Font(bold=True, size=14)
+s.append(['Сверка цен 4SIS: latitudo.ru и фид поставщика — ' + datetime.date.today().strftime('%d.%m.%Y')]); s['A1'].font = Font(bold=True, size=14)
 s.append(['Сопоставление по коду 1С (если код у 4SIS сменился — по артикулу производителя). Цена 4SIS — без акции; акционная — отдельной колонкой.'])
 s.append(['У нас ставим цену 4SIS без акции, поэтому «совпадает» = наша цена равна их цене без акции.'])
 s.append([])
