@@ -16,7 +16,9 @@
  *
  * Что считается ценой: цена 4SIS без акции — <oldprice>, если он есть и больше <price>,
  * иначе <price>. Акционные цены на latitudo.ru не ставим.
- * Сопоставление — только по коду 1С: <offer id> фида = XML_ID товара (ИБ 19, бренд 4SiS).
+ * Сопоставление — по коду 1С: <offer id> фида = XML_ID товара (ИБ 19, бренд 4SiS). Если кода в фиде
+ * нет (4SIS сменил код) — по артикулу: строка «Артикул производителя» в характеристиках товара
+ * (CML2_ATTRIBUTES, заполняет vendor_code_4sis.php) = <vendorCode>, если в фиде он у одного товара.
  * По названию не сопоставляем: «похожие» названия у 4SIS — это другие модели и цвета.
  *
  * Отчёт и резервная копия пишутся в ~/4sis-sync/<дата-время>/ — вне www.
@@ -83,6 +85,7 @@ if ($mode === 'rollback') {
 // --- фид
 $xml = preg_match('#^https?://#', $opt['feed']) ? ndFetch($opt['feed']) : file_get_contents($opt['feed']);
 $feed = [];
+$feedByVendor = [];
 $doc = $xml ? @simplexml_load_string($xml) : false;
 if (!$doc) {
 	fwrite(STDERR, "Фид не загрузился или не разбирается: {$opt['feed']}\n");
@@ -98,6 +101,7 @@ foreach ($doc->shop->offers->offer as $o) {
 		'regular' => max($price, $old),
 		'available' => (string)$o['available'],
 	];
+	$feedByVendor[trim((string)$o->vendorCode)][] = (string)$o['id'];
 }
 if (count($feed) < 500) {
 	// Обрезанный фид не должен превратиться в массовую правку цен
@@ -151,6 +155,14 @@ $stat = [];
 foreach ($ours as $id => $r) {
 	$cur = isset($prices[$id]) ? (float)$prices[$id]['PRICE'] : null;
 	$f = $feed[$r['XML_ID']] ?? null;
+	$byVendor = '';
+	if (!$f) {
+		$vendor = ndVendorCode($id);
+		if ($vendor !== '' && count($feedByVendor[$vendor] ?? []) === 1) {
+			$f = $feed[$feedByVendor[$vendor][0]];
+			$byVendor = ' (по артикулу)';
+		}
+	}
 	$new = null;
 	if (isset($deactivate[$id])) {
 		$action = $r['ACTIVE'] === 'Y' ? 'деактивировать' : 'уже не активен';
@@ -174,6 +186,9 @@ foreach ($ours as $id => $r) {
 	} else {
 		$new = $f['regular'];
 		$action = $cur === null ? 'поставить цену (не было)' : ($new > $cur ? 'поднять цену' : 'снизить цену');
+	}
+	if ($f && strpos($action, 'деактивировать') !== 0 && strpos($action, 'ОШИБКА') !== 0) {
+		$action .= $byVendor;
 	}
 	if (strpos($action, 'деактивировать') === 0 || $new !== null) {
 		$plan[$id] = ['price' => $new, 'deactivate' => strpos($action, 'деактивировать') === 0];
@@ -278,6 +293,17 @@ function ndSetActive(int $id, string $active): bool
 		return false;
 	}
 	return true;
+}
+
+function ndVendorCode(int $id): string
+{
+	$rs = CIBlockElement::GetProperty(ND_IBLOCK_ID, $id, [], ['CODE' => 'CML2_ATTRIBUTES']);
+	while ($p = $rs->Fetch()) {
+		if (trim((string)$p['DESCRIPTION']) === 'Артикул производителя') {
+			return trim((string)$p['VALUE']);
+		}
+	}
+	return '';
 }
 
 function ndFetch(string $url): string
