@@ -153,7 +153,7 @@
      «Юбки на столбы» — галочка (на бетонном основании юбки не нужны);
      «По краям» — столбы ДПК или бетонные блоки/стены: тогда считаются проёмы между блоками,
      перила крепятся к блокам, а в широком проёме — промежуточные столбы ДПК по шагу. */
-  function wallEnds() { var e = root.querySelector('input[name="lfcEnds"]:checked'); return !!e && e.value === 'walls'; }
+  function wallEnds() { return $('lfcEnds').value === 'walls'; }
   function opt(key) { var v = variants().find(function (x) { return x.key === key; }); return v ? (cur.opt[key] || v.def) : null; }
 
   /* ---------- Форма ---------- */
@@ -507,7 +507,7 @@
   });
   $('lfcList').addEventListener('change', function (ev) { if (ev.target.name === 'lfcSeries') selectSeries(+ev.target.value); });
   $('lfcTypes').addEventListener('change', function (ev) { if (ev.target.name === 'lfcType') { cur.type = +ev.target.value; fillOpts(); render(); } });
-  $('lfcForm').addEventListener('change', function (ev) { if (ev.target.id === 'lfcSkirt' || ev.target.name === 'lfcEnds') render(); });
+  $('lfcForm').addEventListener('change', function (ev) { if (ev.target.id === 'lfcSkirt' || ev.target.id === 'lfcEnds') render(); });
   $('lfcColor').addEventListener('change', function () { cur.color = this.value; render(); });
   $('lfcOpts').addEventListener('change', function (ev) { var k = ev.target.getAttribute('data-opt'); if (k) { cur.opt[k] = ev.target.value; render(); } });
   $('lfcForm').addEventListener('input', function (ev) { if (ev.target.id === 'lfcH') cur.hSet = true; if (ev.target.type === 'number') render(); });

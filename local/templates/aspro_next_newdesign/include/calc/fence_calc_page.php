@@ -41,11 +41,11 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
     <form class="ltd-form" id="lfcForm" novalidate>
       <section class="ltd-step">
         <div class="ltd-step-h"><b>1</b>Ограждение</div>
+        <label class="ltd-field"><span>По краям</span><select class="iks-ignore" id="lfcEnds">
+          <option value="posts" selected>столбы ДПК</option>
+          <option value="walls">блоки или стены</option>
+        </select></label>
         <label class="ltd-toggle"><input type="checkbox" id="lfcSkirt" checked>Юбки на столбы</label>
-        <div class="lfc-ends" role="radiogroup" aria-label="По краям"><span>По краям:</span>
-          <label class="ltd-toggle"><input type="radio" name="lfcEnds" value="posts" checked>столбы ДПК</label>
-          <label class="ltd-toggle"><input type="radio" name="lfcEnds" value="walls">блоки или стены</label>
-        </div>
         <div class="ltd-row2">
           <label class="ltd-field" data-f="L"><span id="lfcLLabel">Длина ограждения, пог. м</span><input type="number" id="lfcL" inputmode="decimal" min="0.5" max="500" step="0.1" value="6"><em class="ltd-err"></em></label>
           <label class="ltd-field" data-f="step"><span>Шаг столбов, м</span><input type="number" id="lfcStep" inputmode="decimal" min="0.5" step="0.05" value="1.5"><em class="ltd-err"></em></label>
