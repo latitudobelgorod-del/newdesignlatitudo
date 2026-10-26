@@ -528,8 +528,9 @@
       o += '<rect x="' + X(px + (r.pw - w) / 2) + '" y="' + Y(ph) + '" width="' + (w * sc) + '" height="' + (ph * sc) + '" fill="var(--ltd-joist)"/>';
       if (!isSmall) o += '<rect x="' + (X(px) - 3) + '" y="' + (Y(H) - 5) + '" width="' + (r.pw * sc + 6) + '" height="6" rx="1.5" fill="var(--ltd-joist)"/>';
       // юбка у основания столба — шире столба, закрывает крепление (ставится на каждый столб)
-      var skH = Math.max(9, 0.12 * sc), skX = X(px + (r.pw - w) / 2) - 4;
-      o += '<rect x="' + skX + '" y="' + (yB - skH) + '" width="' + (w * sc + 8) + '" height="' + skH + '" rx="1.5" fill="var(--ltd-joist)" fill-opacity=".55" stroke="var(--ltd-joist)" stroke-width="1"/>';
+      // высота как у настоящей юбки (~50 мм) и не выше половины просвета под нижними перилами
+      var skH = Math.max(4, Math.min(0.05, botY * 0.5) * sc), skX = X(px + (r.pw - w) / 2) - 3;
+      o += '<rect x="' + skX + '" y="' + (yB - skH) + '" width="' + (w * sc + 6) + '" height="' + skH + '" rx="1" fill="var(--ltd-joist)" fill-opacity=".55" stroke="var(--ltd-joist)" stroke-width="1"/>';
     }
     // шаг по осям под схемой
     var ay = yB + 18;
