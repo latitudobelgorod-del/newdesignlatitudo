@@ -239,9 +239,9 @@
     if (/3D/i.test(n)) return 'крышка 3D ДПК';
     return 'крышка';
   }
-  /* Два переключателя (Ирина, 22.10.2026, вместо списка «Установка»):
-     «Юбки на столбы» — галочка (на бетонном основании юбки не нужны);
-     «По краям» — столбы ДПК или бетонные блоки/стены: тогда считаются проёмы между блоками,
+  /* «По краям» (Ирина, 22.10.2026, вместо списка «Установка»; галочка «Юбки на столбы» рядом
+     убрана 26.10.2026 — юбки теперь всегда):
+     столбы ДПК или бетонные блоки/стены: тогда считаются проёмы между блоками,
      перила крепятся к блокам, а в широком проёме — промежуточные столбы ДПК по шагу. */
   function wallEnds() { return $('lfcEnds').value === 'walls'; }
   function opt(key) { var v = variants().find(function (x) { return x.key === key; }); return v ? (cur.opt[key] || v.def) : null; }
@@ -292,7 +292,8 @@
     var S = series(), R = rule(S);
     var L = num($('lfcL').value), step = num($('lfcStep').value), H = num($('lfcH').value) / 1000, T = ftype();
     var pm = planMode(), P = pm ? planGeo() : null;
-    var skirtOn = $('lfcSkirt').checked, noPosts = !pm && wallEnds(), nOpen = Math.round(num($('lfcN').value));
+    // юбки на столбы ставим всегда (Ирина, 26.10.2026: галочку «Юбки на столбы» убрали)
+    var skirtOn = true, noPosts = !pm && wallEnds(), nOpen = Math.round(num($('lfcN').value));
     var bad = {};
     if (pm) {
       // по схеме террасы: длина — сумма отмеченных сторон, по краям всегда столбы ДПК
@@ -475,9 +476,7 @@
       var szOk = function (it) { return !size || it[3] === size || !(series().p.cap || []).some(function (x) { return x[3] === size; }); };
       var cap = pick('cap', function (it) { return (!capKind || capFamily(it) === capKind) && szOk(it); });
       row('cap', cap, big, '1 на ' + (R.alt && small ? 'большой ' : '') + 'столб');
-      if (!skirtOn) {
-        // галочка «Юбки на столбы» снята
-      } else if (R.alt && small) {
+      if (R.alt && small) {
         row('skirt', pick('skirt', function (it) { return has(it, 'big'); }), big, 'рамка на большой столб');
         row('skirtS', pick('skirt', function (it) { return has(it, 'small'); }), nSmall, 'рамка на малый столб');
       } else {
@@ -488,7 +487,7 @@
     // крепление столбов: кронштейн, закладная или опора серии; к столбу 120×120 без своего — общий из каталога
     var mount = pick('mount', function (it) { return !size || it[3] === size || sec(it) <= pw; });
     if (size === '120х120' && mount && /кронштейн/i.test(mount[0]) && mount[3] !== '120х120') mount = DATA.common.find(function (it) { return /кронштейн/i.test(it[0]); }) || mount;
-    row('mount', mount, N, '1 на столб' + (mount && /кронштейн/i.test(mount[0]) ? (!skirtOn || noPosts ? ', крепится к основанию анкерами' : ', крепится к основанию террасы, не к доске') : ''));
+    row('mount', mount, N, '1 на столб' + (mount && /кронштейн/i.test(mount[0]) ? (noPosts ? ', крепится к основанию анкерами' : ', крепится к основанию террасы, не к доске') : ''));
     // чего нет в каталоге — строкой без цены
     Object.keys(R.missing || {}).forEach(function (k) { var m = R.missing[k]; row('miss-' + k, null, k === 'railfix' ? spans * railRows * 2 - (turnN && !rft ? turnEnds : 0) : spans, m[1], m[0]); });
 
@@ -528,6 +527,9 @@
       var isSmall = r.R.alt && r.small && p % 2 === 1, px = p * r.axis, w = isSmall ? 0.07 : r.pw, ph = isSmall ? topY - railH : H;
       o += '<rect x="' + X(px + (r.pw - w) / 2) + '" y="' + Y(ph) + '" width="' + (w * sc) + '" height="' + (ph * sc) + '" fill="var(--ltd-joist)"/>';
       if (!isSmall) o += '<rect x="' + (X(px) - 3) + '" y="' + (Y(H) - 5) + '" width="' + (r.pw * sc + 6) + '" height="6" rx="1.5" fill="var(--ltd-joist)"/>';
+      // юбка у основания столба — шире столба, закрывает крепление (ставится на каждый столб)
+      var skH = Math.max(9, 0.12 * sc), skX = X(px + (r.pw - w) / 2) - 4;
+      o += '<rect x="' + skX + '" y="' + (yB - skH) + '" width="' + (w * sc + 8) + '" height="' + skH + '" rx="1.5" fill="var(--ltd-joist)" fill-opacity=".55" stroke="var(--ltd-joist)" stroke-width="1"/>';
     }
     // шаг по осям под схемой
     var ay = yB + 18;
@@ -573,8 +575,7 @@
       : 'Столбов <b>' + r.N + '</b>' + (r.small ? ' (' + r.big + ' больших, ' + r.small + ' малых)' : '') + (r.pm ? ' · ' + r.runs.length + ' ' + plural(r.runs.length, 'сторона', 'стороны', 'сторон') + (r.P.open ? '' : ', контур замкнут') + (r.P.corners.length ? ' · ' + plural(r.P.corners.length, 'угол', 'угла', 'углов').replace(/^/, r.P.corners.length + ' ') + (r.P.corners.some(function (k) { return k.turn; }) ? ', не под 90° — ' + r.P.corners.filter(function (k) { return k.turn; }).length : '') : '') : ' · шаг ' + fmt(Math.round(r.axis * 1000)) + ' мм') + ' · ' + fill + ' на секцию';
     $('lfcRules').innerHTML = '<b>Как считаем ' + esc(seriesName(S)) + '</b>' + esc(r.R.note || '') +
       (r.pm ? ' По схеме террасы: каждая отмеченная сторона делится на равные секции с шагом не больше заданного; на углах между отмеченными сторонами — один общий столб' + (r.P.open ? ', на свободных концах — свои столбы' : '') + '. На углах 90° перила подходят к соседним граням углового столба — крепёж обычный; на углах не под 90° концы перил — на поворотном крепеже серии (нет в каталоге — подберёт менеджер).' : '') +
-      (r.noPosts ? ' Установка в проём между бетонными блоками или стенами: перила крепятся к блокам — анкеры и уголки подберёт менеджер.' + (r.k > 1 ? ' Проём шире ' + fmt(r.R.step) + ' м, поэтому внутри ' + (r.k - 1) + ' ' + plural(r.k - 1, 'промежуточный столб', 'промежуточных столба', 'промежуточных столбов') + ' ДПК: ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм, столбы крепятся к основанию, юбки не нужны.' : ' Столбов ДПК, крышек, юбок и креплений столбов в смете нет.') : '') +
-      (!r.skirtOn && r.N ? ' Юбки столбов в смету не входят.' : '') +
+      (r.noPosts ? ' Установка в проём между бетонными блоками или стенами: перила крепятся к блокам — анкеры и уголки подберёт менеджер.' + (r.k > 1 ? ' Проём шире ' + fmt(r.R.step) + ' м, поэтому внутри ' + (r.k - 1) + ' ' + plural(r.k - 1, 'промежуточный столб', 'промежуточных столба', 'промежуточных столбов') + ' ДПК: ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм, столбы крепятся к основанию, на каждом — юбка.' : ' Столбов ДПК, крышек, юбок и креплений столбов в смете нет.') : '') +
       (Math.abs(r.H - r.R.h) >= 0.001 ? ' Высота задана своя — ' + fmt(Math.round(r.H * 1000)) + ' мм вместо ' + fmt(Math.round(r.R.h * 1000)) + ' мм по правилам серии: длины столбов и балясин пересчитаны под неё, проверьте с менеджером.' : '') +
       (r.R.alt && !r.small && !r.noPosts ? ' Выбраны только большие столбы: малые не ставятся, подпорки под нижний подбалясенник режутся из обрезков.' : '') +
       (r.T.id !== 1 ? ' Вид «' + esc(r.T.name) + '»: детали заполнения нарезаются из балясин серии, сколько балясин купить — посчитано с учётом распила.' : '');
@@ -624,8 +625,8 @@
     var r = last.r, S = r.S, params = [
       r.noPosts ? 'Ограждение: ' + r.nOpen + ' ' + plural(r.nOpen, 'проём', 'проёма', 'проёмов') + ' по ' + fmt(r.L) + ' м между бетонными блоками или стенами, ' + (r.k > 1 ? 'промежуточных столбов ДПК ' + (r.k - 1) + ' на проём' : 'без столбов ДПК') + ', высота ' + fmt(Math.round(r.H * 1000)) + ' мм'
         : r.pm ? 'Ограждение по схеме террасы: ' + SHAPES[plan.shape].n.replace(/­/g, '').toLowerCase() + ' ' + fmt(r.P.L) + '×' + fmt(r.P.W) + ' м, стороны ' +
-          r.P.sides.map(function (s, i) { return plan.on[i] ? (i + 1) + ' (' + fmt(s.len, 2) + ' м)' : ''; }).filter(Boolean).join(', ') + ' — всего ' + fmt(r.L, 2) + ' пог. м, высота ' + fmt(Math.round(r.H * 1000)) + ' мм' + (r.skirtOn ? '' : ', без юбок')
-        : 'Ограждение: ' + fmt(r.L) + ' пог. м, высота ' + fmt(Math.round(r.H * 1000)) + ' мм, шаг столбов ' + fmt(Math.round(r.axis * 1000)) + ' мм' + (r.skirtOn ? '' : ', без юбок'),
+          r.P.sides.map(function (s, i) { return plan.on[i] ? (i + 1) + ' (' + fmt(s.len, 2) + ' м)' : ''; }).filter(Boolean).join(', ') + ' — всего ' + fmt(r.L, 2) + ' пог. м, высота ' + fmt(Math.round(r.H * 1000)) + ' мм'
+        : 'Ограждение: ' + fmt(r.L) + ' пог. м, высота ' + fmt(Math.round(r.H * 1000)) + ' мм, шаг столбов ' + fmt(Math.round(r.axis * 1000)) + ' мм',
       'Вид ' + r.T.id + ': ' + r.T.name.toLowerCase(),
       'Серия: ' + seriesName(S) + ', цвет ' + cur.color + (r.alu ? ', алюминиевые балясины' : ''),
       r.noPosts ? 'Проёмов: ' + r.nOpen + (r.k > 1 ? ', в каждом ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм' : '') + ', ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + (r.k > 1 ? ' на секцию' : ' на проём') : 'Секций: ' + r.spans + ' по ' + r.cTxt + ' мм, столбов ' + r.N + ', ' + (r.T.id === 1 ? 'балясин ' + r.nbTxt : 'деталей заполнения ' + r.segTxt) + ' на секцию'
@@ -656,7 +657,7 @@
     var t = ev.target;
     if (t.name === 'lfcShape') { plan.shape = t.value; plan.on = []; }   // новая форма — все стороны снова с ограждением
     if (t.hasAttribute && t.hasAttribute('data-side')) plan.on[+t.getAttribute('data-side')] = t.checked;
-    if (t.id === 'lfcSkirt' || t.id === 'lfcEnds' || t.name === 'lfcMode' || t.name === 'lfcShape' || t.hasAttribute('data-side')) render();
+    if (t.id === 'lfcEnds' || t.name === 'lfcMode' || t.name === 'lfcShape' || t.hasAttribute('data-side')) render();
   });
   // клик по стороне на плане — поставить или убрать ограждение
   $('lfcPlan').addEventListener('click', function (ev) {

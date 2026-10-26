@@ -68,7 +68,6 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
           <option value="posts" selected>столбы ДПК</option>
           <option value="walls">блоки или стены</option>
         </select></label>
-        <label class="ltd-toggle"><input type="checkbox" id="lfcSkirt" checked>Юбки на столбы</label>
         <div class="ltd-row2">
           <label class="ltd-field" data-f="L"><span id="lfcLLabel">Длина ограждения, пог. м</span><input type="number" id="lfcL" inputmode="decimal" min="0.5" max="500" step="0.1" value="6"><em class="ltd-err"></em></label>
           <label class="ltd-field" data-f="step"><span>Шаг столбов, м</span><input type="number" id="lfcStep" inputmode="decimal" min="0.5" step="0.05" value="1.5"><em class="ltd-err"></em></label>
@@ -115,7 +114,7 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
             <em id="lfcCap"></em>
           </div>
           <svg id="lfcSvg" viewBox="0 0 640 300" role="img" aria-label="Схема секций ограждения"></svg>
-          <div class="ltd-legend"><span><i style="background:var(--ltd-joist);height:8px"></i>столб</span><span><i style="background:var(--ltd-board);height:4px"></i>перила, поручень</span><span><i style="background:var(--ltd-board-2);width:4px;height:12px"></i>балясина</span><span id="lfcLegendNote"></span></div>
+          <div class="ltd-legend"><span><i style="background:var(--ltd-joist);height:8px"></i>столб</span><span><i style="background:var(--ltd-joist);opacity:.55;width:12px;height:6px;border-radius:1px"></i>юбка столба</span><span><i style="background:var(--ltd-board);height:4px"></i>перила, поручень</span><span><i style="background:var(--ltd-board-2);width:4px;height:12px"></i>балясина</span><span id="lfcLegendNote"></span></div>
         </figure>
       </div>
 
