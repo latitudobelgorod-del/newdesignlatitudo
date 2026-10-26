@@ -191,12 +191,16 @@ _tmr.push({id: "3477275", type: "pageView", start: (new Date()).getTime()});
    Положение над нижним меню и панелями корзины/карточки задают
    css/newdesign-mobile.css и css/newdesign-element.css — его здесь не трогаем:
    transform-origin в правом нижнем углу оставляет кнопку на том же месте.
-   left гасим: виджет пишет положение себе инлайном, и с left значение right не работает. */?>
+   left гасим: виджет пишет положение себе инлайном, и с left значение right не работает.
+   zoom гасим: на телефоне (по user-agent) виджет ставит себе инлайном zoom ~0.57, а zoom
+   уменьшает и отступы — bottom 68px превращался в ~39 и кнопка садилась на нижнее меню.
+   Без zoom кнопка мобильного вида 110px, scale 0.5 даёт ~55px. */?>
 <style>
 @media (max-width: 767px) {
   a.callbackkiller.cbk-phone {
     left: auto !important;
-    transform: scale(0.62) !important;
+    zoom: 1 !important;
+    transform: scale(0.5) !important;
     transform-origin: right bottom !important;
   }
   body.cbk-hidden a.callbackkiller.cbk-phone {
