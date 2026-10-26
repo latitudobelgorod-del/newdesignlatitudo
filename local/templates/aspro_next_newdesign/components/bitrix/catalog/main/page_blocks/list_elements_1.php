@@ -991,7 +991,14 @@ $ar_res = $res->GetNext();
 			   Колонок в сетке 4, на мобильном 2 — как и число товаров, берём по
 			   isMobilelat(). На планшете колонок 3 и ровного ряда всё равно не
 			   выходит: 20 на 3 не делится. */?>
-			<? include(__DIR__ . "/../include/promo_catalog_newdesign.php") ?>
+			<?/* В разделах без фильтра ($ndNoFilter — «Распродажа») нет и плиток акций со сквозным
+			   баннером (Ирина, 26.10.2026: «акцию по перголам в списке не показывать»). */?>
+			<?if($ndNoFilter){
+				$GLOBALS['ND_CATALOG_PROMO_HTML'] = '';
+				$GLOBALS['ND_CATALOG_PROMO_COUNT'] = 0;
+			}else{
+				include(__DIR__ . "/../include/promo_catalog_newdesign.php");
+			}?>
 			<?
 			$ndPromoCount = (int)$GLOBALS['ND_CATALOG_PROMO_COUNT'];
 			if($ndPromoCount > 0){
