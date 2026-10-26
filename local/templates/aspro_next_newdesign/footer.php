@@ -186,5 +186,44 @@ _tmr.push({id: "3477275", type: "pageView", start: (new Date()).getTime()});
 <?/* Виджет обратного звонка envybox — по первому действию посетителя, из отдельного
    файла js/nd-lazy-widgets.js (там же значок рейтинга на главной; почему — см. шапку файла). */?>
 <script src="<?=SITE_TEMPLATE_PATH?>/js/nd-lazy-widgets.js?v=20261007" defer></script>
+<?/* Кнопка звонка на телефоне (26.10.2026): круг 90px закрывал «В корзину» в плитках
+   и поля калькуляторов. Уменьшаем до ~56px и прячем, пока человек вводит текст.
+   Положение над нижним меню и панелями корзины/карточки задают
+   css/newdesign-mobile.css и css/newdesign-element.css — его здесь не трогаем:
+   transform-origin в правом нижнем углу оставляет кнопку на том же месте.
+   left гасим: виджет пишет положение себе инлайном, и с left значение right не работает. */?>
+<style>
+@media (max-width: 767px) {
+  a.callbackkiller.cbk-phone {
+    left: auto !important;
+    transform: scale(0.62) !important;
+    transform-origin: right bottom !important;
+  }
+  body.cbk-hidden a.callbackkiller.cbk-phone {
+    display: none !important;
+  }
+}
+</style>
+<script>
+(function () {
+  var mq = window.matchMedia('(max-width: 767px)');
+  var FIELDS = 'input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]), select, textarea';
+
+  document.addEventListener('focusin', function (e) {
+    if (mq.matches && e.target.matches && e.target.matches(FIELDS)) {
+      document.body.classList.add('cbk-hidden');
+    }
+  });
+  document.addEventListener('focusout', function () {
+    // задержка: при переходе между полями кнопка не мигает
+    setTimeout(function () {
+      var a = document.activeElement;
+      if (!(a && a.matches && a.matches(FIELDS))) {
+        document.body.classList.remove('cbk-hidden');
+      }
+    }, 150);
+  });
+})();
+</script>
 </body>
 </html>
