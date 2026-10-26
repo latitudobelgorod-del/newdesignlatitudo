@@ -1518,13 +1518,17 @@ if (!empty($arResult["PROPERTIES"]["ROTANG_COLOR"]["VALUE"])) {
 					   без разработчика. Пустая область — строки нет вовсе, поэтому
 					   вывод буферизуем и проверяем на пустоту (ob_start тут безопасен:
 					   IncludeFile, в отличие от ShowTitle, не отложенная функция). */?>
-				<?
+				<?/* Товар раздела «Распродажа» (Ирина, 26.10.2026): без рассрочки, а самовывоз
+				   в блоке «Доставка» — «со склада», не «из магазина». Раздел узнаём по адресу:
+				   ID раздела на проде и локально разный. */
+				$ndIsSale = strpos((string)$arResult['DETAIL_PAGE_URL'], SITE_DIR.'catalog/rasprodazha/') === 0;
 				ob_start();
-				$APPLICATION->IncludeFile(
-					SITE_DIR.'include/newdesign/element/installment.php',
-					[],
-					['MODE' => 'html', 'NAME' => 'Рассрочка в карточке товара']
-				);
+				if(!$ndIsSale)
+					$APPLICATION->IncludeFile(
+						SITE_DIR.'include/newdesign/element/installment.php',
+						[],
+						['MODE' => 'html', 'NAME' => 'Рассрочка в карточке товара']
+					);
 				$ndInstallment = trim(ob_get_clean());
 				?>
 				<?if($ndInstallment !== ''):?>
@@ -2562,11 +2566,18 @@ if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
 
 		<div class="nd-pd__delivery">
 			<h2 class="nd-pd__h2">Доставка</h2>
-			<?$APPLICATION->IncludeFile(
-				SITE_DIR.'include/newdesign/element/delivery.php',
-				[],
-				['MODE' => 'html', 'NAME' => 'Доставка в карточке товара']
-			);?>
+			<?if($ndIsSale){
+				// текст области общий для всех товаров — у распродажи меняем только подпись самовывоза
+				ob_start();
+				$APPLICATION->IncludeFile(SITE_DIR.'include/newdesign/element/delivery.php', [], ['MODE' => 'php']);
+				echo str_replace('>из магазина<', '>со склада<', ob_get_clean());
+			}else{
+				$APPLICATION->IncludeFile(
+					SITE_DIR.'include/newdesign/element/delivery.php',
+					[],
+					['MODE' => 'html', 'NAME' => 'Доставка в карточке товара']
+				);
+			}?>
 		</div>
 	</div>
 
