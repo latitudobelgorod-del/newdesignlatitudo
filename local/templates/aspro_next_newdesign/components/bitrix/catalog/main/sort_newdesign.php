@@ -85,7 +85,10 @@ $ndTagsHtml = isset($GLOBALS['ND_CATALOG_TAGS_HTML']) ? trim($GLOBALS['ND_CATALO
 
 	<?/* Кнопка «Фильтры» из мобильного макета. Своей панели фильтра не заводим —
 	   жмём штатный триггер темы (.filter_opener), он открывает ту же шторку. */?>
+	<?/* Раздел без фильтра — флаг ставит page_blocks/list_elements_1.php. */?>
+	<?if(empty($GLOBALS['ND_HIDE_FILTER'])):?>
 	<span class="nd-catlist-sort__filter" data-nd-filter-opener>Фильтры</span>
+	<?endif;?>
 
 	<?/* На поиске сортировки нет (Ирина, 7 сентября 2026): выдачу там строит
 	   свой поиск по релевантности, и «сначала дешёвые» ломало бы этот

@@ -149,7 +149,13 @@ if($isAjaxFilter == "Y")
 	*/?>
 
 	<?// filer?>
-	<?if($arTheme["FILTER_VIEW"]["VALUE"] === "VERTICAL"):?>
+	<?/* Разделы без фильтра (Ирина, 26.10.2026: «Распродажа» — товары разнородные, фильтр не нужен).
+	   Флаг ND_HIDE_FILTER прячет и кнопку «Фильтры» в строке сортировки (sort_newdesign.php). */
+	$ndNoFilter = in_array((string)($arResult["VARIABLES"]["SECTION_CODE"] ?? ''), array('rasprodazha'), true);
+	if($ndNoFilter)
+		$GLOBALS['ND_HIDE_FILTER'] = true;
+	?>
+	<?if($arTheme["FILTER_VIEW"]["VALUE"] === "VERTICAL" && !$ndNoFilter):?>
 		<?//add filter with ajax?>
 		<?if($arParams['AJAX_MODE'] == 'Y' && strpos($_SERVER['REQUEST_URI'], 'bxajaxid') !== false):?>
 			<div class="filter_tmp swipeignore">
@@ -215,7 +221,7 @@ if($isAjaxFilter == "Y")
 	
 	
 	<div class="right_block1 clearfix catalog <?=strtolower($arTheme["FILTER_VIEW"]["VALUE"]);?>" id="right_block_ajax">
-		<?if($arTheme["FILTER_VIEW"]["VALUE"] === "HORIZONTAL" || $arTheme["FILTER_VIEW"]["VALUE"] === "COMPACT"){?>
+		<?if(($arTheme["FILTER_VIEW"]["VALUE"] === "HORIZONTAL" || $arTheme["FILTER_VIEW"]["VALUE"] === "COMPACT") && !$ndNoFilter){?>
 			<div class="<?=($arTheme["FILTER_VIEW"]["VALUE"]=="HORIZONTAL" ? 'filter_horizontal' : '');?><?=($arTheme["FILTER_VIEW"]["VALUE"]=="COMPACT" ? ' filter_compact' : '');?> swipeignore">
 				<?include_once(__DIR__."/../filter.php")?>
 			</div>
@@ -927,7 +933,7 @@ $ar_res = $res->GetNext();
 			
 
 <?if($itemsCnt):?>
-			<?if('Y' === $arParams['USE_FILTER']):?>
+			<?if('Y' === $arParams['USE_FILTER'] && !$ndNoFilter):?>
 				<?
 			    $matchesFilter = array();
 			    if(isset($arParams["SEF_URL_TEMPLATES"]['smart_filter']) && strripos($arParams["SEF_URL_TEMPLATES"]['smart_filter'], "#SMART_FILTER_PATH#")) {
