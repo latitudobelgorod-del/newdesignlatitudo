@@ -49,11 +49,18 @@ if (function_exists('ndIsUtmVisit') && ndIsUtmVisit() && CModule::IncludeModule(
 	}
 }
 ?>
+<?/* Стиль ссылок здесь: css/newdesign.css отдаётся урезанной копией (css/purged), новое правило туда без пересборки не попадёт. */?>
+<style>
+.nd-sale-contacts__tel{color:inherit;text-decoration:none;white-space:nowrap}
+.nd-sale-contacts__tel:hover{color:#c8161d;text-decoration:underline}
+</style>
 <ul class="c-lists nd-sale-contacts">
+	<?/* Номера — ссылками tel: (Ирина, 27.10.2026): на телефоне набираются по нажатию.
+	     Ссылку собираем из показанного номера, так что подменный номер звонит туда же, куда написано. */?>
 	<?foreach($ndSaleOffices as $ndSaleOffice):?>
 		<?$ndSalePhone = $ndSalePodmena[$ndSaleOffice['id']] ?? $ndSaleOffice['phone'];?>
-		<li><?=htmlspecialcharsbx($ndSalePhone)?> / <?=$ndSaleOffice['text']?></li>
+		<li><a class="nd-sale-contacts__tel" href="tel:+<?=preg_replace('/\D/', '', $ndSalePhone)?>"><?=htmlspecialcharsbx($ndSalePhone)?></a> / <?=$ndSaleOffice['text']?></li>
 	<?endforeach;?>
 	<?/* Общий номер ничей, подменять его нечем — печатаем как есть. */?>
-	<li>8 (800) 505-45-40 бесплатный звонок по РФ</li>
+	<li><a class="nd-sale-contacts__tel" href="tel:88005054540">8 (800) 505-45-40</a> бесплатный звонок по РФ</li>
 </ul>

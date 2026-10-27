@@ -157,20 +157,26 @@ foreach ($site as $xml => $s) {
 		$fields['SORT'] = $p['sort'];
 		$was['SORT'] = (int)$s['SORT'];
 	}
-	$active = $p['total'] > 0 ? 'Y' : 'N';
+	// продаём только целые штуки: остаток 0,25 купить нельзя, корзина ругалась (Ирина, 27.10.2026)
+	$active = $p['total'] >= 1 ? 'Y' : 'N';
 	if ($s['ACTIVE'] !== $active) {
 		$fields['ACTIVE'] = $active;
 		$was['ACTIVE'] = $s['ACTIVE'];
 		$rep[$active === 'Y' ? 'activated' : 'deactivated'][] = ['id' => $id, 'name' => $p['name'],
-			'why' => $active === 'Y' ? 'остаток ' . $p['total'] : 'нет остатка ни на одном складе'];
+			'why' => $active === 'Y' ? 'остаток ' . $p['total']
+				: ($p['total'] > 0 ? 'остаток ' . $p['total'] . ' — меньше одной целой штуки' : 'нет остатка ни на одном складе')];
 	}
-	// больше остатка не продаём (Ирина, 27.10.2026): учёт количества включён, покупка «в минус» запрещена
-	$prod = \Bitrix\Catalog\ProductTable::getList(['filter' => ['=ID' => $id], 'select' => ['QUANTITY_TRACE', 'CAN_BUY_ZERO']])->fetch();
+	// больше остатка не продаём (Ирина, 27.10.2026): учёт количества включён, покупка «в минус» запрещена.
+	// Доступно = остаток по фиду минус резерв по заказам сайта: иначе обновление фида «возвращало»
+	// в продажу уже заказанную штуку, пока 1С её не списала.
+	$prod = \Bitrix\Catalog\ProductTable::getList(['filter' => ['=ID' => $id],
+		'select' => ['QUANTITY_TRACE', 'CAN_BUY_ZERO', 'QUANTITY_RESERVED']])->fetch();
+	$avail = max(0, $p['total'] - (float)($prod['QUANTITY_RESERVED'] ?? 0));
 	if ($prod && ($prod['QUANTITY_TRACE'] !== 'Y' || $prod['CAN_BUY_ZERO'] !== 'N')) {
 		$was['TRACE'] = [$prod['QUANTITY_TRACE'], $prod['CAN_BUY_ZERO']];
 		$rep['updated'][] = "$id не больше остатка: учёт количества включён";
 		if ($apply) {
-			\Bitrix\Catalog\Model\Product::update($id, ['QUANTITY_TRACE' => 'Y', 'CAN_BUY_ZERO' => 'N', 'QUANTITY' => $p['total']]);
+			\Bitrix\Catalog\Model\Product::update($id, ['QUANTITY_TRACE' => 'Y', 'CAN_BUY_ZERO' => 'N', 'QUANTITY' => $avail]);
 		}
 	}
 	// цена
@@ -206,7 +212,7 @@ foreach ($site as $xml => $s) {
 			return array_search($sid, ND_STORE_BY_CITY) . ' ' . (float)$stDiff[$sid] . '→' . $p['stores'][$sid];
 		}, array_keys($stDiff)));
 		if ($apply) {
-			\Bitrix\Catalog\Model\Product::update($id, ['QUANTITY' => $p['total']]);
+			\Bitrix\Catalog\Model\Product::update($id, ['QUANTITY' => $avail]);
 		}
 	}
 	if ($fields && $apply && !$el->Update($id, $fields)) {
@@ -233,7 +239,7 @@ foreach ($plan as $xml => $p) {
 	if (!$apply) {
 		continue;
 	}
-	$fields = ['IBLOCK_ID' => ND_IBLOCK_ID, 'ACTIVE' => $p['total'] > 0 ? 'Y' : 'N', 'NAME' => $p['name'], 'CODE' => $code,
+	$fields = ['IBLOCK_ID' => ND_IBLOCK_ID, 'ACTIVE' => $p['total'] >= 1 ? 'Y' : 'N', 'NAME' => $p['name'], 'CODE' => $code,
 		'XML_ID' => $xml, 'SORT' => $p['sort'], 'IBLOCK_SECTION_ID' => $sectionId];
 	if ($photo) {
 		$main = (int)($photo['DETAIL_PICTURE'] ?: $photo['PREVIEW_PICTURE']);
