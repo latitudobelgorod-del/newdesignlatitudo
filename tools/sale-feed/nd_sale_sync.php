@@ -164,8 +164,17 @@ foreach ($site as $xml => $s) {
 		$rep[$active === 'Y' ? 'activated' : 'deactivated'][] = ['id' => $id, 'name' => $p['name'],
 			'why' => $active === 'Y' ? 'остаток ' . $p['total'] : 'нет остатка ни на одном складе'];
 	}
+	// больше остатка не продаём (Ирина, 27.10.2026): учёт количества включён, покупка «в минус» запрещена
+	$prod = \Bitrix\Catalog\ProductTable::getList(['filter' => ['=ID' => $id], 'select' => ['QUANTITY_TRACE', 'CAN_BUY_ZERO']])->fetch();
+	if ($prod && ($prod['QUANTITY_TRACE'] !== 'Y' || $prod['CAN_BUY_ZERO'] !== 'N')) {
+		$was['TRACE'] = [$prod['QUANTITY_TRACE'], $prod['CAN_BUY_ZERO']];
+		$rep['updated'][] = "$id не больше остатка: учёт количества включён";
+		if ($apply) {
+			\Bitrix\Catalog\Model\Product::update($id, ['QUANTITY_TRACE' => 'Y', 'CAN_BUY_ZERO' => 'N', 'QUANTITY' => $p['total']]);
+		}
+	}
 	// цена
-	$price = \Bitrix\Catalog\PriceTable::getList(['filter' => ['=PRODUCT_ID' => $id, '=CATALOG_GROUP_ID' => ND_PRICE_GROUP]])->fetch();
+	$price =\Bitrix\Catalog\PriceTable::getList(['filter' => ['=PRODUCT_ID' => $id, '=CATALOG_GROUP_ID' => ND_PRICE_GROUP]])->fetch();
 	if (!$price || abs((float)$price['PRICE'] - $p['base']) > 0.004) {
 		$was['PRICE'] = $price ? (float)$price['PRICE'] : null;
 		$rep['updated'][] = "$id цена: " . ($price ? (float)$price['PRICE'] : '—') . " → {$p['base']}";
@@ -245,7 +254,7 @@ foreach ($plan as $xml => $p) {
 	}
 	CIBlockElement::SetPropertyValuesEx($id, ND_IBLOCK_ID, $props);
 	\Bitrix\Catalog\Model\Product::add(['ID' => $id, 'TYPE' => 1, 'MEASURE' => 5, 'QUANTITY' => $p['total'],
-		'QUANTITY_TRACE' => 'D', 'CAN_BUY_ZERO' => 'D', 'VAT_INCLUDED' => 'N']);
+		'QUANTITY_TRACE' => 'Y', 'CAN_BUY_ZERO' => 'N', 'VAT_INCLUDED' => 'N']);
 	\Bitrix\Catalog\Model\Price::add(['PRODUCT_ID' => $id, 'CATALOG_GROUP_ID' => ND_PRICE_GROUP, 'PRICE' => $p['base'], 'CURRENCY' => 'RUB']);
 	foreach ($p['stores'] as $sid => $amount) {
 		\Bitrix\Catalog\StoreProductTable::add(['PRODUCT_ID' => $id, 'STORE_ID' => $sid, 'AMOUNT' => $amount]);
