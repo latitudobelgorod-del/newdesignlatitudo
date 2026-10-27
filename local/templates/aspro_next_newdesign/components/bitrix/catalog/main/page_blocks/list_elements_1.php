@@ -312,7 +312,9 @@ if($isAjaxFilter == "Y")
 					
 					<?//блок с акциями — печатается ниже, в ряду с плитками подразделов?>
 										<?ob_start();?>
-										<? include_once(__DIR__ . "/../include/km_akciya_newdesign.php") ?>
+										<?/* В «Распродаже» ($ndNoFilter) баннер акции над товарами не нужен (Ирина, 27.10.2026):
+										     раздел сам и есть эта акция. */?>
+										<? if (empty($ndNoFilter)) include_once(__DIR__ . "/../include/km_akciya_newdesign.php") ?>
 										<?$ndAkciyaHtml = trim(ob_get_clean());?>
 					<?//блок с акциями?>
 	
