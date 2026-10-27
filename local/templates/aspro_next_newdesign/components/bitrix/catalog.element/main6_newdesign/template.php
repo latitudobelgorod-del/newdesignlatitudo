@@ -811,6 +811,12 @@ if ($ndProfileVal) {
 <?if($arResult['UF_COMMENT_PRICE']):?>
 <div class="uf_comment_price_container"><div class="uf_comment_price"><?= $arResult['UF_COMMENT_PRICE'] ?></div></div>
 <?endif;?>
+<?/* 4SIS со стикером «Акция» (у 4SIS на сайте акция, у нас цена розничная — стикер ставит ночная сверка,
+     tools/4sis-price-sync/promo_4sis.php): та же плашка, что у доски (Ирина, 27.10.2026). Бренд 4SIS — 28619. */
+$ndHitXml = (array)($arResult['PROPERTIES']['HIT']['VALUE_XML_ID'] ?? array());
+if ((int)($arResult['PROPERTIES']['BRAND']['VALUE'] ?? 0) === 28619 && in_array('AKCIYA', $ndHitXml, true)):?>
+<div class="uf_comment_price_container"><div class="uf_comment_price">Возможна акционная цена. Подробности уточняйте у наших менеджеров</div></div>
+<?endif;?>
 
 
 <?/*Производитель*/?>
