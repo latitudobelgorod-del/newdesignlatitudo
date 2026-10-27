@@ -5,7 +5,7 @@
 # «OutOfStock» стоял у товаров с «Достаточно» — по нему 44 товара были выключены зря).
 #   python3 check_missing_4sis.py <report.csv от sync_4sis.php> <файл ID на выключение> <файл ID<TAB>цена>
 # Если 4sis.ru не ответил — товар не трогаем. Больше 40 товаров за ночь не выключаем (похоже на сбой) — только письмо.
-import csv, html, io, re, sys, time, urllib.parse, urllib.request
+import csv, glob, html, io, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
 
 LIMIT = 40
 # ID товаров, цену которых не трогаем (решение по ним за людьми), — ~/4sis-sync/price_hold.txt, по одному ID в строке
@@ -39,6 +39,19 @@ def stock_and_price(s):
     old = re.search(r'strike_block">\s*<div class="price[^"]*"[^>]*data-value="([0-9.]+)"', blk)
     return st, max(float(cur.group(1)) if cur else 0, float(old.group(1)) if old else 0)
 
+# Адреса карточек 4sis.ru, известные по обходу сайта (site_goods*.json от еженедельного шага, ключ — адрес).
+# Поиск 4sis.ru /store/?q= находит не всё: 27.10.2026 по «Аликанте» он отдавал только лаунж-зону, и 48
+# продающихся товаров (заведены 23.10 с сайта) четыре ночи подряд шли «на выключение». Не нашли поиском —
+# открываем карточку по известному адресу; «нет на 4sis.ru» — только если её там правда нет (404).
+known = {}
+for f in glob.glob(os.path.expanduser('~/4sis-sync/site_goods*.json')):
+    try:
+        for u, x in json.load(io.open(f, encoding='utf-8')).items():
+            if isinstance(x, dict) and x.get('name'):
+                known.setdefault(norm(x['name']), u)
+    except (ValueError, IOError):
+        pass
+
 cache, off, prices = {}, [], []
 for id_, name in cand:
     m = re.match(r'\s*"([^"]+)"', name)
@@ -57,11 +70,17 @@ for id_, name in cand:
                 if not new or 'PAGEN_1=%d' % (page + 1) not in s:
                     break
             cache[q] = found
-        exact = [u for t, u in cache[q].items() if norm(t) == norm(name)]
+        exact = [u for t, u in cache[q].items() if norm(t) == norm(name)] or ([known[norm(name)]] if norm(name) in known else [])
         if not exact:
             off.append((id_, name, 'нет на 4sis.ru'))
             continue
-        s = get(exact[0]); time.sleep(1)
+        try:
+            s = get(exact[0]); time.sleep(1)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                off.append((id_, name, 'нет на 4sis.ru (карточка удалена)'))
+                continue
+            raise
         st, price = stock_and_price(s)
         if st == '':
             print('  не проверен %s %s — не разобрала наличие на %s' % (id_, name, exact[0]))
