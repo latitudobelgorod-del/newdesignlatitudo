@@ -4,7 +4,8 @@
  * У товаров с учётом количества (распродажа: QUANTITY_TRACE=Y, CAN_BUY_ZERO=N) счётчик темы
  * упирается в остаток молча: «+» перестаёт срабатывать, а вписанное число тихо уменьшается.
  * Покупатель жмёт и не понимает, что происходит. Ловим оба случая и показываем под счётчиком
- * «Больше нет на складе — доступно N шт.».
+ * «Больше нет на складе — доступно N шт.». Подсказка держится, пока количество не станет меньше
+ * остатка (сама не гаснет — её не успевали прочитать).
  *
  * Работает делегированием на document: и в списке, и в карточке, и для товаров, подгруженных
  * «Показать ещё». У товаров без учёта количества «+» всегда прибавляет — подсказка там не появится.
@@ -14,11 +15,13 @@
 
 	var BOX = '.counter_block, .measure-block';
 
-	// стиль — здесь же, чтобы подсказка была одним файлом: красный текст под счётчиком, плавно гаснет
+	// стиль — здесь же, чтобы подсказка была одним файлом: красный текст под счётчиком.
+	// В плитке списка узко, а предки держат nowrap — переносим явно (Ирина, 27.10.2026: «обрезанная»).
 	var css = document.createElement('style');
-	css.textContent = '.nd-stock-note{flex-basis:100%;width:100%;margin-top:6px;font-size:13px;line-height:1.3;color:#c8161d;' +
+	css.textContent = '.nd-stock-note{flex-basis:100%;width:100%;max-width:100%;box-sizing:border-box;margin-top:6px;' +
+		'font-size:13px;line-height:1.3;color:#c8161d;white-space:normal;overflow-wrap:anywhere;text-align:left;' +
 		'opacity:0;max-height:0;overflow:hidden;transition:opacity .2s,max-height .2s}' +
-		'.nd-stock-note.is-on{opacity:1;max-height:40px}';
+		'.nd-stock-note.is-on{opacity:1;max-height:80px}';
 	document.head.appendChild(css);
 
 	function input(box) {
@@ -42,18 +45,29 @@
 			note.setAttribute('role', 'status');
 			host.appendChild(note);
 		}
-		note.textContent = 'Больше нет на складе — доступно ' + fmt(qty) + ' шт.';
+		// число и «шт.» не разрываем — иначе в узкой плитке «шт.» уезжает одно на вторую строку
+		note.textContent = 'Больше нет на складе — доступно ' + fmt(qty) + ' шт.';
 		note.classList.add('is-on');
-		clearTimeout(note._ndT);
-		note._ndT = setTimeout(function () { note.classList.remove('is-on'); }, 3500);
+		note._ndMax = qty;
 	}
 
-	// «+»: значение до нажатия запоминаем в фазе захвата, до обработчика темы
+	// убрать подсказку, когда количество стало меньше остатка
+	function hideIfBelow(box) {
+		var note = box.parentNode && box.parentNode.querySelector(':scope > .nd-stock-note.is-on');
+		var inp = input(box);
+		if (note && inp && num(inp.value) < note._ndMax) note.classList.remove('is-on');
+	}
+
+	// «+»: значение до нажатия запоминаем в фазе захвата, до обработчика темы; «−» — убираем подсказку
 	document.addEventListener('click', function (e) {
-		var plus = e.target.closest && e.target.closest('.plus');
-		var box = plus && plus.closest(BOX);
+		var btn = e.target.closest && e.target.closest('.plus, .minus');
+		var box = btn && btn.closest(BOX);
 		var inp = box && input(box);
 		if (!inp) return;
+		if (btn.classList.contains('minus')) {
+			setTimeout(function () { hideIfBelow(box); }, 120);
+			return;
+		}
 		var before = num(inp.value);
 		setTimeout(function () {
 			var after = num(inp.value);
@@ -74,6 +88,7 @@
 			setTimeout(function () {
 				var now = num(inp.value);
 				if (now > 0 && now < typed) show(box, now);
+				else hideIfBelow(box);
 				inp._ndTyped = 0;
 			}, 150);
 		}, true);
