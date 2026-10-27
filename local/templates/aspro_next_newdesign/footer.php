@@ -186,6 +186,8 @@ _tmr.push({id: "3477275", type: "pageView", start: (new Date()).getTime()});
 <?/* Виджет обратного звонка envybox — по первому действию посетителя, из отдельного
    файла js/nd-lazy-widgets.js (там же значок рейтинга на главной; почему — см. шапку файла). */?>
 <script src="<?=SITE_TEMPLATE_PATH?>/js/nd-lazy-widgets.js?v=20261007" defer></script>
+<?/* Подсказка «Больше нет на складе» у счётчика, когда упёрлись в остаток (товары распродажи, 27.10.2026). */?>
+<script src="<?=SITE_TEMPLATE_PATH?>/js/nd-stock-limit.js?<?=@filemtime($_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/js/nd-stock-limit.js')?>" defer></script>
 <?/* Кнопка звонка на телефоне (26.10.2026): круг 90px закрывал «В корзину» в плитках
    и поля калькуляторов. Уменьшаем до ~56px и прячем, пока человек вводит текст.
    Положение над нижним меню и панелями корзины/карточки задают
