@@ -339,7 +339,9 @@ foreach ($have as $off => $h) {
 	}
 }
 
-if ($apply) {
+// Кеш каталога сбрасываем только если что-то поменяли: сброс тега инфоблока обнуляет кеш ВСЕГО каталога,
+// и первые посетители после него ждут пересборки (по замеру 27.10.2026 раздел 0,8 с вместо 0,4).
+if ($apply && ($undo || $rep['created'] || $rep['discounts'])) {
 	CIBlock::clearIblockTagCache(ND_IBLOCK_ID);
 	if ($promoIb) {
 		CIBlock::clearIblockTagCache($promoIb);
