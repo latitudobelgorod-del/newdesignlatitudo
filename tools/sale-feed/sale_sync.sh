@@ -1,6 +1,8 @@
 #!/bin/bash
 # Сверка раздела «Распродажа» с фидом metatool (файлы в ~/sale-feed на latitudo-ru, вне www).
-# cron раз в 5 минут; сверка запускается, только если фид изменился по существу (Ирина, 26.10.2026:
+# cron раз в минуту (27.10.2026; metatool сам обновляет остатки в фиде раз в ~20 минут — в :03, :23, :43,
+# связи с ним нет, так что быстрее этого не получится; метки обновлений — sync/stamps.log);
+# сверка запускается, только если фид изменился по существу (Ирина, 26.10.2026:
 # «на любое изменение»): сравниваем отпечаток товаров, цен и остатков без меток времени фида.
 # Раз в сутки (в 04:25) — сверка в любом случае, на случай если на сайте что-то поправили руками.
 # Письмо на content@latitudo.ru — только если есть новые/выключенные/включённые товары или ошибка (sale_report.py).
@@ -17,9 +19,16 @@ flock -n 9 || exit 0
 
 curl -s -m 60 -o sync/feed.tmp "$FEED_URL" || { rm -f sync/feed.tmp; exit 0; }
 SUM=$(/usr/bin/python3 - sync/feed.tmp <<'EOF'
-import hashlib, json, sys
+import hashlib, json, os, sys
 try:
     d = json.load(open(sys.argv[1], encoding='utf-8'))
+    # как часто metatool обновляет фид: метка stock_updated_at — в sync/stamps.log при каждой смене
+    st, last = d.get('stock_updated_at', ''), ''
+    if os.path.exists('sync/stamp.last'):
+        last = open('sync/stamp.last').read().strip()
+    if st and st != last:
+        open('sync/stamp.last', 'w').write(st)
+        open('sync/stamps.log', 'a').write(st + '\n')
     items = [{k: v for k, v in i.items() if k != 'updated_at'} for i in d['items']]
     print(hashlib.md5(json.dumps(sorted(items, key=lambda i: i.get('xml_id', '')), sort_keys=True).encode()).hexdigest())
 except Exception:
