@@ -3,7 +3,9 @@
 # продаётся («Достаточно», «Мало», «Под заказ…») — оставляем и берём цену с их карточки (без акции).
 # Наличие — ТОЛЬКО по надписи у цены, которую видит покупатель: schema.org availability у 4SIS врёт (23.10.2026
 # «OutOfStock» стоял у товаров с «Достаточно» — по нему 44 товара были выключены зря).
-#   python3 check_missing_4sis.py <report.csv от sync_4sis.php> <файл ID на выключение> <файл ID<TAB>цена>
+#   python3 check_missing_4sis.py <report.csv от sync_4sis.php> <файл ID на выключение> <файл ID<TAB>цена> [<файл акций>]
+# <файл акций> (27.10.2026) — товары, у которых на карточке 4sis.ru акция: ID<TAB>цена сейчас<TAB>цена без акции;
+# по нему promo_4sis.php ставит стикер «Акция».
 # Если 4sis.ru не ответил — товар не трогаем. Больше 40 товаров за ночь не выключаем (похоже на сбой) — только письмо.
 import csv, glob, html, io, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
 
@@ -37,7 +39,9 @@ def stock_and_price(s):
     st = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', m.group(1))).strip() if m else ''
     cur = re.search(r'price_matrix_wrapper "?>\s*<div class="price font-bold[^"]*"[^>]*data-value="([0-9.]+)"', blk)
     old = re.search(r'strike_block">\s*<div class="price[^"]*"[^>]*data-value="([0-9.]+)"', blk)
-    return st, max(float(cur.group(1)) if cur else 0, float(old.group(1)) if old else 0)
+    cur = float(cur.group(1)) if cur else 0
+    old = float(old.group(1)) if old else 0
+    return st, max(cur, old), cur, old
 
 # Адреса карточек 4sis.ru, известные по обходу сайта (site_goods*.json от еженедельного шага, ключ — адрес).
 # Поиск 4sis.ru /store/?q= находит не всё: 27.10.2026 по «Аликанте» он отдавал только лаунж-зону, и 48
@@ -52,7 +56,7 @@ for f in glob.glob(os.path.expanduser('~/4sis-sync/site_goods*.json')):
     except (ValueError, IOError):
         pass
 
-cache, off, prices = {}, [], []
+cache, off, prices, promos = {}, [], [], []
 for id_, name in cand:
     m = re.match(r'\s*"([^"]+)"', name)
     q = m.group(1) if m else ' '.join(name.split()[:4])
@@ -81,7 +85,9 @@ for id_, name in cand:
                 off.append((id_, name, 'нет на 4sis.ru (карточка удалена)'))
                 continue
             raise
-        st, price = stock_and_price(s)
+        st, price, cur_p, old_p = stock_and_price(s)
+        if old_p > cur_p > 0:
+            promos.append((id_, cur_p, old_p))
         if st == '':
             print('  не проверен %s %s — не разобрала наличие на %s' % (id_, name, exact[0]))
         elif 'нет в наличии' in st.lower():
@@ -102,3 +108,5 @@ for id_, name, why in off:
     print('  выключить %s %s — %s' % (id_, name, why))
 io.open(sys.argv[2], 'w', encoding='utf-8').write(','.join(i for i, _, _ in off))
 io.open(sys.argv[3], 'w', encoding='utf-8').write(''.join('%s\t%d\n' % p for p in prices))
+if len(sys.argv) > 4:
+    io.open(sys.argv[4], 'w', encoding='utf-8').write(''.join('%s\t%d\t%d\n' % p for p in promos))

@@ -12,11 +12,27 @@ foreach($arResult["ITEMS"] as $key => $arItem)
 
 	   Отсекаем по CODE, а не по названию: название правится из админки.
 	   Свойство при этом остаётся рабочим — прячем только его блок в фильтре
-	   нового дизайна, старый шаблон фильтра не трогаем. */
+	   нового дизайна, старый шаблон фильтра не трогаем.
+
+	   С 27.10.2026 (Ирина: «выведи в фильтре акция, чтобы можно было отобрать») группа
+	   показывается под названием «Акции», но только со значениями «Акция» и «Акция /
+	   Распродажа» — по XML_ID (URL_ID фильтра = XML_ID в нижнем регистре); «Хиты месяца»
+	   и прочие служебные значения по-прежнему не показываем. «Акцию» товарам 4SIS
+	   ставит ночная сверка (tools/4sis-price-sync/promo_4sis.php). */
 	if($arItem["CODE"] === "HIT")
 	{
-		unset($arResult["ITEMS"][$key]);
-		continue;
+		foreach((array)$arItem["VALUES"] as $vKey => $v)
+		{
+			if(!in_array(strtolower((string)($v["URL_ID"] ?? '')), array('akciya', 'akciya_rasprodaja'), true))
+				unset($arResult["ITEMS"][$key]["VALUES"][$vKey]);
+		}
+		if(empty($arResult["ITEMS"][$key]["VALUES"]))
+		{
+			unset($arResult["ITEMS"][$key]);
+			continue;
+		}
+		$arResult["ITEMS"][$key]["NAME"] = "Акции";
+		$arItem = $arResult["ITEMS"][$key];
 	}
 
 	/*unset empty values*/

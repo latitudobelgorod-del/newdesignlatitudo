@@ -30,8 +30,8 @@ echo "== цены"
 $PHP sync_4sis.php --feed="$FEED" apply
 echo "== выключить пропавшие"
 REPORT=$(ls -dt "$HOME"/4sis-sync/*_apply | grep -v '_new_\|_vendor_' | head -1)/report.csv
-rm -f daily/off.txt daily/site_prices.tsv
-/usr/bin/python3 check_missing_4sis.py "$REPORT" daily/off.txt daily/site_prices.tsv
+rm -f daily/off.txt daily/site_prices.tsv daily/site_promo.tsv
+/usr/bin/python3 check_missing_4sis.py "$REPORT" daily/off.txt daily/site_prices.tsv daily/site_promo.tsv
 if [ -s daily/off.txt ]; then
 	cp daily/off.txt "daily/off_$D.txt"
 	$PHP nd_activate.php N "$(cat daily/off.txt)"
@@ -40,6 +40,9 @@ if [ -s daily/site_prices.tsv ]; then
 	echo "== цены с сайта 4sis.ru (товары не из фида, но продаются)"
 	$PHP sync_4sis.php --feed="$FEED" --site-prices="$HOME/4sis-sync/daily/site_prices.tsv" apply
 fi
+# стикер «Акция» у товаров, у которых на 4sis.ru акция (цена у нас — розничная, без акции; 27.10.2026)
+echo "== стикер Акция"
+$PHP promo_4sis.php "$REPORT" daily/site_promo.tsv apply
 # по воскресеньям — весь сайт 4sis.ru: товары не из фида, «Доступные варианты»
 if [ "$(date +%u)" = "7" ]; then
 	./weekly_4sis.sh

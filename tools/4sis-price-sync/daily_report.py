@@ -44,6 +44,10 @@ m = re.search(r'^(Фид: .+)\n((?:\s+\d+ .+\n)+)', log, re.M)
 if m:
     stats = [m.group(1)] + [' '.join(l.split()) for l in m.group(2).splitlines()]
 weekly = re.findall(r'^Товаров с вариантами: .+$', log, re.M)
+# стикер «Акция» (promo_4sis.php): итоговая строка и списки поставленных/снятых
+promo_line = re.findall(r'^Акция у 4SIS: .+$', log, re.M)
+promo_add = re.findall(r'^  \+ (\d+ .+)$', log, re.M)
+promo_del = re.findall(r'^  − (\d+ .+ — акция у 4SIS закончилась)$', log, re.M)
 
 lines = ['Ежедневная сверка товаров 4SIS с фидом поставщика (https://4sis.ru/images/111/XML_OCT_EACH.xml), ' + date + '.', '']
 if error:
@@ -60,6 +64,13 @@ if blocked:
     lines += ['', 'НЕ выключены — сработал предохранитель (за ночь больше 40), проверьте вручную: %d' % len(blocked)] + ['  %s %s' % b for b in blocked]
 lines += ['', 'Товары не из фида, проверенные по сайту 4sis.ru: в продаже %d, не проверены %d' % (kept, len(unchecked))]
 lines += ['  не проверен %s %s' % u for u in unchecked]
+if promo_line:
+    lines += ['', 'Стикер «Акция» (на 4sis.ru акция, цена у нас розничная): ' + promo_line[-1].split(': ', 1)[1]]
+    for title, items in (('поставлен', promo_add), ('снят', promo_del)):
+        if items:
+            lines += ['  %s:' % title] + ['    ' + x for x in items[:30]]
+            if len(items) > 30:
+                lines.append('    … и ещё %d — в журнале во вложении' % (len(items) - 30))
 if stats:
     lines += ['', 'Сопоставление цен:'] + ['  ' + s for s in stats]
 if weekly:
