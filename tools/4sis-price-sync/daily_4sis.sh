@@ -3,8 +3,9 @@
 #   1) свежий фид поставщика;
 #   2) новые товары фида — завести (new_goods_4sis.php);
 #   3) выключенные товары, которые снова есть в фиде, — включить (activate_from_feed.php);
-#   4) цены — по фиду, без акции (sync_4sis.php apply);
-#   5) письмо с итогами на content@latitudo.ru (daily_report.py).
+#   4) «Артикул производителя» и код 1С тем, кто вернулся в фид после заведения (vendor_code_4sis.php, с 28.10);
+#   5) цены — по фиду, без акции (sync_4sis.php apply);
+#   6) письмо с итогами на content@latitudo.ru (daily_report.py).
 # Ничего не выключает: фид у 4SIS неполный, товар может пропасть из него и вернуться.
 cd "$HOME/4sis-sync" || exit 1
 PHP=/opt/php/8.2/bin/php
@@ -26,6 +27,9 @@ echo "== новые товары"
 $PHP new_goods_4sis.php --feed="$FEED" apply
 echo "== включить вернувшиеся в фид"
 $PHP activate_from_feed.php --feed="$FEED" apply
+# артикул ставился один раз 23.10 — товары, которых тогда не было в фиде, оставались без него (28.10.2026)
+echo "== артикул производителя"
+$PHP vendor_code_4sis.php --feed="$FEED" apply | grep -v 'уже всё есть\|нет в фиде'
 echo "== цены"
 $PHP sync_4sis.php --feed="$FEED" apply
 echo "== выключить пропавшие"
