@@ -156,6 +156,7 @@
 	transform: scale(1.03);
 }
 
+/* кнопка — как у плеера Rutube: голубой квадрат со скруглением (Ирина, 28.10.2026) */
 .nd-vr__play {
 	position: absolute;
 	top: 50%;
@@ -163,14 +164,14 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 56px;
-	height: 56px;
-	margin: -28px 0 0 -28px;
-	border-radius: 50%;
-	background: #fff;
-	color: #101014;
+	width: 64px;
+	height: 64px;
+	margin: -32px 0 0 -32px;
+	border-radius: 16px;
+	background: #10a5e9;
+	color: #fff;
 	box-shadow: 0 2px 12px rgba(0, 0, 0, .2);
-	transition: transform .15s ease, color .15s ease;
+	transition: transform .15s ease, background-color .15s ease;
 }
 
 .nd-vr__play svg {
@@ -179,7 +180,7 @@
 
 .nd-vr__card:hover .nd-vr__play {
 	transform: scale(1.08);
-	color: #c60000;
+	background: #0b93d1;
 }
 
 .nd-vr__series,
@@ -224,41 +225,22 @@
 
 .nd-vr__meta {
 	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: 12px;
-	margin-top: 12px;
-	padding-top: 12px;
-	border-top: 1px solid rgba(82, 82, 100, .15);
-	font-size: 13px;
-	line-height: 18px;
-}
-
-.nd-vr__product {
-	min-width: 0;
-	color: #525264;
-	text-decoration: none;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.nd-vr__product:hover {
-	color: #c60000;
+	align-items: baseline;
+	gap: 8px;
+	margin-top: 10px;
+	font-size: 14px;
+	line-height: 20px;
 }
 
 .nd-vr__price {
-	flex: none;
-	text-align: right;
-	font-weight: 600;
+	font-weight: 700;
 	color: #101014;
 	white-space: nowrap;
 }
 
 .nd-vr__variants {
-	display: block;
-	font-weight: 400;
 	color: #525264;
+	white-space: nowrap;
 }
 
 /* окно */

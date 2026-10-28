@@ -96,16 +96,13 @@ $ndVrId = 'nd-vr-' . $this->randString();
 
 	<div class="nd-vr__rail" data-nd-vr-rail>
 		<? foreach ($arResult['ITEMS'] as $i => $v): ?>
-			<?
-			$first = $v['PRODUCTS'][0] ?? null;
-			$variants = count($v['PRODUCTS']);
-			?>
+			<? $variants = count($v['PRODUCTS']); ?>
 			<article class="nd-vr__card" data-nd-vr-i="<?= $i ?>" data-nd-vr-cat="<?= htmlspecialcharsbx($v['CATEGORY']) ?>">
 				<button type="button" class="nd-vr__thumb" data-nd-vr-open="<?= $i ?>" aria-label="Смотреть видео: <?= htmlspecialcharsbx($v['NAME']) ?>">
 					<? if ($v['PICTURE']): ?>
 						<img class="nd-vr__img" src="<?= htmlspecialcharsbx($v['PICTURE']['SRC']) ?>" width="<?= $v['PICTURE']['WIDTH'] ?>" height="<?= $v['PICTURE']['HEIGHT'] ?>" alt="<?= htmlspecialcharsbx($v['NAME']) ?>" loading="lazy" decoding="async">
 					<? endif; ?>
-					<span class="nd-vr__play" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></span>
+					<span class="nd-vr__play" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M8 5.2v13.6c0 .8.9 1.3 1.6.8l10.2-6.8a1 1 0 0 0 0-1.6L9.6 4.4C8.9 3.9 8 4.4 8 5.2z" fill="currentColor"/></svg></span>
 					<? if ($v['SERIES'] !== ''): ?>
 						<span class="nd-vr__series"><?= htmlspecialcharsbx($v['SERIES']) ?></span>
 					<? endif; ?>
@@ -115,13 +112,12 @@ $ndVrId = 'nd-vr-' . $this->randString();
 				</button>
 				<div class="nd-vr__body">
 					<h3 class="nd-vr__name"><?= htmlspecialcharsbx($v['NAME']) ?></h3>
-					<? if ($first): ?>
+					<?/* под названием — только цена и число цветов: название товара повторяло
+					   название ролика и читалось как непонятная ссылка (Ирина, 28.10.2026) */?>
+					<? if (!empty($v['PRICE_MIN']) || $variants > 1): ?>
 						<div class="nd-vr__meta">
-							<a class="nd-vr__product" href="<?= htmlspecialcharsbx($first['URL']) ?>"><?= htmlspecialcharsbx($first['NAME']) ?></a>
-							<span class="nd-vr__price">
-								<? if (!empty($v['PRICE_MIN'])): ?>от <?= $ndVrPrice($v['PRICE_MIN']) ?><? endif; ?>
-								<? if ($variants > 1): ?><span class="nd-vr__variants"><?= $ndVrColors($variants) ?></span><? endif; ?>
-							</span>
+							<? if (!empty($v['PRICE_MIN'])): ?><span class="nd-vr__price">от <?= $ndVrPrice($v['PRICE_MIN']) ?></span><? endif; ?>
+							<? if ($variants > 1): ?><span class="nd-vr__variants"><?= $ndVrColors($variants) ?></span><? endif; ?>
 						</div>
 					<? endif; ?>
 				</div>
