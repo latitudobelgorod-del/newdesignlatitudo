@@ -48,6 +48,7 @@ class LatitudoVideoRail extends CBitrixComponent
 			// пустой результат тоже в кеш: у большинства марок роликов нет, шаблон тогда молчит
 			$this->arResult['ITEMS'] = $this->prepareItems($items);
 			$this->arResult['CATEGORIES'] = $this->categories($items);
+			$this->arResult['BRANDS'] = $this->arParams['BRAND_ID'] ? [] : $this->brands($items);
 			$this->registerTags();
 			$this->includeComponentTemplate();
 		}
@@ -58,8 +59,11 @@ class LatitudoVideoRail extends CBitrixComponent
 		foreach ($items as &$v) {
 			$v['PICTURE'] = null;
 			if ($v['PICTURE_ID'] > 0) {
-				// карточка 360px — превью вдвое шире для чётких экранов
-				$pic = CFile::ResizeImageGet($v['PICTURE_ID'], ['width' => 720, 'height' => 405], BX_RESIZE_IMAGE_EXACT, true);
+				// карточка 360–430px; 640px хватает для чётких экранов. Качество 75:
+				// по умолчанию превью с Rutube весили до 300 КБ, страница /video/ — 3.7 МБ
+				// (Ирина 28.10.2026: «очень долго грузится»). Размер другой — значит и файлы
+				// в resize_cache новые, старые 720×405 не подхватятся.
+				$pic = CFile::ResizeImageGet($v['PICTURE_ID'], ['width' => 640, 'height' => 360], BX_RESIZE_IMAGE_EXACT, true, false, false, 75);
 				$v['PICTURE'] = $pic ? ['SRC' => $pic['src'], 'WIDTH' => (int)$pic['width'], 'HEIGHT' => (int)$pic['height']] : null;
 			}
 		}
