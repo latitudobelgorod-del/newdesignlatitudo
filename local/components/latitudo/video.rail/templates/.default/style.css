@@ -5,6 +5,8 @@
 .nd-vr {
 	margin: 56px 0 8px;
 	color: #101014;
+	/* переход по ссылке «Видео товаров …» из описания марки — не под шапку */
+	scroll-margin-top: calc(var(--nd-header-h, 156px) + 16px);
 }
 
 .nd-vr__head {
@@ -164,10 +166,10 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 64px;
-	height: 64px;
-	margin: -32px 0 0 -32px;
-	border-radius: 16px;
+	width: 48px;
+	height: 48px;
+	margin: -24px 0 0 -24px;
+	border-radius: 12px;
 	background: #10a5e9;
 	color: #fff;
 	box-shadow: 0 2px 12px rgba(0, 0, 0, .2);
@@ -175,11 +177,10 @@
 }
 
 .nd-vr__play svg {
-	margin-left: 3px;
+	margin-left: 2px;
 }
 
 .nd-vr__card:hover .nd-vr__play {
-	transform: scale(1.08);
 	background: #0b93d1;
 }
 
@@ -221,26 +222,6 @@
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
-}
-
-.nd-vr__meta {
-	display: flex;
-	align-items: baseline;
-	gap: 8px;
-	margin-top: 10px;
-	font-size: 14px;
-	line-height: 20px;
-}
-
-.nd-vr__price {
-	font-weight: 700;
-	color: #101014;
-	white-space: nowrap;
-}
-
-.nd-vr__variants {
-	color: #525264;
-	white-space: nowrap;
 }
 
 /* окно */

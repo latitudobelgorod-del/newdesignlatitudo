@@ -2231,6 +2231,12 @@ body .nd-brandhead #pagetitle {
     margin-bottom: 0;
 }
 
+/* «Видео товаров …» рядом с «Документацией и сертификатами» — ставит
+   script.js шаблона news.detail/partners, если у марки есть ролики. */
+.nd-brandhead__videolink {
+    margin-left: 24px;
+}
+
 /* Лестница размеров та же, что у H1 остальных внутренних страниц. */
 @media (max-width: 1199px) {
     body .nd-brandhead #pagetitle {

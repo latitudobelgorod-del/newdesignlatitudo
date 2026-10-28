@@ -148,9 +148,54 @@
 		});
 	}
 
+	/* ---------------- ссылки на блоки внизу страницы ---------------- */
+	/* «Документация и сертификаты» и «Видео товаров …» ведут в самый низ, через
+	   всю ленту товаров (Ирина, 28.10.2026). Плавная прокрутка тянулась через
+	   ~15 000px с подгружающимися картинками и выглядела как скачки — переходим
+	   сразу, а если ленивые картинки над блоком сдвинули его, доводим ещё раз. */
+	function jumpTo(target) {
+		target.scrollIntoView({ block: 'start', behavior: 'instant' });
+		[300, 900].forEach(function (ms) {
+			setTimeout(function () {
+				var head = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nd-header-h'), 10) || 156;
+				var top = target.getBoundingClientRect().top;
+				if (Math.abs(top - head - 16) > 8) target.scrollIntoView({ block: 'start', behavior: 'instant' });
+			}, ms);
+		});
+	}
+
+	function initPageLinks() {
+		var box = document.querySelector('.nd-brandhead__text');
+		if (!box) return;
+
+		/* Ролики у марки есть — рядом с «Документацией» ставим ссылку на них. */
+		var video = document.getElementById('video');
+		var docs = box.querySelector('a[href="#dokumentatsiya"]');
+		if (video && docs && !box.querySelector('a[href="#video"]')) {
+			var h1 = document.querySelector('h1');
+			var link = document.createElement('a');
+			link.href = '#video';
+			link.className = 'nd-brandhead__videolink';
+			link.textContent = 'Видео товаров' + (h1 ? ' ' + h1.textContent.trim() : '');
+			docs.parentNode.insertBefore(link, docs.nextSibling);
+		}
+
+		box.addEventListener('click', function (e) {
+			var a = e.target.closest('a[href^="#"]');
+			if (!a) return;
+			var id = a.getAttribute('href').slice(1);
+			var target = id && document.getElementById(id);
+			if (!target) return;
+			e.preventDefault();
+			if (history.pushState) history.pushState(null, '', '#' + id);
+			jumpTo(target);
+		});
+	}
+
 	function init() {
 		initDesc();
 		initAnchors();
+		initPageLinks();
 	}
 
 	if (document.readyState === 'loading') {
