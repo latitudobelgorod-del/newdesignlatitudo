@@ -1655,6 +1655,12 @@
         height: 44px;
     }
 
+    /* нативный счётчик: десктопные 48px стоят с !important — без него он
+       выше кнопки «В корзину» (44px) у товаров без длин (Ирина, 28.10.2026) */
+    .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block {
+        height: 44px !important;
+    }
+
     .nd-catlist .catalog_item_wrapp .counter_wrapp .measure-button,
     .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .minus,
     .nd-catlist .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block .plus {
