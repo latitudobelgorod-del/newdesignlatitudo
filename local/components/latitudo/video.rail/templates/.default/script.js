@@ -13,7 +13,7 @@
 		var rail = root.querySelector('[data-nd-vr-rail]');
 		var cards = [].slice.call(root.querySelectorAll('[data-nd-vr-i]'));
 		var arrows = [].slice.call(root.querySelectorAll('[data-nd-vr-dir]'));
-		var chips = [].slice.call(root.querySelectorAll('[data-nd-vr-cat].nd-vr__chip'));
+		var filters = [].slice.call(root.querySelectorAll('[data-nd-vr-filter]'));
 
 		// окно — в конец body: у предков бывает transform/overflow, fixed внутри них ломается
 		var modal = root.querySelector('[data-nd-vr-modal]');
@@ -37,19 +37,31 @@
 		rail.addEventListener('scroll', updateArrows, { passive: true });
 		window.addEventListener('resize', updateArrows);
 
-		chips.forEach(function (chip) {
-			chip.addEventListener('click', function () {
-				var cat = chip.getAttribute('data-nd-vr-cat');
-				chips.forEach(function (c) {
-					var on = c === chip;
-					c.classList.toggle('is-active', on);
-					c.setAttribute('aria-pressed', on ? 'true' : 'false');
+		/* фильтры: категории, а на странице «Видео» ещё и марки — работают вместе */
+		var picked = {};
+		function applyFilters() {
+			cards.forEach(function (card) {
+				card.hidden = Object.keys(picked).some(function (key) {
+					return picked[key] !== '' && card.getAttribute('data-nd-vr-' + key) !== picked[key];
 				});
-				cards.forEach(function (card) {
-					card.hidden = cat !== '' && card.getAttribute('data-nd-vr-cat') !== cat;
+			});
+			rail.scrollLeft = 0;
+			updateArrows();
+		}
+		filters.forEach(function (group) {
+			var key = group.getAttribute('data-nd-vr-filter');
+			var chips = [].slice.call(group.querySelectorAll('[data-nd-vr-val]'));
+			picked[key] = '';
+			chips.forEach(function (chip) {
+				chip.addEventListener('click', function () {
+					picked[key] = chip.getAttribute('data-nd-vr-val');
+					chips.forEach(function (c) {
+						var on = c === chip;
+						c.classList.toggle('is-active', on);
+						c.setAttribute('aria-pressed', on ? 'true' : 'false');
+					});
+					applyFilters();
 				});
-				rail.scrollLeft = 0;
-				updateArrows();
 			});
 		});
 

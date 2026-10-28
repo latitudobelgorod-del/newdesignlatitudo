@@ -9,6 +9,8 @@
 !/WORKLOG-*.md
 !/start-latitudo-ru.cmd
 !/tools
+# страница «Видео о продукции» — код (компонент в режиме сетки), не контент
+!/video
 # внутри local исключаем служебное
 /local/**/*.log
 /local/php_interface/dbconn.php

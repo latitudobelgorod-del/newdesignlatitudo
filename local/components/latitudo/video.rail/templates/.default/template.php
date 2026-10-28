@@ -60,8 +60,11 @@ foreach ($arResult['ITEMS'] as $i => $v) {
 }
 $ndVrTotal = count($arResult['ITEMS']);
 $ndVrId = 'nd-vr-' . $this->randString();
+// GRID — страница «Видео»: H1 печатает сама страница, вместо стрелок — сетка
+$ndVrGrid = $arParams['VIEW'] === 'GRID';
 ?>
-<section class="nd-vr" id="video" data-nd-vr aria-labelledby="<?= $ndVrId ?>">
+<section class="nd-vr<?= $ndVrGrid ? ' nd-vr--grid' : '' ?>" id="video" data-nd-vr<?= $ndVrGrid ? '' : ' aria-labelledby="' . $ndVrId . '"' ?>>
+	<? if (!$ndVrGrid): ?>
 	<div class="nd-vr__head">
 		<div class="nd-vr__heading">
 			<h2 class="nd-vr__title" id="<?= $ndVrId ?>"><?= htmlspecialcharsbx($arParams['TITLE']) ?></h2>
@@ -78,19 +81,30 @@ $ndVrId = 'nd-vr-' . $this->randString();
 			</button>
 		</div>
 	</div>
+	<? elseif ($arParams['SUBTITLE'] !== ''): ?>
+		<p class="nd-vr__sub nd-vr__sub--page"><?= htmlspecialcharsbx($arParams['SUBTITLE']) ?></p>
+	<? endif; ?>
 
 	<? if (count($arResult['CATEGORIES']) > 1): ?>
-		<div class="nd-vr__chips" role="group" aria-label="Категории">
-			<button type="button" class="nd-vr__chip is-active" data-nd-vr-cat="" aria-pressed="true">Все <span class="nd-vr__chip-n"><?= $ndVrTotal ?></span></button>
+		<div class="nd-vr__chips" role="group" aria-label="Категории" data-nd-vr-filter="cat">
+			<button type="button" class="nd-vr__chip is-active" data-nd-vr-val="" aria-pressed="true">Все <span class="nd-vr__chip-n"><?= $ndVrTotal ?></span></button>
 			<? foreach ($arResult['CATEGORIES'] as $cat => $n): ?>
-				<button type="button" class="nd-vr__chip" data-nd-vr-cat="<?= htmlspecialcharsbx($cat) ?>" aria-pressed="false"><?= htmlspecialcharsbx($cat) ?> <span class="nd-vr__chip-n"><?= (int)$n ?></span></button>
+				<button type="button" class="nd-vr__chip" data-nd-vr-val="<?= htmlspecialcharsbx($cat) ?>" aria-pressed="false"><?= htmlspecialcharsbx($cat) ?> <span class="nd-vr__chip-n"><?= (int)$n ?></span></button>
+			<? endforeach; ?>
+		</div>
+	<? endif; ?>
+	<? if (count($arResult['BRANDS'] ?? []) > 1): ?>
+		<div class="nd-vr__chips nd-vr__chips--brands" role="group" aria-label="Марки" data-nd-vr-filter="brand">
+			<button type="button" class="nd-vr__chip is-active" data-nd-vr-val="" aria-pressed="true">Все марки</button>
+			<? foreach ($arResult['BRANDS'] as $brandId => $b): ?>
+				<button type="button" class="nd-vr__chip" data-nd-vr-val="<?= (int)$brandId ?>" aria-pressed="false"><?= htmlspecialcharsbx($b['NAME']) ?> <span class="nd-vr__chip-n"><?= (int)$b['COUNT'] ?></span></button>
 			<? endforeach; ?>
 		</div>
 	<? endif; ?>
 
 	<div class="nd-vr__rail" data-nd-vr-rail>
 		<? foreach ($arResult['ITEMS'] as $i => $v): ?>
-			<article class="nd-vr__card" data-nd-vr-i="<?= $i ?>" data-nd-vr-cat="<?= htmlspecialcharsbx($v['CATEGORY']) ?>">
+			<article class="nd-vr__card" data-nd-vr-i="<?= $i ?>" data-nd-vr-cat="<?= htmlspecialcharsbx($v['CATEGORY']) ?>" data-nd-vr-brand="<?= (int)$v['BRAND'] ?>">
 				<button type="button" class="nd-vr__thumb" data-nd-vr-open="<?= $i ?>" aria-label="Смотреть видео: <?= htmlspecialcharsbx($v['NAME']) ?>">
 					<? if ($v['PICTURE']): ?>
 						<img class="nd-vr__img" src="<?= htmlspecialcharsbx($v['PICTURE']['SRC']) ?>" width="<?= $v['PICTURE']['WIDTH'] ?>" height="<?= $v['PICTURE']['HEIGHT'] ?>" alt="<?= htmlspecialcharsbx($v['NAME']) ?>" loading="lazy" decoding="async">
@@ -104,7 +118,10 @@ $ndVrId = 'nd-vr-' . $this->randString();
 					<? endif; ?>
 				</button>
 				<div class="nd-vr__body">
-					<h3 class="nd-vr__name"><?= htmlspecialcharsbx($v['NAME']) ?></h3>
+					<? if ($ndVrGrid && isset($arResult['BRANDS'][$v['BRAND']])): ?>
+							<div class="nd-vr__brand"><?= htmlspecialcharsbx($arResult['BRANDS'][$v['BRAND']]['NAME']) ?></div>
+						<? endif; ?>
+						<h3 class="nd-vr__name"><?= htmlspecialcharsbx($v['NAME']) ?></h3>
 					<?/* цены под карточкой нет (Ирина, 28.10.2026): цена и выбор цвета — в окне с видео */?>
 				</div>
 			</article>

@@ -148,23 +148,42 @@
 		});
 	}
 
-	/* ---------------- ссылки на блоки внизу страницы ---------------- */
-	/* «Документация и сертификаты» и «Видео товаров …» ведут в самый низ, через
-	   всю ленту товаров (Ирина, 28.10.2026). Плавная прокрутка тянулась через
-	   ~15 000px с подгружающимися картинками и выглядела как скачки — переходим
-	   сразу, а если ленивые картинки над блоком сдвинули его, доводим ещё раз. */
+	/* ---------------- переходы по якорям страницы ---------------- */
+	/* Якоря разделов, «Документация и сертификаты», «Видео товаров …» ведут
+	   через всю ленту товаров (Ирина, 28.10.2026). Плавная прокрутка
+	   (html { scroll-behavior: smooth } в css/custom.css) тянулась через тысячи
+	   пикселей с подгружающимися картинками: на телефоне страница тормозила и
+	   останавливалась не там. Переходим сразу, с поправкой на шапку, а если
+	   ленивые картинки выше сдвинули блок — доводим ещё раз. */
+	function headerOffset() {
+		/* на телефоне шапка своя и ниже — --nd-header-h там всё равно 156 */
+		var head = isMobile() ? document.getElementById('nd-mheader') : null;
+		var h = head ? Math.round(head.getBoundingClientRect().height)
+			: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nd-header-h'), 10) || 156;
+		return h + 16;
+	}
+
 	function jumpTo(target) {
-		target.scrollIntoView({ block: 'start', behavior: 'instant' });
-		[300, 900].forEach(function (ms) {
-			setTimeout(function () {
-				var head = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nd-header-h'), 10) || 156;
-				var top = target.getBoundingClientRect().top;
-				if (Math.abs(top - head - 16) > 8) target.scrollIntoView({ block: 'start', behavior: 'instant' });
-			}, ms);
-		});
+		var go = function () {
+			var top = target.getBoundingClientRect().top - headerOffset();
+			if (Math.abs(top) > 4) window.scrollTo({ top: window.pageYOffset + top, behavior: 'instant' });
+		};
+		go();
+		[250, 700, 1500].forEach(function (ms) { setTimeout(go, ms); });
 	}
 
 	function initPageLinks() {
+		document.addEventListener('click', function (e) {
+			var a = e.target.closest('.nd-brandhead__text a[href^="#"], .nd-brandsect__anchor');
+			if (!a) return;
+			var id = a.getAttribute('href').slice(1);
+			var target = id && document.getElementById(id);
+			if (!target) return;
+			e.preventDefault();
+			if (history.pushState) history.pushState(null, '', '#' + id);
+			jumpTo(target);
+		});
+
 		var box = document.querySelector('.nd-brandhead__text');
 		if (!box) return;
 
@@ -179,17 +198,6 @@
 			link.textContent = 'Видео товаров' + (h1 ? ' ' + h1.textContent.trim() : '');
 			docs.parentNode.insertBefore(link, docs.nextSibling);
 		}
-
-		box.addEventListener('click', function (e) {
-			var a = e.target.closest('a[href^="#"]');
-			if (!a) return;
-			var id = a.getAttribute('href').slice(1);
-			var target = id && document.getElementById(id);
-			if (!target) return;
-			e.preventDefault();
-			if (history.pushState) history.pushState(null, '', '#' + id);
-			jumpTo(target);
-		});
 	}
 
 	function init() {

@@ -224,6 +224,40 @@
 	overflow: hidden;
 }
 
+/* страница «Видео» (/info/video/): сетка вместо ленты, марка над названием */
+.nd-vr--grid {
+	margin-top: 0;
+}
+
+.nd-vr__sub--page {
+	margin: 0 0 24px;
+}
+
+.nd-vr__chips--brands {
+	margin-top: -12px;
+}
+
+.nd-vr--grid .nd-vr__rail {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 32px 20px;
+	overflow: visible;
+	scroll-snap-type: none;
+}
+
+.nd-vr__brand {
+	margin-bottom: 4px;
+	font-size: 13px;
+	line-height: 18px;
+	color: #525264;
+}
+
+@media (max-width: 991px) {
+	.nd-vr--grid .nd-vr__rail {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
 /* окно */
 .nd-vr-lock,
 .nd-vr-lock body {
@@ -489,5 +523,14 @@
 
 	.nd-vr__card {
 		flex-basis: 80%;
+	}
+
+	.nd-vr--grid .nd-vr__rail {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 24px;
+	}
+
+	.nd-vr__chips--brands {
+		margin-top: -8px;
 	}
 }

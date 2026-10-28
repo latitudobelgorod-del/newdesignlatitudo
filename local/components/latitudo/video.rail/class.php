@@ -27,6 +27,8 @@ class LatitudoVideoRail extends CBitrixComponent
 		$arParams['CATEGORY'] = trim((string)($arParams['CATEGORY'] ?? ''));
 		$arParams['TITLE'] = trim((string)($arParams['TITLE'] ?? '')) ?: 'Видео о продукции';
 		$arParams['SUBTITLE'] = trim((string)($arParams['SUBTITLE'] ?? 'Снимаем каждый товар сами — на нашем складе и объектах'));
+		// GRID — страница «Видео» (/info/video/): все ролики сеткой, фильтр ещё и по маркам
+		$arParams['VIEW'] = ($arParams['VIEW'] ?? '') === 'GRID' ? 'GRID' : 'RAIL';
 		$arParams['CACHE_TYPE'] = $arParams['CACHE_TYPE'] ?? 'A';
 		$arParams['CACHE_TIME'] = isset($arParams['CACHE_TIME']) ? (int)$arParams['CACHE_TIME'] : 3600;
 		return $arParams;
@@ -83,6 +85,27 @@ class LatitudoVideoRail extends CBitrixComponent
 			return $count[$b] <=> $count[$a] ?: strcmp($a, $b);
 		});
 		return $count;
+	}
+
+	/** @return array<int,array{NAME:string,COUNT:int}> марки по числу роликов */
+	private function brands(array $items): array
+	{
+		$count = [];
+		foreach ($items as $v) {
+			if ($v['BRAND']) {
+				$count[$v['BRAND']] = ($count[$v['BRAND']] ?? 0) + 1;
+			}
+		}
+		if (!$count) {
+			return [];
+		}
+		$out = [];
+		$rs = CIBlockElement::GetList([], ['ID' => array_keys($count), 'CHECK_PERMISSIONS' => 'N'], false, false, ['ID', 'IBLOCK_ID', 'NAME']);
+		while ($b = $rs->Fetch()) {
+			$out[(int)$b['ID']] = ['NAME' => $b['NAME'], 'COUNT' => $count[(int)$b['ID']]];
+		}
+		uasort($out, fn($a, $b) => $b['COUNT'] <=> $a['COUNT'] ?: strcmp($a['NAME'], $b['NAME']));
+		return $out;
 	}
 
 	private function registerTags(): void
