@@ -17,10 +17,18 @@ $aMenuLinks = Array(
 	),
 	Array(
 		"Отзывы", 
-		"/company/reviews/", 
-		Array(), 
-		Array(), 
-		"" 
+		"/company/reviews/",
+		Array(),
+		Array(),
+		""
+	),
+	// Страница «Видео о продукции» (28.10.2026, Ирина: «под пунктом Отзывы»)
+	Array(
+		"Видео о продукции",
+		"/video/",
+		Array(),
+		Array(),
+		""
 	),
 	Array(
 		"Портфолио", 

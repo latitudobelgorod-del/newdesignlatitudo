@@ -133,6 +133,9 @@ global $APPLICATION;?>
 	"",
 	array(
 		"BRAND_ID" => $arElement["ID"],
+		// заголовок с названием марки — Ирина, 28.10.2026
+		"TITLE" => "Видео ".$arElement["NAME"],
+		"SUBTITLE" => "Фактура, цвета и монтаж — смотрите, прежде чем покупать",
 		"CACHE_TYPE" => "A",
 		"CACHE_TIME" => 3600,
 	),
