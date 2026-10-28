@@ -121,7 +121,16 @@ $ndVrGrid = $arParams['VIEW'] === 'GRID';
 					<? if ($ndVrGrid && isset($arResult['BRANDS'][$v['BRAND']])): ?>
 							<div class="nd-vr__brand"><?= htmlspecialcharsbx($arResult['BRANDS'][$v['BRAND']]['NAME']) ?></div>
 						<? endif; ?>
-						<h3 class="nd-vr__name"><?= htmlspecialcharsbx($v['NAME']) ?></h3>
+						<?/* Название — настоящая ссылка на товар: её видят поисковики (до этого
+						   адрес товара подставлял только скрипт окна). Обычный клик открывает
+						   окно с видео (script.js), Ctrl/колёсико — товар в новой вкладке. */?>
+						<h3 class="nd-vr__name">
+							<? if (!empty($v['PRODUCTS'][0]['URL'])): ?>
+								<a class="nd-vr__link" href="<?= htmlspecialcharsbx($v['PRODUCTS'][0]['URL']) ?>"><?= htmlspecialcharsbx($v['NAME']) ?></a>
+							<? else: ?>
+								<?= htmlspecialcharsbx($v['NAME']) ?>
+							<? endif; ?>
+						</h3>
 					<?/* цены под карточкой нет (Ирина, 28.10.2026): цена и выбор цвета — в окне с видео */?>
 				</div>
 			</article>
@@ -144,7 +153,7 @@ $ndVrGrid = $arParams['VIEW'] === 'GRID';
 				<div class="nd-vr-modal__price" data-nd-vr-price></div>
 				<button type="button" class="nd-vr-modal__buy" data-nd-vr-buy>В корзину</button>
 				<div class="nd-vr-modal__msg" data-nd-vr-msg aria-live="polite"></div>
-				<a class="nd-vr-modal__link" data-nd-vr-link href="#">Перейти к товару →</a>
+				<a class="nd-vr-modal__link" data-nd-vr-link href="<?= htmlspecialcharsbx($arResult['ITEMS'][0]['PRODUCTS'][0]['URL'] ?? '/catalog/') ?>">Перейти к товару →</a>
 			</div>
 		</div>
 	</div>

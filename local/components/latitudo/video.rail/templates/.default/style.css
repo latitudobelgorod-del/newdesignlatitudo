@@ -233,6 +233,13 @@
 	overflow: hidden;
 }
 
+.nd-vr__link,
+.nd-vr__link:hover,
+.nd-vr__link:focus {
+	color: inherit;
+	text-decoration: none;
+}
+
 /* страница «Видео» (/info/video/): сетка вместо ленты, марка над названием */
 .nd-vr--grid {
 	margin-top: 0;

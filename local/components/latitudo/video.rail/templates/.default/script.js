@@ -156,8 +156,10 @@
 
 		cards.forEach(function (card) {
 			card.addEventListener('click', function (e) {
-				// ссылка на товар под карточкой ведёт на товар, остальное открывает видео
-				if (e.target.closest('a')) return;
+				/* Название — ссылка на товар (для поисковиков), но обычный клик
+				   открывает видео; с Ctrl/Shift/Cmd — товар, как у обычной ссылки. */
+				if (e.target.closest('a') && (e.ctrlKey || e.metaKey || e.shiftKey)) return;
+				e.preventDefault();
 				open(parseInt(card.getAttribute('data-nd-vr-i'), 10));
 			});
 		});
