@@ -77,10 +77,10 @@ $ndVrId = 'nd-vr-' . $this->randString();
 		</div>
 		<div class="nd-vr__arrows">
 			<button type="button" class="nd-vr__arrow" data-nd-vr-dir="-1" aria-label="Листать назад">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 			</button>
 			<button type="button" class="nd-vr__arrow" data-nd-vr-dir="1" aria-label="Листать вперёд">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 			</button>
 		</div>
 	</div>

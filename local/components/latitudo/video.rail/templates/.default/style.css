@@ -36,27 +36,27 @@
 	flex: none;
 }
 
+/* стрелки — как у «Полезно знать» и брендов (.nd-articles__arrow), Ирина 28.10.2026 */
 .nd-vr__arrow {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 48px;
-	height: 48px;
+	width: 36px;
+	height: 36px;
 	padding: 0;
-	border: 1px solid rgba(82, 82, 100, .25);
-	border-radius: 50%;
-	background: #fff;
+	border: 0;
+	border-radius: 4px;
+	background: rgba(82, 82, 100, .1);
 	color: #101014;
 	cursor: pointer;
-	transition: border-color .15s ease, background-color .15s ease, opacity .15s ease;
 }
 
 .nd-vr__arrow:hover:not(:disabled) {
-	border-color: #101014;
+	background: rgba(82, 82, 100, .2);
 }
 
 .nd-vr__arrow:disabled {
-	opacity: .35;
+	opacity: .4;
 	cursor: default;
 }
 
