@@ -37,30 +37,56 @@
 		rail.addEventListener('scroll', updateArrows, { passive: true });
 		window.addEventListener('resize', updateArrows);
 
-		/* фильтры: категории, а на странице «Видео» ещё и марки — работают вместе */
+		/* фильтры: категории, а на странице «Видео» ещё и марки — работают вместе.
+		   Числа на кнопках считаются с учётом другого фильтра, пустые кнопки
+		   прячутся: у LATITUDO нет ступеней — нет и «Ступеней» (Ирина, 28.10.2026). */
 		var picked = {};
+		var groups = filters.map(function (group) {
+			var key = group.getAttribute('data-nd-vr-filter');
+			picked[key] = '';
+			return { key: key, chips: [].slice.call(group.querySelectorAll('[data-nd-vr-val]')) };
+		});
+
+		function matches(card, except) {
+			return Object.keys(picked).every(function (key) {
+				return key === except || picked[key] === '' || card.getAttribute('data-nd-vr-' + key) === picked[key];
+			});
+		}
+
+		function setActive(g, chip) {
+			picked[g.key] = chip.getAttribute('data-nd-vr-val');
+			g.chips.forEach(function (c) {
+				var on = c === chip;
+				c.classList.toggle('is-active', on);
+				c.setAttribute('aria-pressed', on ? 'true' : 'false');
+			});
+		}
+
 		function applyFilters() {
-			cards.forEach(function (card) {
-				card.hidden = Object.keys(picked).some(function (key) {
-					return picked[key] !== '' && card.getAttribute('data-nd-vr-' + key) !== picked[key];
+			groups.forEach(function (g) {
+				g.chips.forEach(function (chip) {
+					var val = chip.getAttribute('data-nd-vr-val');
+					var n = cards.filter(function (card) {
+						return matches(card, g.key) && (val === '' || card.getAttribute('data-nd-vr-' + g.key) === val);
+					}).length;
+					var num = chip.querySelector('.nd-vr__chip-n');
+					if (num) num.textContent = n;
+					chip.hidden = val !== '' && n === 0;
+					// выбранная кнопка опустела (сменили марку) — возвращаемся к «Все»
+					if (chip.hidden && chip.classList.contains('is-active')) setActive(g, g.chips[0]);
 				});
 			});
+			cards.forEach(function (card) { card.hidden = !matches(card, null); });
 			rail.scrollLeft = 0;
 			updateArrows();
 		}
-		filters.forEach(function (group) {
-			var key = group.getAttribute('data-nd-vr-filter');
-			var chips = [].slice.call(group.querySelectorAll('[data-nd-vr-val]'));
-			picked[key] = '';
-			chips.forEach(function (chip) {
+
+		groups.forEach(function (g) {
+			g.chips.forEach(function (chip) {
 				chip.addEventListener('click', function () {
-					picked[key] = chip.getAttribute('data-nd-vr-val');
-					chips.forEach(function (c) {
-						var on = c === chip;
-						c.classList.toggle('is-active', on);
-						c.setAttribute('aria-pressed', on ? 'true' : 'false');
-					});
+					setActive(g, chip);
 					applyFilters();
+					applyFilters(); // второй проход: сброс пустой кнопки меняет числа другого ряда
 				});
 			});
 		});

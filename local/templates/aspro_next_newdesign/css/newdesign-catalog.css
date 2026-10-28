@@ -2152,6 +2152,19 @@ body .nd-catlist .nd-brandsect__title {
     pointer-events: none;
 }
 
+/* Раздел бренда догружается сам (js/newdesign-catalog.js, data-nd-brand-lazy):
+   вместо бледной красной кнопки — серая плашка «Загружаем товары…». */
+.nd-brandsect__more-btn[data-nd-brand-lazy].is-loading {
+    opacity: 1;
+    background: rgba(82, 82, 100, .1);
+    color: #525264;
+}
+
+/* Догруженные карточки, пока не отработали их скрипты, — не показываем. */
+.nd-appending {
+    visibility: hidden;
+}
+
 @media (max-width: 767px) {
     .nd-brandsect__anchors {
         margin-bottom: 28px;

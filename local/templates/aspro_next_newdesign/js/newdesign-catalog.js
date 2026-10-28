@@ -1417,6 +1417,9 @@
         if (!box || !url || !grid || !grid.classList.contains('catalog_block')) return;
 
         btn.classList.add('is-loading');
+        /* ленивый раздел: вместо бледной кнопки «Показать N товаров» — понятная надпись */
+        var label = btn.textContent;
+        if (btn.hasAttribute('data-nd-brand-lazy')) btn.textContent = 'Загружаем товары…';
 
         fetch(url, { credentials: 'same-origin' })
             .then(function (r) {
@@ -1427,7 +1430,11 @@
                 var holder = document.createElement('div');
                 holder.innerHTML = html;
                 var added = [].slice.call(holder.childNodes);
+                /* Карточки прячем, пока их скрипты не отработали: без них видны
+                   «Артикул:», нет длин, единиц и счётчика (Ирина, 28.10.2026:
+                   «при быстром листании — вот что видим»). */
                 added.forEach(function (node) {
+                    if (node.nodeType === 1) node.classList.add('nd-appending');
                     grid.appendChild(node);
                 });
                 runScripts(added);
@@ -1455,9 +1462,15 @@
                     box.parentNode.removeChild(box);
                 }
                 document.dispatchEvent(new CustomEvent('nd:appended'));
+                setTimeout(function () {
+                    added.forEach(function (node) {
+                        if (node.nodeType === 1) node.classList.remove('nd-appending');
+                    });
+                }, 150);
             })
             .catch(function (err) {
                 btn.classList.remove('is-loading');
+                btn.textContent = label;
                 console.log('brand more: ' + err.message);
             });
     });

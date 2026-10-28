@@ -89,6 +89,10 @@
 	transition: background-color .15s ease, color .15s ease;
 }
 
+.nd-vr__chip[hidden] {
+	display: none;
+}
+
 .nd-vr__chip:hover {
 	background: rgba(82, 82, 100, .18);
 }
@@ -450,6 +454,38 @@
 
 .nd-vr-modal [hidden] {
 	display: none !important;
+}
+
+/* Высоту окна задаёт видео: правая колонка с длинным названием и списком
+   вариантов (перголы) была выше плеера, и над/под видео оставались белые
+   полосы (Ирина, 28.10.2026). contain: size — колонка не растягивает окно,
+   а прокручивается внутри. Только на компьютере: на телефоне колонка под видео. */
+@media (min-width: 992px) {
+	.nd-vr-modal__player {
+		align-self: stretch;
+	}
+
+	.nd-vr-modal__side {
+		contain: size;
+		overflow: hidden;
+	}
+
+	/* прокручивается только список вариантов — цена и «В корзину» всегда видны
+	   (у ограждений Вуд-Икс вариантов 25) */
+	.nd-vr-modal__variants {
+		flex: 0 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+	}
+
+	.nd-vr-modal__title,
+	.nd-vr-modal__product,
+	.nd-vr-modal__price,
+	.nd-vr-modal__buy,
+	.nd-vr-modal__link,
+	.nd-vr-modal__top {
+		flex: none;
+	}
 }
 
 @media (max-width: 991px) {
