@@ -109,7 +109,7 @@ $ndVrGrid = $arParams['VIEW'] === 'GRID';
 					<? if ($v['PICTURE']): ?>
 						<img class="nd-vr__img" src="<?= htmlspecialcharsbx($v['PICTURE']['SRC']) ?>" width="<?= $v['PICTURE']['WIDTH'] ?>" height="<?= $v['PICTURE']['HEIGHT'] ?>" alt="<?= htmlspecialcharsbx($v['NAME']) ?>" loading="lazy" decoding="async">
 					<? endif; ?>
-					<span class="nd-vr__play" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M8 5.2v13.6c0 .8.9 1.3 1.6.8l10.2-6.8a1 1 0 0 0 0-1.6L9.6 4.4C8.9 3.9 8 4.4 8 5.2z" fill="currentColor"/></svg></span>
+					<span class="nd-vr__play" aria-hidden="true"><svg width="12" height="13" viewBox="0 0 12 13"><path d="M11.2 5.63a1 1 0 0 1 0 1.74l-9 5.2A1 1 0 0 1 .7 11.7V1.3A1 1 0 0 1 2.2.43l9 5.2Z" fill="currentColor"/></svg></span>
 					<? if ($v['SERIES'] !== ''): ?>
 						<span class="nd-vr__series"><?= htmlspecialcharsbx($v['SERIES']) ?></span>
 					<? endif; ?>
