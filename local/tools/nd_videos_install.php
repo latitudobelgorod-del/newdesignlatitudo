@@ -125,6 +125,15 @@ $props = [
     ['CODE' => 'BRAND', 'NAME' => 'Производитель', 'PROPERTY_TYPE' => 'E', 'SORT' => 500,
         'LINK_IBLOCK_ID' => $BRANDS_IBLOCK, 'FILTRABLE' => 'Y',
         'HINT' => 'Ставится по первому товару. Для ролика без товаров (обзор марки, монтаж) выберите вручную.'],
+    // типы роликов и проекты портфолио (Ирина, 28.10.2026): фильтр на /video/, перенос — nd_videos_portfolio.php
+    ['CODE' => 'TYPE', 'NAME' => 'Тип видео', 'PROPERTY_TYPE' => 'L', 'SORT' => 50, 'FILTRABLE' => 'Y',
+        'HINT' => 'Ряд фильтра на странице «Видео». Пусто — «Видеообзоры продукции». На странице производителя — только обзоры с товарами этой марки.',
+        'VALUES' => array_map(function ($xml, $name, $i) {
+            return ['XML_ID' => $xml, 'VALUE' => $name, 'SORT' => ($i + 1) * 100];
+        }, array_keys(LatitudoVideoRepository::TYPES), LatitudoVideoRepository::TYPES, array_keys(array_keys(LatitudoVideoRepository::TYPES)))],
+    ['CODE' => 'PROJECT', 'NAME' => 'Проекты портфолио', 'PROPERTY_TYPE' => 'E', 'MULTIPLE' => 'Y', 'SORT' => 450,
+        'LINK_IBLOCK_ID' => LatitudoVideoRepository::PORTFOLIO_IBLOCK, 'FILTRABLE' => 'Y',
+        'HINT' => 'Карточки портфолио с этим роликом. У ролика без товаров в окне — ссылка на первый включённый проект.'],
 ];
 
 foreach ($props as $p) {

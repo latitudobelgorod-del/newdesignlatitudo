@@ -89,7 +89,8 @@
 	transition: background-color .15s ease, color .15s ease;
 }
 
-.nd-vr__chip[hidden] {
+.nd-vr__chip[hidden],
+.nd-vr__chips[hidden] {
 	display: none;
 }
 

@@ -434,16 +434,29 @@ class LatitudoVideoRepository
         '~ко[-\s]?экс~iu' => 'Ко-Экструзия',
     ];
 
+    /** Тип ролика (свойство TYPE, XML_ID значения списка) => подпись фильтра на /video/.
+        Пусто — обзор продукции: так заведены все ролики из товаров (Ирина, 28.10.2026). */
+    public const TYPES = [
+        'product' => 'Видеообзоры продукции',
+        'review' => 'Видеоотзывы клиентов',
+        'expert' => 'Эксперт объясняет',
+        'objects' => 'Наши объекты',
+    ];
+
+    /** Портфолио — ролики из карточек проектов ссылаются на них свойством PROJECT */
+    public const PORTFOLIO_IBLOCK = 18;
+
     /** Группа покупателей для цены — розница, как в фидах и сверке цен */
     private const PRICE_GROUPS = [2];
 
     /**
      * Ролики для вывода.
      *
-     * @param array{BRAND?:int, CATEGORY?:string, ONLY_AVAILABLE?:bool, LIMIT?:int} $filter
+     * @param array{BRAND?:int, CATEGORY?:string, TYPE?:string, ONLY_AVAILABLE?:bool, LIMIT?:int} $filter
      *   BRAND — ID производителя (ИБ 12), без него — все марки; CATEGORY — короткая
-     *   подпись категории; ONLY_AVAILABLE (по умолчанию да) — только ролики, у которых
-     *   есть товар в продаже, или ролики без товаров с вручную заданной маркой.
+     *   подпись категории; TYPE — ключ из TYPES; ONLY_AVAILABLE (по умолчанию да) — только
+     *   ролики, у которых есть товар в продаже, или ролики без товаров с вручную заданной
+     *   маркой или с проектом портфолио.
      * @return array<int, array> список роликов (простые массивы — годятся в кеш компонента)
      */
     public static function getList(array $filter = []): array
@@ -469,9 +482,10 @@ class LatitudoVideoRepository
         }
         $values = [];
         CIBlockElement::GetPropertyValuesArray($values, $videosIb, ['ID' => array_keys($videos)],
-            ['CODE' => ['URL', 'URL_NORM', 'DURATION', 'PRODUCTS', 'BRAND', 'SERIES', 'UPLOAD_DATE']]);
+            ['CODE' => ['URL', 'URL_NORM', 'DURATION', 'PRODUCTS', 'BRAND', 'SERIES', 'UPLOAD_DATE', 'TYPE', 'PROJECT']]);
 
         $productIds = [];
+        $projectIds = [];
         foreach ($videos as $id => &$v) {
             $p = $values[$id] ?? [];
             $v['URL'] = trim((string)($p['URL']['VALUE'] ?? ''));
@@ -482,15 +496,28 @@ class LatitudoVideoRepository
             $v['BRAND'] = (int)($p['BRAND']['VALUE'] ?? 0);
             $v['PRODUCT_IDS'] = array_values(array_map('intval', array_filter((array)($p['PRODUCTS']['VALUE'] ?? []))));
             $productIds = array_merge($productIds, $v['PRODUCT_IDS']);
+            $type = (string)($p['TYPE']['VALUE_XML_ID'] ?? '');
+            $v['TYPE'] = isset(self::TYPES[$type]) ? $type : 'product';
+            $v['PROJECT_IDS'] = array_values(array_map('intval', array_filter((array)($p['PROJECT']['VALUE'] ?? []))));
+            $projectIds = array_merge($projectIds, $v['PROJECT_IDS']);
         }
         unset($v);
 
         $products = self::products(array_values(array_unique($productIds)));
+        $projects = self::projects(array_values(array_unique($projectIds)));
 
         $out = [];
         foreach ($videos as $id => $v) {
-            if (!$v['PARSED']) {
+            if (!$v['PARSED'] || (!empty($filter['TYPE']) && $filter['TYPE'] !== $v['TYPE'])) {
                 continue;
+            }
+            // проект — первая включённая карточка портфолио, где стоит ролик
+            $project = null;
+            foreach ($v['PROJECT_IDS'] as $prid) {
+                if (isset($projects[$prid])) {
+                    $project = $projects[$prid];
+                    break;
+                }
             }
             $items = [];
             foreach ($v['PRODUCT_IDS'] as $pid) {
@@ -511,7 +538,7 @@ class LatitudoVideoRepository
                     'UNIT' => $buy['UNIT'],
                 ];
             }
-            if ($onlyAvailable && !$items && ($v['PRODUCT_IDS'] || !$v['BRAND'])) {
+            if ($onlyAvailable && !$items && ($v['PRODUCT_IDS'] || (!$v['BRAND'] && !$project))) {
                 continue;
             }
 
@@ -549,6 +576,9 @@ class LatitudoVideoRepository
                 'DURATION_ISO' => $seconds ? 'PT' . intdiv($seconds, 60) . 'M' . ($seconds % 60) . 'S' : '',
                 'UPLOAD_DATE' => $v['UPLOAD_DATE'] !== '' ? $v['UPLOAD_DATE'] : self::isoFromBitrix((string)$v['DATE_CREATE']),
                 'BRAND' => $v['BRAND'],
+                'TYPE' => $v['TYPE'],
+                'TYPE_NAME' => self::TYPES[$v['TYPE']],
+                'PROJECT' => $project,
                 'CATEGORY' => $category,
                 'SERIES' => $series,
                 'PRICE_MIN' => $min,
@@ -583,6 +613,25 @@ class LatitudoVideoRepository
         while ($b = $rs->GetNext()) {
             $out[(int)$b['ID']] = ['ID' => (int)$b['ID'], 'NAME' => $b['~NAME'], 'CODE' => $b['~CODE'],
                 'URL' => $b['~DETAIL_PAGE_URL'], 'COUNT' => $count[(int)$b['ID']]];
+        }
+        return $out;
+    }
+
+    /**
+     * Включённые карточки портфолио: название и адрес.
+     *
+     * @return array<int, array{NAME:string, URL:string}>
+     */
+    private static function projects(array $ids): array
+    {
+        $out = [];
+        if (!$ids) {
+            return $out;
+        }
+        $rs = CIBlockElement::GetList([], ['IBLOCK_ID' => self::PORTFOLIO_IBLOCK, 'ID' => $ids, 'ACTIVE' => 'Y', 'ACTIVE_DATE' => 'Y', 'CHECK_PERMISSIONS' => 'N'],
+            false, false, ['ID', 'IBLOCK_ID', 'NAME', 'DETAIL_PAGE_URL']);
+        while ($r = $rs->GetNext()) {
+            $out[(int)$r['ID']] = ['NAME' => $r['~NAME'], 'URL' => $r['~DETAIL_PAGE_URL']];
         }
         return $out;
     }

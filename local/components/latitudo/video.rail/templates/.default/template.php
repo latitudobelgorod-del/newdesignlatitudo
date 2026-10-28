@@ -43,6 +43,9 @@ foreach ($arResult['ITEMS'] as $i => $v) {
 		'dur' => $v['DURATION'],
 		'embed' => $v['EMBED_AUTOPLAY'],
 		'products' => $products,
+		// ролик без товаров (портфолио): в окне вместо корзины — ссылка на проект
+		'type' => $v['TYPE'] !== 'product' ? $v['TYPE_NAME'] : '',
+		'project' => $v['PROJECT'] ? ['name' => $v['PROJECT']['NAME'], 'url' => $v['PROJECT']['URL']] : null,
 	];
 
 	// thumbnailUrl обязателен для VideoObject; хост — меткой, её подставляет ndCatalogCacheTokens
@@ -50,7 +53,7 @@ foreach ($arResult['ITEMS'] as $i => $v) {
 		$ndVrLd[] = array_filter([
 			'@type' => 'VideoObject',
 			'name' => $v['NAME'],
-			'description' => $v['DESCRIPTION'] !== '' ? $v['DESCRIPTION'] : ($v['PRODUCTS'][0]['NAME'] ?? $v['NAME']),
+			'description' => $v['DESCRIPTION'] !== '' ? $v['DESCRIPTION'] : ($v['PRODUCTS'][0]['NAME'] ?? $v['PROJECT']['NAME'] ?? $v['NAME']),
 			'thumbnailUrl' => 'https://#ND_HOST#' . $v['PICTURE']['SRC'],
 			'uploadDate' => $v['UPLOAD_DATE'],
 			'duration' => $v['DURATION_ISO'],
@@ -85,6 +88,15 @@ $ndVrGrid = $arParams['VIEW'] === 'GRID';
 		<p class="nd-vr__sub nd-vr__sub--page"><?= htmlspecialcharsbx($arParams['SUBTITLE']) ?></p>
 	<? endif; ?>
 
+	<?/* Типы роликов (Ирина, 28.10.2026): обзоры продукции, отзывы, эксперт, объекты из портфолио */?>
+	<? if (count($arResult['TYPES'] ?? []) > 1): ?>
+		<div class="nd-vr__chips nd-vr__chips--types" role="group" aria-label="Тип видео" data-nd-vr-filter="type">
+			<button type="button" class="nd-vr__chip is-active" data-nd-vr-val="" aria-pressed="true">Все видео <span class="nd-vr__chip-n"><?= $ndVrTotal ?></span></button>
+			<? foreach ($arResult['TYPES'] as $type => $t): ?>
+				<button type="button" class="nd-vr__chip" data-nd-vr-val="<?= htmlspecialcharsbx($type) ?>" aria-pressed="false"><?= htmlspecialcharsbx($t['NAME']) ?> <span class="nd-vr__chip-n"><?= (int)$t['COUNT'] ?></span></button>
+			<? endforeach; ?>
+		</div>
+	<? endif; ?>
 	<? if (count($arResult['CATEGORIES']) > 1): ?>
 		<div class="nd-vr__chips" role="group" aria-label="Категории" data-nd-vr-filter="cat">
 			<button type="button" class="nd-vr__chip is-active" data-nd-vr-val="" aria-pressed="true">Все <span class="nd-vr__chip-n"><?= $ndVrTotal ?></span></button>
@@ -104,7 +116,7 @@ $ndVrGrid = $arParams['VIEW'] === 'GRID';
 
 	<div class="nd-vr__rail" data-nd-vr-rail>
 		<? foreach ($arResult['ITEMS'] as $i => $v): ?>
-			<article class="nd-vr__card" data-nd-vr-i="<?= $i ?>" data-nd-vr-cat="<?= htmlspecialcharsbx($v['CATEGORY']) ?>" data-nd-vr-brand="<?= (int)$v['BRAND'] ?>">
+			<article class="nd-vr__card" data-nd-vr-i="<?= $i ?>" data-nd-vr-cat="<?= htmlspecialcharsbx($v['CATEGORY']) ?>" data-nd-vr-brand="<?= (int)$v['BRAND'] ?>" data-nd-vr-type="<?= htmlspecialcharsbx($v['TYPE']) ?>">
 				<button type="button" class="nd-vr__thumb" data-nd-vr-open="<?= $i ?>" aria-label="Смотреть видео: <?= htmlspecialcharsbx($v['NAME']) ?>">
 					<? if ($v['PICTURE']): ?>
 						<img class="nd-vr__img" src="<?= htmlspecialcharsbx($v['PICTURE']['SRC']) ?>" width="<?= $v['PICTURE']['WIDTH'] ?>" height="<?= $v['PICTURE']['HEIGHT'] ?>" alt="<?= htmlspecialcharsbx($v['NAME']) ?>" loading="lazy" decoding="async">
@@ -120,13 +132,15 @@ $ndVrGrid = $arParams['VIEW'] === 'GRID';
 				<div class="nd-vr__body">
 					<? if ($ndVrGrid && isset($arResult['BRANDS'][$v['BRAND']])): ?>
 							<div class="nd-vr__brand"><?= htmlspecialcharsbx($arResult['BRANDS'][$v['BRAND']]['NAME']) ?></div>
+						<? elseif ($ndVrGrid && $v['TYPE'] !== 'product'): ?>
+							<div class="nd-vr__brand"><?= htmlspecialcharsbx($v['TYPE_NAME']) ?></div>
 						<? endif; ?>
 						<?/* Название — настоящая ссылка на товар: её видят поисковики (до этого
 						   адрес товара подставлял только скрипт окна). Обычный клик открывает
 						   окно с видео (script.js), Ctrl/колёсико — товар в новой вкладке. */?>
 						<h3 class="nd-vr__name">
-							<? if (!empty($v['PRODUCTS'][0]['URL'])): ?>
-								<a class="nd-vr__link" href="<?= htmlspecialcharsbx($v['PRODUCTS'][0]['URL']) ?>"><?= htmlspecialcharsbx($v['NAME']) ?></a>
+							<? if (!empty($v['PRODUCTS'][0]['URL']) || !empty($v['PROJECT']['URL'])): ?>
+								<a class="nd-vr__link" href="<?= htmlspecialcharsbx($v['PRODUCTS'][0]['URL'] ?? $v['PROJECT']['URL']) ?>"><?= htmlspecialcharsbx($v['NAME']) ?></a>
 							<? else: ?>
 								<?= htmlspecialcharsbx($v['NAME']) ?>
 							<? endif; ?>

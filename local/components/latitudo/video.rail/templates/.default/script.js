@@ -44,7 +44,7 @@
 		var groups = filters.map(function (group) {
 			var key = group.getAttribute('data-nd-vr-filter');
 			picked[key] = '';
-			return { key: key, chips: [].slice.call(group.querySelectorAll('[data-nd-vr-val]')) };
+			return { key: key, el: group, chips: [].slice.call(group.querySelectorAll('[data-nd-vr-val]')) };
 		});
 
 		function matches(card, except) {
@@ -75,6 +75,8 @@
 					// выбранная кнопка опустела (сменили марку) — возвращаемся к «Все»
 					if (chip.hidden && chip.classList.contains('is-active')) setActive(g, g.chips[0]);
 				});
+				// в ряду осталась одна «Все» (у отзывов и объектов нет категорий товаров) — прячем ряд
+				g.el.hidden = g.chips.every(function (c) { return c.hidden || c.getAttribute('data-nd-vr-val') === ''; });
 			});
 			cards.forEach(function (card) { card.hidden = !matches(card, null); });
 			rail.scrollLeft = 0;
@@ -112,7 +114,7 @@
 			cur = data[i];
 			if (!cur) return;
 			lastFocus = document.activeElement;
-			kicker.textContent = [cur.cat, cur.series].filter(Boolean).join(' · ');
+			kicker.textContent = [cur.type, cur.cat, cur.series].filter(Boolean).join(' · ');
 			title.textContent = cur.name;
 
 			var frame = document.createElement('iframe');
@@ -139,7 +141,16 @@
 			[variants, product, price, link].forEach(function (el) { el.hidden = !has; });
 			buy.hidden = !has;
 			variants.hidden = cur.products.length < 2;
+			link.textContent = 'Перейти к товару →';
 			if (has) selectProduct(0);
+			else if (cur.project) {
+				// ролик из портфолио: товара нет — ведём на проект
+				product.hidden = cur.project.name === cur.name; // название проекта = название ролика — не повторяем
+				product.textContent = cur.project.name;
+				link.hidden = false;
+				link.href = cur.project.url;
+				link.textContent = 'Смотреть проект →';
+			}
 
 			modal.hidden = false;
 			document.documentElement.classList.add('nd-vr-lock');

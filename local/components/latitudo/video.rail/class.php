@@ -49,6 +49,7 @@ class LatitudoVideoRail extends CBitrixComponent
 			]));
 			// пустой результат тоже в кеш: у большинства марок роликов нет, шаблон тогда молчит
 			$this->arResult['ITEMS'] = $this->prepareItems($items);
+			$this->arResult['TYPES'] = $this->types($items);
 			$this->arResult['CATEGORIES'] = $this->categories($items);
 			$this->arResult['BRANDS'] = $this->arParams['BRAND_ID'] ? [] : $this->brands($items);
 			$this->registerTags();
@@ -71,6 +72,19 @@ class LatitudoVideoRail extends CBitrixComponent
 		}
 		unset($v);
 		return $items;
+	}
+
+	/** @return array<string,array{NAME:string,COUNT:int}> тип ролика => подпись и число, в порядке TYPES */
+	private function types(array $items): array
+	{
+		$out = [];
+		foreach (LatitudoVideoRepository::TYPES as $type => $name) {
+			$n = count(array_filter($items, fn($v) => $v['TYPE'] === $type));
+			if ($n) {
+				$out[$type] = ['NAME' => $name, 'COUNT' => $n];
+			}
+		}
+		return $out;
 	}
 
 	/** @return array<string,int> подпись категории => число роликов */
@@ -120,7 +134,7 @@ class LatitudoVideoRail extends CBitrixComponent
 			return;
 		}
 		$cache = Application::getInstance()->getTaggedCache();
-		foreach ([LatitudoVideoSync::iblockId(), LatitudoVideoSync::CATALOG_IBLOCK, LatitudoVideoSync::OFFERS_IBLOCK] as $iblockId) {
+		foreach ([LatitudoVideoSync::iblockId(), LatitudoVideoSync::CATALOG_IBLOCK, LatitudoVideoSync::OFFERS_IBLOCK, LatitudoVideoRepository::PORTFOLIO_IBLOCK] as $iblockId) {
 			$cache->registerTag('iblock_id_' . $iblockId);
 		}
 	}
