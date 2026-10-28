@@ -93,7 +93,7 @@ $ndVrGrid = $arParams['VIEW'] === 'GRID';
 			<? endforeach; ?>
 		</div>
 	<? endif; ?>
-	<? if (count($arResult['BRANDS'] ?? []) > 1): ?>
+	<? if ($arParams['BRAND_FILTER'] !== 'N' && count($arResult['BRANDS'] ?? []) > 1): ?>
 		<div class="nd-vr__chips nd-vr__chips--brands" role="group" aria-label="Марки" data-nd-vr-filter="brand">
 			<button type="button" class="nd-vr__chip is-active" data-nd-vr-val="" aria-pressed="true">Все марки</button>
 			<? foreach ($arResult['BRANDS'] as $brandId => $b): ?>
