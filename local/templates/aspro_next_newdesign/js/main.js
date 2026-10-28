@@ -637,6 +637,13 @@ if (!funcDefined("setViewedProduct")) {
         arViewedLocal[PRODUCT_ID] = arData;
         arViewedCookie[PRODUCT_ID] = [time.toString(), arData.PICTURE_ID];
 
+        // не больше 30 последних: без предела кука за месяц перерастала 8 КБ, и сервер
+        // отвечал «Bad Request: Size of a request header field exceeds server limit» (28.10.2026)
+        Object.keys(arViewedCookie)
+          .sort(function (a, b) { return arViewedCookie[b][0] - arViewedCookie[a][0]; })
+          .slice(30)
+          .forEach(function (_id) { delete arViewedCookie[_id]; delete arViewedLocal[_id]; });
+
         $.cookie(localKey, arViewedCookie, cookieParams);
         BX.localStorage.set(localKey, arViewedLocal, 2592000); // 30 days
       }
