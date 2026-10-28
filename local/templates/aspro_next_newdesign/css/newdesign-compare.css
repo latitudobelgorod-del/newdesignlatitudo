@@ -70,6 +70,11 @@
 	color: #8e8e9c;
 	transition: color 0.15s ease, background-color 0.15s ease;
 }
+/* метки слева не заходят под значок (длинная «Выгоднее в комплекте с мебелью»
+   наезжала на него — Ирина, 28.10.2026) */
+.nd-catlist .catalog_item_wrapp:has(.nd-cmp-btn--list) .nd-badges__tags {
+	max-width: calc(100% - 32px);
+}
 .nd-cmp-btn--list svg {
 	width: 20px;
 	height: 20px;
