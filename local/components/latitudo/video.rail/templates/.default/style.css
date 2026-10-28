@@ -75,7 +75,8 @@
 	height: 38px;
 	padding: 0 16px;
 	border: 0;
-	border-radius: 19px;
+	/* углы — как у якорей разделов марки (.nd-brandsect__anchor), Ирина 28.10.2026 */
+	border-radius: 4px;
 	background: rgba(82, 82, 100, .1);
 	color: #101014;
 	font: inherit;
