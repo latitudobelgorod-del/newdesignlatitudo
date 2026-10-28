@@ -290,6 +290,10 @@ $actualItem = $arResult["OFFERS"] ? (isset($arResult['OFFERS'][$arResult['OFFERS
 <script type="text/javascript">
 setViewedProduct(<?=$arResult['ID']?>, <?=CUtil::PhpToJSObject($arViewedData, false)?>);
 </script>
+<?/* ролики товара — VideoObject (result_modifier.php, ND_VIDEO_LD) */?>
+<?foreach ($arResult['ND_VIDEO_LD'] ?? [] as $ndVideoLd):?>
+<script type="application/ld+json"><?=\Bitrix\Main\Web\Json::encode($ndVideoLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG)?></script>
+<?endforeach;?>
 
 <?
 /* Хост — меткой #ND_HOST#: у каждого города свой поддомен, а шаблон уходит в

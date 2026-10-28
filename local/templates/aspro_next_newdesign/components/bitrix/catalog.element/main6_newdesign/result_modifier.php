@@ -1579,6 +1579,49 @@ if($hasVideo){
     $arResult['HAS_VIDEO'] = true;
 }
 
+/* Разметка VideoObject роликов товара (сеошники, 28.10.2026): те же записи
+   инфоблока «Видео», что и на /video/, — товар привязан к ролику свойством
+   PRODUCTS. Шаблон печатает JSON-LD; хост превью — меткой #ND_HOST#.
+   Тег инфоблока роликов — чтобы новый или выключенный ролик сбрасывал кеш карточки. */
+$arResult['ND_VIDEO_LD'] = [];
+if (class_exists('LatitudoVideoSync') && ($ndVideosIb = LatitudoVideoSync::iblockId())) {
+	CIBlock::registerWithTagCache($ndVideosIb);
+	$ndVideos = [];
+	$ndRes = CIBlockElement::GetList(['SORT' => 'ASC', 'ID' => 'DESC'],
+		['IBLOCK_ID' => $ndVideosIb, 'ACTIVE' => 'Y', 'ACTIVE_DATE' => 'Y', 'PROPERTY_PRODUCTS' => (int)$arResult['ID'], 'CHECK_PERMISSIONS' => 'N'],
+		false, ['nTopCount' => 10], ['ID', 'NAME', 'PREVIEW_TEXT', 'PREVIEW_PICTURE', 'DATE_CREATE']);
+	while ($ndV = $ndRes->Fetch()) {
+		$ndVideos[(int)$ndV['ID']] = $ndV;
+	}
+	if ($ndVideos) {
+		$ndProps = [];
+		CIBlockElement::GetPropertyValuesArray($ndProps, $ndVideosIb, ['ID' => array_keys($ndVideos)], ['CODE' => ['URL', 'DURATION', 'UPLOAD_DATE']]);
+		foreach ($ndVideos as $ndId => $ndV) {
+			$ndParsed = LatitudoVideoUrl::parse((string)($ndProps[$ndId]['URL']['VALUE'] ?? ''));
+			// превью того же размера, что на /video/ (latitudo:video.rail), — файл в resize_cache общий
+			$ndPic = (int)$ndV['PREVIEW_PICTURE'] > 0
+				? CFile::ResizeImageGet($ndV['PREVIEW_PICTURE'], ['width' => 640, 'height' => 360], BX_RESIZE_IMAGE_EXACT, true, false, false, 75)
+				: null;
+			if (!$ndParsed || empty($ndPic['src'])) {
+				continue; // без превью VideoObject невалиден
+			}
+			$ndSec = LatitudoVideoRepository::durationSeconds((string)($ndProps[$ndId]['DURATION']['VALUE'] ?? ''));
+			$ndDate = trim((string)($ndProps[$ndId]['UPLOAD_DATE']['VALUE'] ?? ''));
+			$ndDesc = trim(strip_tags((string)$ndV['PREVIEW_TEXT']));
+			$arResult['ND_VIDEO_LD'][] = array_filter([
+				'@context' => 'https://schema.org',
+				'@type' => 'VideoObject',
+				'name' => $ndV['NAME'],
+				'description' => $ndDesc !== '' ? $ndDesc : $arResult['NAME'],
+				'thumbnailUrl' => 'https://#ND_HOST#' . $ndPic['src'],
+				'uploadDate' => $ndDate !== '' ? $ndDate : date('c', MakeTimeStamp($ndV['DATE_CREATE'])),
+				'duration' => $ndSec ? 'PT' . intdiv($ndSec, 60) . 'M' . ($ndSec % 60) . 'S' : '',
+				'embedUrl' => $ndParsed['EMBED'],
+			]);
+		}
+	}
+}
+
 /* Линейка высот — блок «Диапазон высоты, мм» у опор (ТЗ сеошников, п. 3.4,
    13.10.2026). Каждая высота — отдельный товар со своим адресом; связывает их
    свойство «Линейка» (LINE), подпись кнопки — «Диапазон высоты, мм»
