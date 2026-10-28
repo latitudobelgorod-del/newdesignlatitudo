@@ -295,7 +295,9 @@
 	padding: 0;
 	border: 0;
 	border-radius: 4px;
-	background: rgba(82, 82, 100, 0.1);
+	/* стоит поверх фото — полупрозрачный фон на картинке не виден (Ирина, 28.10.2026) */
+	background: #fff;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
 	color: #525264;
 	cursor: pointer;
 	/* видна при наведении на карточку, как у ДНС */
@@ -309,6 +311,13 @@
 .nd-cmp__remove:hover {
 	background: #c60000;
 	color: #fff;
+}
+/* плашки слева не заходят под значок: длинная («Акция / Распродажа») переносится */
+.nd-cmp__tiles .nd-badges {
+	max-width: calc(100% - 52px);
+}
+.nd-cmp__tiles .nd-badges .nd-tag {
+	white-space: normal;
 }
 /* на сенсорных экранах наведения нет — значок виден всегда */
 @media (hover: none) {
