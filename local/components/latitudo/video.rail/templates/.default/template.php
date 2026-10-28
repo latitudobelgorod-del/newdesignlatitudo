@@ -97,7 +97,7 @@ $ndVrGrid = $arParams['VIEW'] === 'GRID';
 			<? endforeach; ?>
 		</div>
 	<? endif; ?>
-	<? if (count($arResult['CATEGORIES']) > 1): ?>
+	<? if ($arParams['CATEGORY_FILTER'] !== 'N' && count($arResult['CATEGORIES']) > 1): ?>
 		<div class="nd-vr__chips" role="group" aria-label="Категории" data-nd-vr-filter="cat">
 			<button type="button" class="nd-vr__chip is-active" data-nd-vr-val="" aria-pressed="true">Все <span class="nd-vr__chip-n"><?= $ndVrTotal ?></span></button>
 			<? foreach ($arResult['CATEGORIES'] as $cat => $n): ?>

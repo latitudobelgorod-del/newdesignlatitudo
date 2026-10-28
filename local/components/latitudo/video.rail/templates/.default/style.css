@@ -241,6 +241,13 @@
 	text-decoration: none;
 }
 
+/* тема задаёт «h3 a» 20px/700 — подпись как у плиток разделов: 16/22, 600 (Ирина, 28.10.2026) */
+.nd-vr__name .nd-vr__link {
+	font-size: inherit;
+	line-height: inherit;
+	font-weight: inherit;
+}
+
 /* страница «Видео» (/info/video/): сетка вместо ленты, марка над названием */
 .nd-vr--grid {
 	margin-top: 0;

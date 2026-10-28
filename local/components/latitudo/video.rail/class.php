@@ -31,6 +31,8 @@ class LatitudoVideoRail extends CBitrixComponent
 		$arParams['VIEW'] = ($arParams['VIEW'] ?? '') === 'GRID' ? 'GRID' : 'RAIL';
 		// ряд фильтра по маркам на странице «Видео»; N — не показывать (Ирина, 28.10.2026: «пока убери»)
 		$arParams['BRAND_FILTER'] = ($arParams['BRAND_FILTER'] ?? 'Y') === 'N' ? 'N' : 'Y';
+		// ряд категорий товаров; N — не показывать (/video/: хватает ряда по типам, Ирина 28.10.2026)
+		$arParams['CATEGORY_FILTER'] = ($arParams['CATEGORY_FILTER'] ?? 'Y') === 'N' ? 'N' : 'Y';
 		$arParams['CACHE_TYPE'] = $arParams['CACHE_TYPE'] ?? 'A';
 		$arParams['CACHE_TIME'] = isset($arParams['CACHE_TIME']) ? (int)$arParams['CACHE_TIME'] : 3600;
 		return $arParams;
