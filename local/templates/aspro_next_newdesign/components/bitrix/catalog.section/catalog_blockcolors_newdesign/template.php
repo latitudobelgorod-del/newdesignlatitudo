@@ -1052,6 +1052,20 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 	<?=$ldSectionMore($ldLastTail)?>
 	<?=$ldFlatMore()?>
 
+	<?/* Разделы, которые страница не печатает сразу (LD_EAGER_SECTIONS): заголовок
+	   с якорем, пустая сетка и кнопка. Первую порцию карточек скрипт подгружает
+	   сам, когда раздел подъезжает к экрану (js/newdesign-catalog.js,
+	   data-nd-brand-lazy); кнопка — на случай, если этого не случилось. */?>
+	<?foreach((array)($arResult['LD_LAZY_SECTIONS'] ?? array()) as $ldLazy){
+		$ldLazyTotal = (int)$ldLazy['TOTAL'];
+		$ldLazyUrl = $ldAjaxUrl.'?'.$ldAjaxQuery.'&section='.(int)$ldLazy['SECTION']['ID'].'&offset=0&limit=1';?>
+		<?=$ldSectionHead($ldLazy['SECTION'])?>
+		<div class="catalog_block nd-catlist__list items block_list margin0 row flexbox<?=$ldBrandGrid?>"></div>
+		<div class="nd-brandsect__more">
+			<button type="button" class="nd-brandsect__more-btn" data-nd-brand-more data-nd-brand-lazy data-url="<?=htmlspecialcharsbx($ldLazyUrl)?>">Показать <?=$ldLazyTotal?> <?=$ldGoodsWord($ldLazyTotal)?></button>
+		</div>
+	<?}?>
+
 	<?if(($arParams["AJAX_REQUEST"]=="N") || !isset($arParams["AJAX_REQUEST"])){?>
 			</div>
 

@@ -899,14 +899,32 @@ if (($arParams['LD_GROUP_BY_SECTION'] ?? '') === 'Y') {
 		$ldItemsOnly = (($arParams['LD_ITEMS_ONLY'] ?? '') === 'Y');
 		$ldOffset = isset($arParams['LD_OFFSET']) ? (int)$arParams['LD_OFFSET'] : 0;
 
+		/* Сколько разделов печатать сразу (LD_EAGER_SECTIONS, страница бренда — 2).
+		   Остальные уходят в LD_LAZY_SECTIONS: шаблон печатает только заголовок
+		   и кнопку, карточки догружает скрипт, когда раздел подъезжает к экрану.
+		   У EasyDecking сразу шло 97 карточек — 2.5 МБ разметки, 1.5 МБ из них
+		   скрипты карточек; на телефоне страница и якоря тормозили (28.10.2026). */
+		$ldEager = (int)($arParams['LD_EAGER_SECTIONS'] ?? 0);
+		/* Догрузка ленивого раздела берёт первую порцию (LD_LIMIT_TAIL=Y), а не весь
+		   хвост: дальше у раздела обычная кнопка «Показать ещё». */
+		$ldLimitTail = (($arParams['LD_LIMIT_TAIL'] ?? '') === 'Y');
+		$arResult['LD_LAZY_SECTIONS'] = [];
+
 		$arResult['LD_SECTIONS_META'] = [];
 		$ldFlat = [];
+		$ldBucketN = 0;
 		foreach ($ldBuckets as $ldBucket) {
 			$ldSid = (int)$ldBucket[0]['IBLOCK_SECTION_ID'];
 			$ldTotal = count($ldBucket);
+			$ldBucketSection = $ldBucket[0]['LD_SECTION'] ?? null;
+			// товары без раздела догрузить нечем (section=0 — это плоский список) — их печатаем сразу
+			if (!$ldItemsOnly && $ldEager > 0 && $ldBucketN++ >= $ldEager && $ldBucketSection) {
+				$arResult['LD_LAZY_SECTIONS'][] = ['SECTION' => $ldBucketSection, 'TOTAL' => $ldTotal];
+				continue;
+			}
 			// AJAX отдаёт хвост раздела с offset, страница — первые LD_PER_SECTION
 			$ldPart = $ldItemsOnly
-				? array_slice($ldBucket, $ldOffset)
+				? ($ldLimitTail && $ldPerSection > 0 ? array_slice($ldBucket, $ldOffset, $ldPerSection) : array_slice($ldBucket, $ldOffset))
 				: ($ldPerSection > 0 ? array_slice($ldBucket, 0, $ldPerSection) : $ldBucket);
 			$arResult['LD_SECTIONS_META'][$ldSid] = [
 				'TOTAL' => $ldTotal,

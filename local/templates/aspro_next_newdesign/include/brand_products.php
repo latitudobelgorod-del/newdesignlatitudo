@@ -18,6 +18,9 @@
      PER_SECTION сколько карточек показывать сразу — в разделе или всего
      ITEMS_ONLY  'Y' — отдать голые карточки без обёрток, стилей и скриптов
      OFFSET      сколько карточек уже на странице (только с ITEMS_ONLY)
+     EAGER_SECTIONS сколько разделов печатать сразу (0 — все); остальные
+                 догружает скрипт, когда раздел подъезжает к экрану
+     LIMIT_TAIL  догрузка раздела: только PER_SECTION карточек, а не весь хвост
      TITLE       заголовок над списком
      PRICE_CODE  типы цен, если region-логика уже посчитала свои
      STORES      склады, туда же
@@ -99,6 +102,9 @@ $APPLICATION->IncludeComponent(
 		'LD_TOTAL' => $ldTotal,
 		'LD_ITEMS_ONLY' => ($ldItemsOnly ? 'Y' : 'N'),
 		'LD_OFFSET' => $ldOffset,
+		// сколько разделов печатать сразу, остальные догружаются (EAGER_SECTIONS)
+		'LD_EAGER_SECTIONS' => (int)($ldBrand['EAGER_SECTIONS'] ?? 0),
+		'LD_LIMIT_TAIL' => (!empty($ldBrand['LIMIT_TAIL']) ? 'Y' : 'N'),
 		// чем шаблон адресует догрузку: бренд и свойство связи (см. AJAX_QUERY)
 		'LD_AJAX_QUERY' => (string)($ldBrand['AJAX_QUERY'] ?? ''),
 		// у акции догрузку отдаёт свой обработчик, у бренда — свой

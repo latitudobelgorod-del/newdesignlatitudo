@@ -1380,7 +1380,6 @@
 (function () {
     'use strict';
 
-    var loading = false;
 
     /* Подпись кнопки после догрузки — та же, что печатает шаблон списка. */
     function goodsWord(n) {
@@ -1409,14 +1408,14 @@
 
     document.addEventListener('click', function (e) {
         var btn = e.target.closest ? e.target.closest('[data-nd-brand-more]') : null;
-        if (!btn || loading) return;
+        // блокировка — на кнопку: разделы бренда догружаются параллельно
+        if (!btn || btn.classList.contains('is-loading')) return;
 
         var box = btn.closest('.nd-brandsect__more');
         var grid = box ? box.previousElementSibling : null;
         var url = btn.getAttribute('data-url');
         if (!box || !url || !grid || !grid.classList.contains('catalog_block')) return;
 
-        loading = true;
         btn.classList.add('is-loading');
 
         fetch(url, { credentials: 'same-origin' })
@@ -1441,6 +1440,13 @@
                 var offset = next ? parseInt(next.getAttribute('data-offset'), 10) || 0 : 0;
                 if (next) next.parentNode.removeChild(next);
 
+                /* Ленивый раздел получил первую порцию — дальше кнопка
+                   работает как обычная: весь остаток раздела разом. */
+                if (btn.hasAttribute('data-nd-brand-lazy')) {
+                    btn.removeAttribute('data-nd-brand-lazy');
+                    url = url.replace(/&limit=1/, '');
+                }
+
                 if (left > 0) {
                     btn.setAttribute('data-url', url.replace(/([?&]offset=)\d+/, '$1' + offset));
                     btn.textContent = 'Показать еще ' + left + ' ' + goodsWord(left);
@@ -1453,11 +1459,35 @@
             .catch(function (err) {
                 btn.classList.remove('is-loading');
                 console.log('brand more: ' + err.message);
-            })
-            .then(function () {
-                loading = false;
             });
     });
+
+    /* Разделы бренда, которые страница не напечатала сразу (LD_EAGER_SECTIONS):
+       первую порцию грузим сами, когда раздел подъезжает к экрану, — тем же
+       кликом по кнопке. */
+    function lazyLoad(btn) {
+        if (btn.isConnected && btn.hasAttribute('data-nd-brand-lazy')) btn.click();
+    }
+
+    function initLazy() {
+        var btns = [].slice.call(document.querySelectorAll('[data-nd-brand-lazy]'));
+        if (!btns.length) return;
+        if (!('IntersectionObserver' in window)) {
+            btns.forEach(lazyLoad);
+            return;
+        }
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+                if (!en.isIntersecting) return;
+                io.unobserve(en.target);
+                lazyLoad(en.target);
+            });
+        }, { rootMargin: '800px 0px' });
+        btns.forEach(function (b) { io.observe(b); });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initLazy);
+    else initLazy();
 })();
 
 /* ---------------------------------------------------------------------------

@@ -163,13 +163,34 @@
 		return h + 16;
 	}
 
+	/* Разделы, которые страница не напечатала сразу, догружаются при подъезде к
+	   экрану (js/newdesign-catalog.js, data-nd-brand-lazy) — и выше выбранного
+	   раздела вырастают уже после перехода. Поэтому ещё несколько секунд держим
+	   раздел на месте после каждой догрузки (событие nd:appended), пока
+	   покупатель сам не начал листать. */
+	var HOLD_MS = 6000;
+	var stopHold = null;
+
 	function jumpTo(target) {
+		if (stopHold) stopHold();
 		var go = function () {
 			var top = target.getBoundingClientRect().top - headerOffset();
 			if (Math.abs(top) > 4) window.scrollTo({ top: window.pageYOffset + top, behavior: 'instant' });
 		};
+		var timers = [250, 700, 1500].map(function (ms) { return setTimeout(go, ms); });
+		var userEvents = ['wheel', 'touchstart', 'keydown', 'mousedown'];
+		var stop = function () {
+			timers.forEach(clearTimeout);
+			clearTimeout(timer);
+			document.removeEventListener('nd:appended', go);
+			userEvents.forEach(function (ev) { window.removeEventListener(ev, stop, true); });
+			stopHold = null;
+		};
+		var timer = setTimeout(stop, HOLD_MS);
 		go();
-		[250, 700, 1500].forEach(function (ms) { setTimeout(go, ms); });
+		document.addEventListener('nd:appended', go);
+		userEvents.forEach(function (ev) { window.addEventListener(ev, stop, true); });
+		stopHold = stop;
 	}
 
 	function initPageLinks() {

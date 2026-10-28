@@ -55,7 +55,10 @@ if ($ldSectionId > 0) {
 	$ldFilter['IBLOCK_SECTION_ID'] = $ldSectionId;
 }
 
+/* limit=1 — первая порция раздела, который страница бренда не напечатала сразу
+   (LD_EAGER_SECTIONS): отдаём $ldPer карточек, дальше обычное «Показать ещё». */
 $ldBrand = [
+	'LIMIT_TAIL' => (($_GET['limit'] ?? '') === '1'),
 	'MODE' => ($ldSectionId > 0 ? 'sections' : 'flat'),
 	'FILTER' => $ldFilter,
 	'PER_SECTION' => $ldPer,
