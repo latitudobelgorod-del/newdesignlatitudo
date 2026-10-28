@@ -130,11 +130,7 @@ $ndVrGrid = $arParams['VIEW'] === 'GRID';
 					<? endif; ?>
 				</button>
 				<div class="nd-vr__body">
-					<? if ($ndVrGrid && isset($arResult['BRANDS'][$v['BRAND']])): ?>
-							<div class="nd-vr__brand"><?= htmlspecialcharsbx($arResult['BRANDS'][$v['BRAND']]['NAME']) ?></div>
-						<? elseif ($ndVrGrid && $v['TYPE'] !== 'product'): ?>
-							<div class="nd-vr__brand"><?= htmlspecialcharsbx($v['TYPE_NAME']) ?></div>
-						<? endif; ?>
+						<?/* подпись марки/типа над названием убрана (Ирина, 28.10.2026) */?>
 						<?/* Название — настоящая ссылка на товар: её видят поисковики (до этого
 						   адрес товара подставлял только скрипт окна). Обычный клик открывает
 						   окно с видео (script.js), Ctrl/колёсико — товар в новой вкладке. */?>
