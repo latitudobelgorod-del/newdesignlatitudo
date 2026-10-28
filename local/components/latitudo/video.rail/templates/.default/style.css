@@ -162,18 +162,19 @@
 }
 
 /* значок видео — как на карточках товаров (.colproduct_video в
-   css/newdesign-catalog.css): чёрный круг 32px с белым треугольником, но в
-   правом верхнем углу — внизу уже серия и длительность (Ирина, 28.10.2026;
-   голубая кнопка Rutube по центру закрывала превью) */
+   css/newdesign-catalog.css): чёрный круг 32px с белым треугольником, по
+   центру превью; голубая кнопка Rutube 48–64px была крупной (Ирина, 28.10.2026) */
 .nd-vr__play {
 	position: absolute;
-	top: 10px;
-	right: 10px;
+	/* по центру превью (Ирина, 28.10.2026: сначала стоял в правом верхнем углу) */
+	top: 50%;
+	left: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	width: 32px;
 	height: 32px;
+	margin: -16px 0 0 -16px;
 	border-radius: 50%;
 	background: #101014;
 	color: #fff;
