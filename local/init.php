@@ -304,6 +304,20 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_co
 AddEventHandler('main', 'OnEndBufferContent', 'ndCompareTokens', 10035);
 
 /**
+ * Видео о продукции (28.10.2026): инфоблок «Видео» (videos) — ролик без дублей.
+ * Ссылку по-прежнему вводят в товар («Видео в попапе») или предложение («Товарное
+ * видео»); при сохранении ролик заводится и товар к нему привязывается.
+ * Выборку зовёт компонент latitudo:video.rail — подключаем сразу.
+ *
+ * Логика в local/php_interface/include/latitudo_videos.php.
+ */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_videos.php';
+AddEventHandler('iblock', 'OnAfterIBlockElementAdd', ['LatitudoVideoSync', 'onElementSave']);
+AddEventHandler('iblock', 'OnAfterIBlockElementUpdate', ['LatitudoVideoSync', 'onElementSave']);
+AddEventHandler('iblock', 'OnAfterIBlockElementSetPropertyValuesEx', ['LatitudoVideoSync', 'onSetPropertyValuesEx']);
+AddEventHandler('iblock', 'OnAfterIBlockElementDelete', ['LatitudoVideoSync', 'onElementDelete']);
+
+/**
  * Расчёт доставки из корзины (фрейм LATITUDO, галочка «С доставкой») —
  * в комментарий нового заказа, если состав с расчёта не менялся. Сумма
  * заказа не меняется: цена из браузера, для менеджера — «предварительно».

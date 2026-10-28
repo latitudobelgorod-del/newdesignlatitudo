@@ -57,6 +57,20 @@ global $APPLICATION;?>
 	$component
 );?>
 
+<?/* «Видео о продукции» — под «Документацией» (она в конце news.detail/partners),
+   до товаров марки (Ирина, 28.10.2026). Роликов у марки нет — блока нет.
+   Ролики — инфоблок «Видео», см. local/php_interface/include/latitudo_videos.php. */?>
+<?$APPLICATION->IncludeComponent(
+	"latitudo:video.rail",
+	"",
+	array(
+		"BRAND_ID" => $arElement["ID"],
+		"CACHE_TYPE" => "A",
+		"CACHE_TIME" => 3600,
+	),
+	$component,
+	array("HIDE_ICONS" => "Y")
+);?>
 
 <? // товары каталога?>
 <?if($arParams["SHOW_LINKED_PRODUCTS"] == "Y" && strlen($arParams["LINKED_PRODUCTS_PROPERTY"])):?>
