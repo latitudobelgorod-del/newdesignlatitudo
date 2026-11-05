@@ -22,6 +22,7 @@
                  догружает скрипт, когда раздел подъезжает к экрану
      LIMIT_TAIL  догрузка раздела: только PER_SECTION карточек, а не весь хвост
      TITLE       заголовок над списком
+     PREFER_DISCOUNT true — карточка открывается на предложении со скидкой (акции)
      PRICE_CODE  типы цен, если region-логика уже посчитала свои
      STORES      склады, туда же
 
@@ -109,6 +110,8 @@ $APPLICATION->IncludeComponent(
 		'LD_AJAX_QUERY' => (string)($ldBrand['AJAX_QUERY'] ?? ''),
 		// у акции догрузку отдаёт свой обработчик, у бренда — свой
 		'LD_AJAX_URL' => (string)($ldBrand['AJAX_URL'] ?? ''),
+		// товары акции: карточка открывается на предложении со скидкой (PREFER_DISCOUNT)
+		'ND_PREFER_DISCOUNT' => (!empty($ldBrand['PREFER_DISCOUNT']) ? 'Y' : 'N'),
 		// порядок карточек списком ID — страница сравнения (порядок добавления);
 		// переставляет result_modifier, как выдачу поиска. Без него — SORT, ID.
 		'ND_ID_ORDER' => !empty($ldBrand['ID_ORDER']) ? array_values(array_map('intval', (array)$ldBrand['ID_ORDER'])) : null,

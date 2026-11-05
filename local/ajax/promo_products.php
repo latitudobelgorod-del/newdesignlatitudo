@@ -88,6 +88,7 @@ $ldBrand = [
 	'FILTER' => ['ID' => $ldIds, 'ACTIVE' => 'Y'],
 	'PER_SECTION' => $ldPer,
 	'ITEMS_ONLY' => 'Y',
+	'PREFER_DISCOUNT' => true,
 	'OFFSET' => $ldOffset,
 ];
 include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_products.php';

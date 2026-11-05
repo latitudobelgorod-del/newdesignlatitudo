@@ -578,6 +578,22 @@ if (!empty($arResult['ITEMS'])){
 
 				Collection::sortByColumn($arItem['OFFERS'], $arSortFields);
 
+				/* Товары акции (ND_PREFER_DISCOUNT=Y, include/brand_products.php):
+				   карточка открывается на предложении со скидкой. В акции бывает
+				   только одна длина из двух, а по умолчанию выбрана первая по
+				   сортировке — и плашка акции появлялась только после переключения
+				   длины (Ирина, 05.11.2026). */
+				if (($arParams['ND_PREFER_DISCOUNT'] ?? '') === 'Y' && empty($arItem['OFFER_ID_SELECTED'])) {
+					foreach ($arItem['OFFERS'] as $ndOffer) {
+						$ndOfferPrice = $ndOffer['ITEM_PRICES'][$ndOffer['ITEM_PRICE_SELECTED']] ?? null;
+						if ($ndOfferPrice && (float)$ndOfferPrice['DISCOUNT'] > 0) {
+							$arItem['OFFER_ID_SELECTED'] = $ndOffer['ID'];
+							break;
+						}
+					}
+					unset($ndOffer, $ndOfferPrice);
+				}
+
 				$arMatrix = array();
 				$intSelected = -1;
 				$arItem['MIN_PRICE'] = false;

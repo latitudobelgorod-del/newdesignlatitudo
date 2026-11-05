@@ -274,6 +274,7 @@ if (!empty($arResult['PROPERTIES']['LINK_GOODS']['VALUE']) && CModule::IncludeMo
 			'EAGER_SECTIONS' => ($ndSaleTabs ? 1 : 0),
 			'TITLE' => (strlen($arParams['T_GOODS']) ? $arParams['T_GOODS'] : GetMessage('T_GOODS')),
 			'AJAX_URL' => '/local/ajax/promo_products.php',
+			'PREFER_DISCOUNT' => true,
 			'AJAX_QUERY' => 'promo='.(int)$arResult['ID'].($ndSaleTabs ? '&per=10' : ''),
 		);
 		?>
