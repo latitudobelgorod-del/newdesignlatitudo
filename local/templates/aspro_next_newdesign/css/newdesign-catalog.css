@@ -2223,7 +2223,8 @@ body .nd-catlist .nd-brandsect__title {
 
 /* Раздел бренда догружается сам (js/newdesign-catalog.js, data-nd-brand-lazy):
    вместо бледной красной кнопки — серая плашка «Загружаем товары…». */
-.nd-brandsect__more-btn[data-nd-brand-lazy].is-loading {
+.nd-brandsect__more-btn[data-nd-brand-lazy].is-loading,
+.nd-brandsect__more-btn[data-nd-brand-lazy].is-waiting {
     opacity: 1;
     background: rgba(82, 82, 100, .1);
     color: #525264;

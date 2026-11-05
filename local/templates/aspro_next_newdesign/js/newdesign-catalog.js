@@ -1397,6 +1397,14 @@
             if (node.nodeType !== 1) return;
             var scripts = node.tagName === 'SCRIPT' ? [node] : [].slice.call(node.querySelectorAll('script'));
             scripts.forEach(function (old) {
+                /* Внешний скрипт, который уже стоит на странице (капча Яндекса
+                   приходит с каждым разделом), второй раз не грузим. */
+                if (old.src && [].some.call(document.scripts, function (s) {
+                    return s !== old && s.src === old.src;
+                })) {
+                    old.parentNode.removeChild(old);
+                    return;
+                }
                 var fresh = document.createElement('script');
                 if (old.src) fresh.src = old.src;
                 else fresh.textContent = old.textContent;
@@ -1408,20 +1416,27 @@
 
     document.addEventListener('click', function (e) {
         var btn = e.target.closest ? e.target.closest('[data-nd-brand-more]') : null;
-        // блокировка — на кнопку: разделы бренда догружаются параллельно
-        if (!btn || btn.classList.contains('is-loading')) return;
+        if (btn) loadMore(btn);
+    });
+
+    /* Догрузить порцию раздела по кнопке. Возвращает обещание (или null, если
+       грузить нечего) — по нему очередь ленивых разделов берёт следующий. */
+    function loadMore(btn) {
+        // блокировка — на кнопку: раздел не запрашиваем дважды
+        if (btn.classList.contains('is-loading')) return null;
 
         var box = btn.closest('.nd-brandsect__more');
         var grid = box ? box.previousElementSibling : null;
         var url = btn.getAttribute('data-url');
-        if (!box || !url || !grid || !grid.classList.contains('catalog_block')) return;
+        if (!box || !url || !grid || !grid.classList.contains('catalog_block')) return null;
 
         btn.classList.add('is-loading');
+        btn.classList.remove('is-waiting');
         /* ленивый раздел: вместо бледной кнопки «Показать N товаров» — понятная надпись */
-        var label = btn.textContent;
+        var label = btn.getAttribute('data-label') || btn.textContent;
         if (btn.hasAttribute('data-nd-brand-lazy')) btn.textContent = 'Загружаем товары…';
 
-        fetch(url, { credentials: 'same-origin' })
+        return fetch(url, { credentials: 'same-origin' })
             .then(function (r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 return r.text();
@@ -1473,22 +1488,86 @@
                 btn.textContent = label;
                 console.log('brand more: ' + err.message);
             });
-    });
+    }
 
     /* Разделы бренда, которые страница не напечатала сразу (LD_EAGER_SECTIONS):
-       первую порцию грузим сами, когда раздел подъезжает к экрану, — тем же
-       кликом по кнопке. */
+       первую порцию грузим сами.
+
+       Строго по одному: хостинг обрабатывает разом около пяти запросов, и когда
+       к экрану подъезжали сразу несколько разделов, последний ждал очереди до
+       двух секунд — человек видел заголовок и пустое место под ним (Ирина,
+       05.11.2026: «на странице производителя долго подгружается»). Первым
+       берём раздел, ближайший к середине экрана; когда страница загрузилась,
+       остальные подгружаем заранее, сверху вниз, — к прокрутке они готовы. */
+    var lazyWanted = [];
+    var lazyBusy = false;
+    var lazyPreload = false;
+
+    function lazyPending(btn) {
+        return btn.isConnected && btn.hasAttribute('data-nd-brand-lazy') && !btn.classList.contains('is-loading');
+    }
+
+    function lazyPick() {
+        lazyWanted = lazyWanted.filter(lazyPending);
+        if (lazyWanted.length) {
+            /* сначала раздел на экране, потом ниже экрана, а те, что выше, —
+               последними, от ближнего: выросший раздел над экраном сдвигает то,
+               что человек смотрит */
+            var h = window.innerHeight;
+            var rank = function (btn) {
+                var top = btn.getBoundingClientRect().top;
+                if (top >= 0 && top < h) return top;
+                if (top >= h) return h + top;
+                return 1e7 - top;
+            };
+            return lazyWanted.slice().sort(function (a, b) { return rank(a) - rank(b); })[0];
+        }
+        if (!lazyPreload) return null;
+        return [].slice.call(document.querySelectorAll('[data-nd-brand-lazy]')).filter(lazyPending)[0] || null;
+    }
+
+    function lazyNext() {
+        if (lazyBusy) return;
+        var btn = lazyPick();
+        if (!btn) return;
+        var job = loadMore(btn);
+        if (!job) return;
+        lazyBusy = true;
+        job.then(function () {
+            lazyBusy = false;
+            // не загрузился — в очередь больше не берём, остаётся кнопка
+            if (btn.hasAttribute('data-nd-brand-lazy')) {
+                btn.removeAttribute('data-nd-brand-lazy');
+                btn.classList.remove('is-waiting');
+            }
+            // пауза — чтобы между порциями браузер успел нарисовать карточки
+            setTimeout(lazyNext, 100);
+        });
+    }
+
+    /* Раздел нужен сейчас (подъехал к экрану, открыли вкладку акции): вне
+       очереди, но всё так же по одному. Пока ждёт — та же надпись «Загружаем». */
     function lazyLoad(btn) {
-        if (btn.isConnected && btn.hasAttribute('data-nd-brand-lazy')) btn.click();
+        if (!lazyPending(btn)) return;
+        if (lazyWanted.indexOf(btn) < 0) lazyWanted.push(btn);
+        if (!btn.hasAttribute('data-label')) btn.setAttribute('data-label', btn.textContent);
+        btn.textContent = 'Загружаем товары…';
+        btn.classList.add('is-waiting');
+        lazyNext();
     }
 
     function initLazy() {
         var btns = [].slice.call(document.querySelectorAll('[data-nd-brand-lazy]'));
         if (!btns.length) return;
-        if (!('IntersectionObserver' in window)) {
-            btns.forEach(lazyLoad);
-            return;
-        }
+        var start = function () {
+            setTimeout(function () {
+                lazyPreload = true;
+                lazyNext();
+            }, 500);
+        };
+        if (document.readyState === 'complete') start();
+        else window.addEventListener('load', start);
+        if (!('IntersectionObserver' in window)) return;
         var io = new IntersectionObserver(function (entries) {
             entries.forEach(function (en) {
                 if (!en.isIntersecting) return;
@@ -1557,22 +1636,10 @@
             var active = bar.querySelector('.is-active') || tabs[0];
             select(active.getAttribute('data-nd-promo-tab'));
 
-            /* Остальные разделы подгружаем заранее, по одному, когда страница
-               уже загрузилась: иначе по клику на вкладку человек видел пустое
-               место и «Загружаем товары…», пока приходят и запускаются
-               карточки (Ирина, 05.11.2026: «какое-то подвисание»). */
-            function preloadNext() {
-                var lazy = list.querySelector('[data-nd-brand-lazy]:not(.is-loading)');
-                if (!lazy) return;
-                document.addEventListener('nd:appended', function once() {
-                    document.removeEventListener('nd:appended', once);
-                    setTimeout(preloadNext, 300);
-                });
-                lazyLoad(lazy);
-            }
-            var start = function () { setTimeout(preloadNext, 1000); };
-            if (document.readyState === 'complete') start();
-            else window.addEventListener('load', start);
+            /* Остальные разделы подгружаются заранее, по одному, когда страница
+               уже загрузилась (очередь ленивых разделов выше, initLazy): иначе
+               по клику на вкладку человек видел пустое место и «Загружаем
+               товары…» (Ирина, 05.11.2026: «какое-то подвисание»). */
         });
     }
 
