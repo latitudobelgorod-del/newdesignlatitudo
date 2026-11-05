@@ -65,12 +65,12 @@ if($arMenuParametrs = CNext::GetDirMenuParametrs(__DIR__))
 	}
 }
 
-// «Видео» (/video/) — не элемент инфоблока, ставим после «Производства ДПК» (Ирина, 05.11.2026)
+// «Видео» (/video/) — не элемент инфоблока, ставим после «Калькулятора ограждений» (Ирина, 05.11.2026)
 $arVideoLink = array('Видео: обзоры, отзывы и наши объекты', '/video/', array(), array('FROM_IBLOCK' => 1, 'DEPTH_LEVEL' => 1));
 $videoPos = count($aMenuLinksExt);
 foreach($aMenuLinksExt as $i => $arLink)
 {
-	if($arLink[1] == '/info/proizvodstvo/')
+	if($arLink[1] == '/info/kalkulyator-ograzhdeniy/')
 	{
 		$videoPos = $i + 1;
 		break;
