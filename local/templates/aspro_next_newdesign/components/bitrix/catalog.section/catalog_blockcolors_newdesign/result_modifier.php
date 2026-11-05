@@ -694,7 +694,14 @@ if (!empty($arResult['ITEMS'])){
 						'CAN_BUY' => ($arAddToBasketData['CAN_BUY'] ? 'Y' : $arOffer['CAN_BUY']),
 						'CATALOG_SUBSCRIBE' => $arOffer['CATALOG_SUBSCRIBE'],
 						'AVAILIABLE' => CNext::GetQuantityArray($totalCount),
-						'URL' => $arOffer['DETAIL_PAGE_URL'],
+						/* Ссылку на карточку при смене длины ставит script.js (offers[].URL).
+						   У предложения адрес тот же, что у товара, и карточка открывалась
+						   на длине по умолчанию — даже из поиска по артикулу другой длины
+						   (Ирина, 05.11.2026). ?oid= карточка понимает (element_newdesign.php,
+						   SKU_DETAIL_ID). В разметке страницы ссылка остаётся чистой. */
+						'URL' => (count($arItem['OFFERS']) > 1
+							? CHTTP::urlAddParams($arOffer['DETAIL_PAGE_URL'], array('oid' => $arOffer['ID']))
+							: $arOffer['DETAIL_PAGE_URL']),
 						//'URL' => $arItem["DETAIL_PAGE_URL"],
 						'SHOW_MEASURE' => ($arParams["SHOW_MEASURE"]=="Y" ? "Y" : "N"),
 						'SHOW_ONE_CLICK_BUY' => "N",

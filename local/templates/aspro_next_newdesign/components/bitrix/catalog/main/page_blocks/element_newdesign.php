@@ -3,6 +3,10 @@
 	"main6_newdesign",
 	Array(
 	 "SELECTED_OFFER_ID" => $arParams["SELECTED_OFFER_ID"],
+		/* ?oid=<ID предложения> — карточка открывается на этой длине (так ведёт
+		   поиск по артикулу, Ирина 05.11.2026). Выбор делает result_modifier
+		   (SKU_DETAIL_ID); без oid параметр пустой и кеш общий, как раньше. */
+		"SKU_DETAIL_ID" => ((int)($_GET["oid"] ?? 0) > 0 ? (string)(int)$_GET["oid"] : ""),
 		"USE_REGION" => ($arRegion ? "Y" : "N"),
 		// Склад города — параметром, чтобы входил в ключ кеша (см. latitudo_catalog_cache.php).
 		"ND_STORE_ID" => ndRegionStoreId(),
