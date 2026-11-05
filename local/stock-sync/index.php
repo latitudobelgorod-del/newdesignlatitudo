@@ -184,6 +184,12 @@ function stock_log(string $message): void {
 
     if (file_exists($log_file) && filesize($log_file) > $max_size) {
         @rename($log_file, $log_dir . '/stock_sync.' . date('Ymd_His') . '.log');
+        // с построчной записью (05.11.2026) журнал растёт быстрее — храним 10 последних архивов
+        $old = glob($log_dir . '/stock_sync.*_*.log') ?: [];
+        sort($old);
+        foreach (array_slice($old, 0, max(0, count($old) - 10)) as $f) {
+            @unlink($f);
+        }
     }
 
     $line = date('Y-m-d H:i:s') . ' | ' . $message . "\n";
@@ -328,8 +334,11 @@ switch ($action) {
                 $warehouse    = trim((string)($item['warehouse'] ?? ''));
                 $product_name = trim((string)($item['product_name'] ?? ''));
                 $quantity     = (int)($item['quantity'] ?? 0);
+                // как прислали — до приведения к целому (дробные и минусовые видно в журнале)
+                $raw_qty      = is_scalar($item['quantity'] ?? null) ? (string)$item['quantity'] : '';
 
                 if ($quantity < 0) {
+                    stock_log("Item rejected | sku={$sku} | warehouse={$warehouse} | qty={$raw_qty} | quantity must be >= 0");
                     $errors++;
                     $failures[] = [
                         'status'  => 'error',
@@ -356,6 +365,7 @@ switch ($action) {
 
                 $store_id = resolve_warehouse($warehouse);
                 if ($store_id === null) {
+                    stock_log("Item rejected | sku={$sku} | warehouse={$warehouse} | qty={$raw_qty} | unknown warehouse");
                     $errors++;
                     $failures[] = [
                         'status'    => 'error',
@@ -369,6 +379,10 @@ switch ($action) {
                 try {
                     update_stock($pdo, $offer_id, $store_id, $quantity);
                     $success++;
+                    /* Каждая строка пачки — чтобы по артикулу было видно, приходил ли
+                       он и с каким количеством (Ирина, 05.11.2026: остатки 33613,
+                       27425, 33389 не доходили до сайта, а в журнале были только итоги). */
+                    stock_log("Item | sku={$sku} | store={$store_id} ({$warehouse}) | qty={$raw_qty}" . ($raw_qty !== (string)$quantity ? " -> {$quantity}" : ''));
                 } catch (Exception $e) {
                     $errors++;
                     $failures[] = [
