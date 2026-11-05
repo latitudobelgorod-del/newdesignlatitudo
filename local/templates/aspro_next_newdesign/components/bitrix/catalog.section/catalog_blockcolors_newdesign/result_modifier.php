@@ -583,6 +583,16 @@ if (!empty($arResult['ITEMS'])){
 				   только одна длина из двух, а по умолчанию выбрана первая по
 				   сортировке — и плашка акции появлялась только после переключения
 				   длины (Ирина, 05.11.2026). */
+				// поиск по артикулу предложения (catalog.search/main) — сразу эта длина
+				if (!empty($arParams['ND_SELECT_OFFER'])) {
+					foreach ($arItem['OFFERS'] as $ndOffer) {
+						if ((int)$ndOffer['ID'] === (int)$arParams['ND_SELECT_OFFER']) {
+							$arItem['OFFER_ID_SELECTED'] = $ndOffer['ID'];
+							break;
+						}
+					}
+					unset($ndOffer);
+				}
 				if (($arParams['ND_PREFER_DISCOUNT'] ?? '') === 'Y' && empty($arItem['OFFER_ID_SELECTED'])) {
 					foreach ($arItem['OFFERS'] as $ndOffer) {
 						$ndOfferPrice = $ndOffer['ITEM_PRICES'][$ndOffer['ITEM_PRICE_SELECTED']] ?? null;

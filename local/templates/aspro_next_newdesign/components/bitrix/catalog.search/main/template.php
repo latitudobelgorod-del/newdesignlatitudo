@@ -384,6 +384,9 @@ if (is_array($arElements) && !empty($arElements)) {
 
 					/* порядок по релевантности — см. ndSearchRelevancePage() */
 					"ND_ID_ORDER" => $ndRel ? $ndRel['IDS'] : array(),
+					/* Запрос — артикул предложения: плитка открывается на этой длине
+					   (Ирина, 05.11.2026: по 26347 показывалась 3010 вместо 4010). */
+					"ND_SELECT_OFFER" => (($ndArt = LatitudoQuickSearch::findByArticle(isset($_REQUEST['q']) ? $_REQUEST['q'] : '')) && $ndArt['OFFER_ID'] ? (int)$ndArt['OFFER_ID'] : 0),
 					"ND_NAV_STRING" => $ndRel ? $ndRel['NAV_STRING'] : null,
 					"ND_TOTAL" => $ndRel ? $ndRel['TOTAL'] : null,
 			),
