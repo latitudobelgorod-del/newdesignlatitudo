@@ -32,6 +32,9 @@ const ND_FEED_MAX_AGE = 3600;
 // город из ленты => склад сайта (b_catalog_store)
 const ND_FEED_STORES = ['Белгород' => 1, 'Воронеж' => 2, 'Москва' => 3, 'Краснодар' => 4];
 
+// в журнале — московское время, как у index.php (у php из cron по умолчанию UTC)
+date_default_timezone_set('Europe/Moscow');
+
 $dry = in_array('--dry', $argv, true);
 $logDir = __DIR__ . '/logs';
 
