@@ -126,6 +126,20 @@ function resolve_sku(PDO $pdo, string $sku): ?int {
     return $row ? (int)$row['ID'] : null;
 }
 
+/**
+ * Предложения, остатки которых сайт забирает сам из ленты metatool (feed_pull.php
+ * пишет их список в logs/feed_offers.json). По ним толчки сюда больше не пишем —
+ * иначе два источника перезаписывали бы друг друга (05.11.2026).
+ */
+function is_feed_offer(int $offer_id): bool {
+    static $ids = null;
+    if ($ids === null) {
+        $list = @json_decode((string)@file_get_contents(__DIR__ . '/logs/feed_offers.json'), true);
+        $ids = is_array($list) ? array_flip(array_map('intval', $list)) : [];
+    }
+    return isset($ids[$offer_id]);
+}
+
 function resolve_warehouse(string $warehouse): ?int {
     global $WAREHOUSE_MAP;
     return $WAREHOUSE_MAP[mb_strtolower(trim($warehouse), 'UTF-8')] ?? null;
@@ -284,7 +298,11 @@ switch ($action) {
                 ]);
             }
 
-            update_stock($pdo, $offer_id, $store_id, $quantity);
+            if (is_feed_offer($offer_id)) {
+                stock_log("Item skipped (feed) | sku={$sku} | warehouse={$warehouse} | qty={$quantity}");
+            } else {
+                update_stock($pdo, $offer_id, $store_id, $quantity);
+            }
         } catch (Exception $e) {
             stock_log("DB error on single update: " . $e->getMessage());
             json_response(500, ['status' => 'error', 'message' => 'Internal server error']);
@@ -373,6 +391,13 @@ switch ($action) {
                         'warehouse' => $warehouse,
                         'message'   => 'Unknown warehouse',
                     ];
+                    continue;
+                }
+
+                // остаток этого предложения сайт берёт из ленты (feed_pull.php)
+                if (is_feed_offer($offer_id)) {
+                    $success++;
+                    stock_log("Item skipped (feed) | sku={$sku} | store={$store_id} ({$warehouse}) | qty={$raw_qty}");
                     continue;
                 }
 
