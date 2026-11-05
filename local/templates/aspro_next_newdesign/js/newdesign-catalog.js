@@ -1501,6 +1501,66 @@
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initLazy);
     else initLazy();
+
+    /* Вкладки разделов у товаров акции (news.detail/news_newdesign, больше
+       10 товаров). Список печатается по разделам: заголовок раздела, сетка,
+       кнопка — соседями. Вкладка оставляет видимым свой раздел, заголовок
+       прячет (его называет сама вкладка); «Все товары» показывает всё, и
+       ленивые разделы грузятся при прокрутке, как у бренда. Скрытый раздел
+       IntersectionObserver не видит — его первую порцию грузим по клику. */
+    function initPromoTabs() {
+        [].slice.call(document.querySelectorAll('[data-nd-promo-tabs]')).forEach(function (bar) {
+            var list = bar.parentNode.querySelector('.nd-catlist');
+            if (!list) return;
+            var groups = [];
+            [].slice.call(list.children).forEach(function (node) {
+                if (node.classList.contains('nd-brandsect__title')) groups.push({ code: node.id, nodes: [node] });
+                else if (groups.length) groups[groups.length - 1].nodes.push(node);
+            });
+            if (groups.length < 2) return;
+
+            var tabs = [].slice.call(bar.querySelectorAll('[data-nd-promo-tab]'));
+            // раздел мог не попасть в список (например, все его товары скрыты) — вкладку убираем
+            tabs.forEach(function (tab) {
+                var code = tab.getAttribute('data-nd-promo-tab');
+                if (code && !groups.some(function (g) { return g.code === code; })) tab.parentNode.removeChild(tab);
+            });
+            tabs = [].slice.call(bar.querySelectorAll('[data-nd-promo-tab]'));
+
+            function select(code) {
+                tabs.forEach(function (tab) {
+                    tab.classList.toggle('is-active', tab.getAttribute('data-nd-promo-tab') === code);
+                });
+                groups.forEach(function (g) {
+                    var on = code === '' || g.code === code;
+                    g.nodes.forEach(function (node, i) {
+                        node.classList.toggle('nd-promo-off', !on || (i === 0 && code !== ''));
+                    });
+                    if (on && code !== '') {
+                        g.nodes.forEach(function (node) {
+                            var lazy = node.querySelector && node.querySelector('[data-nd-brand-lazy]');
+                            if (lazy) lazyLoad(lazy);
+                        });
+                    }
+                });
+            }
+
+            bar.addEventListener('click', function (e) {
+                var tab = e.target.closest ? e.target.closest('[data-nd-promo-tab]') : null;
+                if (tab) select(tab.getAttribute('data-nd-promo-tab'));
+            });
+
+            // вкладки — под заголовком «Товары по акции»
+            var head = list.querySelector(':scope > h5');
+            if (head) head.parentNode.insertBefore(bar, head.nextSibling);
+            bar.hidden = false;
+            var active = bar.querySelector('.is-active') || tabs[0];
+            select(active.getAttribute('data-nd-promo-tab'));
+        });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPromoTabs);
+    else initPromoTabs();
 })();
 
 /* ---------------------------------------------------------------------------

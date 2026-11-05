@@ -240,19 +240,52 @@ if (!empty($arResult['PROPERTIES']['LINK_GOODS']['VALUE']) && CModule::IncludeMo
 		   Старый вызов include/news.detail.products_block.php рисовал карточку
 		   прежнего дизайна и остался у шаблона news (старый дизайн). */?>
 		<?
+		/* Больше 10 товаров из нескольких разделов — вкладки по разделам
+		   (Ирина, 05.11.2026: в ноябрьской акции 49 товаров одной лентой).
+		   Список тогда идёт «по разделам», как у бренда с «Шаблоном №1»: сразу
+		   печатается только первый раздел (по 10 карточек), остальные
+		   догружаются при выборе вкладки или, на вкладке «Все товары», при
+		   прокрутке. Вкладки рисуются скрытыми — открывает их
+		   js/newdesign-catalog.js; без скрипта видны все разделы подряд. */
+		$ndSaleTabs = array();
+		if (count($ndSaleGoods) > 10)
+		{
+			require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/brand_sections.php';
+			$ndSaleCount = array();
+			$rsNdSaleSec = CIBlockElement::GetList(array(), array('ID' => $ndSaleGoods, 'ACTIVE' => 'Y'), array('IBLOCK_SECTION_ID'));
+			while ($arNdSaleSec = $rsNdSaleSec->Fetch())
+				$ndSaleCount[(int)$arNdSaleSec['IBLOCK_SECTION_ID']] = (int)$arNdSaleSec['CNT'];
+			foreach (LdBrandSections::fromFilter(\Bitrix\Main\Config\Option::get('aspro.next', 'CATALOG_IBLOCK_ID', 19), array('ID' => $ndSaleGoods)) as $ndSaleSection)
+			{
+				$ndSaleSection['CNT'] = (int)($ndSaleCount[$ndSaleSection['ID']] ?? 0);
+				$ndSaleTabs[] = $ndSaleSection;
+			}
+			// один раздел — вкладкам нечего переключать
+			if (count($ndSaleTabs) < 2)
+				$ndSaleTabs = array();
+		}
 		$ldBrand = array(
-			'MODE' => 'flat',
+			'MODE' => ($ndSaleTabs ? 'sections' : 'flat'),
 			'FILTER' => array(
 				'ID' => $ndSaleGoods,
 				'ACTIVE' => 'Y',
 			),
-			'PER_SECTION' => 20,
+			'PER_SECTION' => ($ndSaleTabs ? 10 : 20),
+			'EAGER_SECTIONS' => ($ndSaleTabs ? 1 : 0),
 			'TITLE' => (strlen($arParams['T_GOODS']) ? $arParams['T_GOODS'] : GetMessage('T_GOODS')),
 			'AJAX_URL' => '/local/ajax/promo_products.php',
-			'AJAX_QUERY' => 'promo='.(int)$arResult['ID'],
+			'AJAX_QUERY' => 'promo='.(int)$arResult['ID'].($ndSaleTabs ? '&per=10' : ''),
 		);
-		include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_products.php';
 		?>
+		<?if($ndSaleTabs):?>
+			<div class="nd-promo-tabs" data-nd-promo-tabs hidden>
+				<?foreach($ndSaleTabs as $ndI => $ndSaleSection):?>
+					<button type="button" class="nd-promo-tabs__tab<?=($ndI === 0 ? ' is-active' : '')?>" data-nd-promo-tab="<?=htmlspecialcharsbx($ndSaleSection['CODE'])?>"><?=htmlspecialcharsbx($ndSaleSection['NAME'])?><?if($ndSaleSection['CNT']):?> <span class="nd-promo-tabs__cnt"><?=$ndSaleSection['CNT']?></span><?endif;?></button>
+				<?endforeach;?>
+				<button type="button" class="nd-promo-tabs__tab" data-nd-promo-tab="">Все товары <span class="nd-promo-tabs__cnt"><?=count($ndSaleGoods)?></span></button>
+			</div>
+		<?endif;?>
+		<?include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_products.php';?>
 	</div>
 <?endif;?>
 

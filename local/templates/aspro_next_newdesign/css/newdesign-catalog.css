@@ -2122,6 +2122,75 @@ body .nd-catlist .nd-brandsect__title {
     margin-top: 32px;
 }
 
+/* Вкладки разделов у товаров акции (js/newdesign-catalog.js, initPromoTabs).
+   Вид — как у вкладок списка акций (.nd-sale__tab): серые плашки, активная
+   красная. На телефоне — одной строкой с прокруткой, чтобы восемь разделов
+   не занимали пол-экрана. */
+.nd-promo-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 32px;
+}
+.nd-promo-tabs[hidden],
+.nd-catlist .nd-promo-off {
+    display: none !important;
+}
+.nd-promo-tabs__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .08);
+    color: #101014;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+.nd-promo-tabs__tab:hover {
+    background: rgba(82, 82, 100, .16);
+}
+.nd-promo-tabs__tab.is-active {
+    background: #c60000;
+    color: #fff;
+}
+.nd-promo-tabs__cnt {
+    color: #8f8f9a;
+    font-weight: 400;
+}
+.nd-promo-tabs__tab.is-active .nd-promo-tabs__cnt {
+    color: rgba(255, 255, 255, .75);
+}
+/* активная вкладка прячет заголовок раздела — сетка идёт сразу под вкладками */
+.nd-catlist .nd-promo-tabs + .nd-promo-off + .catalog_block {
+    margin-top: 0;
+}
+@media (max-width: 767px) {
+    .nd-promo-tabs {
+        flex-wrap: nowrap;
+        gap: 8px;
+        margin: 0 -16px 24px;
+        padding: 0 16px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .nd-promo-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    .nd-promo-tabs__tab {
+        flex: 0 0 auto;
+        height: 40px;
+        padding: 0 14px;
+        font-size: 15px;
+    }
+}
+
 .nd-brandsect__more-btn {
     display: flex;
     align-items: center;

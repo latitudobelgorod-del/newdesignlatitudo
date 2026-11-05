@@ -59,10 +59,32 @@ if (!$ldIds) {
 	$ldFail('404 Not Found');
 }
 
+/* section — вкладка раздела (акция больше чем на 10 товаров, см. шаблон
+   news.detail/news_newdesign). Берём товары акции, у которых это основной
+   раздел: фильтр IBLOCK_SECTION_ID ловит и привязку к родителю, а товары
+   подразделов привязаны и к нему тоже — они попали бы не в свою вкладку. */
+$ldSectionId = max(0, (int)($_GET['section'] ?? 0));
+if ($ldSectionId > 0) {
+	$ldInSection = [];
+	$ldRes = CIBlockElement::GetList([], ['ID' => $ldIds, 'ACTIVE' => 'Y'], false, false, ['ID', 'IBLOCK_SECTION_ID']);
+	while ($ldRow = $ldRes->Fetch()) {
+		if ((int)$ldRow['IBLOCK_SECTION_ID'] === $ldSectionId) {
+			$ldInSection[] = (int)$ldRow['ID'];
+		}
+	}
+	if (!$ldInSection) {
+		$ldFail('404 Not Found');
+	}
+	$ldIds = $ldInSection;
+}
+
 $APPLICATION->RestartBuffer();
 
+/* limit=1 — первая порция раздела, которого страница сразу не напечатала:
+   отдаём $ldPer карточек, дальше обычное «Показать ещё» (как у бренда). */
 $ldBrand = [
-	'MODE' => 'flat',
+	'LIMIT_TAIL' => (($_GET['limit'] ?? '') === '1'),
+	'MODE' => ($ldSectionId > 0 ? 'sections' : 'flat'),
 	'FILTER' => ['ID' => $ldIds, 'ACTIVE' => 'Y'],
 	'PER_SECTION' => $ldPer,
 	'ITEMS_ONLY' => 'Y',
