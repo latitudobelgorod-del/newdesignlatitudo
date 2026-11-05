@@ -66,7 +66,7 @@ if($arMenuParametrs = CNext::GetDirMenuParametrs(__DIR__))
 }
 
 // «Видео» (/video/) — не элемент инфоблока, ставим после «Производства ДПК» (Ирина, 05.11.2026)
-$arVideoLink = array('Видео', '/video/', array(), array('FROM_IBLOCK' => 1, 'DEPTH_LEVEL' => 1));
+$arVideoLink = array('Видео: обзоры, отзывы и наши объекты', '/video/', array(), array('FROM_IBLOCK' => 1, 'DEPTH_LEVEL' => 1));
 $videoPos = count($aMenuLinksExt);
 foreach($aMenuLinksExt as $i => $arLink)
 {
