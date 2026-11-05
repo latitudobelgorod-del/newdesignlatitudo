@@ -1556,6 +1556,23 @@
             bar.hidden = false;
             var active = bar.querySelector('.is-active') || tabs[0];
             select(active.getAttribute('data-nd-promo-tab'));
+
+            /* Остальные разделы подгружаем заранее, по одному, когда страница
+               уже загрузилась: иначе по клику на вкладку человек видел пустое
+               место и «Загружаем товары…», пока приходят и запускаются
+               карточки (Ирина, 05.11.2026: «какое-то подвисание»). */
+            function preloadNext() {
+                var lazy = list.querySelector('[data-nd-brand-lazy]:not(.is-loading)');
+                if (!lazy) return;
+                document.addEventListener('nd:appended', function once() {
+                    document.removeEventListener('nd:appended', once);
+                    setTimeout(preloadNext, 300);
+                });
+                lazyLoad(lazy);
+            }
+            var start = function () { setTimeout(preloadNext, 1000); };
+            if (document.readyState === 'complete') start();
+            else window.addEventListener('load', start);
         });
     }
 
