@@ -44,6 +44,38 @@ if ($ldBrandId <= 0 || !preg_match('/^[A-Za-z0-9_]+$/', $ldProp)) {
 
 $APPLICATION->RestartBuffer();
 
+/* sections=1,2,3 — первые порции нескольких ленивых разделов одним запросом
+   (js/newdesign-catalog.js, lazyBatch): по запросу на раздел хостинг ставил их
+   в очередь. Каждая порция — в обёртке data-nd-batch="<раздел>", внутри то же,
+   что отдаёт section=<раздел>&limit=1. */
+$ldBatch = [];
+foreach (explode(',', (string)($_GET['sections'] ?? '')) as $ldId) {
+	if ((int)$ldId > 0) {
+		$ldBatch[(int)$ldId] = true;
+	}
+}
+if ($ldBatch) {
+	foreach (array_slice(array_keys($ldBatch), 0, 30) as $ldBatchId) {
+		$ldBrand = [
+			'LIMIT_TAIL' => true,
+			'MODE' => 'sections',
+			'FILTER' => [
+				'PROPERTY_'.$ldProp => $ldBrandId,
+				'ACTIVE' => 'Y',
+				'IBLOCK_SECTION_ID' => $ldBatchId,
+			],
+			'PER_SECTION' => $ldPer,
+			'ITEMS_ONLY' => 'Y',
+			'OFFSET' => 0,
+		];
+		echo '<div data-nd-batch="'.$ldBatchId.'">';
+		include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/brand_products.php';
+		echo '</div>';
+	}
+	require($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/epilog_after.php');
+	die();
+}
+
 /* section=0 — бренд с «Шаблоном №2»: разделов нет, режем сплошной список
    порциями по $ldPer. С разделом отдаём его хвост целиком: раздел небольшой,
    и вторая кнопка в нём никому не нужна. */

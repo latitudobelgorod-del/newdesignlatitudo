@@ -1444,50 +1444,100 @@
             .then(function (html) {
                 var holder = document.createElement('div');
                 holder.innerHTML = html;
-                var added = [].slice.call(holder.childNodes);
-                /* Карточки прячем, пока их скрипты не отработали: без них видны
-                   «Артикул:», нет длин, единиц и счётчика (Ирина, 28.10.2026:
-                   «при быстром листании — вот что видим»). */
-                added.forEach(function (node) {
-                    if (node.nodeType === 1) node.classList.add('nd-appending');
-                    grid.appendChild(node);
-                });
-                runScripts(added);
-
-                /* Метку с остатком печатает шаблон списка. Раздел приходит
-                   хвостом целиком (остатка нет, кнопка уходит), сплошной
-                   список бренда — порциями, и кнопка сдвигается на следующую. */
-                var next = grid.querySelector('[data-nd-brand-next]');
-                var left = next ? parseInt(next.getAttribute('data-left'), 10) || 0 : 0;
-                var offset = next ? parseInt(next.getAttribute('data-offset'), 10) || 0 : 0;
-                if (next) next.parentNode.removeChild(next);
-
-                /* Ленивый раздел получил первую порцию — дальше кнопка
-                   работает как обычная: весь остаток раздела разом. */
-                if (btn.hasAttribute('data-nd-brand-lazy')) {
-                    btn.removeAttribute('data-nd-brand-lazy');
-                    url = url.replace(/&limit=1/, '');
-                }
-
-                if (left > 0) {
-                    btn.setAttribute('data-url', url.replace(/([?&]offset=)\d+/, '$1' + offset));
-                    btn.textContent = 'Показать еще ' + left + ' ' + goodsWord(left);
-                    btn.classList.remove('is-loading');
-                } else {
-                    box.parentNode.removeChild(box);
-                }
-                document.dispatchEvent(new CustomEvent('nd:appended'));
-                setTimeout(function () {
-                    added.forEach(function (node) {
-                        if (node.nodeType === 1) node.classList.remove('nd-appending');
-                    });
-                }, 150);
+                placePortion(btn, [].slice.call(holder.childNodes));
             })
             .catch(function (err) {
                 btn.classList.remove('is-loading');
                 btn.textContent = label;
                 console.log('brand more: ' + err.message);
             });
+    }
+
+    /* Пришедшую порцию карточек — в сетку раздела кнопки btn. */
+    function placePortion(btn, added) {
+        var box = btn.closest('.nd-brandsect__more');
+        var grid = box.previousElementSibling;
+        var url = btn.getAttribute('data-url');
+        /* Карточки прячем, пока их скрипты не отработали: без них видны
+           «Артикул:», нет длин, единиц и счётчика (Ирина, 28.10.2026:
+           «при быстром листании — вот что видим»). */
+        added.forEach(function (node) {
+            if (node.nodeType === 1) node.classList.add('nd-appending');
+            grid.appendChild(node);
+        });
+        runScripts(added);
+
+        /* Метку с остатком печатает шаблон списка. Раздел приходит
+           хвостом целиком (остатка нет, кнопка уходит), сплошной
+           список бренда — порциями, и кнопка сдвигается на следующую. */
+        var next = grid.querySelector('[data-nd-brand-next]');
+        var left = next ? parseInt(next.getAttribute('data-left'), 10) || 0 : 0;
+        var offset = next ? parseInt(next.getAttribute('data-offset'), 10) || 0 : 0;
+        if (next) next.parentNode.removeChild(next);
+
+        /* Ленивый раздел получил первую порцию — дальше кнопка
+           работает как обычная: весь остаток раздела разом. */
+        if (btn.hasAttribute('data-nd-brand-lazy')) {
+            btn.removeAttribute('data-nd-brand-lazy');
+            btn.classList.remove('is-waiting');
+            url = url.replace(/&limit=1/, '');
+        }
+
+        if (left > 0) {
+            btn.setAttribute('data-url', url.replace(/([?&]offset=)\d+/, '$1' + offset));
+            btn.textContent = 'Показать еще ' + left + ' ' + goodsWord(left);
+            btn.classList.remove('is-loading');
+        } else {
+            box.parentNode.removeChild(box);
+        }
+        document.dispatchEvent(new CustomEvent('nd:appended'));
+        setTimeout(function () {
+            added.forEach(function (node) {
+                if (node.nodeType === 1) node.classList.remove('nd-appending');
+            });
+        }, 150);
+    }
+
+    /* Первые порции нескольких ленивых разделов бренда — одним запросом
+       (local/ajax/brand_products.php?sections=…): десять запросов по разделу
+       хостинг ставил в очередь, последний раздел приходил через 3 с после
+       разметки (Ирина, 05.11.2026: «так тоже медленно»). Ответ — порции в
+       обёртках data-nd-batch="<раздел>". Раздел, которого в ответе нет,
+       остаётся ленивым — его возьмёт обычная очередь по одному. */
+    function lazyBatch(btns) {
+        var ids = btns.map(function (b) {
+            return (b.getAttribute('data-url').match(/[?&]section=(\d+)/) || [])[1];
+        });
+        var url = btns[0].getAttribute('data-url')
+            .replace(/&(section|offset|limit)=\d+/g, '') + '&sections=' + ids.join(',');
+        btns.forEach(function (b) {
+            if (!b.hasAttribute('data-label')) b.setAttribute('data-label', b.textContent);
+            b.textContent = 'Загружаем товары…';
+            b.classList.add('is-loading');
+        });
+        var release = function (b) {
+            b.classList.remove('is-loading');
+            if (b.hasAttribute('data-nd-brand-lazy')) b.textContent = b.getAttribute('data-label');
+        };
+        return fetch(url, { credentials: 'same-origin' })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.text();
+            })
+            .then(function (html) {
+                var holder = document.createElement('div');
+                holder.innerHTML = html;
+                btns.forEach(function (b, i) {
+                    var part = holder.querySelector('[data-nd-batch="' + ids[i] + '"]');
+                    if (!part || !b.isConnected) return release(b);
+                    placePortion(b, [].slice.call(part.childNodes));
+                });
+            })
+            .catch(function (err) {
+                btns.forEach(release);
+                console.log('brand batch: ' + err.message);
+            })
+            .then(function () { lazyNext(); });
     }
 
     /* Разделы бренда, которые страница не напечатала сразу (LD_EAGER_SECTIONS):
@@ -1564,6 +1614,21 @@
         if (!btns.length) return;
         // initLazy зовётся по DOMContentLoaded — разметка уже есть
         lazyPreload = true;
+
+        /* Разделы бренда — двумя запросами на все сразу: сначала те, что ближе
+           к экрану (первая половина), остальные — вторым запросом параллельно. */
+        var brand = btns.filter(function (b) {
+            return /\/local\/ajax\/brand_products\.php\?/.test(b.getAttribute('data-url') || '');
+        });
+        if (brand.length > 1) {
+            brand.sort(function (a, b) {
+                var ta = a.getBoundingClientRect().top, tb = b.getBoundingClientRect().top;
+                return (ta < 0 ? 1e7 - ta : ta) - (tb < 0 ? 1e7 - tb : tb);
+            });
+            var half = Math.ceil(brand.length / 2);
+            lazyBatch(brand.slice(0, half));
+            lazyBatch(brand.slice(half));
+        }
         if (!('IntersectionObserver' in window)) {
             lazyNext();
             return;
