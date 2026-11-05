@@ -16,7 +16,9 @@ if (!preg_match('~^/video/(index\.php)?$~', parse_url($_SERVER["REQUEST_URI"], P
 }
 // заголовки — после переноса роликов портфолио (Ирина, 28.10.2026: «подумай над новым тайтлом»)
 $ndVideoH1 = "Видео: обзоры, отзывы и наши объекты";
-$APPLICATION->SetTitle($ndVideoH1);
+// заголовок строкой, не переменной: генератор sitemap (логический режим) берёт только
+// страницы, у которых PHPParser::getPageTitle находит SetTitle("…") — иначе /video/ нет в карте
+$APPLICATION->SetTitle("Видео: обзоры, отзывы и наши объекты");
 $APPLICATION->SetPageProperty("title", "Видео о ДПК: обзоры террасной доски, отзывы клиентов и наши объекты | Латитудо");
 $APPLICATION->SetPageProperty("description", "Видео Латитудо: обзоры террасной доски, ограждений, фасадов и пергол, отзывы клиентов, советы эксперта и готовые террасы, заборы и беседки с наших объектов.");
 $APPLICATION->SetPageProperty("HIDETITLE", "N");
