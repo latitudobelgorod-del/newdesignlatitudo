@@ -1493,14 +1493,16 @@
     /* Разделы бренда, которые страница не напечатала сразу (LD_EAGER_SECTIONS):
        первую порцию грузим сами.
 
-       Строго по одному: хостинг обрабатывает разом около пяти запросов, и когда
-       к экрану подъезжали сразу несколько разделов, последний ждал очереди до
+       Не больше двух разом: хостинг обрабатывает разом около пяти запросов, и
+       когда к экрану подъезжали сразу все разделы, последний ждал очереди до
        двух секунд — человек видел заголовок и пустое место под ним (Ирина,
        05.11.2026: «на странице производителя долго подгружается»). Первым
-       берём раздел, ближайший к середине экрана; когда страница загрузилась,
-       остальные подгружаем заранее, сверху вниз, — к прокрутке они готовы. */
+       берём раздел на экране; остальные подгружаем заранее, сверху вниз, сразу
+       как готова разметка (ждать load нельзя: картинки и чаты тянут его до
+       3–4 с, Ирина: «всё также тормозит»), — к прокрутке они готовы. */
+    var LAZY_MAX = 2;
     var lazyWanted = [];
-    var lazyBusy = false;
+    var lazyBusy = 0;
     var lazyPreload = false;
 
     function lazyPending(btn) {
@@ -1527,26 +1529,27 @@
     }
 
     function lazyNext() {
-        if (lazyBusy) return;
+        if (lazyBusy >= LAZY_MAX) return;
         var btn = lazyPick();
         if (!btn) return;
         var job = loadMore(btn);
         if (!job) return;
-        lazyBusy = true;
+        lazyBusy++;
+        lazyNext();
         job.then(function () {
-            lazyBusy = false;
+            lazyBusy--;
             // не загрузился — в очередь больше не берём, остаётся кнопка
             if (btn.hasAttribute('data-nd-brand-lazy')) {
                 btn.removeAttribute('data-nd-brand-lazy');
                 btn.classList.remove('is-waiting');
             }
             // пауза — чтобы между порциями браузер успел нарисовать карточки
-            setTimeout(lazyNext, 100);
+            setTimeout(lazyNext, 50);
         });
     }
 
     /* Раздел нужен сейчас (подъехал к экрану, открыли вкладку акции): вне
-       очереди, но всё так же по одному. Пока ждёт — та же надпись «Загружаем». */
+       очереди, но в те же два потока. Пока ждёт — та же надпись «Загружаем». */
     function lazyLoad(btn) {
         if (!lazyPending(btn)) return;
         if (lazyWanted.indexOf(btn) < 0) lazyWanted.push(btn);
@@ -1559,15 +1562,12 @@
     function initLazy() {
         var btns = [].slice.call(document.querySelectorAll('[data-nd-brand-lazy]'));
         if (!btns.length) return;
-        var start = function () {
-            setTimeout(function () {
-                lazyPreload = true;
-                lazyNext();
-            }, 500);
-        };
-        if (document.readyState === 'complete') start();
-        else window.addEventListener('load', start);
-        if (!('IntersectionObserver' in window)) return;
+        // initLazy зовётся по DOMContentLoaded — разметка уже есть
+        lazyPreload = true;
+        if (!('IntersectionObserver' in window)) {
+            lazyNext();
+            return;
+        }
         var io = new IntersectionObserver(function (entries) {
             entries.forEach(function (en) {
                 if (!en.isIntersecting) return;
@@ -1576,6 +1576,8 @@
             });
         }, { rootMargin: '800px 0px' });
         btns.forEach(function (b) { io.observe(b); });
+        // наблюдатель отзывается к следующему кадру — тогда видимые разделы уже в очереди первыми
+        setTimeout(lazyNext, 100);
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initLazy);
