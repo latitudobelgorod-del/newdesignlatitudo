@@ -1,23 +1,31 @@
 <?php
 /**
- * Фото товарам «Распродажи» с сайтов производителей — там, где в нашем каталоге своего фото нет (26.10.2026).
+ * Фото товарам «Распродажи» с сайтов производителей — там, где в нашем каталоге своего фото нет (26.10.2026,
+ * вторая партия 06.11.2026 — по ID товара, ND_WEB_PHOTO_BY_ID).
  *
  *   php nd_sale_photos_web.php <DOCROOT>                     — сухой прогон: проверить, что картинки скачиваются
  *   php nd_sale_photos_web.php <DOCROOT> apply               — поставить (прежние фото товара заменяются)
  *   php nd_sale_photos_web.php <DOCROOT> rollback=<done.json> — убрать поставленные фото
+ *   … new                                                     — только товары ND_WEB_PHOTO_BY_ID (партия 06.11)
  *
  * Woodvex Select (товаров на сайте нет, удалены вместе с картинками) — фото профиля нужного цвета с
  * woodvex.com (страницы серии Select: ограждения, ступени, аксессуары). NEXTWOOD — с nextwood.ru,
  * вместо «похожей» заборной доски Wood, поставленной nd_sale_photos.php.
  * Без фото остаётся доска Expert Colorite: у Woodvex сейчас только Select, Select 3D и Antique.
+ *
+ * 06.11.2026: Expert Colorite Палисандр — фото Select Colorite Палисандр (тот же цвет, похожий профиль);
+ * PG SINGARAJA крышка и юбка — общая картинка «крышка и юбка» с polivan.com (webp → jpg).
  */
 
 $args = array_slice($argv, 1);
 $root = array_shift($args);
 $mode = 'dry';
 $rollbackFile = '';
+$onlyNew = false;
 foreach ($args as $a) {
-	if ($a === 'apply') {
+	if ($a === 'new') {
+		$onlyNew = true;
+	} elseif ($a === 'apply') {
 		$mode = 'apply';
 	} elseif (strpos($a, 'rollback=') === 0) {
 		$mode = 'rollback';
@@ -49,6 +57,16 @@ const ND_WEB_PHOTO = [
 	'rasprodaja-910e4d54-dc46-11e9-bf97-74d4359935c6' => ND_WV . 'Stupen_Select_Coffee.jpg',          // Ступень Кофе
 	'rasprodaja-b3d36fcc-5276-11ec-80db-9da37be214e6' =>
 		'https://nextwood.ru/wp-content/uploads/2024/03/Doska-zabornaya-NEXTWOOD-11h130-mm-tyomno-korichnevyj-2-scaled.jpg',
+];
+// ID товара распродажи => адрес картинки (06.11.2026)
+const ND_WEB_PHOTO_BY_ID = [
+	35248 => 'https://woodvex.com/wp-content/uploads/2020/06/Palisander-STD.jpg',   // Expert Colorite Палисандр Old Style
+	35389 => 'https://woodvex.com/wp-content/uploads/2019/06/antiq-wenge.jpg',      // Expert Antique wenge
+	35388 => ND_WV . 'Baljasina_Wenge_nakat.jpg',                                   // Балясина Select Венге
+	35424 => ND_WV . 'Ugolok_Select_Wenge.jpg',                                     // L-планка Select Colorite Венге
+	35397 => 'https://polivan.com/wp-content/uploads/2022/01/kr-ub-dpk-02-01.webp', // Крышка для столба PG SINGARAJA
+	35421 => 'https://polivan.com/wp-content/uploads/2022/01/kr-ub-dpk-02-01.webp', // Юбка для столба PG SINGARAJA
+	35433 => 'https://nextwood.ru/wp-content/uploads/2024/01/Krepe-zh-dlya-balyasin-uglovoi-NEXTWOOD-45-15-sht.-v-upakovke-2.jpg',
 ];
 
 $_SERVER['DOCUMENT_ROOT'] = realpath($root);
@@ -91,12 +109,27 @@ if ($mode === 'rollback') {
 
 $done = [];
 $el = new CIBlockElement();
-$rs = CIBlockElement::GetList(['SORT' => 'ASC'], ['IBLOCK_ID' => ND_IBLOCK_ID, 'XML_ID' => array_keys(ND_WEB_PHOTO)],
-	false, false, ['ID', 'NAME', 'XML_ID', 'DETAIL_PICTURE']);
+$rs = CIBlockElement::GetList(['SORT' => 'ASC'], ['IBLOCK_ID' => ND_IBLOCK_ID,
+	[
+		'LOGIC' => 'OR',
+		['XML_ID' => $onlyNew ? [-1] : array_keys(ND_WEB_PHOTO)],
+		['ID' => array_keys(ND_WEB_PHOTO_BY_ID)],
+	],
+], false, false, ['ID', 'NAME', 'XML_ID', 'DETAIL_PICTURE']);
 while ($r = $rs->Fetch()) {
-	$url = ND_WEB_PHOTO[$r['XML_ID']];
+	$url = ND_WEB_PHOTO_BY_ID[(int)$r['ID']] ?? ND_WEB_PHOTO[$r['XML_ID']];
 	$bin = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 60, 'user_agent' => 'Mozilla/5.0']]));
 	$ok = $bin !== false && strlen($bin) > 10000 && @getimagesizefromstring($bin);
+	// webp — в jpg: так картинку примут и ресайз, и старые браузеры
+	if ($ok && getimagesizefromstring($bin)['mime'] === 'image/webp' && ($img = @imagecreatefromwebp('data://image/webp;base64,' . base64_encode($bin)))) {
+		$bg = imagecreatetruecolor(imagesx($img), imagesy($img));
+		imagefill($bg, 0, 0, imagecolorallocate($bg, 255, 255, 255));
+		imagecopy($bg, $img, 0, 0, 0, 0, imagesx($img), imagesy($img));
+		ob_start();
+		imagejpeg($bg, null, 90);
+		$bin = ob_get_clean();
+		$url = preg_replace('/\.webp$/', '.jpg', $url);
+	}
 	echo "{$r['ID']} {$r['NAME']}\n    ← " . basename($url) . ($ok ? ', ' . round(strlen($bin) / 1024) . ' КБ' : ' — НЕ СКАЧАЛОСЬ') .
 		($r['DETAIL_PICTURE'] ? ' (прежнее фото заменится)' : '') . "\n";
 	if (!$ok || $mode !== 'apply') {
