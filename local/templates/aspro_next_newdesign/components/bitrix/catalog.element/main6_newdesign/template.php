@@ -818,8 +818,14 @@ if ($ndProfileVal) {
 <?/* 4SIS со стикером «Акция» (у 4SIS на сайте акция, у нас цена розничная — стикер ставит ночная сверка,
      tools/4sis-price-sync/promo_4sis.php): та же плашка, что у доски (Ирина, 27.10.2026). Бренд 4SIS — 28619. */
 $ndHitXml = (array)($arResult['PROPERTIES']['HIT']['VALUE_XML_ID'] ?? array());
-if ((int)($arResult['PROPERTIES']['BRAND']['VALUE'] ?? 0) === 28619 && in_array('AKCIYA', $ndHitXml, true)):?>
-<div class="uf_comment_price_container"><div class="uf_comment_price">Возможна акционная цена. Подробности уточняйте у наших менеджеров</div></div>
+/* Текст плашки товара — свойство ND_PRICE_NOTE «Плашка у цены» (акция Millargo, 06.11.2026,
+   ставит local/tools/nd_promo_price_note.php); вид тот же, что у 4SIS. */
+$ndPriceNote = trim((string)($arResult['PROPERTIES']['ND_PRICE_NOTE']['VALUE'] ?? ''));
+if ($ndPriceNote === '' && (int)($arResult['PROPERTIES']['BRAND']['VALUE'] ?? 0) === 28619 && in_array('AKCIYA', $ndHitXml, true)) {
+	$ndPriceNote = 'Возможна акционная цена. Подробности уточняйте у наших менеджеров';
+}
+if ($ndPriceNote !== ''):?>
+<div class="uf_comment_price_container"><div class="uf_comment_price"><?=htmlspecialcharsbx($ndPriceNote)?></div></div>
 <?endif;?>
 
 
@@ -1542,15 +1548,6 @@ if (!empty($arResult["PROPERTIES"]["ROTANG_COLOR"]["VALUE"])) {
 				?>
 				<?if($ndInstallment !== ''):?>
 					<a class="nd-pd__installment" href="<?=SITE_DIR?>info/rassrochka/"><?=$ndInstallment?></a>
-				<?endif;?>
-
-				<?/* Плашка у цены — текст из свойства товара ND_PRICE_NOTE «Плашка у цены»
-				   (Ирина, 06.11.2026: товары акции Millargo «Возможна акционная цена.
-				   Подробности уточняйте у наших менеджеров»). Пустое свойство — плашки нет;
-				   ставит и снимает local/tools/nd_promo_price_note.php. */
-				$ndPriceNote = trim((string)($arResult['PROPERTIES']['ND_PRICE_NOTE']['VALUE'] ?? ''));?>
-				<?if($ndPriceNote !== ''):?>
-					<div class="nd-pd__price-note"><?=htmlspecialcharsbx($ndPriceNote)?></div>
 				<?endif;?>
 
 				<div class="buy_block">

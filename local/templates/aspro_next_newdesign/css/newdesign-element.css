@@ -834,7 +834,6 @@
    в ряд с ценой и единицами. */
 .catalog_detail.element_newdesign .right_info .info_item .buy_block                 { flex: 1 1 100%; }
 .catalog_detail.element_newdesign .right_info .info_item .nd-pd__installment        { order: 6; }
-.catalog_detail.element_newdesign .right_info .info_item .nd-pd__price-note         { order: 6; flex: 1 1 100%; }
 .catalog_detail.element_newdesign .right_info .info_item .buy_block                 { order: 7; }
 .catalog_detail.element_newdesign .right_info .info_item .nd-pd__calc               { order: 8; }
 .catalog_detail.element_newdesign .right_info .info_item .logistic                  { order: 9; }
@@ -2970,11 +2969,6 @@
        скрипт поднимает строку из флекс-ряда наверх колонки, и правило для
        старого места (.row > .col-md-6 > …) её больше не достаёт. Отбивка 16 —
        просвет до плашки о цене в макете (y 590 → 626 при высоте строки 20). */
-    /* Плашка у цены (ND_PRICE_NOTE) на телефоне скрипт ставит следом за
-       строкой рассрочки — тот же просвет снизу. */
-    .catalog_detail.element_newdesign .right_info .info_item > .nd-pd__price-note {
-        margin: -4px 0 16px;
-    }
     .catalog_detail.element_newdesign .right_info .info_item > .nd-pd__installment {
         margin: 0 0 16px;
         font-size: 14px;
@@ -3016,23 +3010,6 @@ a.nd-pd__installment:visited {
 a.nd-pd__installment:hover,
 a.nd-pd__installment:focus {
     color: #c60000;
-}
-
-/* Плашка у цены из свойства ND_PRICE_NOTE (акция Millargo, 06.11.2026) —
-   в цветах метки «Акция» из списка, чтобы читалась как одно с ней. Селектор
-   длинный: правило колонки «.row > .col-md-6 > *» обнуляет поля всем детям.
-   Отрицательный верх — колонка флекс с зазором 20, а от строки рассрочки
-   хватает 8. */
-.catalog_detail.element_newdesign .nd-pd__price-note,
-.catalog_detail.element_newdesign .right_info .info_item .middle_info .row > .col-md-6 > .nd-pd__price-note {
-    margin: -12px 0 0;
-    padding: 10px 14px;
-    border-radius: 8px;
-    background: #f3efff;
-    color: #5b3fc4;
-    font-size: 14px;
-    line-height: 19.6px;
-    font-weight: 500;
 }
 
 /* Кнопка «В корзину»: наведение тема красит своим синим — ставим бордовый,
