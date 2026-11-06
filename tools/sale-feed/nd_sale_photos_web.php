@@ -78,6 +78,13 @@ const ND_WEB_PHOTO_BY_ID = [
 	35437 => 'https://hilst.ru/upload/iblock/b26/fuqfl9lw6c9mf4am2jq2tvjyyl0u6cne/plastina_torez_main_hilst.jpg',
 	// Регулируемая опора Level (35-50) — sayangroup.ru (производитель Level), Level PRO 35-50
 	35403 => 'https://sayangroup.ru/images/products/reguliruemaia-opora-level-pro-35-50-1.png',
+	// Поворотный соединительный элемент для грядки 200х25 чёрный — gardeck.ru (Гардек), раздел «Клумбы»:
+	// поворотный шарнир Holzhof целиком, разобранный, детали (размер на картинках не подписан)
+	35401 => [
+		'https://gardeck.ru/thumb/2/FCJAuK3SOg9INPkXEBtAWg/r/d/povorotnyy_sharnir_dlya_gryadki.jpg',
+		'https://gardeck.ru/thumb/2/W8gJjZdT3TaPX1yWZd84Pg/r/d/sostavlyayushchiye_povorotnogo_sharnira.jpg',
+		'https://gardeck.ru/thumb/2/phWKr0c7rqPsniQZGNrTrg/r/d/detali_sharnira_gryadki.jpg',
+	],
 ];
 
 $_SERVER['DOCUMENT_ROOT'] = realpath($root);
@@ -127,14 +134,17 @@ $rs = CIBlockElement::GetList(['SORT' => 'ASC'], ['IBLOCK_ID' => ND_IBLOCK_ID,
 		['ID' => $onlyId ?: array_keys(ND_WEB_PHOTO_BY_ID)],
 	],
 ], false, false, ['ID', 'NAME', 'XML_ID', 'DETAIL_PICTURE']);
-while ($r = $rs->Fetch()) {
-	$url = ND_WEB_PHOTO_BY_ID[(int)$r['ID']] ?? ND_WEB_PHOTO[$r['XML_ID']];
+/* Скачать картинку: [содержимое, имя файла] или null. webp и png — в jpg на белом фоне (прозрачный
+   фон иначе становится чёрным), не больше 1600 px: так картинку примут и ресайз, и старые браузеры;
+   png Level весил 7,5 МБ при 4500 px. */
+function ndFetchPhoto(string $url): ?array
+{
 	$bin = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 60, 'user_agent' => 'Mozilla/5.0']]));
-	$ok = $bin !== false && strlen($bin) > 10000 && @getimagesizefromstring($bin);
-	/* webp и png — в jpg на белом фоне (прозрачный фон иначе становится чёрным), не больше 1600 px:
-	   так картинку примут и ресайз, и старые браузеры; png Level весил 7,5 МБ при 4500 px */
-	$info = $ok ? getimagesizefromstring($bin) : null;
-	if ($info && in_array($info['mime'], ['image/webp', 'image/png'], true) && ($img = @imagecreatefromstring($bin))) {
+	$info = ($bin !== false && strlen($bin) > 10000) ? @getimagesizefromstring($bin) : false;
+	if (!$info) {
+		return null;
+	}
+	if (in_array($info['mime'], ['image/webp', 'image/png'], true) && ($img = @imagecreatefromstring($bin))) {
 		$k = min(1, 1600 / max(imagesx($img), imagesy($img)));
 		$w = (int)round(imagesx($img) * $k);
 		$h = (int)round(imagesy($img) * $k);
@@ -146,18 +156,36 @@ while ($r = $rs->Fetch()) {
 		$bin = ob_get_clean();
 		$url = preg_replace('/\.(webp|png)$/', '.jpg', $url);
 	}
-	echo "{$r['ID']} {$r['NAME']}\n    ← " . basename($url) . ($ok ? ', ' . round(strlen($bin) / 1024) . ' КБ' : ' — НЕ СКАЧАЛОСЬ') .
-		($r['DETAIL_PICTURE'] ? ' (прежнее фото заменится)' : '') . "\n";
-	if (!$ok || $mode !== 'apply') {
+	return [$bin, basename(parse_url($url, PHP_URL_PATH))];
+}
+
+while ($r = $rs->Fetch()) {
+	// адрес или список адресов: первый — главное фото, остальные — в MORE_PHOTO
+	$urls = (array)(ND_WEB_PHOTO_BY_ID[(int)$r['ID']] ?? ND_WEB_PHOTO[$r['XML_ID']]);
+	echo "{$r['ID']} {$r['NAME']}" . ($r['DETAIL_PICTURE'] ? ' (прежние фото заменятся)' : '') . "\n";
+	$paths = [];
+	foreach ($urls as $url) {
+		$got = ndFetchPhoto($url);
+		echo '    ← ' . basename(parse_url($url, PHP_URL_PATH)) . ($got ? ', ' . round(strlen($got[0]) / 1024) . ' КБ' : ' — НЕ СКАЧАЛОСЬ') . "\n";
+		if ($got) {
+			$paths[] = $outDir . '/' . $r['ID'] . '_' . count($paths) . '_' . $got[1];
+			file_put_contents(end($paths), $got[0]);
+		}
+	}
+	if (count($paths) !== count($urls) || $mode !== 'apply') {
 		continue;
 	}
-	$path = $outDir . '/' . basename(parse_url($url, PHP_URL_PATH));
-	file_put_contents($path, $bin);
 	ndClearPhotos((int)$r['ID']);
-	$file = CFile::MakeFileArray($path);
-	if (!$el->Update((int)$r['ID'], ['DETAIL_PICTURE' => $file, 'PREVIEW_PICTURE' => CFile::MakeFileArray($path)])) {
+	if (!$el->Update((int)$r['ID'], ['DETAIL_PICTURE' => CFile::MakeFileArray($paths[0]), 'PREVIEW_PICTURE' => CFile::MakeFileArray($paths[0])])) {
 		echo "    ! {$el->LAST_ERROR}\n";
 		continue;
+	}
+	$more = [];
+	foreach (array_slice($paths, 1) as $n => $path) {
+		$more['n' . $n] = ['VALUE' => CFile::MakeFileArray($path)];
+	}
+	if ($more) {
+		CIBlockElement::SetPropertyValueCode((int)$r['ID'], 'MORE_PHOTO', $more);
 	}
 	$done[] = (int)$r['ID'];
 	file_put_contents($outDir . '/done.json', json_encode($done));
