@@ -168,6 +168,11 @@ function ndDeliveryPiecesFromText(string $text): int
 {
 	$text = html_entity_decode(strip_tags(str_replace(array('<br', '</p>', '</li>'), array(' <br', ' </p>', ' </li>'), $text)), ENT_QUOTES, 'UTF-8');
 	$text = preg_replace('/\s+/u', ' ', $text);
+	/* Состав набора: «8 стартовых клипс и 8 уголков» — сумма, 16 шт. */
+	$part = '(\d{1,5})\s+(?:[а-яё-]+\s+)?(?:клипс|уголк\S*|скоб|кляммер\S*|заглуш\S*)';
+	if (preg_match('/\b' . $part . '\s+и\s+' . $part . '/iu', $text, $m)) {
+		return (int)$m[1] + (int)$m[2];
+	}
 	$patterns = array(
 		'/\bв\s+(?:1\s+|одной\s+)?упаковке\s*[-—:]?\s*(\d{1,5})\s*(?:шт|штук)/iu',
 		'/\b(\d{1,5})\s*(?:шт\.?|штук)\s+в\s+(?:1\s+|одной\s+)?упаковке/iu',
