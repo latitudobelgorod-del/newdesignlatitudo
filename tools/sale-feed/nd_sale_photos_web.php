@@ -7,6 +7,7 @@
  *   php nd_sale_photos_web.php <DOCROOT> apply               — поставить (прежние фото товара заменяются)
  *   php nd_sale_photos_web.php <DOCROOT> rollback=<done.json> — убрать поставленные фото
  *   … new                                                     — только товары ND_WEB_PHOTO_BY_ID (партия 06.11)
+ *   … id=<ID>                                                 — только этот товар из ND_WEB_PHOTO_BY_ID
  *
  * Woodvex Select (товаров на сайте нет, удалены вместе с картинками) — фото профиля нужного цвета с
  * woodvex.com (страницы серии Select: ограждения, ступени, аксессуары). NEXTWOOD — с nextwood.ru,
@@ -22,9 +23,13 @@ $root = array_shift($args);
 $mode = 'dry';
 $rollbackFile = '';
 $onlyNew = false;
+$onlyId = 0;
 foreach ($args as $a) {
 	if ($a === 'new') {
 		$onlyNew = true;
+	} elseif (strpos($a, 'id=') === 0) {
+		$onlyNew = true;
+		$onlyId = (int)substr($a, 3);
 	} elseif ($a === 'apply') {
 		$mode = 'apply';
 	} elseif (strpos($a, 'rollback=') === 0) {
@@ -67,6 +72,8 @@ const ND_WEB_PHOTO_BY_ID = [
 	35397 => 'https://polivan.com/wp-content/uploads/2022/01/kr-ub-dpk-02-01.webp', // Крышка для столба PG SINGARAJA
 	35421 => 'https://polivan.com/wp-content/uploads/2022/01/kr-ub-dpk-02-01.webp', // Юбка для столба PG SINGARAJA
 	35433 => 'https://nextwood.ru/wp-content/uploads/2024/01/Krepe-zh-dlya-balyasin-uglovoi-NEXTWOOD-45-15-sht.-v-upakovke-2.jpg',
+	// Шарнир для клумбы Holzhof 30*225 коричневый — gardeck24.ru (Гардек), тот же товар
+	35420 => 'https://gardeck24.ru/upload/iblock/70e/h2xxmvfc3sht6k413xqnhz72qfc7bqw3/sharnir-dlya-klumby-holzhof-30-225mm-plastik-korichnevyy.jpg',
 ];
 
 $_SERVER['DOCUMENT_ROOT'] = realpath($root);
@@ -113,7 +120,7 @@ $rs = CIBlockElement::GetList(['SORT' => 'ASC'], ['IBLOCK_ID' => ND_IBLOCK_ID,
 	[
 		'LOGIC' => 'OR',
 		['XML_ID' => $onlyNew ? [-1] : array_keys(ND_WEB_PHOTO)],
-		['ID' => array_keys(ND_WEB_PHOTO_BY_ID)],
+		['ID' => $onlyId ? [$onlyId] : array_keys(ND_WEB_PHOTO_BY_ID)],
 	],
 ], false, false, ['ID', 'NAME', 'XML_ID', 'DETAIL_PICTURE']);
 while ($r = $rs->Fetch()) {
