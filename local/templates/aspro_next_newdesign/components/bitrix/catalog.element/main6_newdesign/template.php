@@ -2611,7 +2611,12 @@ if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
       а он подключается только на странице раздела.
       Стили .nd-related — в css/newdesign-catalog.css, лента — в
       js/newdesign-catalog.js (оба тянет сам шаблон списка). */?>
-<div class="nd-related">
+<?/* noindex + data-nosnippet (06.11.2026): Яндекс брал цену из этих карточек
+      за цену основного товара — у кляймера NEXTWOOD за 25 ₽ в сниппете было
+      5 298 ₽ (доска Эксперт за м²). Текст и цены блока не индексируются,
+      ссылки на товары робот по-прежнему видит и проходит. */?>
+<!--noindex-->
+<div class="nd-related" data-nosnippet>
 	<div class="nd-related__head">
 		<h2 class="nd-related__title"><?=($arParams["DETAIL_EXPANDABLES_TITLE"] ? $arParams["DETAIL_EXPANDABLES_TITLE"] : GetMessage("DETAIL_EXPANDABLES_TITLE"))?></h2>
 		<div class="nd-related__nav">
@@ -2790,6 +2795,7 @@ if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
 	      и ведёт js/newdesign-catalog.js, на десктопе она скрыта стилями. */ ?>
 	<button type="button" class="nd-related__more nd-brandsect__more-btn" hidden>Показать ещё</button>
 </div>
+<!--/noindex-->
 	<?endif;?>
 <?/*С этим товаром покупают*/?>
 	
