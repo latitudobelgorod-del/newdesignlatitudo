@@ -553,9 +553,11 @@
                 return;
             }
 
-            var rutube = /rutube\.ru\/(?:video|play\/embed)\/([0-9a-f]+)/i.exec(url);
+            /* закрытые ролики — /video/private/<id>/, ключ доступа (?p=) несём в плеер */
+            var rutube = /rutube\.ru\/(?:video|play\/embed|shorts)\/(?:private\/)?([0-9a-f]+)/i.exec(url);
             if (rutube) {
-                url = 'https://rutube.ru/play/embed/' + rutube[1];
+                var rutubeKey = /[?&]p=([\w-]+)/.exec(url);
+                url = 'https://rutube.ru/play/embed/' + rutube[1] + (rutubeKey ? '/?p=' + rutubeKey[1] : '');
                 vid.setAttribute('data-type', 'iframe');
             } else if (!/youtu|vimeo/i.test(url)) {
                 vid.setAttribute('data-type', 'iframe');

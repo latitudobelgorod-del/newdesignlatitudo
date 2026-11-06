@@ -211,9 +211,12 @@
 	      окно. Переводим на /play/embed/, ровно как это уже сделано для карточек
 	      списка (js/newdesign-catalog.js, updateVideo). */
 	function ndVideoEmbed(url) {
-		var rutube = /rutube\.ru\/(?:video|play\/embed)\/([0-9a-f]+)/i.exec(url);
+		/* закрытые ролики — /video/private/<id>/ (06.11.2026: ступень EasyDecking
+		   Бежевый показывала «rutube.ru заблокирован»), ключ доступа (?p=) несём в плеер */
+		var rutube = /rutube\.ru\/(?:video|play\/embed|shorts)\/(?:private\/)?([0-9a-f]+)/i.exec(url);
+		var key = /[?&]p=([\w-]+)/.exec(url);
 
-		return rutube ? 'https://rutube.ru/play/embed/' + rutube[1] : url;
+		return rutube ? 'https://rutube.ru/play/embed/' + rutube[1] + (key ? '/?p=' + key[1] : '') : url;
 	}
 
 	function syncVideo() {
