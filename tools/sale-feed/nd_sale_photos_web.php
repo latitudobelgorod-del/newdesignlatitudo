@@ -160,7 +160,7 @@ function ndFetchPhoto(string $url): ?array
 }
 
 while ($r = $rs->Fetch()) {
-	// адрес или список адресов: первый — главное фото, остальные — в MORE_PHOTO
+	// адрес или список адресов: первый — главное фото, при нескольких все идут и в MORE_PHOTO
 	$urls = (array)(ND_WEB_PHOTO_BY_ID[(int)$r['ID']] ?? ND_WEB_PHOTO[$r['XML_ID']]);
 	echo "{$r['ID']} {$r['NAME']}" . ($r['DETAIL_PICTURE'] ? ' (прежние фото заменятся)' : '') . "\n";
 	$paths = [];
@@ -180,8 +180,10 @@ while ($r = $rs->Fetch()) {
 		echo "    ! {$el->LAST_ERROR}\n";
 		continue;
 	}
+	/* Несколько фото — все в MORE_PHOTO, главное первым: при непустом MORE_PHOTO галерея
+	   карточки показывает только его (ADD_DETAIL_TO_SLIDER=N), главное фото выпадало. */
 	$more = [];
-	foreach (array_slice($paths, 1) as $n => $path) {
+	foreach (count($paths) > 1 ? $paths : [] as $n => $path) {
 		$more['n' . $n] = ['VALUE' => CFile::MakeFileArray($path)];
 	}
 	if ($more) {
