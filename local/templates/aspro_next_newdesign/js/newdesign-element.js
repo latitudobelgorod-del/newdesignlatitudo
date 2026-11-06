@@ -1140,15 +1140,32 @@
 	   Переносить узел безопасно: он наш, торговый JS темы его не ищет. */
 	function applyInstallment(isMobile) {
 		var inst = root.querySelector('.nd-pd__installment');
-		if (!inst) return;
+		var note = root.querySelector('.nd-pd__price-note');
 		var col = document.querySelector('.item_main_info .right_info .info_item');
-		rememberHome(inst, 'installment');
-		var home = buyHomes.installment;
+		if (inst) {
+			rememberHome(inst, 'installment');
+			var home = buyHomes.installment;
 
-		if (isMobile) {
-			if (col && inst !== col.firstElementChild) col.insertBefore(inst, col.firstChild);
-		} else if (home && home.parent && inst.parentNode !== home.parent) {
-			home.parent.insertBefore(inst, home.next);
+			if (isMobile) {
+				if (col && inst !== col.firstElementChild) col.insertBefore(inst, col.firstChild);
+			} else if (home && home.parent && inst.parentNode !== home.parent) {
+				home.parent.insertBefore(inst, home.next);
+			}
+		}
+		/* Плашка у цены (ND_PRICE_NOTE) на телефоне идёт следом за строкой
+		   рассрочки, а без неё — первой: на своём месте в ряду она оказывалась
+		   под логистикой, далеко от цены. */
+		if (note && col) {
+			rememberHome(note, 'priceNote');
+			var noteHome = buyHomes.priceNote;
+			if (isMobile) {
+				var prev = inst && inst.parentNode === col ? inst : null;
+				if (note.parentNode !== col || note.previousSibling !== prev) {
+					col.insertBefore(note, prev ? prev.nextSibling : col.firstChild);
+				}
+			} else if (noteHome && noteHome.parent && note.parentNode !== noteHome.parent) {
+				noteHome.parent.insertBefore(note, noteHome.next);
+			}
 		}
 	}
 

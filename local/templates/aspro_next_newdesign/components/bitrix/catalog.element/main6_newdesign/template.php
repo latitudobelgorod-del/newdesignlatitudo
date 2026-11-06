@@ -1544,6 +1544,15 @@ if (!empty($arResult["PROPERTIES"]["ROTANG_COLOR"]["VALUE"])) {
 					<a class="nd-pd__installment" href="<?=SITE_DIR?>info/rassrochka/"><?=$ndInstallment?></a>
 				<?endif;?>
 
+				<?/* Плашка у цены — текст из свойства товара ND_PRICE_NOTE «Плашка у цены»
+				   (Ирина, 06.11.2026: товары акции Millargo «Возможна акционная цена.
+				   Подробности уточняйте у наших менеджеров»). Пустое свойство — плашки нет;
+				   ставит и снимает local/tools/nd_promo_price_note.php. */
+				$ndPriceNote = trim((string)($arResult['PROPERTIES']['ND_PRICE_NOTE']['VALUE'] ?? ''));?>
+				<?if($ndPriceNote !== ''):?>
+					<div class="nd-pd__price-note"><?=htmlspecialcharsbx($ndPriceNote)?></div>
+				<?endif;?>
+
 				<div class="buy_block">
 					<?if(!$arResult["OFFERS"]):?>
 						<script>
