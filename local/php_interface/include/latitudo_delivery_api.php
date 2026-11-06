@@ -122,7 +122,67 @@ function ndDeliveryPiecesPerUnit(array $productIds): array
 			$out[$id] = round(1 / $k, 3);
 		}
 	}
+
+	/* UNIT_KOEF нет — число из описания товара (анонс, детальное, блоки
+	   EDITOR1; сначала само предложение, потом родитель): «45 клипс из
+	   нержавеющей стали», «10 штук в упаковке», «В упаковке 10 штук».
+	   Только однозначные фразы: «8 стартовых клипс и 8 уголков» не берём. */
+	$missing = array_values(array_diff($productIds, array_keys($out)));
+	if ($missing) {
+		$need = array_values(array_unique(array_merge($missing, array_intersect_key($parentOf, array_flip($missing)))));
+		$fromText = array();
+		$res = \CIBlockElement::GetList(array(), array('ID' => $need), false, false,
+			array('ID', 'IBLOCK_ID', 'PREVIEW_TEXT', 'DETAIL_TEXT', 'PROPERTY_EDITOR1'));
+		while ($e = $res->Fetch()) {
+			$id = (int)$e['ID'];
+			$text = (string)$e['PREVIEW_TEXT'] . ' ' . (string)$e['DETAIL_TEXT'];
+			$editor = $e['PROPERTY_EDITOR1_VALUE'] ?? '';
+			if (is_array($editor)) {
+				$editor = $editor['TEXT'] ?? '';
+			}
+			$json = json_decode(html_entity_decode((string)$editor, ENT_QUOTES, 'UTF-8'), true);
+			if (is_array($json)) {
+				array_walk_recursive($json, function ($v, $k) use (&$text) {
+					if (is_string($v) && ($k === 'value' || $k === 'text')) {
+						$text .= ' ' . $v;
+					}
+				});
+			}
+			$n = ndDeliveryPiecesFromText($text);
+			if ($n > 0 && !isset($fromText[$id])) {
+				$fromText[$id] = $n;
+			}
+		}
+		foreach ($missing as $id) {
+			$n = $fromText[$id] ?? ($fromText[$parentOf[$id] ?? 0] ?? 0);
+			if ($n > 0) {
+				$out[$id] = $n;
+			}
+		}
+	}
 	return $out;
+}
+
+/** Штук в упаковке по тексту описания или 0, если фраза неоднозначна. */
+function ndDeliveryPiecesFromText(string $text): int
+{
+	$text = html_entity_decode(strip_tags(str_replace(array('<br', '</p>', '</li>'), array(' <br', ' </p>', ' </li>'), $text)), ENT_QUOTES, 'UTF-8');
+	$text = preg_replace('/\s+/u', ' ', $text);
+	$patterns = array(
+		'/\bв\s+(?:1\s+|одной\s+)?упаковке\s*[-—:]?\s*(\d{1,5})\s*(?:шт|штук)/iu',
+		'/\b(\d{1,5})\s*(?:шт\.?|штук)\s+в\s+(?:1\s+|одной\s+)?упаковке/iu',
+		'/\b(\d{1,5})\s+(?:клипс|кляммер\S*|скоб)\b/iu',
+	);
+	$found = array();
+	foreach ($patterns as $re) {
+		if (preg_match_all($re, $text, $m)) {
+			foreach ($m[1] as $n) {
+				$found[(int)$n] = true;
+			}
+		}
+	}
+	/* Разные числа — непонятно, какое верное: пусть решает менеджер. */
+	return count($found) === 1 ? (int)key($found) : 0;
 }
 
 /**
