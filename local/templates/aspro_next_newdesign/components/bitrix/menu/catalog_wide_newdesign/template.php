@@ -772,6 +772,11 @@ $ndSectionBrands = function($sectionId, $sectionLink = '') {
 				<?/* Подразделов нет — вместо пустой панели показываем картинку
 				     раздела (поле UF_IMAGE_MENU) ссылкой на сам раздел. */?>
 				<?$ndMenuImg = $arCards ? null : $ndSectionMenuImage($arSection['LINK']);?>
+				<?/* Большая картинка сама и есть баннер раздела — плитку акции рядом
+				     не ставим, иначе картинка сжимается вдвое (06.11.2026: у «Распродажи»
+				     плитка акции «Распродажа остатков» повторяла ту же картинку). */
+				if($ndMenuImg)
+					$arPromo = array();?>
 				<?if($arCards || $arPromo || $ndMenuImg):?>
 					<div class="nd-cat__body">
 						<?if($arCards):?>
