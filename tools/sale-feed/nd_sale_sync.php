@@ -418,5 +418,23 @@ function ndPhotoSource(string $guid, string $sku): ?array
 			$e['MORE'][] = (int)$p['VALUE'];
 		}
 	}
+	/* Карточка (main6_newdesign, DETAIL_ADD_DETAIL_TO_SLIDER=N) при непустых доп. фото показывает
+	   только их — главное фото выпадало (06.11.2026). Ставим его первым, если его копии среди доп. фото
+	   ещё нет (копию узнаём по размеру файла: у 4SIS главное уже лежит первым доп. фото). */
+	$main = (int)($e['DETAIL_PICTURE'] ?: $e['PREVIEW_PICTURE']);
+	if ($e['MORE'] && $main && !in_array($main, $e['MORE'], true)) {
+		$size = static function ($id) { $f = CFile::GetFileArray($id); return $f ? (int)$f['FILE_SIZE'] : -1; };
+		$mainSize = $size($main);
+		$hasCopy = false;
+		foreach ($e['MORE'] as $id) {
+			if ($size($id) === $mainSize) {
+				$hasCopy = true;
+				break;
+			}
+		}
+		if (!$hasCopy) {
+			array_unshift($e['MORE'], $main);
+		}
+	}
 	return $e;
 }
