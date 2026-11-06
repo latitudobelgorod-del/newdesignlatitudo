@@ -18,7 +18,8 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function ce(s) { return String(s || '').toLowerCase().replace(/ё/g, 'е'); }
   // деталь: [название, цена, длина мм, сечение «100х100», цвет, метки, адрес, картинка, ID товара/предложения]
-  function link(it) { return '<a href="' + SITE + it[6] + '" target="_blank" rel="noopener">' + esc(it[0]) + '</a>'; }
+  // адрес относительно раздела ограждений; у панелей и П-профилей из «Заборной доски» — полный путь
+  function link(it) { return '<a href="' + (it[6].charAt(0) === '/' ? 'https://latitudo.ru' + it[6] : SITE + it[6]) + '" target="_blank" rel="noopener">' + esc(it[0]) + '</a>'; }
   function sec(it, i) { var m = String(it && it[3] || '').split('х'); return (+m[i || 0] || 0) / 1000; }
   function mm(it) { return it && it[2] ? ' ' + fmt(it[2]) + ' мм' : ''; }
   function has(it, tag) { return (' ' + it[5] + ' ').indexOf(' ' + tag + ' ') >= 0; }
@@ -88,8 +89,15 @@
     { id: 9, name: 'Крест, двойные перила', mid: MID, geo: function (c, h, nb, bw) {
       var yM = h - MID, a = 0.06 * c, b = 0.94 * c;
       return [[a, 0, a, yM], [c / 2, 0, c / 2, yM], [b, 0, b, yM]].concat(cross(a, c / 2, 0, yM), cross(c / 2, b, 0, yM), verts(Math.max(2, Math.round(nb / 2)), 0, c, yM, h, bw)); } },
-    { id: 10, name: 'Крест в балясинах', label: 'Крест в баля­синах', geo: function (c, h) { var a = 0.12 * c, b = 0.88 * c; return [[a, 0, a, h], [b, 0, b, h]].concat(cross(a, b, 0, h)); } }
+    { id: 10, name: 'Крест в балясинах', label: 'Крест в баля­синах', geo: function (c, h) { var a = 0.12 * c, b = 0.88 * c; return [[a, 0, a, h], [b, 0, b, h]].concat(cross(a, b, 0, h)); } },
+    /* 06.11.2026 (менеджеры через Ирину): глухое ограждение — заборные панели шип-паз EasyDecking Вуд-Икс 146×20
+       лежат друг на друге между столбами, концами в алюминиевых П-профилях 35×25 на столбах, сверху — перила.
+       Есть только у серий, где в снимке каталога есть панели (kind panel): сейчас EasyDecking Вуд-Икс. */
+    { id: 11, name: 'Глухое из панелей шип-паз', label: 'Глухое, панели шип-паз', panel: true, geo: function () { return []; } }
   ];
+  // панель шип-паз: рабочая ширина (по каталогу 135 мм при 146 мм полной), зазор под нижней панелью
+  var PANEL_W = 0.135, PANEL_GAP = 0.02;
+  function panelSeries() { return DATA.S.findIndex(function (S) { return (S.p.panel || []).length; }); }
   function ftype() { return TYPES.find(function (t) { return t.id === cur.type; }) || TYPES[0]; }
   function segLen(s) { return Math.hypot(s[2] - s[0], s[3] - s[1]); }
   /** Сколько заготовок длиной W уйдёт на детали (первая подходящая по убыванию длины). */
@@ -281,6 +289,8 @@
   }
   function selectSeries(i) {
     cur.s = i; cur.opt = {}; excluded = {};
+    // у серии нет панелей шип-паз — вид «Глухое» недоступен, возвращаемся к вертикальным
+    if (ftype().panel && !(series().p.panel || []).length) { cur.type = 1; renderTypes(); }
     var r = rule(series());
     $('lfcStep').value = r.stepDef || r.step;
     if (!cur.hSet || !(num($('lfcH').value) > 0)) $('lfcH').value = Math.round(r.h * 1000); // свою высоту клиента при смене серии не сбрасываем
@@ -356,11 +366,22 @@
     var PER = noPosts && k === 1 ? 'на проём' : 'на секцию';
     // высота заполнения: от верха нижних перил до низа верхних (у Террапола ещё подбалясенник под перилами)
     var railH = Math.max(0.035, sec(pick('rail'), 1) || 0.045), botY = R.perM ? 0.11 : 0.1, topY = H - 0.06;
-    var y0 = botY + railH, y1 = topY - railH - (R.rails.some(function (rl) { return rl[0] === 'bottom'; }) ? 0.035 : 0);
+    // глухое из панелей: перила только сверху (лежат на верхней панели), нижних перил и подпорок нет
+    var rails = T.panel ? [['rail', 1]] : R.rails;
+    var y0 = botY + railH, y1 = topY - railH - (rails.some(function (rl) { return rl[0] === 'bottom'; }) ? 0.035 : 0);
+    var PN = null;
+    if (T.panel) {
+      // панелей в высоту — по рабочей ширине; остаток меньше половины панели уходит в зазор снизу,
+      // больше — ставится ещё одна панель, верхняя подрезается по ширине
+      var F = topY - railH - PANEL_GAP, pn = Math.max(1, Math.round(F / PANEL_W));
+      PN = { n: pn, F: F, fillH: Math.min(F, pn * PANEL_W), rip: Math.max(0, pn * PANEL_W - F), gap: PANEL_GAP + Math.max(0, F - pn * PANEL_W) };
+      y1 = topY - railH; y0 = y1 - PN.fillH;
+    }
     // на каждом участке своя ширина секции: балясины, подпорки и детали заполнения — по ней.
     // Подпорки под нижними перилами — по правилу серии, но не реже чем через SUP_GAP по длине секции:
     // в широком проёме (до 6 м без столбов) одной-двух мало (Ирина, 22.10.2026)
     runs.forEach(function (u) {
+      if (T.panel) { u.nb = PN.n; u.nsup = 0; u.segs = []; return; }
       u.nb = R.perM ? Math.max(1, ceil(u.c * (alu && R.perMAlu ? R.perMAlu : R.perM) - 0.05)) : Math.max(1, ceil((u.c - R.gap) / (bw + R.gap)));
       u.nsup = R.sup ? Math.max(R.sup(u.c), ceil(u.c / SUP_GAP) - 1) : 0;
       u.segs = T.geo(u.c, y1 - y0, u.nb, bw);
@@ -372,7 +393,7 @@
     // все отрезки (секции) с их просветами — для раскроя перил
     var cuts = []; runs.forEach(function (u) { for (var s = 0; s < u.spans; s++) cuts.push(u.c); });
     var r = { S: S, R: R, T: T, L: L, H: H, skirtOn: skirtOn, k: k, nOpen: nOpen, noPosts: noPosts, step: step, spans: spans, axis: axis, c: c, N: N, big: big, small: nSmall, pw: pw,
-      nb: nb, nsup: nsup, alu: alu, bw: bw, size: size, railH: railH, botY: botY, topY: topY, y0: y0, y1: y1, segs: segs, rows: [],
+      nb: nb, nsup: nsup, alu: alu, bw: bw, size: size, railH: railH, botY: botY, topY: topY, y0: y0, y1: y1, segs: segs, rows: [], PN: PN, rails: rails,
       pm: pm, P: P, runs: runs, main: main, cTxt: cTxt, nbTxt: rng(function (u) { return u.nb; }), segTxt: rng(function (u) { return u.segs.length; }) };
 
     function row(key, it, qty, sub, fallback) {
@@ -401,7 +422,7 @@
 
     // перила, поручни, подбалясенники
     var top = opt('top');
-    R.rails.forEach(function (rl, i) {
+    rails.forEach(function (rl, i) {
       var kind = rl[0], rows = rl[1], f = null;
       if (rl[2] === 'top') f = function (it) { return top === 'fig' ? has(it, 'fig') : !has(it, 'fig'); };
       if (rl[2] === 'bottom') f = function (it) { return !has(it, 'fig'); };
@@ -418,7 +439,25 @@
     // балясины и подпорки
     var sumRuns = function (f) { return runs.reduce(function (t, u) { return t + f(u) * u.spans; }, 0); };
     var nbAll = sumRuns(function (u) { return u.nb; }), supAll = sumRuns(function (u) { return u.nsup; });
-    if (T.id !== 1) {
+    if (T.panel) {
+      // панели: по PN.n на секцию длиной в просвет секции; из какой длины (2210 или 3010) резать — что дешевле
+      var c0 = ce(cur.color), pl = (S.p.panel || []).filter(function (it) { return ce(it[4]) === c0; });
+      if (!pl.length) pl = (S.p.panel || []).map(function (it) { return Object.assign([], it, { guess: true }); });
+      var plens = []; runs.forEach(function (u) { for (var s = 0; s < u.spans * u.nb; s++) plens.push(u.c); });
+      var best = null;
+      pl.forEach(function (it) { var q = whips(plens, (it[2] || 3000) / 1000), cost = q * (it[1] || 0); if (!best || cost < best.cost - EPS) best = { it: it, q: q, cost: cost }; });
+      if (best) {
+        var perW = Math.max(1, Math.floor(((best.it[2] || 3000) / 1000 + KERF) / (c + KERF) + EPS));
+        row('panel', best.it, best.q, 'Нужно ' + fmt(nbAll) + ' ' + plural(nbAll, 'панель', 'панели', 'панелей') + ' по ' + cTxt + ' мм (' + r.nbTxt + ' ' + PER + ' в высоту, рабочая ширина ' + fmt(PANEL_W * 1000) + ' мм)' +
+          (runs.length === 1 ? ' — из одной панели' + mm(best.it) + ' выходит ' + perW : ' — раскрой на все стороны сразу') + (PN.rip > 0.005 ? '; верхняя панель подрезается по ширине на ' + fmt(Math.round(PN.rip * 1000)) + ' мм' : ''));
+      } else row('panel', null, nbAll, 'в каталоге нет — подберёт менеджер', 'Заборная панель шип-паз');
+      // П-профиль: по одному на каждом конце секции (на столбе), длиной в высоту панелей
+      var up = pick('uprof'), ulens = [];
+      for (var t2 = 0; t2 < spans * 2; t2++) ulens.push(PN.fillH);
+      if (up) row('uprof', up, whips(ulens, (up[2] || 3000) / 1000), 'Нужно ' + fmt(spans * 2) + ' ' + plural(spans * 2, 'отрезок', 'отрезка', 'отрезков') + ' по ' + fmt(Math.round(PN.fillH * 1000)) +
+        ' мм — по 2 на секцию, на столбы с обеих сторон секции; из одного профиля' + mm(up) + ' выходит ' + Math.max(1, Math.floor(((up[2] || 3000) / 1000 + KERF) / (PN.fillH + KERF) + EPS)));
+      else row('uprof', null, spans * 2, 'в каталоге нет — подберёт менеджер', 'П-профиль для панелей');
+    } else if (T.id !== 1) {
       // другие виды: детали заполнения режем из балясин серии, раскрой — по длинам деталей
       var nSeg = r.segTxt, segAll = sumRuns(function (u) { return u.segs.length; }), what2 = 'Нужно ' + fmt(segAll) + ' ' + plural(segAll, 'деталь', 'детали', 'деталей') + ' (' + nSeg + ' ' + PER + ')';
       if (bal && alu) row('bal', bal, segAll, what2);
@@ -457,7 +496,7 @@
       else row('balfix', null, qf, 'в каталоге нет — подберёт менеджер', alu ? 'Крепление для алюминиевых балясин' : 'Крепление для балясин');
     }
     // крепёж перил: на каждый конец каждого ряда
-    var railRows = R.rails.reduce(function (t, rl) { return t + (rl[0] === 'rail' ? rl[1] : 0); }, 0) + (T.mid ? 1 : 0);
+    var railRows = rails.reduce(function (t, rl) { return t + (rl[0] === 'rail' ? rl[1] : 0); }, 0) + (T.mid ? 1 : 0);
     // углы не под 90° (трапеция, скос): на угловом столбе оба конца каждого ряда перил — на поворотном крепеже;
     // у серий без поворотного крепежа в каталоге — строкой без цены
     var turnN = pm ? P.corners.filter(function (k) { return k.turn; }).length : 0, turnEnds = turnN * 2 * railRows;
@@ -507,12 +546,23 @@
     for (var i = 0; i < show; i++) {
       var a = i * r.axis + r.pw, b = a + r.c;
       // заполнение секции по виду: детали — линиями толщиной в балясину, обрезаны по просвету секции
+      if (r.PN) {
+        // глухое: панели друг на друге от верха вниз (верхняя под перилами), по краям — П-профили на столбах
+        var ph = PANEL_W * sc;
+        for (var pi = 0; pi < r.PN.n; pi++) {
+          var pTop = r.y1 - pi * PANEL_W, pBot = Math.max(r.y0, pTop - PANEL_W);
+          o += '<rect x="' + X(a) + '" y="' + Y(pTop) + '" width="' + (r.c * sc) + '" height="' + Math.max(1, (pTop - pBot) * sc) + '" fill="var(--ltd-board-2)" stroke="var(--ltd-panel)" stroke-width="' + Math.max(1, Math.min(2, ph * 0.08)) + '"/>';
+        }
+        var uw = Math.max(2, 0.025 * sc);
+        [X(a), X(b) - uw].forEach(function (ux) { o += '<rect x="' + ux + '" y="' + Y(r.y1) + '" width="' + uw + '" height="' + ((r.y1 - r.y0) * sc) + '" fill="var(--ltd-muted)"/>'; });
+      } else {
       o += '<clipPath id="lfcClip' + i + '"><rect x="' + X(a) + '" y="' + Y(r.y1) + '" width="' + (r.c * sc) + '" height="' + ((r.y1 - r.y0) * sc) + '"/></clipPath><g clip-path="url(#lfcClip' + i + ')">';
       r.segs.forEach(function (s) { o += '<line x1="' + X(a + s[0]) + '" y1="' + Y(r.y0 + s[1]) + '" x2="' + X(a + s[2]) + '" y2="' + Y(r.y0 + s[3]) + '" stroke="var(--ltd-board-2)" stroke-width="' + Math.max(1.2, r.bw * sc) + '"/>'; });
       o += '</g>';
-      // нижний и верхний ряды перил (и средний у двойных перил)
-      [botY, topY - railH].concat(r.T.mid ? [r.y0 + (r.y1 - r.y0) - r.T.mid - railH / 2] : []).forEach(function (q) { o += '<rect x="' + X(a) + '" y="' + Y(q + railH) + '" width="' + (r.c * sc) + '" height="' + (railH * sc) + '" fill="var(--ltd-board)"/>'; });
-      if (r.R.rails.some(function (rl) { return rl[0] === 'bottom'; })) o += '<rect x="' + X(a) + '" y="' + Y(topY - railH) + '" width="' + (r.c * sc) + '" height="' + (0.035 * sc) + '" fill="var(--ltd-board-2)"/>';
+      }
+      // нижний и верхний ряды перил (и средний у двойных перил); у глухого — только верхние
+      (r.PN ? [topY - railH] : [botY, topY - railH]).concat(r.T.mid ? [r.y0 + (r.y1 - r.y0) - r.T.mid - railH / 2] : []).forEach(function (q) { o += '<rect x="' + X(a) + '" y="' + Y(q + railH) + '" width="' + (r.c * sc) + '" height="' + (railH * sc) + '" fill="var(--ltd-board)"/>'; });
+      if (r.rails.some(function (rl) { return rl[0] === 'bottom'; })) o += '<rect x="' + X(a) + '" y="' + Y(topY - railH) + '" width="' + (r.c * sc) + '" height="' + (0.035 * sc) + '" fill="var(--ltd-board-2)"/>';
       // подпорки под нижним рядом
       for (var k = 0; k < r.nsup; k++) { var sx = a + r.c * (k + 1) / (r.nsup + 1) - 0.02; o += '<rect x="' + X(sx) + '" y="' + Y(botY) + '" width="' + (0.04 * sc) + '" height="' + (botY * sc) + '" fill="var(--ltd-board-2)"/>'; }
       // размер секции
@@ -540,7 +590,7 @@
     $('lfcSvg').innerHTML = o;
     $('lfcCap').textContent = r.noPosts ? (show < r.k ? 'показаны ' + show + ' из ' + r.k + ' секций проёма' : r.nOpen > 1 ? 'показан 1 из ' + r.nOpen + ' проёмов' : '') : r.pm ? 'сторона ' + (r.P.sides.indexOf(r.P.sides.filter(function (s, i) { return plan.on[i]; })[r.runs.indexOf(r.main)]) + 1) + ': ' + (show < r.main.spans ? 'показаны ' + show + ' из ' + r.main.spans + ' секций' : r.main.spans + ' ' + plural(r.main.spans, 'секция', 'секции', 'секций'))
       : show < r.spans ? 'показаны ' + show + ' из ' + r.spans + ' секций' : '';
-    $('lfcLegendNote').textContent = r.nsup ? 'подпорки: ' + r.nsup + ' ' + (r.noPosts ? 'на проём' : 'на секцию') : '';
+    $('lfcLegendNote').textContent = r.PN ? 'панели шип-паз: ' + r.PN.n + ' на секцию, по краям — П-профиль' : r.nsup ? 'подпорки: ' + r.nsup + ' ' + (r.noPosts ? 'на проём' : 'на секцию') : '';
   }
 
   /* ---------- Вывод ---------- */
@@ -568,18 +618,19 @@
     out.classList.remove('is-invalid'); $('lfcInvalid').hidden = true;
     var S = series();
     $('lfcSeriesInfo').innerHTML = '<a href="' + SITE + S.url + '" target="_blank" rel="noopener">Все товары серии в каталоге</a>';
-    var fill = (r.T.id === 1 ? 'балясин ' + r.nbTxt : 'деталей заполнения ' + r.segTxt);
+    var fill = (r.PN ? 'панелей ' + r.nbTxt : r.T.id === 1 ? 'балясин ' + r.nbTxt : 'деталей заполнения ' + r.segTxt);
     $('lfcBig').innerHTML = r.noPosts ? fmt(r.nOpen) + '<small>' + plural(r.nOpen, 'проём', 'проёма', 'проёмов') + ' по ' + fmt(Math.round(r.L * 1000)) + ' мм</small>'
       : r.pm ? fmt(r.L, 2) + '<small>пог. м · ' + r.spans + ' ' + plural(r.spans, 'секция', 'секции', 'секций') + ' по ' + r.cTxt + ' мм</small>'
       : fmt(r.spans) + '<small>' + plural(r.spans, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм</small>';
     $('lfcBigSub').innerHTML = r.noPosts ? (r.k > 1 ? 'Промежуточных столбов ДПК <b>' + (r.k - 1) + '</b> на проём · ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм · ' + fill + ' на секцию' : 'Без столбов ДПК · ' + fill + ' на проём')
       : 'Столбов <b>' + r.N + '</b>' + (r.small ? ' (' + r.big + ' больших, ' + r.small + ' малых)' : '') + (r.pm ? ' · ' + r.runs.length + ' ' + plural(r.runs.length, 'сторона', 'стороны', 'сторон') + (r.P.open ? '' : ', контур замкнут') + (r.P.corners.length ? ' · ' + plural(r.P.corners.length, 'угол', 'угла', 'углов').replace(/^/, r.P.corners.length + ' ') + (r.P.corners.some(function (k) { return k.turn; }) ? ', не под 90° — ' + r.P.corners.filter(function (k) { return k.turn; }).length : '') : '') : ' · шаг ' + fmt(Math.round(r.axis * 1000)) + ' мм') + ' · ' + fill + ' на секцию';
-    $('lfcRules').innerHTML = '<b>Как считаем ' + esc(seriesName(S)) + '</b>' + esc(r.R.note || '') +
+    $('lfcRules').innerHTML = '<b>Как считаем ' + esc(seriesName(S)) + '</b>' + esc((r.R.note || '').replace(r.PN ? /;\s*под нижними перилами — подпорка/ : /^$/, '')) +
       (r.pm ? ' По схеме террасы: каждая отмеченная сторона делится на равные секции с шагом не больше заданного; на углах между отмеченными сторонами — один общий столб' + (r.P.open ? ', на свободных концах — свои столбы' : '') + '. На углах 90° перила подходят к соседним граням углового столба — крепёж обычный; на углах не под 90° концы перил — на поворотном крепеже серии (нет в каталоге — подберёт менеджер).' : '') +
       (r.noPosts ? ' Установка в проём между бетонными блоками или стенами: перила крепятся к блокам — анкеры и уголки подберёт менеджер.' + (r.k > 1 ? ' Проём шире ' + fmt(r.R.step) + ' м, поэтому внутри ' + (r.k - 1) + ' ' + plural(r.k - 1, 'промежуточный столб', 'промежуточных столба', 'промежуточных столбов') + ' ДПК: ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм, столбы крепятся к основанию, на каждом — юбка.' : ' Столбов ДПК, крышек, юбок и креплений столбов в смете нет.') : '') +
       (Math.abs(r.H - r.R.h) >= 0.001 ? ' Высота задана своя — ' + fmt(Math.round(r.H * 1000)) + ' мм вместо ' + fmt(Math.round(r.R.h * 1000)) + ' мм по правилам серии: длины столбов и балясин пересчитаны под неё, проверьте с менеджером.' : '') +
       (r.R.alt && !r.small && !r.noPosts ? ' Выбраны только большие столбы: малые не ставятся, подпорки под нижний подбалясенник режутся из обрезков.' : '') +
-      (r.T.id !== 1 ? ' Вид «' + esc(r.T.name) + '»: детали заполнения нарезаются из балясин серии, сколько балясин купить — посчитано с учётом распила.' : '');
+      (r.PN ? ' Вид «' + esc(r.T.name) + '»: заборные панели шип-паз EasyDecking (рабочая ширина ' + fmt(PANEL_W * 1000) + ' мм) кладутся друг на друга между столбами, концами — в алюминиевые П-профили на столбах, сверху — перила. В секции ' + r.PN.n + ' ' + plural(r.PN.n, 'панель', 'панели', 'панелей') + ' в высоту, ' + (r.PN.rip > 0.005 ? 'верхняя подрезается по ширине на ' + fmt(Math.round(r.PN.rip * 1000)) + ' мм' : 'зазор под нижней панелью ≈ ' + fmt(Math.round(r.PN.gap * 1000)) + ' мм') + '. Длину панели (2210 или 3010 мм) калькулятор выбирает ту, что выходит дешевле с учётом распила.' :
+       r.T.id !== 1 ? ' Вид «' + esc(r.T.name) + '»: детали заполнения нарезаются из балясин серии, сколько балясин купить — посчитано с учётом распила.' : '');
     draw(r);
     var total = 0, priced = 0;
     $('lfcTable').innerHTML = r.rows.map(function (x) {
@@ -630,7 +681,7 @@
         : 'Ограждение: ' + fmt(r.L) + ' пог. м, высота ' + fmt(Math.round(r.H * 1000)) + ' мм, шаг столбов ' + fmt(Math.round(r.axis * 1000)) + ' мм',
       'Вид ' + r.T.id + ': ' + r.T.name.toLowerCase(),
       'Серия: ' + seriesName(S) + ', цвет ' + cur.color + (r.alu ? ', алюминиевые балясины' : ''),
-      r.noPosts ? 'Проёмов: ' + r.nOpen + (r.k > 1 ? ', в каждом ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм' : '') + ', ' + (r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + (r.k > 1 ? ' на секцию' : ' на проём') : 'Секций: ' + r.spans + ' по ' + r.cTxt + ' мм, столбов ' + r.N + ', ' + (r.T.id === 1 ? 'балясин ' + r.nbTxt : 'деталей заполнения ' + r.segTxt) + ' на секцию'
+      r.noPosts ? 'Проёмов: ' + r.nOpen + (r.k > 1 ? ', в каждом ' + r.k + ' ' + plural(r.k, 'секция', 'секции', 'секций') + ' по ' + fmt(Math.round(r.c * 1000)) + ' мм' : '') + ', ' + (r.PN ? 'панелей ' + r.nb : r.T.id === 1 ? 'балясин ' + r.nb : 'деталей заполнения ' + r.segs.length) + (r.k > 1 ? ' на секцию' : ' на проём') : 'Секций: ' + r.spans + ' по ' + r.cTxt + ' мм, столбов ' + r.N + ', ' + (r.PN ? 'панелей ' + r.nbTxt : r.T.id === 1 ? 'балясин ' + r.nbTxt : 'деталей заполнения ' + r.segTxt) + ' на секцию'
     ];
     var calcData = { params: params, total: last.total,
       rows: r.rows.filter(function (x) { return !x.off; }).map(function (x) { return { name: x.text, art: x.id ? String(x.id) : '', note: x.sub, qty: fmt(x.qty) + ' ' + x.unit, price: x.price, sum: x.sum }; }) };
@@ -653,7 +704,13 @@
     var b = this.value; if (series().b !== b) selectSeries(DATA.S.findIndex(function (S) { return S.b === b; }));
   });
   $('lfcList').addEventListener('change', function (ev) { if (ev.target.name === 'lfcSeries') selectSeries(+ev.target.value); });
-  $('lfcTypes').addEventListener('change', function (ev) { if (ev.target.name === 'lfcType') { cur.type = +ev.target.value; fillOpts(); render(); } });
+  $('lfcTypes').addEventListener('change', function (ev) {
+    if (ev.target.name !== 'lfcType') return;
+    cur.type = +ev.target.value;
+    // «Глухое из панелей шип-паз» — сразу серия, где панели есть (EasyDecking Вуд-Икс)
+    if (ftype().panel && !(series().p.panel || []).length && panelSeries() >= 0) { selectSeries(panelSeries()); return; }
+    fillOpts(); render();
+  });
   $('lfcForm').addEventListener('change', function (ev) {
     var t = ev.target;
     if (t.name === 'lfcShape') { plan.shape = t.value; plan.on = []; }   // новая форма — все стороны снова с ограждением

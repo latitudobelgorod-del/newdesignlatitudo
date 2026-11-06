@@ -17,6 +17,8 @@ secs = {s['id']: s for s in d['sections']}
 
 # порядок важен: «Комплект крышка/юбка» раньше крышки, крепёж раньше балясин и перил
 KINDS = [
+    ('panel', r'панель шип-паз'),
+    ('uprof', r'п-профиль'),
     ('capskirt', r'комплект крышка/юбка'),
     ('cap', r'крышк|пирамид|сфера'),
     ('skirt', r'юбк|рамк'),
@@ -130,6 +132,23 @@ for sid, sr in series.items():
     OUT.append({'id': sid, 'b': brand, 'n': name, 'url': s['url'].replace('/catalog/ograzhdeniya-iz-dpk/', ''),
                 'c': colors, 'p': parts})
 
+# 06.11.2026: вид «Глухое из панелей шип-паз» — заборные панели и П-профили из «Заборной доски» (#102).
+# Панели EasyDecking Вуд-Икс — к серии Вуд-Икс той же марки; адрес полный (другой раздел каталога).
+for it in d['items']:
+    if it['s'] != 102:
+        continue
+    k = kind(it['n'])
+    if k not in ('panel', 'uprof'):
+        continue
+    for x in OUT:
+        if not x['b'] or x['b'].lower() not in it['n'].lower() or 'вуд-икс' not in x['n'].lower():
+            continue
+        for o in it['o']:
+            on = norm(o['n'])
+            col = next((c for c in VOCAB if ce(c) in ce(on)), '')
+            size, ln = size_len(on)
+            x['p'].setdefault(k, []).append([on, o['p'], ln, size, col, '', it['url'], it['img'], o['id']])
+
 # общий крепёж из корня раздела (кронштейн и закладная 120х120) — для серий без своего
 common = []
 for it in d['items']:
@@ -154,7 +173,7 @@ OUT.sort(key=lambda x: (ORDER.index(x['b']) if x['b'] in ORDER else 9, x['n']))
 data = {'S': OUT, 'common': common}
 with open(dst, 'w', encoding='utf-8', newline='\n') as f:
     f.write('/* Снимок каталога ограждений для калькулятора ограждений на %s. Детали серий по типам: post, rail, bottom, bal, '
-            'balfix, railfix, cap, skirt, capskirt, mount — [название, цена, длина мм, сечение, цвет, метки, адрес, картинка]. '
+            'balfix, railfix, cap, skirt, capskirt, mount, panel, uprof — [название, цена, длина мм, сечение, цвет, метки, адрес, картинка]. '
             'Пересборка: tools/fence-calc/build.py */\n' % datetime.date.today().strftime('%d.%m.%Y'))
     f.write('window.LFC_DATA = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';\n')
 print('серий:', len(OUT), {x['n']: len(x['c']) for x in OUT})
