@@ -731,6 +731,12 @@
   // ?series=<код раздела> — сразу эта серия (ссылка из раздела каталога)
   var q = new URLSearchParams(location.search).get('series'), start = 0;
   if (q) { var fi = DATA.S.findIndex(function (S) { return S.url.indexOf(q + '/') >= 0; }); if (fi >= 0) start = fi; }
+  // ?type=<номер вида> — сразу этот вид (из карточки заборной панели шип-паз — ?type=11, серия с панелями)
+  var qt = +new URLSearchParams(location.search).get('type');
+  if (qt && TYPES.some(function (t) { return t.id === qt; })) {
+    cur.type = qt;
+    if (ftype().panel && !(DATA.S[start].p.panel || []).length && panelSeries() >= 0) start = panelSeries();
+  }
   renderTypes();
   renderShapes();
   selectSeries(start);

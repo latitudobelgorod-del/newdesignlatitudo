@@ -1696,6 +1696,12 @@ if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
 			$ndFenceCalcUrl = '/info/kalkulyator-ograzhdeniy/'.($ndFenceSeries['DEPTH_LEVEL'] > 1 ? '?series='.rawurlencode($ndFenceSeries['CODE']) : '');
 		}
 	}
+	/* 06.11.2026: заборные панели шип-паз (раздел «Заборная доска») — калькулятор сразу с видом
+	   «Глухое из панелей шип-паз» (вид 11, серию с панелями калькулятор выберет сам). */
+	if (!$ndFenceCalcUrl && mb_stripos($arResult['NAME'], 'панель шип-паз') !== false)
+	{
+		$ndFenceCalcUrl = '/info/kalkulyator-ograzhdeniy/?type=11';
+	}
 }
 ?>
 	<div class="">
