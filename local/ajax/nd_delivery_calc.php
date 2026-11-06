@@ -118,9 +118,33 @@ list($code, $data) = ndDeliveryApiRequest('/quote-order', array(
 $price = isset($data['price']['costWithVAT']) ? (float)$data['price']['costWithVAT'] : 0;
 if ($code !== 200 || empty($data['ok']) || $price <= 0) {
 	unset($_SESSION['ND_DELIVERY_QUOTE']);
-	$ndDcAnswer(array('ok' => false, 'error' => $code === 422
-		? 'Заказ не помещается в одну машину — доставку посчитает менеджер.'
-		: $ndDcFail));
+	/* 422 — не «не влезло в машину» (несколько машин калькулятор считает сам,
+	   truck.count): это любая причина отказа — нет данных о товаре, позиция
+	   не распознана, нет маршрута. Показываем причину из ответа (message,
+	   иначе блокирующие dataIssues, нераспознанные позиции), непонятно или
+	   API недоступен — «Доставку посчитает менеджер» (06.11.2026). */
+	$reason = '';
+	if ($code === 422 && is_array($data)) {
+		if (!empty($data['message']) && is_scalar($data['message'])) {
+			$reason = (string)$data['message'];
+		} else {
+			$parts = array();
+			foreach ((array)($data['dataIssues'] ?? array()) as $issue) {
+				if (is_array($issue) && ($issue['severity'] ?? '') === 'blocking' && !empty($issue['label'])) {
+					$parts[] = (string)$issue['label'] . (!empty($issue['position']) ? ' («' . $issue['position'] . '»)' : '');
+				}
+			}
+			$unparsed = array_filter(array_map('strval', (array)($data['unparsedPositions'] ?? array())));
+			if ($unparsed) {
+				$parts[] = 'Не распознаны позиции: ' . implode(', ', $unparsed);
+			}
+			$reason = implode('; ', array_unique($parts));
+		}
+		$reason = rtrim(ndDeliveryQuoteClean($reason, 400), '. ');
+	}
+	$ndDcAnswer(array('ok' => false, 'error' => $reason !== ''
+		? $reason . '. Доставку посчитает менеджер.'
+		: 'Доставку посчитает менеджер.'));
 }
 
 $truck = (array)($data['truck'] ?? array());
