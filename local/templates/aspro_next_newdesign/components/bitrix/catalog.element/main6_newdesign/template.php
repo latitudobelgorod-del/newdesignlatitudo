@@ -305,7 +305,14 @@ $detail_URL = 'https://#ND_HOST#' . $arResult["DETAIL_PAGE_URL"];
    для них — $templateData кешируется вместе с шаблоном. */
 $templateData['ND_OG'] = array(
 	'NAME' => $arResult['NAME'],
-	'PICTURE' => $arResult['DETAIL_PICTURE']['SRC'] ?? '',
+	/* Нет своего фото у товара (бывает, когда фото только у торговых предложений) —
+	   берём первое фото галереи, иначе в превью ссылки встаёт логотип (09.11.2026). */
+	'PICTURE' => ($arResult['DETAIL_PICTURE']['SRC'] ?? '') ?: (function ($slider) {
+		foreach ((array)$slider as $img) {
+			if (!empty($img['ID']) && ($src = CFile::GetPath($img['ID']))) return $src;
+		}
+		return '';
+	})($arResult['MORE_PHOTO'] ?? array()),
 	'CATEGORY_PATH' => $arResult['CATEGORY_PATH'] ?? '',
 	'BRAND' => $arResult['BRAND_ITEM']['NAME'] ?? '',
 	'ID' => $arResult['ID'],

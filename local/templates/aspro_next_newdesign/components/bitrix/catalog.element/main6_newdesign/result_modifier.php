@@ -11,6 +11,36 @@ if (!CModule::IncludeModule('highloadblock')) {
     return;
 }
 
+// Убирает из галереи одинаковые картинки (09.11.2026). Один и тот же файл часто
+// загружен дважды под разными ID: главное фото ТП + первое доп. фото, фото товара
+// + фото ТП. Сравниваем по содержимому файла, запасной ключ — имя+размер+габариты.
+if (!function_exists('ndUniqueSlider')) {
+	function ndUniqueSlider(array $slider)
+	{
+		$seen = array();
+		$out = array();
+		foreach ($slider as $img) {
+			$id = (int)$img['ID'];
+			if ($id <= 0) { $out[] = $img; continue; }
+			$keys = array('id:'.$id);
+			$f = CFile::GetFileArray($id);
+			if ($f) {
+				$keys[] = 'n:'.$f['ORIGINAL_NAME'].'|'.$f['FILE_SIZE'].'|'.$f['WIDTH'].'x'.$f['HEIGHT'];
+				$path = $_SERVER['DOCUMENT_ROOT'].$f['SRC'];
+				if (is_file($path) && filesize($path) < 15 * 1024 * 1024) {
+					$keys[] = 'md5:'.md5_file($path);
+				}
+			}
+			$dup = false;
+			foreach ($keys as $k) { if (isset($seen[$k])) { $dup = true; break; } }
+			if ($dup) continue;
+			foreach ($keys as $k) $seen[$k] = true;
+			$out[] = $img;
+		}
+		return $out;
+	}
+}
+
 $HL_BLOCK_ID = 9; // Ваш ID
 
 // ОСНОВНОЙ ЦВЕТ ТЕКУЩЕГО ЭЛЕМЕНТА (одиночное значение)
@@ -398,6 +428,7 @@ if($productSlider){
 	}
 }
 
+$productSlider = ndUniqueSlider((array)$productSlider);
 $productSliderCount = count($productSlider);
 $arResult['MORE_PHOTO'] = $productSlider;
 $arResult['MORE_PHOTO_COUNT'] = count($productSlider);
@@ -638,6 +669,7 @@ if ($arResult['CATALOG'] && isset($arResult['OFFERS']) && !empty($arResult['OFFE
 			}
 		}
 
+		$arOffer['MORE_PHOTO'] = ndUniqueSlider((array)$arOffer['MORE_PHOTO']);
 		$arOffer['MORE_PHOTO_COUNT'] = count($arOffer['MORE_PHOTO']);
 
 		/*if (CIBlockPriceTools::clearProperties($arOffer['DISPLAY_PROPERTIES'], $arParams['OFFER_TREE_PROPS']))
@@ -1046,7 +1078,8 @@ if ($arResult['CATALOG'] && isset($arResult['OFFERS']) && !empty($arResult['OFFE
 		//more photo for current offer
 		if( isset($arResult['OFFERS'][$arResult['OFFERS_SELECTED']]) && is_array($arResult['OFFERS'][$arResult['OFFERS_SELECTED']]['MORE_PHOTO']) ){
 			$arResult['MORE_PHOTO'] = $bEmptyPictureProduct && $arResult['OFFERS'][$arResult['OFFERS_SELECTED']]['MORE_PHOTO_COUNT'] > 0 ? $arResult['OFFERS'][$arResult['OFFERS_SELECTED']]['MORE_PHOTO'] : array_merge($arResult['OFFERS'][$arResult['OFFERS_SELECTED']]['MORE_PHOTO'], $arResult['MORE_PHOTO']);
-			$arResult['MORE_PHOTO_COUNT'] = $bEmptyPictureProduct && $arResult['OFFERS'][$arResult['OFFERS_SELECTED']]['MORE_PHOTO_COUNT'] > 0 ? $arResult['OFFERS'][$arResult['OFFERS_SELECTED']]['MORE_PHOTO_COUNT'] : $arResult['MORE_PHOTO_COUNT'] + $arResult['OFFERS'][$arResult['OFFERS_SELECTED']]['MORE_PHOTO_COUNT'];
+			$arResult['MORE_PHOTO'] = ndUniqueSlider((array)$arResult['MORE_PHOTO']);
+			$arResult['MORE_PHOTO_COUNT'] = count($arResult['MORE_PHOTO']);
 		}
 	}
 }
