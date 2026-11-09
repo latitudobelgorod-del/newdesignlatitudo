@@ -149,7 +149,12 @@
 .nd-pd__thumb.is-active {
     border-color: rgba(198, 0, 0, .3);
 }
-/* кнопка «ниже по ленте» — белый кружок у нижнего края последнего превью */
+/* кнопки «ниже/выше по ленте» — белые кружки у нижнего и верхнего края ленты.
+   Каждая видна, только когда в её сторону есть ещё превью (класс ставит
+   newdesign-element.js, updateArrow). Раньше была одна кнопка «вниз», которая
+   в конце ленты переворачивалась, — вернуться вверх с середины было нельзя
+   (Ирина, 9 ноября 2026). */
+.nd-pd__thumbs-prev,
 .nd-pd__thumbs-next {
     position: absolute;
     left: 50%;
@@ -166,11 +171,13 @@
     cursor: pointer;
     line-height: 0;
 }
-.nd-pd__thumbs.has-more .nd-pd__thumbs-next {
-    display: block;
+.nd-pd__thumbs-prev {
+    top: 8px;
+    bottom: auto;
 }
-.nd-pd__thumbs-next.is-up svg {
-    transform: rotate(180deg);
+.nd-pd__thumbs.has-more .nd-pd__thumbs-next,
+.nd-pd__thumbs.has-prev .nd-pd__thumbs-prev {
+    display: block;
 }
 
 /* основное фото — квадрат, как в макете (634×634) */

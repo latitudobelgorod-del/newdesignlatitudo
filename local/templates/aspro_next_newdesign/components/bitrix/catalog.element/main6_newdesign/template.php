@@ -505,6 +505,9 @@ if ($ndProfileVal) {
 						</button>
 					<? endforeach; ?>
 				</div>
+				<button type="button" class="nd-pd__thumbs-prev" aria-label="Предыдущие фото">
+					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 10l4-4 4 4" stroke="#101014" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+				</button>
 				<button type="button" class="nd-pd__thumbs-next" aria-label="Следующие фото">
 					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="#101014" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
 				</button>

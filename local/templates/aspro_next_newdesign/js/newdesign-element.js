@@ -97,8 +97,11 @@
 
 	function updateArrow() {
 		if (!thumbsWrap || !track) return;
-		/* стрелка нужна, только когда лента длиннее видимой части */
-		thumbsWrap.classList.toggle('has-more', track.scrollHeight - track.clientHeight > 2);
+		/* стрелки нужны, только когда лента длиннее видимой части: «вниз» — пока
+		   не дошли до конца, «вверх» — как только ушли от начала */
+		var over = track.scrollHeight - track.clientHeight > 2;
+		thumbsWrap.classList.toggle('has-more', over && track.scrollTop + track.clientHeight < track.scrollHeight - 2);
+		thumbsWrap.classList.toggle('has-prev', over && track.scrollTop > 2);
 	}
 
 	var THUMB = 115, THUMB_GAP = 4;
@@ -1365,16 +1368,17 @@
 				if (btn) show(parseInt(btn.getAttribute('data-index'), 10) || 0);
 			});
 		}
-		if (nextBtn) {
-			nextBtn.addEventListener('click', function () {
-				/* превью + зазор; размер превью мог подогнать fitGallery() */
-				var first = track.querySelector('.nd-pd__thumb');
-				var step = (first ? first.getBoundingClientRect().height : THUMB) + THUMB_GAP;
-				var atEnd = track.scrollTop + track.clientHeight >= track.scrollHeight - 2;
-				track.scrollTop = atEnd ? 0 : track.scrollTop + step * 3;
-				nextBtn.classList.toggle('is-up', !atEnd && track.scrollTop + track.clientHeight >= track.scrollHeight - 2);
-			});
+		/* листаем на 3 превью вниз/вверх; превью + зазор, размер превью мог
+		   подогнать fitGallery(). Видимость стрелок пересчитывает scroll. */
+		function scrollThumbs(dir) {
+			var first = track.querySelector('.nd-pd__thumb');
+			var step = (first ? first.getBoundingClientRect().height : THUMB) + THUMB_GAP;
+			track.scrollTop = Math.max(0, track.scrollTop + dir * step * 3);
 		}
+		if (track) track.addEventListener('scroll', updateArrow, { passive: true });
+		if (nextBtn) nextBtn.addEventListener('click', function () { scrollThumbs(1); });
+		var prevBtn = gallery.querySelector('.nd-pd__thumbs-prev');
+		if (prevBtn) prevBtn.addEventListener('click', function () { scrollThumbs(-1); });
 		function openZoom() {
 			var links = photo.querySelectorAll('.nd-pd__links a');
 			if (links[current]) links[current].click();
