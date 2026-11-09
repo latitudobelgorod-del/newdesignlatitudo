@@ -205,7 +205,6 @@ if(!function_exists('ndFooterMenuColumn'))
 							<?// Резервные номера ?>
 							<?if($arRegion['PROPERTY_REGION_TAG_PHONE_8800_VALUE']):?>
 								<div class="nd-fcont__phone"><a rel="nofollow" href="<?=ndFooterPhoneHref($arRegion['PROPERTY_REGION_TAG_PHONE_8800_VALUE'])?>"><?=$REGION_TAG_PHONE_8800?></a></div>
-								<div class="nd-fcont__muted">Звонок бесплатный</div>
 							<?endif;?>
 							<?if($arRegion['PROPERTY_REGION_TAG_PHONE_MOBILE_VALUE']):?>
 								<div class="nd-fcont__phone"><a rel="nofollow" href="<?=ndFooterPhoneHref($arRegion['PROPERTY_REGION_TAG_PHONE_MOBILE_VALUE'])?>"><?=$REGION_TAG_PHONE_MOBILE?></a></div>
@@ -215,9 +214,6 @@ if(!function_exists('ndFooterMenuColumn'))
 							<div class="nd-fcont__phone"><a rel="nofollow" href="<?=ndFooterPhoneHref($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE'])?>"><?=$REGION_TAG_PHONE_PODMENA?></a></div>
 						<?else:?>
 							<div class="nd-fcont__phone"><a rel="nofollow" href="<?=ndFooterPhoneHref($arRegion['PROPERTY_REGION_TAG_PHONE_VALUE'])?>"><?=$REGION_TAG_PHONE?></a></div>
-							<?if(!$bOffice):?>
-								<div class="nd-fcont__muted">Звонок бесплатный</div>
-							<?endif;?>
 							<?if($arRegion['PROPERTY_REGION_TAG_PHONESKLAD_VALUE']):?>
 								<div class="nd-fcont__phone"><a rel="nofollow" href="<?=ndFooterPhoneHref($arRegion['PROPERTY_REGION_TAG_PHONESKLAD_VALUE'])?>"><?=$REGION_TAG_PHONESKLAD?></a></div>
 							<?endif;?>
