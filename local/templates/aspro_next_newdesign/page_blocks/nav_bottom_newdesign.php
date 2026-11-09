@@ -252,7 +252,6 @@ include(__DIR__.'/header_drops_newdesign.php');
 					<i class="nd-ico nd-contacts__ico" style="-webkit-mask-image:url('<?=$imgPath?>/phone24.svg');mask-image:url('<?=$imgPath?>/phone24.svg')"></i>
 					<span class="nd-contacts__body">
 						<span class="nd-contacts__val"><?=($bMainPodmena ? $REGION_TAG_PHONE_PODMENA : $REGION_TAG_PHONE)?></span>
-						<span class="nd-contacts__note">Звонок бесплатный</span>
 					</span>
 				</a>
 			<?endif;?>
@@ -265,7 +264,6 @@ include(__DIR__.'/header_drops_newdesign.php');
 					<i class="nd-ico nd-contacts__ico" style="-webkit-mask-image:url('<?=$imgPath?>/phone24.svg');mask-image:url('<?=$imgPath?>/phone24.svg')"></i>
 					<span class="nd-contacts__body">
 						<span class="nd-contacts__val"><?=$REGION_TAG_PHONESKLAD?></span>
-						<span class="nd-contacts__note">Звонок бесплатный (дополнительный)</span>
 					</span>
 				</a>
 			<?endif;?>
