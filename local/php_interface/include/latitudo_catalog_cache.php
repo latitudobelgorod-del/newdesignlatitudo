@@ -301,6 +301,16 @@ function ndStockCacheFlush()
  *     у товара без предложений — сам товар, иначе — data-current-offer, если
  *     он есть среди предложений (у старых копий шаблона там бывает ID товара).
  */
+/**
+ * Порядок складов в плитках — как в карточке (main_detail_store_newdesign):
+ * Москва, Краснодар, Воронеж, Белгород (Ирина, 10.11.2026). Остальные — в конец.
+ */
+function ndStorePos(int $storeId): int
+{
+    static $order = array(3 => 0, 4 => 1, 2 => 2, 1 => 3);
+    return $order[$storeId] ?? 100 + $storeId;
+}
+
 function ndLiveListStores(&$content)
 {
     if (!is_string($content) || strpos($content, 'class="product-item-stores"') === false) {
@@ -375,6 +385,9 @@ function ndLiveListStores(&$content)
                     $store['REAL_AMOUNT'] = $amount;
                 }
                 unset($store);
+                usort($stores, static function ($a, $b) {
+                    return ndStorePos((int)($a['ID'] ?? 0)) <=> ndStorePos((int)($b['ID'] ?? 0));
+                });
             }
             unset($stores);
             $json = htmlspecialchars(json_encode($offers), ENT_QUOTES);
@@ -387,21 +400,26 @@ function ndLiveListStores(&$content)
         } elseif ($currentId && isset($offers[$currentId])) {
             $badgeId = $currentId;
         }
-        if ($badgeId) {
-            $badges = preg_replace_callback(
-                '~<span class="store-badge store-badge-\w+">\s*(.*?):\s*(\d*)\s*</span>~s',
-                static function ($b) use ($badgeId, $amounts, $storeByName) {
-                    $name = htmlspecialchars_decode(trim($b[1]), ENT_QUOTES);
-                    if (!isset($storeByName[$name])) {
-                        return $b[0];
-                    }
-                    $amount = (int)($amounts[$badgeId][$storeByName[$name]] ?? 0);
-                    $class = $amount >= 30 ? 'green' : ($amount > 0 ? 'orange' : 'gray');
-                    return '<span class="store-badge store-badge-' . $class . '">' . $b[1] . ': '
-                        . ($amount > 0 ? $amount . ' ' : '') . '</span>';
-                },
-                $badges
-            );
+        if ($badgeId && preg_match_all('~<span class="store-badge store-badge-\w+">\s*(.*?):\s*(\d*)\s*</span>~s', $badges, $bm, PREG_SET_ORDER)) {
+            $list = array();
+            foreach ($bm as $b) {
+                $name = htmlspecialchars_decode(trim($b[1]), ENT_QUOTES);
+                $sid = $storeByName[$name] ?? 0;
+                if (!$sid) {
+                    $list = array();   // незнакомый склад — плашки не трогаем
+                    break;
+                }
+                $amount = (int)($amounts[$badgeId][$sid] ?? 0);
+                $class = $amount >= 30 ? 'green' : ($amount > 0 ? 'orange' : 'gray');
+                $list[] = array(ndStorePos($sid), '<span class="store-badge store-badge-' . $class . '">' . $b[1] . ': '
+                    . ($amount > 0 ? $amount . ' ' : '') . '</span>');
+            }
+            if ($list) {
+                usort($list, static function ($a, $b) {
+                    return $a[0] <=> $b[0];
+                });
+                $badges = implode('', array_column($list, 1));
+            }
         }
 
         $new = $m[1] . $json . $m[5] . $badges . $m[7];
