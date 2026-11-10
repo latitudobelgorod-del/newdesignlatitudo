@@ -127,7 +127,11 @@ global $APPLICATION;?>
        в свойстве «Привязка к производителю» (BRAND) выбрана эта марка. До 10.11.2026 блок
        собирали руками в EDITOR2 выше; привязки и перенос — tools/brand-docs/nd_brand_docs.php.
        Порядок — сортировка элемента, затем название. */?>
-    <?$GLOBALS['arrBrandDocsFilter'] = array('PROPERTY_BRAND' => (int)$arElement['ID']);?>
+    <?// Просроченные документы (DATE раньше сегодня) не показываем; дата в ключе кеша — обновляется сама.
+    $GLOBALS['arrBrandDocsFilter'] = array(
+        'PROPERTY_BRAND' => (int)$arElement['ID'],
+        array('LOGIC' => 'OR', array('PROPERTY_DATE' => false), array('>=PROPERTY_DATE' => date('Y-m-d'))),
+    );?>
     <?$APPLICATION->IncludeComponent(
         "bitrix:news.list",
         "brand-docs_newdesign",

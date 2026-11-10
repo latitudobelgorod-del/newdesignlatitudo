@@ -8,7 +8,12 @@ global $APPLICATION;
    «Показывать на странице Лицензии и сертификаты» (SERT_LICENSE), сверху табы
    по «Привязке к производителю». Так работает /info/sertifikaty-i-litsenzii/. */
 if (($block['settings']['param1'] ?? '') === 'style5') {
-	$GLOBALS['ndCertTabsFilter'] = array('PROPERTY_SERT_LICENSE_VALUE' => 'Y');
+	// Просроченный документ (DATE «Дата окончания срока действия» раньше сегодня) не показываем.
+	// Дата в фильтре = в ключе кеша (CACHE_FILTER), так что выдача меняется сама каждый день.
+	$GLOBALS['ndCertTabsFilter'] = array(
+		'PROPERTY_SERT_LICENSE_VALUE' => 'Y',
+		array('LOGIC' => 'OR', array('PROPERTY_DATE' => false), array('>=PROPERTY_DATE' => date('Y-m-d'))),
+	);
 	$APPLICATION->IncludeComponent(
 		"bitrix:news.list",
 		"licenses-tabs_newdesign",
