@@ -123,6 +123,50 @@ global $APPLICATION;?>
             "HIDE_ICONS" => "Y"
         )
     );?>
+    <?/* «Документация» — документы инфоблока «Лицензии и сертификаты» (13), у которых
+       в свойстве «Привязка к производителю» (BRAND) выбрана эта марка. До 10.11.2026 блок
+       собирали руками в EDITOR2 выше; привязки и перенос — tools/brand-docs/nd_brand_docs.php.
+       Порядок — сортировка элемента, затем название. */?>
+    <?$GLOBALS['arrBrandDocsFilter'] = array('PROPERTY_BRAND' => (int)$arElement['ID']);?>
+    <?$APPLICATION->IncludeComponent(
+        "bitrix:news.list",
+        "brand-docs_newdesign",
+        array(
+            "IBLOCK_TYPE" => "aspro_next_content",
+            "IBLOCK_ID" => "13",
+            "NEWS_COUNT" => "200",
+            "SORT_BY1" => "SORT",
+            "SORT_ORDER1" => "ASC",
+            "SORT_BY2" => "NAME",
+            "SORT_ORDER2" => "ASC",
+            "FILTER_NAME" => "arrBrandDocsFilter",
+            "FIELD_CODE" => array("NAME", ""),
+            "PROPERTY_CODE" => array("INSTRUCTIONS", ""),
+            "CHECK_DATES" => "Y",
+            "ACTIVE_DATE_FORMAT" => "d.m.Y",
+            "SET_TITLE" => "N",
+            "SET_BROWSER_TITLE" => "N",
+            "SET_META_KEYWORDS" => "N",
+            "SET_META_DESCRIPTION" => "N",
+            "SET_LAST_MODIFIED" => "N",
+            "SET_STATUS_404" => "N",
+            "INCLUDE_IBLOCK_INTO_CHAIN" => "N",
+            "ADD_SECTIONS_CHAIN" => "N",
+            "HIDE_LINK_WHEN_NO_DETAIL" => "Y",
+            "PARENT_SECTION" => "",
+            "INCLUDE_SUBSECTIONS" => "Y",
+            "DISPLAY_TOP_PAGER" => "N",
+            "DISPLAY_BOTTOM_PAGER" => "N",
+            "PAGER_SHOW_ALWAYS" => "N",
+            "CACHE_TYPE" => "A",
+            "CACHE_TIME" => "36000000",
+            "CACHE_FILTER" => "Y",
+            "CACHE_GROUPS" => "N",
+            "ND_TITLE" => "Документация",
+        ),
+        $component,
+        array("HIDE_ICONS" => "Y")
+    );?>
 </div>
 
 <?/* «Видео о продукции» — в самом низу, под «Документацией» (она в блоках
