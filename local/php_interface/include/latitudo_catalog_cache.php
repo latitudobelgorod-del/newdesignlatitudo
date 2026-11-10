@@ -282,3 +282,135 @@ function ndStockCacheFlush()
         CIBlock::clearIblockTagCache((int)$row['IBLOCK_ID']);
     }
 }
+
+/**
+ * OnEndBufferContent: живые остатки по складам в плитках списков.
+ *
+ * Плитки (catalog_blockcolors*, products_slider) берут склады в
+ * result_modifier, а он на попадании в кеш не выполняется: цифры в плитке
+ * жили до сброса кеша (ndStockCacheFlush, до 10 минут), тогда как карточка
+ * товара читает склады из базы на каждом показе. 10.11.2026 в списке, в
+ * карточке и в metatool одновременно видели три разных числа.
+ *
+ * Здесь на отдаче страницы (и ajax-порций «Показать ещё») берём одним
+ * запросом остатки всех предложений, что есть на странице, и переписываем:
+ *   - data-offers-stores — из него JS рисует «В наличии ▾» у товаров с
+ *     предложениями и при смене длины;
+ *   - плашки складов в .stores-list — из них JS рисует «В наличии» у товаров
+ *     без предложений. Плашки трогаем, только если точно знаем, чьи они:
+ *     у товара без предложений — сам товар, иначе — data-current-offer, если
+ *     он есть среди предложений (у старых копий шаблона там бывает ID товара).
+ */
+function ndLiveListStores(&$content)
+{
+    if (!is_string($content) || strpos($content, 'class="product-item-stores"') === false) {
+        return;
+    }
+
+    $re = '~(<div class="product-item-stores"\s+data-product-id="(\d+)"\s+data-current-offer="(\d*)"\s+'
+        . 'data-offers-stores=\')([^\']*)(\'>\s*<div class="stores-list" id="stores-list-\d+">)(.*?)(</div>)~s';
+    if (!preg_match_all($re, $content, $all, PREG_SET_ORDER)) {
+        return;
+    }
+
+    // Все ID, чьи остатки нужны странице
+    $ids = array();
+    foreach ($all as $m) {
+        $ids[(int)$m[2]] = true;
+        $offers = json_decode(htmlspecialchars_decode($m[4], ENT_QUOTES), true);
+        if (is_array($offers)) {
+            foreach ($offers as $oid => $_) {
+                $ids[(int)$oid] = true;
+            }
+        }
+    }
+    unset($ids[0]);
+    if (!$ids) {
+        return;
+    }
+
+    try {
+        $db = \Bitrix\Main\Application::getConnection();
+        $amounts = array();
+        $rs = $db->query('SELECT PRODUCT_ID, STORE_ID, AMOUNT FROM b_catalog_store_product WHERE PRODUCT_ID IN ('
+            . implode(',', array_map('intval', array_keys($ids))) . ')');
+        while ($row = $rs->fetch()) {
+            $amounts[(int)$row['PRODUCT_ID']][(int)$row['STORE_ID']] = (float)$row['AMOUNT'];
+        }
+        // Название склада в плашке → ID склада (так же режет название result_modifier)
+        $storeByName = array();
+        $rs = $db->query('SELECT ID, TITLE FROM b_catalog_store');
+        while ($row = $rs->fetch()) {
+            $name = trim((string)$row['TITLE']);
+            foreach (array('(', ',') as $cut) {
+                $pos = strpos($name, $cut);
+                if ($pos !== false) {
+                    $name = trim(substr($name, 0, $pos));
+                }
+            }
+            if ($name !== '') {
+                $storeByName[$name] = (int)$row['ID'];
+            }
+        }
+    } catch (\Throwable $e) {
+        return;   // нет базы — оставляем то, что в кеше
+    }
+
+    $replace = array();
+    foreach ($all as $m) {
+        $productId = (int)$m[2];
+        $currentId = (int)$m[3];
+        $json = $m[4];
+        $badges = $m[6];
+
+        $offers = json_decode(htmlspecialchars_decode($json, ENT_QUOTES), true);
+        if (is_array($offers) && $offers) {
+            foreach ($offers as $oid => &$stores) {
+                if (!is_array($stores)) {
+                    continue;
+                }
+                foreach ($stores as &$store) {
+                    $amount = $amounts[(int)$oid][(int)($store['ID'] ?? 0)] ?? 0.0;
+                    $store['AMOUNT'] = $amount;
+                    $store['REAL_AMOUNT'] = $amount;
+                }
+                unset($store);
+            }
+            unset($stores);
+            $json = htmlspecialchars(json_encode($offers), ENT_QUOTES);
+        }
+
+        // Чьи плашки
+        $badgeId = 0;
+        if (!is_array($offers) || !$offers) {
+            $badgeId = $productId;
+        } elseif ($currentId && isset($offers[$currentId])) {
+            $badgeId = $currentId;
+        }
+        if ($badgeId) {
+            $badges = preg_replace_callback(
+                '~<span class="store-badge store-badge-\w+">\s*(.*?):\s*(\d*)\s*</span>~s',
+                static function ($b) use ($badgeId, $amounts, $storeByName) {
+                    $name = htmlspecialchars_decode(trim($b[1]), ENT_QUOTES);
+                    if (!isset($storeByName[$name])) {
+                        return $b[0];
+                    }
+                    $amount = (int)($amounts[$badgeId][$storeByName[$name]] ?? 0);
+                    $class = $amount >= 30 ? 'green' : ($amount > 0 ? 'orange' : 'gray');
+                    return '<span class="store-badge store-badge-' . $class . '">' . $b[1] . ': '
+                        . ($amount > 0 ? $amount . ' ' : '') . '</span>';
+                },
+                $badges
+            );
+        }
+
+        $new = $m[1] . $json . $m[5] . $badges . $m[7];
+        if ($new !== $m[0]) {
+            $replace[$m[0]] = $new;
+        }
+    }
+
+    if ($replace) {
+        $content = strtr($content, $replace);
+    }
+}

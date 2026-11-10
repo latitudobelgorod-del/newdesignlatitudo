@@ -291,6 +291,8 @@ AddEventHandler('main', 'OnEndBufferContent', 'ndPriceFromTokens', 10040);
 require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_catalog_cache.php';
 AddEventHandler('main', 'OnPageStart', 'ndStockCacheFlush');
 AddEventHandler('main', 'OnEndBufferContent', 'ndCatalogCacheTokens', 10030);
+// склады в плитках списков — из базы, мимо кеша (10.11.2026)
+AddEventHandler('main', 'OnEndBufferContent', 'ndLiveListStores', 10040);
 AddEventHandler('main', 'OnEndBufferContent', 'ndDedupNewdesignAssets', 10070);
 
 /**
