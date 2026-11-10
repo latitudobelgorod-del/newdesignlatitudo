@@ -3,6 +3,49 @@
 global $arTheme;
 global $APPLICATION;
 
+/* Вариант «Сертификаты — табы по производителям» (param1 = style5, 10.11.2026):
+   выбранные в блоке ID не важны — выводятся все активные документы с галочкой
+   «Показывать на странице Лицензии и сертификаты» (SERT_LICENSE), сверху табы
+   по «Привязке к производителю». Так работает /info/sertifikaty-i-litsenzii/. */
+if (($block['settings']['param1'] ?? '') === 'style5') {
+	$GLOBALS['ndCertTabsFilter'] = array('PROPERTY_SERT_LICENSE_VALUE' => 'Y');
+	$APPLICATION->IncludeComponent(
+		"bitrix:news.list",
+		"licenses-tabs_newdesign",
+		array(
+			"IBLOCK_TYPE" => "aspro_next_content",
+			"IBLOCK_ID" => $block['iblock_id'],
+			"NEWS_COUNT" => "500",
+			"SORT_BY1" => "SORT",
+			"SORT_ORDER1" => "ASC",
+			"SORT_BY2" => "NAME",
+			"SORT_ORDER2" => "ASC",
+			"FILTER_NAME" => "ndCertTabsFilter",
+			"FIELD_CODE" => array("ID", "NAME", "PREVIEW_PICTURE", "DETAIL_PICTURE", "IBLOCK_ID", ""),
+			"PROPERTY_CODE" => array("BRAND", ""),
+			"CHECK_DATES" => "Y",
+			"CACHE_TYPE" => "A",
+			"CACHE_TIME" => "36000000",
+			"CACHE_FILTER" => "Y",
+			"CACHE_GROUPS" => "N",
+			"SET_TITLE" => "N",
+			"SET_BROWSER_TITLE" => "N",
+			"SET_META_KEYWORDS" => "N",
+			"SET_META_DESCRIPTION" => "N",
+			"SET_LAST_MODIFIED" => "N",
+			"SET_STATUS_404" => "N",
+			"INCLUDE_IBLOCK_INTO_CHAIN" => "N",
+			"ADD_SECTIONS_CHAIN" => "N",
+			"INCLUDE_SUBSECTIONS" => "Y",
+			"DISPLAY_TOP_PAGER" => "N",
+			"DISPLAY_BOTTOM_PAGER" => "N",
+			"PAGER_SHOW_ALWAYS" => "N",
+		),
+		false
+	);
+	return;
+}
+
 /* Показываем ровно те элементы и в том порядке, как их перечислил менеджер
    в редакторе блоков: фильтр по ID, порядок восстанавливает result_modifier. */
 global $sprintSearchFilter;

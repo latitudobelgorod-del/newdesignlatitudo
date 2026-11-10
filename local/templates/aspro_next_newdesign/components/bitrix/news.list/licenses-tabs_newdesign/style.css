@@ -1,0 +1,124 @@
+/* Сетка сертификатов по макету Figma («Сертификаты», node 20543:93773):
+   три колонки 316 с шагом 24, карточка без рамки и подложки. */
+.nd-certs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.nd-certs__item {
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+    padding-bottom: 8px;
+    min-width: 0;
+    color: #141418;
+    text-decoration: none;
+}
+/* Подчёркивания нет ни своего, ни от темы: внутри `.editor` она подчёркивает
+   все ссылки со своей специфичностью — та же грабля, что у списка документов. */
+.nd-certs__item:hover,
+.nd-certs__item:focus,
+.editor .nd-certs__item,
+.editor .nd-certs__item:hover,
+.editor .nd-certs__item:focus {
+    color: #141418;
+    text-decoration: none;
+    border-bottom: 0;
+}
+.nd-certs__pic {
+    display: block;
+    overflow: hidden;
+    /* 450:638 — пропорция листа сертификата, в макете это 316x448 */
+    aspect-ratio: 450 / 638;
+    background: #f4f4f6;
+}
+.nd-certs__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .3s ease;
+}
+/* На наведении картинка чуть наезжает, как в статьях и услугах */
+.nd-certs__item:hover .nd-certs__img,
+.nd-certs__item:focus .nd-certs__img {
+    transform: scale(1.03);
+}
+.nd-certs__name {
+    font-size: 18px;
+    line-height: 25px;
+    font-weight: 500;
+    color: #141418;
+}
+
+/* Планшет и мобилка: две колонки, как в макете 360. Порог 1199, а не 991:
+   на планшете три колонки дают слишком узкий лист сертификата (Ирина, 2026-08-08). */
+@media (max-width: 1199px) {
+    .nd-certs {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 767px) {
+    .nd-certs__item {
+        gap: 12px;
+    }
+    .nd-certs__name {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
+/* Табы производителей — как фильтр на странице /video/ (.nd-vr__chip в
+   local/components/latitudo/video.rail), 10.11.2026. */
+.nd-certtabs__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 32px;
+}
+.nd-certtabs__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(82, 82, 100, .1);
+    color: #101014;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+.nd-certtabs__chip:hover {
+    background: rgba(82, 82, 100, .18);
+}
+.nd-certtabs__chip-n {
+    color: #8e8e9c;
+}
+.nd-certtabs__chip.is-active {
+    background: #101014;
+    color: #fff;
+}
+.nd-certtabs__chip.is-active .nd-certtabs__chip-n {
+    color: rgba(255, 255, 255, .6);
+}
+/* display:flex карточки иначе перебивает атрибут hidden */
+.nd-certs__item[hidden] {
+    display: none;
+}
+@media (max-width: 767px) {
+    /* на телефоне — одной строкой с прокруткой, как на /video/ */
+    .nd-certtabs__chips {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        margin-bottom: 20px;
+    }
+    .nd-certtabs__chips::-webkit-scrollbar {
+        display: none;
+    }
+}
