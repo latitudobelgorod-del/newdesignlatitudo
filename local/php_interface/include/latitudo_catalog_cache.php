@@ -400,7 +400,11 @@ function ndLiveListStores(&$content)
         } elseif ($currentId && isset($offers[$currentId])) {
             $badgeId = $currentId;
         }
-        if ($badgeId && preg_match_all('~<span class="store-badge store-badge-\w+">\s*(.*?):\s*(\d*)\s*</span>~s', $badges, $bm, PREG_SET_ORDER)) {
+        /* Подпись плашки бывает двух видов: «Москва: 13 » / «Москва: » (у шаблонов
+           без языкового файла) и «Москва: 13 шт.» / «Москва: Под заказ»
+           (products_slider) — пишем так же, как было. */
+        if ($badgeId && preg_match_all('~<span class="store-badge store-badge-\w+">\s*([^<:]*?):\s*([^<]*?)\s*</span>~s', $badges, $bm, PREG_SET_ORDER)) {
+            $words = (bool)preg_match('~шт|заказ~u', $badges);
             $list = array();
             foreach ($bm as $b) {
                 $name = htmlspecialchars_decode(trim($b[1]), ENT_QUOTES);
@@ -411,8 +415,11 @@ function ndLiveListStores(&$content)
                 }
                 $amount = (int)($amounts[$badgeId][$sid] ?? 0);
                 $class = $amount >= 30 ? 'green' : ($amount > 0 ? 'orange' : 'gray');
+                $text = $words
+                    ? ($amount > 0 ? $amount . ' шт.' : 'Под заказ')
+                    : ($amount > 0 ? $amount . ' ' : '');
                 $list[] = array(ndStorePos($sid), '<span class="store-badge store-badge-' . $class . '">' . $b[1] . ': '
-                    . ($amount > 0 ? $amount . ' ' : '') . '</span>');
+                    . $text . '</span>');
             }
             if ($list) {
                 usort($list, static function ($a, $b) {
