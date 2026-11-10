@@ -74,16 +74,16 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	height: 38px;
-	padding: 0 16px;
+	padding: 8px 14px;
 	border: 0;
-	/* углы — как у якорей разделов марки (.nd-brandsect__anchor), Ирина 28.10.2026 */
-	border-radius: 4px;
-	background: rgba(82, 82, 100, .1);
+	/* вид — как плашки разделов портфолио (.nd-sections__item): серый фон, 6px,
+	   выбранная красная (Ирина, 10.11.2026; до этого — чёрная, углы 4px) */
+	border-radius: 6px;
+	background: rgba(82, 82, 100, .08);
 	color: #101014;
 	font: inherit;
-	font-size: 14px;
-	line-height: 1;
+	font-size: 15px;
+	line-height: 22px;
 	white-space: nowrap;
 	cursor: pointer;
 	transition: background-color .15s ease, color .15s ease;
@@ -95,7 +95,7 @@
 }
 
 .nd-vr__chip:hover {
-	background: rgba(82, 82, 100, .18);
+	background: rgba(82, 82, 100, .16);
 }
 
 .nd-vr__chip-n {
@@ -103,12 +103,12 @@
 }
 
 .nd-vr__chip.is-active {
-	background: #101014;
+	background: #c60000;
 	color: #fff;
 }
 
 .nd-vr__chip.is-active .nd-vr__chip-n {
-	color: rgba(255, 255, 255, .6);
+	color: rgba(255, 255, 255, .75);
 }
 
 /* лента */
@@ -571,6 +571,12 @@
 
 	.nd-vr__chips::-webkit-scrollbar {
 		display: none;
+	}
+
+	.nd-vr__chip {
+		padding: 6px 12px;
+		font-size: 14px;
+		line-height: 20px;
 	}
 
 	.nd-vr__rail {

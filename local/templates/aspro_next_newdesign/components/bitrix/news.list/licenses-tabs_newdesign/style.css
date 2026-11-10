@@ -68,8 +68,8 @@
     }
 }
 
-/* Табы производителей — как фильтр на странице /video/ (.nd-vr__chip в
-   local/components/latitudo/video.rail), 10.11.2026. */
+/* Табы производителей — вид как у плашек разделов портфолио (.nd-sections__item),
+   так же оформлен фильтр на /video/ (.nd-vr__chip), 10.11.2026. */
 .nd-certtabs__chips {
     display: flex;
     flex-wrap: wrap;
@@ -80,31 +80,30 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 38px;
-    padding: 0 16px;
+    padding: 8px 14px;
     border: 0;
-    border-radius: 4px;
-    background: rgba(82, 82, 100, .1);
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .08);
     color: #101014;
     font: inherit;
-    font-size: 14px;
-    line-height: 1;
+    font-size: 15px;
+    line-height: 22px;
     white-space: nowrap;
     cursor: pointer;
     transition: background-color .15s ease, color .15s ease;
 }
 .nd-certtabs__chip:hover {
-    background: rgba(82, 82, 100, .18);
+    background: rgba(82, 82, 100, .16);
 }
 .nd-certtabs__chip-n {
     color: #8e8e9c;
 }
 .nd-certtabs__chip.is-active {
-    background: #101014;
+    background: #c60000;
     color: #fff;
 }
 .nd-certtabs__chip.is-active .nd-certtabs__chip-n {
-    color: rgba(255, 255, 255, .6);
+    color: rgba(255, 255, 255, .75);
 }
 /* display:flex карточки иначе перебивает атрибут hidden */
 .nd-certs__item[hidden] {
@@ -120,5 +119,10 @@
     }
     .nd-certtabs__chips::-webkit-scrollbar {
         display: none;
+    }
+    .nd-certtabs__chip {
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 20px;
     }
 }
