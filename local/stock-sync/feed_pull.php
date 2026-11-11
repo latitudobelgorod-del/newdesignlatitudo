@@ -17,6 +17,11 @@
  * stock_updated_at (UTC) старше часа. Предложения не из ленты не трогаем.
  * Раздел skipped — только для сведения.
  *
+ * Единицы (11.11.2026): часть досок metatool отдаёт в погонных метрах (unit «пог. м»),
+ * а на сайте они в штуках. Такие остатки делим на длину из названия
+ * («…146x24х3000мм…» → 3 м) и округляем вниз. Не нашли длину — предложение
+ * не трогаем и пишем в журнал.
+ *
  * Запуск — cron раз в 5 минут:
  *   php feed_pull.php            — забрать и записать
  *   php feed_pull.php --dry      — показать, что поменялось бы, ничего не писать
@@ -89,6 +94,22 @@ if (!$updated || time() - $updated > ND_FEED_MAX_AGE) {
     exit(1);
 }
 
+/** «пог. м» → «погм», «шт.» → «шт»: единица без пробелов, точек и регистра */
+function nd_feed_unit(string $unit): string
+{
+    return preg_replace('/[\s.]+/u', '', mb_strtolower($unit));
+}
+
+/** длина в метрах из названия: «146x24х3000мм» → 3.0; не нашли — null */
+function nd_feed_length(string $name): ?float
+{
+    if (preg_match('/\d+\s*[xх×*]\s*\d+\s*[xх×*]\s*(\d{3,5})\s*(?:мм|$|\s)/ui', $name, $m)) {
+        $mm = (int)$m[1];
+        return $mm >= 500 ? $mm / 1000 : null;
+    }
+    return null;
+}
+
 // --- база (реквизиты — из настроек Битрикса, как в index.php) ---
 $settings = include dirname(__DIR__, 2) . '/bitrix/.settings.php';
 $conn = $settings['connections']['value']['default'] ?? [];
@@ -110,8 +131,17 @@ $in = implode(',', $ids);
 
 // что сейчас на сайте
 $exists = [];
-foreach ($pdo->query("SELECT ID, QUANTITY FROM b_catalog_product WHERE ID IN ($in)") as $row) {
+$siteUnit = [];
+foreach ($pdo->query(
+    "SELECT p.ID, p.QUANTITY, m.SYMBOL_RUS FROM b_catalog_product p
+     LEFT JOIN b_catalog_measure m ON m.ID = p.MEASURE WHERE p.ID IN ($in)"
+) as $row) {
     $exists[(int)$row['ID']] = (float)$row['QUANTITY'];
+    $siteUnit[(int)$row['ID']] = nd_feed_unit((string)$row['SYMBOL_RUS']);
+}
+$names = [];
+foreach ($pdo->query("SELECT ID, NAME FROM b_iblock_element WHERE ID IN ($in)") as $row) {
+    $names[(int)$row['ID']] = (string)$row['NAME'];
 }
 $amounts = [];
 foreach ($pdo->query("SELECT PRODUCT_ID, STORE_ID, AMOUNT FROM b_catalog_store_product WHERE PRODUCT_ID IN ($in)") as $row) {
@@ -138,13 +168,28 @@ foreach ($feed['items'] as $item) {
     }
     $feedOffers[] = $id;
 
+    // погонные метры → штуки (см. шапку)
+    $div = 1.0;
+    if (nd_feed_unit((string)($item['unit'] ?? '')) === 'погм' && ($siteUnit[$id] ?? '') === 'шт') {
+        $len = nd_feed_length((string)($item['name_1c'] ?? '')) ?? nd_feed_length($names[$id] ?? '');
+        if ($len === null) {
+            $line = "Offer {$id} | пог. м, а длину из названия не понять — не трогаю";
+            $dry ? print($line . "\n") : $log($line);
+            continue;
+        }
+        $div = $len;
+    }
+    $conv = function ($q) use ($div) {
+        return $div === 1.0 ? (int)$q : (int)floor((int)$q / $div + 1e-9);
+    };
+
     $diff = [];
     foreach ((array)($item['stock'] ?? []) as $row) {
         $store = ND_FEED_STORES[$row['city'] ?? ''] ?? null;
         if ($store === null) {
             continue;
         }
-        $qty = (int)($row['quantity'] ?? 0);
+        $qty = $conv($row['quantity'] ?? 0);
         $was = $amounts[$id][$store] ?? null;
         if ($was === null || (float)$was !== (float)$qty) {
             $diff[] = $row['city'] . ' ' . ($was === null ? '—' : $was + 0) . '→' . $qty;
@@ -153,7 +198,7 @@ foreach ($feed['items'] as $item) {
             }
         }
     }
-    $total = (int)($item['stock_total'] ?? 0);
+    $total = $conv($item['stock_total'] ?? 0);
     if ($exists[$id] !== (float)$total) {
         $diff[] = 'всего ' . ($exists[$id] + 0) . '→' . $total;
         if (!$dry) {
