@@ -44,3 +44,24 @@ uasort($ndTabs, function($a, $b) use ($ndOwn) {
 	return $oa != $ob ? $oa - $ob : strcasecmp($a['NAME'], $b['NAME']);
 });
 $arResult['ND_TABS'] = $ndTabs;
+
+// Во «Все» сначала документы своих марок: EasyDecking, затем LATITUDO, потом остальные
+// в прежнем порядке (Ирина, 11.11.2026).
+$ndOwnDocs = array('EASYDECKING' => 0, 'LATITUDO' => 1);
+$ndRank = array();
+$ndPos = 0;
+foreach($arResult['ITEMS'] as $key => $arItem)
+{
+	$r = 9;
+	foreach((array)$arItem['ND_BRANDS'] as $bid)
+	{
+		$bn = mb_strtoupper($ndActive[$bid]);
+		if(isset($ndOwnDocs[$bn]) && $ndOwnDocs[$bn] < $r)
+			$r = $ndOwnDocs[$bn];
+	}
+	$ndRank[$key] = array($r, $ndPos++);
+}
+uksort($arResult['ITEMS'], function($a, $b) use ($ndRank) {
+	return $ndRank[$a][0] != $ndRank[$b][0] ? $ndRank[$a][0] - $ndRank[$b][0] : $ndRank[$a][1] - $ndRank[$b][1];
+});
+
