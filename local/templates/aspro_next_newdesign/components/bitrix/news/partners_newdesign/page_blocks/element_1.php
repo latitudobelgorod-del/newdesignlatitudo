@@ -1,6 +1,8 @@
 <?global $arTheme;
 global $APPLICATION;?>
 <?$GLOBALS['arrProductsFilter2'] = array( "PROPERTY_".$arParams["LINKED_PRODUCTS_PROPERTY"] => $arElement["ID"] )?>
+<?// шапку марки перехватываем, чтобы вставить якоря «Документация» / «Видео» под названием (см. ниже)
+ob_start();?>
 <?$APPLICATION->IncludeComponent(
 	"bitrix:news.detail",
 	"partners",
@@ -56,6 +58,44 @@ global $APPLICATION;?>
 	),
 	$component
 );?>
+<?/* Якоря под названием марки (Ирина, 11.11.2026; как ссылка «Документация и сертификаты»
+   у EasyDecking): «Документация» — если есть документы марки (тот же фильтр, что у блока ниже,
+   id="dokumentatsiya"), «Видео» — если есть ролики (latitudo:video.rail, id="video").
+   Шапка (news.detail) кешируется, поэтому якоря вставляем в её готовый HTML здесь, вне кеша. */
+$ndBrandHead = ob_get_clean();
+$ndAnchors = array();
+$ndBrandId = (int)$arElement['ID'];
+if ($ndBrandId && CModule::IncludeModule('iblock')) {
+    $ndCache = \Bitrix\Main\Data\Cache::createInstance();
+    if ($ndCache->initCache(3600, 'nd_brand_anchors_' . $ndBrandId . '_' . date('Y-m-d'), '/nd_brand_anchors')) {
+        $ndAnchors = $ndCache->getVars();
+    } elseif ($ndCache->startDataCache()) {
+        $ndHasDocs = (bool)CIBlockElement::GetList(array(), array(
+            'IBLOCK_ID' => 13, 'ACTIVE' => 'Y', 'ACTIVE_DATE' => 'Y', 'PROPERTY_BRAND' => $ndBrandId,
+            array('LOGIC' => 'OR', array('PROPERTY_DATE' => false), array('>=PROPERTY_DATE' => date('Y-m-d'))),
+        ), false, array('nTopCount' => 1), array('ID'))->Fetch();
+        $ndHasVideo = class_exists('LatitudoVideoRepository')
+            && LatitudoVideoRepository::getList(array('BRAND' => $ndBrandId));
+        if ($ndHasDocs) {
+            $ndAnchors['dokumentatsiya'] = 'Документация';
+        }
+        if ($ndHasVideo) {
+            $ndAnchors['video'] = 'Видео';
+        }
+        $ndCache->endDataCache($ndAnchors);
+    }
+}
+if ($ndAnchors) {
+    $ndHtml = '<div class="nd-brandhead__anchors">';
+    foreach ($ndAnchors as $ndHash => $ndLabel) {
+        $ndHtml .= '<a class="nd-brandsect__anchor" href="#' . $ndHash . '">' . $ndLabel . '</a>';
+    }
+    $ndHtml .= '</div>';
+    $ndPos = strpos($ndBrandHead, '<div class="nd-brandhead__text');
+    $ndBrandHead = $ndPos === false ? $ndBrandHead : substr_replace($ndBrandHead, $ndHtml . "\n", $ndPos, 0);
+}
+echo $ndBrandHead;
+unset($ndBrandHead, $ndAnchors, $ndHtml, $ndPos, $ndCache);?>
 
 <? // товары каталога?>
 <?if($arParams["SHOW_LINKED_PRODUCTS"] == "Y" && strlen($arParams["LINKED_PRODUCTS_PROPERTY"])):?>
