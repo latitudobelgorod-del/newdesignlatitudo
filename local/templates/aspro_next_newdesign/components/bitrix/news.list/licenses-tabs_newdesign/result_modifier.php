@@ -45,9 +45,10 @@ uasort($ndTabs, function($a, $b) use ($ndOwn) {
 });
 $arResult['ND_TABS'] = $ndTabs;
 
-// Во «Все» сначала документы своих марок: EasyDecking, затем LATITUDO, потом остальные
+// Во «Все» сначала документы своих марок (EasyDecking и LATITUDO — наравне, между ними решает
+// сортировка элемента: «Свидетельство на товарный знак Latitudo» первым), потом остальные
 // в прежнем порядке (Ирина, 11.11.2026).
-$ndOwnDocs = array('EASYDECKING' => 0, 'LATITUDO' => 1);
+$ndOwnDocs = array('EASYDECKING' => 0, 'LATITUDO' => 0);
 $ndRank = array();
 $ndPos = 0;
 foreach($arResult['ITEMS'] as $key => $arItem)
