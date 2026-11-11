@@ -133,11 +133,13 @@ $in = implode(',', $ids);
 $exists = [];
 $siteUnit = [];
 foreach ($pdo->query(
-    "SELECT p.ID, p.QUANTITY, m.SYMBOL_RUS FROM b_catalog_product p
+    "SELECT p.ID, p.QUANTITY, m.CODE FROM b_catalog_product p
      LEFT JOIN b_catalog_measure m ON m.ID = p.MEASURE WHERE p.ID IN ($in)"
 ) as $row) {
     $exists[(int)$row['ID']] = (float)$row['QUANTITY'];
-    $siteUnit[(int)$row['ID']] = nd_feed_unit((string)$row['SYMBOL_RUS']);
+    // штуки = код ОКЕИ 796 (подпись «шт» у Битрикса в языковом файле, в базе пусто);
+    // единица не задана — тоже штуки (единица по умолчанию)
+    $siteUnit[(int)$row['ID']] = ($row['CODE'] === null || (int)$row['CODE'] === 796) ? 'шт' : (string)$row['CODE'];
 }
 $names = [];
 foreach ($pdo->query("SELECT ID, NAME FROM b_iblock_element WHERE ID IN ($in)") as $row) {
