@@ -140,6 +140,16 @@ function is_feed_offer(int $offer_id): bool {
     return isset($ids[$offer_id]);
 }
 
+/**
+ * 11.11.2026 (решение Ирины): остаток на сайте — только у товаров с галочкой latitudo.ru
+ * в metatool, то есть только из ленты. Толчки больше ничего не пишут: товары ленты
+ * берёт feed_pull.php, а прочие должны оставаться с нулём (их обнуляет тот же feed_pull).
+ * Вернуть старый порядок — положить файл logs/nonfeed_zero.off.
+ */
+function only_feed_mode(): bool {
+    return !is_file(__DIR__ . '/logs/nonfeed_zero.off');
+}
+
 function resolve_warehouse(string $warehouse): ?int {
     global $WAREHOUSE_MAP;
     return $WAREHOUSE_MAP[mb_strtolower(trim($warehouse), 'UTF-8')] ?? null;
@@ -300,6 +310,8 @@ switch ($action) {
 
             if (is_feed_offer($offer_id)) {
                 stock_log("Item skipped (feed) | sku={$sku} | warehouse={$warehouse} | qty={$quantity}");
+            } elseif (only_feed_mode()) {
+                stock_log("Item skipped (not latitudo) | sku={$sku} | warehouse={$warehouse} | qty={$quantity}");
             } else {
                 update_stock($pdo, $offer_id, $store_id, $quantity);
             }
@@ -398,6 +410,11 @@ switch ($action) {
                 if (is_feed_offer($offer_id)) {
                     $success++;
                     stock_log("Item skipped (feed) | sku={$sku} | store={$store_id} ({$warehouse}) | qty={$raw_qty}");
+                    continue;
+                }
+                if (only_feed_mode()) {
+                    $success++;
+                    stock_log("Item skipped (not latitudo) | sku={$sku} | store={$store_id} ({$warehouse}) | qty={$raw_qty}");
                     continue;
                 }
 

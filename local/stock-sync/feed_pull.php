@@ -62,6 +62,38 @@ if (!$lock || !flock($lock, LOCK_EX | LOCK_NB)) {
     exit;
 }
 
+// откат обнуления: вернуть последние сохранённые значения из nonfeed_zero.jsonl
+if (in_array('--restore', $argv, true)) {
+    if (!is_file($logDir . '/nonfeed_zero.off')) {
+        exit("Сначала положите logs/nonfeed_zero.off, иначе следующий запуск обнулит снова
+");
+    }
+    $settings = include dirname(__DIR__, 2) . '/bitrix/.settings.php';
+    $conn = $settings['connections']['value']['default'] ?? [];
+    $pdo = new PDO('mysql:host=' . ($conn['host'] ?? 'localhost') . ';dbname=' . ($conn['database'] ?? '') . ';charset=utf8mb4',
+        $conn['login'] ?? '', $conn['password'] ?? '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    $last = [];
+    foreach (file($logDir . '/nonfeed_zero.jsonl', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
+        $r = json_decode($line, true);
+        if (is_array($r) && !isset($last[$r['id']])) {
+            $last[$r['id']] = $r; // первая запись = значение до самого первого обнуления
+        }
+    }
+    $setStore = $pdo->prepare('INSERT INTO b_catalog_store_product (PRODUCT_ID, STORE_ID, AMOUNT) VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE AMOUNT = VALUES(AMOUNT)');
+    $setTotal = $pdo->prepare('UPDATE b_catalog_product SET QUANTITY = ? WHERE ID = ?');
+    foreach ($last as $id => $r) {
+        foreach (array_filter(explode(',', $r['s'])) as $pair) {
+            [$st, $am] = explode(':', $pair);
+            $setStore->execute([$id, (int)$st, (float)$am]);
+        }
+        $setTotal->execute([$r['q'], $id]);
+    }
+    @touch($logDir . '/cache_dirty.flag');
+    exit('Восстановлено: ' . count($last) . "
+");
+}
+
 // --- лента ---
 $ch = curl_init(ND_FEED_URL);
 curl_setopt_array($ch, [
@@ -214,8 +246,54 @@ foreach ($feed['items'] as $item) {
     }
 }
 
+// --- 11.11.2026: остаток только у товаров ленты (галочка latitudo.ru в metatool) ---
+// Всё остальное в каталоге (простые товары и предложения, TYPE 1 и 4) обнуляем:
+// склады и QUANTITY. Распродажу (свой раздел, своя лента nd_sale_sync) не трогаем.
+// Защита: в ленте меньше 100 найденных на сайте предложений — не обнуляем ничего.
+// Выключить: файл logs/nonfeed_zero.off. Прежние значения — в logs/nonfeed_zero.jsonl
+// (откат: php feed_pull.php --restore, сначала положить nonfeed_zero.off).
+$zeroed = 0;
+if (!is_file($logDir . '/nonfeed_zero.off') && count($feedOffers) >= 100) {
+    $keep = implode(',', $feedOffers);
+    $sale = (int)$pdo->query("SELECT ID FROM b_iblock_section WHERE CODE = 'rasprodazha' AND IBLOCK_ID = 19")->fetchColumn();
+    $saleCond = $sale ? "AND p.ID NOT IN (SELECT IBLOCK_ELEMENT_ID FROM b_iblock_section_element WHERE IBLOCK_SECTION_ID = {$sale})" : '';
+    $rows = $pdo->query(
+        "SELECT p.ID, p.QUANTITY,
+                (SELECT GROUP_CONCAT(CONCAT(sp.STORE_ID, ':', sp.AMOUNT)) FROM b_catalog_store_product sp
+                  WHERE sp.PRODUCT_ID = p.ID AND sp.AMOUNT <> 0) AS STORES
+           FROM b_catalog_product p
+          WHERE p.TYPE IN (1, 4) AND p.ID NOT IN ({$keep}) {$saleCond}
+            AND (p.QUANTITY <> 0 OR EXISTS (SELECT 1 FROM b_catalog_store_product sp
+                                             WHERE sp.PRODUCT_ID = p.ID AND sp.AMOUNT <> 0))"
+    )->fetchAll();
+    if ($rows && !$dry) {
+        $back = fopen($logDir . '/nonfeed_zero.jsonl', 'a');
+        $zStores = $pdo->prepare('UPDATE b_catalog_store_product SET AMOUNT = 0 WHERE PRODUCT_ID = ?');
+        $zTotal = $pdo->prepare('UPDATE b_catalog_product SET QUANTITY = 0 WHERE ID = ?');
+        foreach ($rows as $row) {
+            fwrite($back, json_encode(['t' => date('c'), 'id' => (int)$row['ID'],
+                'q' => (float)$row['QUANTITY'], 's' => (string)$row['STORES']]) . "
+");
+            $zStores->execute([$row['ID']]);
+            $zTotal->execute([$row['ID']]);
+        }
+        fclose($back);
+    }
+    $zeroed = count($rows);
+    if ($dry) {
+        foreach (array_slice($rows, 0, 20) as $row) {
+            echo "Обнулю {$row['ID']} | всего {$row['QUANTITY']} | склады {$row['STORES']}
+";
+        }
+    }
+    if ($zeroed) {
+        $changed++;
+    }
+}
+
 $summary = 'Лента ' . ($feed['stock_updated_at'] ?? '') . ' | предложений ' . count($feed['items'])
     . ' | изменилось ' . $changed
+    . ($zeroed ? ' | обнулено не из ленты ' . $zeroed : '')
     . ($missing ? ' | нет на сайте: ' . implode(',', $missing) : '')
     . ' | skipped ' . count((array)($feed['skipped'] ?? []));
 if ($dry) {
