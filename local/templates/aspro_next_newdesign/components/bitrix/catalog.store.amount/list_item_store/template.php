@@ -38,6 +38,19 @@
 .order-wait { color: #ff9500; font-size: 12px; }
 </style>
 
+<?
+// единица товара в подписи остатка (11.11.2026): плитка — «уп.»; штуки (ОКЕИ 796) — «шт.»
+$ndUnit = 'шт.';
+if (!empty($arParams['ELEMENT_ID']) && CModule::IncludeModule('catalog')) {
+    $ndProd = CCatalogProduct::GetByID((int)$arParams['ELEMENT_ID']);
+    if ($ndProd && (int)$ndProd['MEASURE'] > 0) {
+        $ndM = CCatalogMeasure::getList([], ['ID' => (int)$ndProd['MEASURE']], false, false, ['ID', 'CODE', 'SYMBOL_RUS'])->Fetch();
+        if ($ndM && (int)$ndM['CODE'] !== 796 && trim((string)$ndM['SYMBOL_RUS']) !== '') {
+            $ndUnit = htmlspecialcharsbx(trim($ndM['SYMBOL_RUS']));
+        }
+    }
+}
+?>
 <div class="store-list-dropdown" data-product-id="<?=$arParams['ELEMENT_ID']?>">
     <? if(!empty($arResult["STORES"])): ?>
         <? foreach($arResult["STORES"] as $store):
@@ -47,7 +60,7 @@
             $amountClass = '';
             if ($amount > 0) {
                 $amountClass = ($amount >= 30) ? 'amount-green' : 'amount-orange';
-                $amountText = (int)$amount.' шт.';
+                $amountText = (int)$amount.' '.$ndUnit;
             } else {
                 $amountText = '<span class="order-wait">Под заказ</span>';
             }

@@ -347,6 +347,16 @@ function ndLiveListStores(&$content)
         while ($row = $rs->fetch()) {
             $amounts[(int)$row['PRODUCT_ID']][(int)$row['STORE_ID']] = (float)$row['AMOUNT'];
         }
+        // Единица товара для подписи «13 шт.» (11.11.2026): плитка — «уп.», м², п.м …
+        // Штуки (ОКЕИ 796) в базе без подписи — для них остаётся «шт.».
+        $units = array();
+        $rs = $db->query('SELECT p.ID, m.SYMBOL_RUS FROM b_catalog_product p
+            JOIN b_catalog_measure m ON m.ID = p.MEASURE
+            WHERE m.CODE <> 796 AND m.SYMBOL_RUS IS NOT NULL AND m.SYMBOL_RUS <> \'\' AND p.ID IN ('
+            . implode(',', array_map('intval', array_keys($ids))) . ')');
+        while ($row = $rs->fetch()) {
+            $units[(int)$row['ID']] = htmlspecialcharsbx(trim((string)$row['SYMBOL_RUS']));
+        }
         // Название склада в плашке → ID склада (так же режет название result_modifier)
         $storeByName = array();
         $rs = $db->query('SELECT ID, TITLE FROM b_catalog_store');
@@ -416,7 +426,7 @@ function ndLiveListStores(&$content)
                 $amount = (int)($amounts[$badgeId][$sid] ?? 0);
                 $class = $amount >= 30 ? 'green' : ($amount > 0 ? 'orange' : 'gray');
                 $text = $words
-                    ? ($amount > 0 ? $amount . ' шт.' : 'Под заказ')
+                    ? ($amount > 0 ? $amount . ' ' . ($units[$badgeId] ?? 'шт.') : 'Под заказ')
                     : ($amount > 0 ? $amount . ' ' : '');
                 $list[] = array(ndStorePos($sid), '<span class="store-badge store-badge-' . $class . '">' . $b[1] . ': '
                     . $text . '</span>');
