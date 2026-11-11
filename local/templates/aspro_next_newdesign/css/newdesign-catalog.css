@@ -2041,12 +2041,31 @@
 
 /* Якоря на разделы. Таблетки 36px с подложкой в 10% основного серого —
    тот же цвет, которым нарисованы линии сетки товаров. */
-/* Якоря «Документация» / «Видео» под названием марки (11.11.2026) — те же таблетки */
+/* Якоря «Документация» / «Видео» под названием марки (11.11.2026) — красные ссылки
+   без фона, как ссылки в тексте описания (Ирина: не кнопками) */
 .nd-brandhead__anchors {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 4px 24px;
     margin: 0 0 16px;
+}
+
+.nd-brandhead__anchor,
+.nd-brandhead__anchor:visited {
+    color: #9e1414;
+    font-family: 'Nunito Sans', 'Nunito Fallback', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    text-decoration: underline;
+    border-bottom: 0;
+    background: none;
+}
+
+.nd-brandhead__anchor:hover,
+.nd-brandhead__anchor:focus {
+    color: #9e1414;
+    text-decoration: none;
+    border-bottom: 0;
 }
 
 .nd-brandsect__anchors {

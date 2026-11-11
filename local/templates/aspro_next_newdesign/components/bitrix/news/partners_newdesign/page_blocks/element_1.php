@@ -88,7 +88,7 @@ if ($ndBrandId && CModule::IncludeModule('iblock')) {
 if ($ndAnchors) {
     $ndHtml = '<div class="nd-brandhead__anchors">';
     foreach ($ndAnchors as $ndHash => $ndLabel) {
-        $ndHtml .= '<a class="nd-brandsect__anchor" href="#' . $ndHash . '">' . $ndLabel . '</a>';
+        $ndHtml .= '<a class="nd-brandhead__anchor" href="#' . $ndHash . '">' . $ndLabel . '</a>';
     }
     $ndHtml .= '</div>';
     $ndPos = strpos($ndBrandHead, '<div class="nd-brandhead__text');
