@@ -427,7 +427,7 @@ function ndLiveListStores(&$content)
                 $class = $amount >= 30 ? 'green' : ($amount > 0 ? 'orange' : 'gray');
                 $text = $words
                     ? ($amount > 0 ? $amount . ' ' . ($units[$badgeId] ?? 'шт.') : 'Под заказ')
-                    : ($amount > 0 ? $amount . ' ' : '');
+                    : ($amount > 0 ? $amount . ' ' . ($units[$badgeId] ?? 'шт.') : '');   // 11.11.2026: и здесь с единицей
                 $list[] = array(ndStorePos($sid), '<span class="store-badge store-badge-' . $class . '">' . $b[1] . ': '
                     . $text . '</span>');
             }
