@@ -4,6 +4,7 @@
    «Лицензии и сертификаты» (13), у которых в названии есть слово про монтаж
    (инструкция, монтаж, схема, установка, сборка, подключение, альбом технических решений)
    и в «Привязке к производителю» (BRAND) есть хотя бы одна активная марка (ИБ 12).
+   Вывод — news.list documents-tabs_newdesign: табы по производителям (BRAND), 11.11.2026.
    Так работает /materials/montazhnye-skhemy-i-instruktsii/. Подключается из
    iblock_elements__aspro-licenses.php всех шаблонов блоков. */
 
@@ -31,7 +32,7 @@ $GLOBALS['ndInstructionsFilter'] = array(
 
 $APPLICATION->IncludeComponent(
     "bitrix:news.list",
-    "news-documents_newdesign",
+    "documents-tabs_newdesign",
     array(
         "IBLOCK_TYPE" => "aspro_next_content",
         "IBLOCK_ID" => $block['iblock_id'],
