@@ -202,7 +202,7 @@ hr {
                 </div>
                 <div class="store-amount">
                     <? if($amount > 0): ?>
-                        <?=(int)$amount?> <?=GetMessage("PIECES")?>
+                        <?=(int)$amount?> <?=$arResult['ND_MEASURE'] !== '' ? htmlspecialcharsbx($arResult['ND_MEASURE']) : GetMessage("PIECES")?>
                     <? else: ?>
                         <span class="order-wait"><?=GetMessage("ON_ORDER")?></span>
                     <? endif; ?>

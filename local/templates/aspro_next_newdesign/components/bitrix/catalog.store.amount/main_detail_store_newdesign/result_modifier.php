@@ -21,6 +21,19 @@ if (!empty($arParams['ELEMENT_ID'])) {
     }
 }
 
+// 1а. Единица товара для подписи остатка (11.11.2026): садовая плитка в упаковках —
+// «518 уп.», а не «518 шт.». Штуки (код ОКЕИ 796) и не заданная единица — «шт.» из языкового файла.
+$arResult['ND_MEASURE'] = '';
+if (!empty($arParams['ELEMENT_ID']) && CModule::IncludeModule('catalog')) {
+    $ndProd = CCatalogProduct::GetByID((int)$arParams['ELEMENT_ID']);
+    if ($ndProd && (int)$ndProd['MEASURE'] > 0) {
+        $ndMeasure = CCatalogMeasure::getList([], ['ID' => (int)$ndProd['MEASURE']], false, false, ['ID', 'CODE', 'SYMBOL_RUS'])->Fetch();
+        if ($ndMeasure && (int)$ndMeasure['CODE'] !== 796 && trim((string)$ndMeasure['SYMBOL_RUS']) !== '') {
+            $arResult['ND_MEASURE'] = trim($ndMeasure['SYMBOL_RUS']);
+        }
+    }
+}
+
 // 2. Сортировка складов строго в порядке 3,4,2,1 (остальные в конец)
 $customOrder = [3, 4, 2, 1];
 
