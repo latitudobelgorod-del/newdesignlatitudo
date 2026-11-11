@@ -3,6 +3,12 @@
 global $arTheme;
 global $APPLICATION;
 
+/* «Монтажные схемы и инструкции — все» (param1 = style6, 11.11.2026) — общий файл в .default */
+if (($block['settings']['param1'] ?? '') === 'style6') {
+    include __DIR__ . '/../.default/iblock_elements__nd-instructions.php';
+    return;
+}
+
 /* Вариант «Сертификаты — табы по производителям» (param1 = style5, 10.11.2026):
    выбранные в блоке ID не важны — выводятся все активные документы с галочкой
    «Показывать на странице Лицензии и сертификаты» (SERT_LICENSE), сверху табы

@@ -3,6 +3,12 @@
 global $arTheme;
 global $APPLICATION;
 
+/* «Монтажные схемы и инструкции — все» (param1 = style6, 11.11.2026) — общий файл в .default */
+if (($block['settings']['param1'] ?? '') === 'style6') {
+    include __DIR__ . '/../.default/iblock_elements__nd-instructions.php';
+    return;
+}
+
 global $sprintSearchFilter;
 $sprintSearchFilter = array(
     "=ID" => $block['element_ids'],
