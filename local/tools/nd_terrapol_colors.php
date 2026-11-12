@@ -120,8 +120,9 @@ foreach ($plan as $i => $x) {
 		}
 	}
 	$prices = [];
-	foreach ($T['offers'] as $of) {
-		$p = $of['price'];
+	// простой товар (без ТП): цена самого образца
+	$srcPrices = $T['offers'] ? array_column($T['offers'], 'price') : [(float)CPrice::GetBasePrice($t)['PRICE']];
+	foreach ($srcPrices as $p) {
 		if ($x['plus10']) {
 			$p = round($p * 1.1);   // как у уже заведённых Дуб Севилья: +10% к цене штуки
 		}
@@ -130,7 +131,7 @@ foreach ($plan as $i => $x) {
 	$plan[$i]['name'] = $name;
 	$plan[$i]['prices'] = $prices;
 	echo sprintf("%-80s %s ₽  (образец %d: %s ₽; фото %d)\n", $name, implode(' / ', $prices), $t,
-		implode(' / ', array_column($T['offers'], 'price')), count($x['photos']));
+		implode(' / ', $srcPrices), count($x['photos']));
 }
 if ($mode !== '--apply') {
 	exit('Прогон без записи (' . count($plan) . " шт.). Для записи добавьте --apply\n");
