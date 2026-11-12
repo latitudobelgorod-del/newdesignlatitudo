@@ -3,7 +3,8 @@
  * Инструкция по монтажу ограждений Террапол Практик и Смарт 3D (Ирина, 12.11.2026, с terrapol.ru/company/docs/).
  * Заводит документ в ИБ 13 и ставит его вместо инструкции Классика (25235) в INSTRUCTIONS_FILE
  * у товаров разделов «Практик» (320) и «Смарт 3D» (590).
- * Плюс новые версии файлов у документов: инструкция по террасной доске (25310) и схема заглушки ступени (34830) –
+ * * Плюс новые версии файлов у документов: инструкция по террасной доске (25310), схема заглушки ступени (34830),
+ * рекомендации по заборам (34831, PDF вместо docx) –
  * привязки к товарам не меняются. Прежние значения и ID старых файлов – в <папка>/instr_before.json.
  *   php nd_terrapol_instr.php <DOCROOT> <папка с pdf> [--apply | rollback]
  */
@@ -17,7 +18,7 @@ const PDF = 'instruktsiya-po-montazhu-ograzhdeniy-terrapol-praktik-smart-3d.pdf'
 const NAME = 'Инструкция по монтажу ограждений Террапол Практик и Смарт 3D';
 const OLD = 25235;
 // документ => новый файл (старый файл не удаляется, его ID в журнале для отката)
-const REPLACE = [25310 => 'instruktsiya-po-montazhu-terrasnoy-doski-terrapol.pdf', 34830 => 'skhema-krepleniya-tortsevoy-zaglushki-stupeni-terrapol.pdf'];
+const REPLACE = [25310 => 'instruktsiya-po-montazhu-terrasnoy-doski-terrapol.pdf', 34830 => 'skhema-krepleniya-tortsevoy-zaglushki-stupeni-terrapol.pdf', 34831 => 'rekomendatsii-po-stroitelstvu-zaborov-terrapol.pdf'];
 $mode = $argv[3] ?? '';
 $log = "$dir/instr_before.json";
 
