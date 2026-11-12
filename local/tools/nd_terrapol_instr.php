@@ -29,7 +29,7 @@ if ($mode === 'rollback') {
 	}
 	CIBlockElement::Delete($b['doc']);
 	foreach ($b['files'] ?? [] as $id => $fid) {
-		CIBlockElement::SetPropertyValuesEx((int)$id, 13, ['INSTRUCTIONS' => CFile::MakeFileArray($fid)]);
+		CIBlockElement::SetPropertyValuesEx((int)$id, 13, ['INSTRUCTIONS' => CFile::MakeFileArray($fid)]);   // путь к копии в old/
 	}
 	CIBlock::clearIblockTagCache(19);
 	CIBlock::clearIblockTagCache(13);
@@ -56,7 +56,7 @@ while ($e = $r->Fetch()) {
 	}
 }
 echo 'к замене: ' . count($todo) . "\n";
-if ($mode !== '--apply') {
+if ($mode !== '--apply' && $mode !== '--files') {
 	exit("Прогон без записи. Для записи добавьте --apply\n");
 }
 if (is_file($log)) {
@@ -73,19 +73,20 @@ $doc = (int)$el->Add([
 if (!$doc) {
 	exit('документ: ' . $el->LAST_ERROR . "\n");
 }
+files:
 $files = [];
+@mkdir("$dir/old");
 foreach (REPLACE as $id => $f) {
 	$old = CIBlockElement::GetProperty(13, $id, [], ['CODE' => 'INSTRUCTIONS'])->Fetch();
-	$files[$id] = (int)$old['VALUE'];
-}
-file_put_contents($log, json_encode(['doc' => $doc, 'products' => $todo, 'files' => $files]));
-foreach (REPLACE as $id => $f) {
-	$old = CIBlockElement::GetProperty(13, $id, [], ['CODE' => 'INSTRUCTIONS'])->Fetch();
-	// новый файл вместо старого; старый остаётся в b_file для отката
-	CIBlockElement::SetPropertyValues($id, 13, ['VALUE' => CFile::MakeFileArray("$dir/$f")], 'INSTRUCTIONS');
+	// Битрикс удалит старый файл при замене – копия для отката в <папка>/old/
+	$fa = CFile::GetFileArray($old['VALUE']);
+	copy($_SERVER['DOCUMENT_ROOT'] . $fa['SRC'], "$dir/old/{$id}_" . $fa['ORIGINAL_NAME']);
+	$files[$id] = "$dir/old/{$id}_" . $fa['ORIGINAL_NAME'];
+	CIBlockElement::SetPropertyValuesEx($id, 13, ['INSTRUCTIONS' => CFile::MakeFileArray("$dir/$f")]);
 	echo "документ $id: файл {$old['VALUE']} → " . CIBlockElement::GetProperty(13, $id, [], ['CODE' => 'INSTRUCTIONS'])->Fetch()['VALUE'] . "
 ";
 }
+file_put_contents($log, json_encode(['doc' => $doc, 'products' => $todo, 'files' => $files], JSON_UNESCAPED_UNICODE));
 foreach ($todo as $id => $v) {
 	$new = array_map(function ($x) use ($doc) {
 		return $x === OLD ? $doc : $x;
