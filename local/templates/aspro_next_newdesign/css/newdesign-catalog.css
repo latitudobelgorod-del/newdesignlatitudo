@@ -384,10 +384,10 @@
     background: #f0edfb;
     color: #5e3fb8;
 }
-/* «Акция» — жёлтым, как метка HIT «Акция» на фото товара (Ирина, 12.11.2026: в списке была незаметна) */
+/* «Акция» — сиреневая, как «Распродажа» (Ирина, 12.11.2026) */
 .nd-catlist .catalog_item_wrapp .nd-tag--promo {
-    background: #ffc438;
-    color: #1d2029;
+    background: #f0edfb;
+    color: #5e3fb8;
 }
 
 .nd-catlist .catalog_item_wrapp .nd-tag--strong {

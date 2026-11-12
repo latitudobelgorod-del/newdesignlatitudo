@@ -370,10 +370,10 @@
     background: #f0edfb;
     color: #5e3fb8;
 }
-/* «Акция» — жёлтым, как метка HIT «Акция» на фото товара (Ирина, 12.11.2026: в списке была незаметна) */
+/* «Акция» — сиреневая, как «Распродажа» (Ирина, 12.11.2026) */
 .nd-pd__photo .stickers .sticker_sale_text.nd-tag--promo {
-    background: #ffc438;
-    color: #1d2029;
+    background: #f0edfb;
+    color: #5e3fb8;
 }
 .nd-pd__photo .stickers .sticker_sale_text.nd-tag--strong {
     background: #fff3e6;
@@ -3668,7 +3668,8 @@ a.nd-pd__installment:focus {
     }
 }
 
-/* «Акция / Распродажа» — сиреневая, как «Распродажа»; жёлтая только «Акция» (Ирина, 12.11.2026) */
+/* Метки HIT «Акция» и «Акция / Распродажа» — сиреневые, как «Распродажа» (Ирина, 12.11.2026) */
+.nd-pd__photo .stickers .sticker_aktsiya,
 .nd-pd__photo .stickers .sticker_aktsiya_rasprodazha {
     background: #f0edfb;
     color: #5e3fb8;
