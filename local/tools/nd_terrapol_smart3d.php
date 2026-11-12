@@ -44,6 +44,15 @@ $created = is_file($log) ? json_decode(file_get_contents($log), true) : ['sectio
 $save = function () use (&$created, $log) {
 	file_put_contents($log, json_encode($created, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 };
+// запись каталога: Битрикс сам заводит её у родителя при добавлении ТП, поэтому add или update
+$product = function (array $f) {
+	if (\Bitrix\Catalog\ProductTable::getById($f['ID'])->fetch()) {
+		$id = $f['ID'];
+		unset($f['ID']);
+		return \Bitrix\Catalog\Model\Product::update($id, $f);
+	}
+	return \Bitrix\Catalog\Model\Product::add($f);
+};
 $clear = function () {
 	CIBlock::clearIblockTagCache(IB);
 	CIBlock::clearIblockTagCache(IB_OFF);
@@ -227,12 +236,12 @@ foreach ($plan as $i => $x) {
 		$created['offers'][] = $oid;
 		$save();
 		CIBlockElement::SetPropertyValuesEx($oid, IB_OFF, ['ARTICLE' => $oid]);
-		\Bitrix\Catalog\Model\Product::add(['ID' => $pid, 'TYPE' => 3, 'MEASURE' => 5, 'CAN_BUY_ZERO' => 'Y', 'QUANTITY' => 0, 'VAT_INCLUDED' => 'N']);
-		\Bitrix\Catalog\Model\Product::add(['ID' => $oid, 'TYPE' => 4, 'MEASURE' => 5, 'CAN_BUY_ZERO' => 'Y', 'QUANTITY' => 0, 'VAT_INCLUDED' => 'N']);
+		$product(['ID' => $pid, 'TYPE' => 3, 'MEASURE' => 5, 'CAN_BUY_ZERO' => 'Y', 'QUANTITY' => 0, 'VAT_INCLUDED' => 'N']);
+		$product(['ID' => $oid, 'TYPE' => 4, 'MEASURE' => 5, 'CAN_BUY_ZERO' => 'Y', 'QUANTITY' => 0, 'VAT_INCLUDED' => 'N']);
 		\Bitrix\Catalog\Model\Price::add(['PRODUCT_ID' => $oid, 'CATALOG_GROUP_ID' => 1, 'PRICE' => $x['price'], 'CURRENCY' => 'RUB']);
 		$plan[$i]['oid'] = $oid;
 	} else {
-		\Bitrix\Catalog\Model\Product::add(['ID' => $pid, 'TYPE' => 1, 'MEASURE' => 5, 'CAN_BUY_ZERO' => 'Y', 'QUANTITY' => 0, 'VAT_INCLUDED' => 'N']);
+		$product(['ID' => $pid, 'TYPE' => 1, 'MEASURE' => 5, 'CAN_BUY_ZERO' => 'Y', 'QUANTITY' => 0, 'VAT_INCLUDED' => 'N']);
 		\Bitrix\Catalog\Model\Price::add(['PRODUCT_ID' => $pid, 'CATALOG_GROUP_ID' => 1, 'PRICE' => $x['price'], 'CURRENCY' => 'RUB']);
 	}
 	echo "  $pid {$x['name']} — {$x['price']} ₽\n";
