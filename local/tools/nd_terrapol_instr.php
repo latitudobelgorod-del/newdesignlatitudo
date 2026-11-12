@@ -59,8 +59,14 @@ echo 'к замене: ' . count($todo) . "\n";
 if ($mode !== '--apply' && $mode !== '--files') {
 	exit("Прогон без записи. Для записи добавьте --apply\n");
 }
-if (is_file($log)) {
-	exit("уже выполнено – сначала rollback\n");
+if (is_file($log) && $mode === '--apply') {
+	exit("уже выполнено – сначала rollback (или --files, чтобы только заменить файлы)\n");
+}
+if ($mode === '--files') {
+	$b = json_decode(file_get_contents($log), true);
+	$doc = $b['doc'];
+	$todo = $b['products'];
+	goto files;
 }
 $tpl = CIBlockElement::GetList([], ['ID' => OLD], false, false, ['ID', 'IBLOCK_SECTION_ID', 'SORT'])->Fetch();
 $en = CIBlockPropertyEnum::GetList([], ['IBLOCK_ID' => 13, 'CODE' => 'MONTAJ_INSTR', 'XML_ID' => 'Y'])->Fetch();
