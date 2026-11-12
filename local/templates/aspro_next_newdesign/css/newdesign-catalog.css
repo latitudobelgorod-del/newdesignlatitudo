@@ -380,8 +380,12 @@
     text-align: left;
 }
 
-/* «Акция» / «Распродажа» — жёлтым, как метка HIT «Акция» на фото товара (Ирина, 12.11.2026: в списке была незаметна) */
 .nd-catlist .catalog_item_wrapp .nd-tag--sale {
+    background: #f0edfb;
+    color: #5e3fb8;
+}
+/* «Акция» — жёлтым, как метка HIT «Акция» на фото товара (Ирина, 12.11.2026: в списке была незаметна) */
+.nd-catlist .catalog_item_wrapp .nd-tag--promo {
     background: #ffc438;
     color: #1d2029;
 }

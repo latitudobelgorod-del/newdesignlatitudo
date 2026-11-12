@@ -498,7 +498,9 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 							$t = mb_strtolower(html_entity_decode(strip_tags($text), ENT_QUOTES, 'UTF-8'), 'UTF-8');
 							if(mb_strpos($t, 'остатк') !== false || mb_strpos($t, 'склад') !== false)
 								return 'nd-tag--rest';
-							if(mb_strpos($t, 'распродаж') !== false || mb_strpos($t, 'акци') !== false)
+							if(mb_strpos($t, 'акци') !== false) // «Акция» — жёлтая, «Распродажа» — сиреневая (12.11.2026)
+								return 'nd-tag--promo';
+							if(mb_strpos($t, 'распродаж') !== false)
 								return 'nd-tag--sale';
 							if(mb_strpos($t, 'усилен') !== false)
 								return 'nd-tag--strong';
