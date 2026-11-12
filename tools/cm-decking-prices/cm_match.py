@@ -2,7 +2,9 @@ import json, re
 from openpyxl import load_workbook
 
 NEW = r'C:\Users\Irina\Desktop\Прайс на Cm Decking\Cottage Mode 2026 МСК РОЗНИЦА ОКТЯБРЬ.xlsx'
-OLD = r'C:\Users\Irina\Desktop\Прайс на Cm Decking\Cottage Mode 2026 МСК VIP.xlsx'
+# Прайс, по которому стоят цены на сайте сейчас (с 12.11.2026 — «Лето 2026», раньше считали по «VIP»).
+# Формат тот же: вторая вкладка, РРЦ ₽/шт в колонке O.
+OLD = r'C:\Users\Irina\Desktop\Прайс на Cm Decking\Cottage Mode 2026 МСК Лето 2026.xlsx'
 
 
 def load_price(path, sheet_idx, rrc_col, rrc_m2_col, note_col):
