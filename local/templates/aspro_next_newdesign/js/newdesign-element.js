@@ -273,6 +273,7 @@
 		if (!span) {
 			span = document.createElement('span');
 			span.className = 'nd-pd__article';
+			markCopy(span);
 			h1.appendChild(span);
 		}
 		/* У товаров с предложениями тема кладёт в .product-article голый номер,
@@ -350,10 +351,18 @@
 
 	/* Артикул в панели — тот же, что в заголовке (меняется вместе с
 	   предложением, см. syncArticle). */
+	/* Артикул копируется по клику (обработчик — в конце файла). */
+	function markCopy(el) {
+		el.setAttribute('title', 'Скопировать артикул');
+		el.setAttribute('role', 'button');
+		el.setAttribute('tabindex', '0');
+	}
+
 	function syncBarArticle() {
 		var art = $('.nd-pd__bar-art');
 		var src = $('.catalog_detail.element_newdesign > h1 > .nd-pd__article');
 		if (!art || !src) return;
+		if (!art.hasAttribute('role')) markCopy(art);
 		var text = src.textContent.trim();
 		if (art.textContent !== text) art.textContent = text;
 	}
@@ -1845,4 +1854,47 @@
 			setTimeout(wait, 200);
 		})();
 	}, true);
+
+	/* ============ копирование артикула по клику ============
+	   Как у Петровича (Ирина, 12.11.2026): жмёшь на артикул — номер уходит в
+	   буфер обмена, рядом на секунду «Скопировано». Работает и в заголовке
+	   (компьютер), и в панели карточки на телефоне. Обработчик повешен на
+	   document: оба узла заполняет скрипт выше и переписывает при смене
+	   торгового предложения — копируем то, что стоит в момент клика. */
+	function copyText(text) {
+		if (navigator.clipboard && window.isSecureContext) {
+			return navigator.clipboard.writeText(text);
+		}
+		return new Promise(function (resolve, reject) {
+			var ta = document.createElement('textarea');
+			ta.value = text;
+			ta.setAttribute('readonly', '');
+			ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+			document.body.appendChild(ta);
+			ta.select();
+			try { document.execCommand('copy') ? resolve() : reject(); } catch (e) { reject(e); }
+			document.body.removeChild(ta);
+		});
+	}
+
+	document.addEventListener('click', function (e) {
+		var el = e.target && e.target.closest ? e.target.closest('.nd-pd__article, .nd-pd__bar-art') : null;
+		if (!el) return;
+		var text = (el.textContent || '').trim();
+		if (!text) return;
+		e.preventDefault();
+		copyText(text).then(function () {
+			el.classList.add('nd-art-copied');
+			clearTimeout(el.__ndCopied);
+			el.__ndCopied = setTimeout(function () { el.classList.remove('nd-art-copied'); }, 1500);
+		}, function () {});
+	});
+
+	document.addEventListener('keydown', function (e) {
+		if (e.key !== 'Enter' && e.key !== ' ') return;
+		var el = e.target && e.target.closest ? e.target.closest('.nd-pd__article, .nd-pd__bar-art') : null;
+		if (!el) return;
+		e.preventDefault();
+		el.click();
+	});
 })();

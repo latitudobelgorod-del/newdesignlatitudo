@@ -42,6 +42,60 @@
 .element_newdesign .info_item > .product-article {
     display: none !important;
 }
+/* Артикул копируется по клику (newdesign-element.js, Ирина 12.11.2026):
+   значок «копировать» перед номером, после клика — «Скопировано» над ним.
+   Значок маской, цвет берёт от текста. :empty — пока скрипт не положил номер. */
+.nd-pd__article,
+.nd-pd__bar-art {
+    position: relative;
+    cursor: pointer;
+    transition: color .15s;
+}
+.nd-pd__article:not(:empty)::before,
+.nd-pd__bar-art:not(:empty)::before {
+    content: "";
+    display: inline-block;
+    width: 1.15em;
+    height: 1.15em;
+    margin-right: .3em;
+    vertical-align: -.2em;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Crect x='8' y='8' width='12' height='12' rx='2'/%3E%3Cpath d='M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Crect x='8' y='8' width='12' height='12' rx='2'/%3E%3Cpath d='M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.catalog_detail.element_newdesign > h1 > .nd-pd__article:hover,
+.catalog_detail.element_newdesign > h1 > .nd-pd__article:focus-visible {
+    color: #525264;
+    outline: none;
+}
+.nd-pd__article::after,
+.nd-pd__bar-art::after {
+    content: "Скопировано";
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 6px);
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #101014;
+    color: #fff;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s;
+    z-index: 5;
+}
+.nd-pd__bar-art::after {
+    top: calc(100% + 6px);
+    bottom: auto;
+    right: 10px;
+}
+.nd-pd__article.nd-art-copied::after,
+.nd-pd__bar-art.nd-art-copied::after {
+    opacity: 1;
+}
 /* Второй заголовок темы в правой колонке — в макете его нет. !important
    обязателен: у h2 прибит инлайновый style="display:inline". */
 .element_newdesign .info_item > .product-title-edit {
