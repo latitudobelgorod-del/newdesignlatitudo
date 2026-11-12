@@ -10,7 +10,7 @@ from openpyxl.styles import Font, PatternFill, Alignment
 
 DIR = r'C:\Users\Irina\Desktop\Добавить на сайт отсутствующие позиции Террапола'
 SRC = DIR + r'\Образцы Террапол - Латитудо 2026 ПОЛУЧЕНО.xlsx'
-OUT = DIR + r'\Образцы Террапол – что есть на сайте 12.11.2026.xlsx'
+OUT = sys.argv[2] if len(sys.argv) > 2 else DIR + r'\Образцы Террапол – что есть на сайте 12.11.2026.xlsx'
 site = json.load(open(sys.argv[1], encoding='utf-8'))['items']
 
 
