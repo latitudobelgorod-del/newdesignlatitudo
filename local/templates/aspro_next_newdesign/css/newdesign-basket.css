@@ -999,9 +999,10 @@
     background: #ffecea;
     color: #c60000;
 }
+/* «Акция» / «Распродажа» — жёлтым, как метка HIT «Акция» на фото товара (Ирина, 12.11.2026: в списке была незаметна) */
 #basket-root .nd-basket-sticker.nd-tag--sale {
-    background: #f0edfb;
-    color: #5e3fb8;
+    background: #ffc438;
+    color: #1d2029;
 }
 #basket-root .nd-basket-sticker.nd-tag--strong {
     background: #fff3e6;
