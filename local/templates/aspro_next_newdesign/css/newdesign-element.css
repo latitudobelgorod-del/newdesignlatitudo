@@ -3667,3 +3667,9 @@ a.nd-pd__installment:focus {
         font-size: 17px;
     }
 }
+
+/* «Акция / Распродажа» — сиреневая, как «Распродажа»; жёлтая только «Акция» (Ирина, 12.11.2026) */
+.nd-pd__photo .stickers .sticker_aktsiya_rasprodazha {
+    background: #f0edfb;
+    color: #5e3fb8;
+}

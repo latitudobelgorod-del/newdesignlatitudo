@@ -405,8 +405,8 @@ foreach ($ndProdImages as $ndProdImage) {
 	$ndT = mb_strtolower(html_entity_decode(strip_tags($val), ENT_QUOTES, 'UTF-8'), 'UTF-8');
 	$ndTagClass = '';
 	if (mb_strpos($ndT, 'остатк') !== false || mb_strpos($ndT, 'склад') !== false) $ndTagClass = 'nd-tag--rest';
-	elseif (mb_strpos($ndT, 'акци') !== false) $ndTagClass = 'nd-tag--promo'; // жёлтая (12.11.2026)
-	elseif (mb_strpos($ndT, 'распродаж') !== false) $ndTagClass = 'nd-tag--sale';
+	elseif (mb_strpos($ndT, 'распродаж') !== false) $ndTagClass = 'nd-tag--sale'; // и «Акция / Распродажа» (12.11.2026)
+	elseif (mb_strpos($ndT, 'акци') !== false) $ndTagClass = 'nd-tag--promo'; // жёлтая
 	elseif (mb_strpos($ndT, 'усилен') !== false) $ndTagClass = 'nd-tag--strong';
 	elseif (mb_strpos($ndT, 'новинк') !== false) $ndTagClass = 'nd-tag--new';
 	elseif (mb_strpos($ndT, 'доставк') !== false) $ndTagClass = 'nd-tag--delivery';

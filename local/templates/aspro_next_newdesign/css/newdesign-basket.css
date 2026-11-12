@@ -2303,3 +2303,9 @@
         border-radius: 4px;
     }
 }
+
+/* «Акция / Распродажа» — сиреневая, как «Распродажа»; жёлтая только «Акция» (Ирина, 12.11.2026) */
+#basket-root .nd-basket-sticker.sticker_aktsiya_rasprodazha {
+    background: #f0edfb;
+    color: #5e3fb8;
+}
