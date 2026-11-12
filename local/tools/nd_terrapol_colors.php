@@ -253,8 +253,9 @@ $newByTpl = [];   // tpl => [color => pid]
 foreach ($plan as $i => $x) {
 	$T = $tpls[$x['tpl']];
 	$tf = $T['f'];
+	// без фото – карточка с заглушкой «Нет фото» (цвета нет на terrapol.ru)
 	$ph = function ($n) use ($dir, $x) {
-		return CFile::MakeFileArray("$dir/{$x['photos'][$n]}");
+		return isset($x['photos'][$n]) ? CFile::MakeFileArray("$dir/{$x['photos'][$n]}") : false;
 	};
 	$pid = (int)$el->Add([
 		'IBLOCK_ID' => IB, 'IBLOCK_SECTION_ID' => $tf['IBLOCK_SECTION_ID'], 'ACTIVE' => 'Y',
