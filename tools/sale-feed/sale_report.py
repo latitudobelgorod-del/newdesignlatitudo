@@ -7,6 +7,8 @@ from email.mime.text import MIMEText
 from email.header import Header
 
 TO = 'content@latitudo.ru'
+# список новых товаров – ещё и всем продавцам (Ирина, 13.11.2026); --to=<адрес> – только на этот адрес
+TO_NEW = 'content@latitudo.ru, sales-team@latitudo.ru'
 FROM = 'info@latitudo.ru'
 # ссылки на товар: на сайте (Ирина, 13.11.2026) и в админке
 SITE = 'https://latitudo.ru/catalog/rasprodazha/%s/'
@@ -62,14 +64,16 @@ for n, c in enumerate(new, 1):
     N += ['%d. %s' % (n, c['name'].replace('[Распродажа] ', '', 1)), '   %s, остаток %s' % (price, money(c['total'])),
           '   ' + SITE % c['code'], '']
 subjNew = 'Распродажа %s: новые товары на сайте latitudo.ru (%d)' % (rep['date'], len(new))
-letters = ([] if '--only-new' in sys.argv else [(subj, L)]) + ([(subjNew, N)] if new else [])
+letters = ([] if '--only-new' in sys.argv else [(subj, L, TO)]) + ([(subjNew, N, TO_NEW)] if new else [])
+force = next((a[5:] for a in sys.argv if a.startswith('--to=')), '')
 
-for sj, body in letters:
+for sj, body, to in letters:
+    to = force or to
     if '--print' in sys.argv:  # проверка без отправки
-        print(sj + '\n\n' + '\n'.join(body) + '\n' + '=' * 40)
+        print('Кому: ' + to + '\n' + sj + '\n\n' + '\n'.join(body) + '\n' + '=' * 40)
         continue
     msg = MIMEText('\n'.join(body), 'plain', 'utf-8')
     msg['From'] = FROM
-    msg['To'] = TO
+    msg['To'] = to
     msg['Subject'] = Header(sj, 'utf-8')
     subprocess.run(['/usr/sbin/sendmail', '-t', '-i', '-f', FROM], input=msg.as_bytes(), check=False)
