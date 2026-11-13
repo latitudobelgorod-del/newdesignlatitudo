@@ -61,7 +61,7 @@ for n, c in enumerate(new, 1):
     price = money(c['price']) + ' ₽' + ('' if c['sale'] == c['price'] else ', со скидкой ' + money(c['sale']) + ' ₽')
     N += ['%d. %s' % (n, c['name'].replace('[Распродажа] ', '', 1)), '   %s, остаток %s' % (price, money(c['total'])),
           '   ' + SITE % c['code'], '']
-subjNew = 'Распродажа %s: новые товары на сайте (%d)' % (rep['date'], len(new))
+subjNew = 'Распродажа %s: новые товары на сайте latitudo.ru (%d)' % (rep['date'], len(new))
 letters = ([] if '--only-new' in sys.argv else [(subj, L)]) + ([(subjNew, N)] if new else [])
 
 for sj, body in letters:
