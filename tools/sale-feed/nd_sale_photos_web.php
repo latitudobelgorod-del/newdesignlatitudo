@@ -85,6 +85,15 @@ const ND_WEB_PHOTO_BY_ID = [
 		'https://gardeck.ru/thumb/2/W8gJjZdT3TaPX1yWZd84Pg/r/d/sostavlyayushchiye_povorotnogo_sharnira.jpg',
 		'https://gardeck.ru/thumb/2/phWKr0c7rqPsniQZGNrTrg/r/d/detali_sharnira_gryadki.jpg',
 	],
+	// 13.11.2026 — новые товары сверки 2026-11-13_091402
+	35582 => 'https://latitudo.ru/upload/iblock/a30/w33hb9a9yf2yd2qpk0rybzj4lyyrxyu8.jpg', // труба 3 м ← та же труба 1 м (35431)
+	35584 => ND_WV . 'Ugolok_Select_Coffee.jpg',                                          // L-планка Select Кофе
+	35585 => 'https://latitudo.ru/upload/iblock/711/non6vnvmrgyy6vu63nprkxxij7k4rca4.jpg', // ступень 348х23 серый ← похожая TimberTex 348х22 Серый (ТП 23608)
+	35589 => 'https://hilst.ru/upload/iblock/20e/xmat53fhu27accjjspgbrkasmc9oj43u/klipsa_hilst_premium_3d_metall_black_8mm_upak_100sht.jpg',
+	35590 => 'https://latitudo.ru/upload/iblock/222/kw9o6xl5w64g0gqjrgawvxhszlbg8in3.jpg', // прокладка HILST ЛИФТ 3 мм (26763)
+	35594 => 'https://nextwood.ru/wp-content/uploads/2024/03/Stupen-NEXTWOOD-24h320h3000-mm-usilennaya-temno-korichnevyj.jpg',
+	35595 => 'https://latitudo.ru/upload/iblock/d80/wov1ghuo0tphjngl12o2gvutl5hiopkz.jpg', // Террапол Практик Арктика 3000 (ТП 11236)
+	35603 => 'https://t-decks.ru/upload/iblock/cb6/Orekh-3.jpg',                           // T-DECKS Premium 3D Optima орех
 ];
 
 $_SERVER['DOCUMENT_ROOT'] = realpath($root);
@@ -144,7 +153,9 @@ function ndFetchPhoto(string $url): ?array
 	if (!$info) {
 		return null;
 	}
-	if (in_array($info['mime'], ['image/webp', 'image/png'], true) && ($img = @imagecreatefromstring($bin))) {
+	// jpg тоже ужимаем, если больше 1600 px (Орех T-DECKS — 7,8 МБ)
+	$big = $info['mime'] === 'image/jpeg' && max($info[0], $info[1]) > 1600;
+	if ((in_array($info['mime'], ['image/webp', 'image/png'], true) || $big) && ($img = @imagecreatefromstring($bin))) {
 		$k = min(1, 1600 / max(imagesx($img), imagesy($img)));
 		$w = (int)round(imagesx($img) * $k);
 		$h = (int)round(imagesy($img) * $k);

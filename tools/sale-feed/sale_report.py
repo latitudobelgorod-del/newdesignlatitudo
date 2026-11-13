@@ -7,6 +7,9 @@ from email.header import Header
 
 TO = 'content@latitudo.ru'
 FROM = 'info@latitudo.ru'
+# ссылки на товар: на сайте (Ирина, 13.11.2026) и в админке
+SITE = 'https://latitudo.ru/catalog/rasprodazha/%s/'
+ADMIN = 'https://latitudo.ru/bitrix/admin/iblock_element_edit.php?IBLOCK_ID=19&type=aspro_next_catalog&ID=%s'
 rep = json.load(io.open(sys.argv[1], encoding='utf-8'))
 if not (rep['created'] or rep['deactivated'] or rep['activated'] or rep['error']):
     sys.exit(0)
@@ -21,12 +24,23 @@ if rep['created']:
         L.append('  %s %s — %s ₽ → %s ₽, остаток %s%s' % (c['id'], c['name'], c['price'], c['sale'], c['total'],
                  ', фото с товара ' + c['photo'] if c['photo'] else ', БЕЗ ФОТО — нужно подобрать'))
         if c['id']:
-            L.append('    https://latitudo.ru/bitrix/admin/iblock_element_edit.php?IBLOCK_ID=19&type=aspro_next_catalog&ID=%s' % c['id'])
+            if c.get('code'):
+                L.append('    на сайте: ' + SITE % c['code'])
+            L.append('    в админке: ' + ADMIN % c['id'])
     L.append('')
+# выключенный товар на сайте не открывается (404) — ему ссылка в админку
 if rep['deactivated']:
-    L += ['Выключены: %d' % len(rep['deactivated'])] + ['  %s %s — %s' % (c['id'], c['name'], c['why']) for c in rep['deactivated']] + ['']
+    L += ['Выключены: %d' % len(rep['deactivated'])]
+    for c in rep['deactivated']:
+        L += ['  %s %s — %s' % (c['id'], c['name'], c['why']), '    в админке: ' + ADMIN % c['id']]
+    L.append('')
 if rep['activated']:
-    L += ['Включены снова: %d' % len(rep['activated'])] + ['  %s %s — %s' % (c['id'], c['name'], c['why']) for c in rep['activated']] + ['']
+    L += ['Включены снова: %d' % len(rep['activated'])]
+    for c in rep['activated']:
+        L.append('  %s %s — %s' % (c['id'], c['name'], c['why']))
+        if c.get('code'):
+            L.append('    на сайте: ' + SITE % c['code'])
+    L.append('')
 if rep['updated'] or rep['discounts']:
     L += ['Другие изменения:'] + ['  ' + x for x in rep['updated'] + rep['discounts']] + ['']
 L += ['Отчёт на сервере: ' + rep['out']]

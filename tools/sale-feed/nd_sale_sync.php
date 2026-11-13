@@ -162,7 +162,7 @@ foreach ($site as $xml => $s) {
 	if ($s['ACTIVE'] !== $active) {
 		$fields['ACTIVE'] = $active;
 		$was['ACTIVE'] = $s['ACTIVE'];
-		$rep[$active === 'Y' ? 'activated' : 'deactivated'][] = ['id' => $id, 'name' => $p['name'],
+		$rep[$active === 'Y' ? 'activated' : 'deactivated'][] = ['id' => $id, 'name' => $p['name'], 'code' => $s['CODE'],
 			'why' => $active === 'Y' ? 'остаток ' . $p['total']
 				: ($p['total'] > 0 ? 'остаток ' . $p['total'] . ' — меньше одной целой штуки' : 'нет остатка ни на одном складе')];
 	}
@@ -235,7 +235,7 @@ foreach ($plan as $xml => $p) {
 	$usedCode[$code] = -1;
 	$photo = ndPhotoSource($p['guid'], $p['sku']);
 	$rep['created'][] = ['id' => 0, 'name' => $p['name'], 'price' => $p['base'], 'sale' => round($p['base'] - $p['off'], 2),
-		'total' => $p['total'], 'photo' => $photo ? $photo['ID'] . ' ' . $photo['NAME'] : ''];
+		'total' => $p['total'], 'photo' => $photo ? $photo['ID'] . ' ' . $photo['NAME'] : '', 'code' => $code];
 	if (!$apply) {
 		continue;
 	}
