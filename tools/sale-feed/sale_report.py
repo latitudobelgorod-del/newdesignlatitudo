@@ -52,8 +52,12 @@ subj = 'Распродажа %s: новых %d, выключено %d, вклю�
                                                                    len(rep['activated']), ' — ОШИБКА' if rep['error'] else '')
 
 
-def money(v):
-    return ('%.2f' % v).rstrip('0').rstrip('.').replace('.', ',')
+def money(v, kop=True):
+    # 11600.5 -> «11 600,5»: тысячи через неразрывный пробел (Ирина, 13.11.2026), копейки без лишних нулей
+    whole, frac = ('%.2f' % v).split('.')
+    whole = '{:,}'.format(int(whole)).replace(',', ' ')
+    frac = '' if frac == '00' else (frac if kop else frac.rstrip('0'))  # цена – 2 знака копеек, остаток – как есть
+    return whole + (',' + frac if frac else '')
 
 
 # Второе письмо – только список новых товаров со ссылками на сайт, чтобы переслать дальше (Ирина, 13.11.2026)
@@ -61,7 +65,7 @@ new = [c for c in rep['created'] if c['id'] and c.get('code')]
 N = ['Новые товары в разделе «Распродажа» (https://latitudo.ru/catalog/rasprodazha/) – %s, %d шт.' % (rep['date'], len(new)), '']
 for n, c in enumerate(new, 1):
     price = money(c['price']) + ' ₽' + ('' if c['sale'] == c['price'] else ', со скидкой ' + money(c['sale']) + ' ₽')
-    N += ['%d. %s' % (n, c['name'].replace('[Распродажа] ', '', 1)), '   %s, остаток %s' % (price, money(c['total'])),
+    N += ['%d. %s' % (n, c['name'].replace('[Распродажа] ', '', 1)), '   %s, остаток %s' % (price, money(c['total'], False)),
           '   ' + SITE % c['code'], '']
 subjNew = 'Распродажа %s: новые товары на сайте latitudo.ru (%d)' % (rep['date'], len(new))
 letters = ([] if '--only-new' in sys.argv else [(subj, L, TO)]) + ([(subjNew, N, TO_NEW)] if new else [])
