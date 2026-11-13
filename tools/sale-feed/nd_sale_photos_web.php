@@ -149,7 +149,7 @@ $rs = CIBlockElement::GetList(['SORT' => 'ASC'], ['IBLOCK_ID' => ND_IBLOCK_ID,
 function ndFetchPhoto(string $url): ?array
 {
 	$bin = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => 60, 'user_agent' => 'Mozilla/5.0']]));
-	$info = ($bin !== false && strlen($bin) > 10000) ? @getimagesizefromstring($bin) : false;
+	$info = ($bin !== false && strlen($bin) > 5000) ? @getimagesizefromstring($bin) : false;
 	if (!$info) {
 		return null;
 	}
