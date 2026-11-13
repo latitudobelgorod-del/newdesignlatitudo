@@ -1,4 +1,5 @@
 # Письмо об изменениях раздела «Распродажа» после сверки с фидом (nd_sale_sync.php → report.json).
+# --print – показать, не отправляя; --only-new – только письмо со списком новых.
 # Шлём только когда есть что сказать: новые товары, выключенные/включённые, ошибка (Ирина, 26.10.2026).
 # Цены и остатки меняются часто — они в журнале на сервере, в письмо идут, только если письмо и так уходит.
 import io, json, subprocess, sys
@@ -47,11 +48,28 @@ L += ['Отчёт на сервере: ' + rep['out']]
 
 subj = 'Распродажа %s: новых %d, выключено %d, включено %d%s' % (rep['date'], len(rep['created']), len(rep['deactivated']),
                                                                    len(rep['activated']), ' — ОШИБКА' if rep['error'] else '')
-if '--print' in sys.argv:  # проверка без отправки
-    print(subj + '\n\n' + '\n'.join(L))
-    sys.exit(0)
-msg = MIMEText('\n'.join(L), 'plain', 'utf-8')
-msg['From'] = FROM
-msg['To'] = TO
-msg['Subject'] = Header(subj, 'utf-8')
-subprocess.run(['/usr/sbin/sendmail', '-t', '-i', '-f', FROM], input=msg.as_bytes(), check=False)
+
+
+def money(v):
+    return ('%.2f' % v).rstrip('0').rstrip('.').replace('.', ',')
+
+
+# Второе письмо – только список новых товаров со ссылками на сайт, чтобы переслать дальше (Ирина, 13.11.2026)
+new = [c for c in rep['created'] if c['id'] and c.get('code')]
+N = ['Новые товары в разделе «Распродажа» (https://latitudo.ru/catalog/rasprodazha/) – %s, %d шт.' % (rep['date'], len(new)), '']
+for n, c in enumerate(new, 1):
+    price = money(c['price']) + ' ₽' + ('' if c['sale'] == c['price'] else ', со скидкой ' + money(c['sale']) + ' ₽')
+    N += ['%d. %s' % (n, c['name'].replace('[Распродажа] ', '', 1)), '   %s, остаток %s' % (price, money(c['total'])),
+          '   ' + SITE % c['code'], '']
+subjNew = 'Распродажа %s: новые товары на сайте (%d)' % (rep['date'], len(new))
+letters = ([] if '--only-new' in sys.argv else [(subj, L)]) + ([(subjNew, N)] if new else [])
+
+for sj, body in letters:
+    if '--print' in sys.argv:  # проверка без отправки
+        print(sj + '\n\n' + '\n'.join(body) + '\n' + '=' * 40)
+        continue
+    msg = MIMEText('\n'.join(body), 'plain', 'utf-8')
+    msg['From'] = FROM
+    msg['To'] = TO
+    msg['Subject'] = Header(sj, 'utf-8')
+    subprocess.run(['/usr/sbin/sendmail', '-t', '-i', '-f', FROM], input=msg.as_bytes(), check=False)
