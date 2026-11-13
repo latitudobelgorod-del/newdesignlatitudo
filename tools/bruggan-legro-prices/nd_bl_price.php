@@ -1,5 +1,5 @@
 <?php
-// Цены Bruggan и Legro по плану bl_new_prices.json (прайс WPDecking 2026 × 98 ₽/€, 13.11.2026). php nd_bl_price.php dry|run|rollback [--ids=27055,...]
+// Цены Bruggan и Legro по плану bl_new_prices.json (прайс WPDecking 2026 × 98 ₽/€, 13.11.2026). php nd_bl_price.php dry|run|rollback|minmax [--ids=27055,...]
 $_SERVER['DOCUMENT_ROOT'] = getenv('HOME') . '/www/latitudo.ru';
 define('NO_KEEP_STATISTIC', true); define('NOT_CHECK_PERMISSIONS', true);
 require $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php';
@@ -9,9 +9,16 @@ foreach ($argv as $a) if (strpos($a, '--ids=') === 0) $ids = array_map('intval',
 $bak = "$dir/prices_before.json";
 if ($mode === 'rollback') {
     foreach (json_decode(file_get_contents($bak), true) as $r) {
-        CPrice::Update($r['priceid'], ['PRICE' => $r['old']]);
+        CPrice::Update($r['priceid'], ['PRICE' => $r['old'], 'PRODUCT_ID' => $r['id']]); // PRODUCT_ID – чтобы Аспро пересчитал MINIMUM_PRICE родителя
         echo "{$r['id']} -> {$r['old']}\n";
     }
+} elseif ($mode === 'minmax') {
+    // пересчёт MINIMUM_PRICE/MAXIMUM_PRICE родителей обработчиком Аспро (цены залиты без PRODUCT_ID до 13.11.2026)
+    \Bitrix\Main\Loader::includeModule('aspro.next');
+    foreach (json_decode(file_get_contents("$dir/bl_new_prices.json"), true) as $p) {
+        CNextEvents::DoIBlockAfterSave(0, ['PRODUCT_ID' => (int)$p['id']]);
+    }
+    echo "пересчитано\n";
 } else {
     $plan = json_decode(file_get_contents("$dir/bl_new_prices.json"), true);
     $done = file_exists($bak) ? json_decode(file_get_contents($bak), true) : [];
@@ -23,7 +30,7 @@ if ($mode === 'rollback') {
         echo "{$p['id']} {$p['name']}: {$cur['PRICE']} -> {$p['new']}\n";
         if ($mode === 'run') {
             $done[] = ['id' => $p['id'], 'priceid' => $p['priceid'], 'old' => (float)$cur['PRICE']];
-            CPrice::Update($p['priceid'], ['PRICE' => $p['new']]);
+            CPrice::Update($p['priceid'], ['PRICE' => $p['new'], 'PRODUCT_ID' => $p['id']]);
         }
     }
     if ($mode === 'run') file_put_contents($bak, json_encode($done, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
