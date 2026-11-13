@@ -53,6 +53,9 @@ require $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.
 \Bitrix\Main\Loader::includeModule('iblock');
 \Bitrix\Main\Loader::includeModule('catalog');
 \Bitrix\Main\Loader::includeModule('sale');
+// группа для кнопок раздела (sale_groups.inc.php, 13.11.2026): ставим только новым товарам
+require __DIR__ . '/sale_groups.inc.php';
+$ndGroupEnums = ndSaleGroupEnums(ND_IBLOCK_ID);
 
 $outDir = (getenv('HOME') ?: __DIR__) . '/sale-feed/sync/' . date('Y-m-d_His') . ($apply ? '_apply' : '_dry');
 mkdir($outDir, 0700, true);
@@ -255,6 +258,9 @@ foreach ($plan as $xml => $p) {
 	$undo[] = ['id' => $id, 'created' => true];
 	$idByXml[$xml] = $id;
 	$props = ['CML2_ARTICLE' => $id];
+	if ($g = $ndGroupEnums[ndSaleGroupByName($p['name'])] ?? 0) {
+		$props[ND_SALE_GROUP_PROP] = $g;
+	}
 	if ($photo && $photo['MORE']) {
 		$props['MORE_PHOTO'] = array_map(function ($f) { return ['VALUE' => CFile::MakeFileArray($f)]; }, $photo['MORE']);
 	}

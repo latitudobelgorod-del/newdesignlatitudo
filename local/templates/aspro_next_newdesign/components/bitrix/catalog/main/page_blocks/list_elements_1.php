@@ -955,6 +955,12 @@ $ar_res = $res->GetNext();
 				$frame->begin();?>
 			<?}?>
 
+			<?/* «Распродажа»: вместо фильтра – кнопки групп (Ирина, 13.11.2026). Чипы печатает строка
+			   сортировки, фильтр по ?group= уходит в список ниже – поэтому и на «Показать ещё» (ajax). */?>
+			<?if($ndNoFilter){
+				include(__DIR__."/../include/sale_groups_newdesign.php");
+			}?>
+
 			<?// sort?>
 			<?
 			include(__DIR__."/../sort_newdesign.php");
