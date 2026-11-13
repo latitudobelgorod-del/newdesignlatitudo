@@ -1188,7 +1188,10 @@ $ar_res = $res->GetNext();
 						"REVIEWS_VIEW" => $arTheme["REVIEWS_VIEW"]["VALUE"] == "EXTENDED",
 						"COMPATIBLE_MODE" => "Y",
 						'CURRENT_BASE_PAGE' => \Aspro\Next\CacheableUrl::get(),
-                        'PAGER_BASE_LINK' => \Aspro\Next\CacheableUrl::get(),
+                        /* CacheableUrl оставляет в адресе только «свои» параметры – группа распродажи
+                           (?group=, include/sale_groups_newdesign.php) терялась в «Показать ещё» и номерах страниц */
+                        'PAGER_BASE_LINK' => \Aspro\Next\CacheableUrl::get() . (!empty($GLOBALS['ND_SALE_GROUP_QUERY'])
+                            ? (strpos(\Aspro\Next\CacheableUrl::get(), '?') === false ? '?' : '&') . $GLOBALS['ND_SALE_GROUP_QUERY'] : ''),
                         'PAGER_BASE_LINK_ENABLE' => 'Y',
 						"HIDE_ELEMENT_LIST" => $APPLICATION->GetProperty("HIDE_ELEMENT_LIST"),
 						"SEO_DEOPTIMIZING" => $arParams['SEO_DEOPTIMIZING']

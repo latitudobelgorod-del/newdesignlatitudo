@@ -79,6 +79,7 @@ if ($ndSgData && $ndSgData['enums']) {
 
 	if ($ndSgCur !== '') {
 		$GLOBALS[$ndSgFilterName]['=PROPERTY_ND_SALE_GROUP'] = $ndSgData['enums'][$ndSgCur]['id'];
+		$GLOBALS['ND_SALE_GROUP_QUERY'] = 'group=' . rawurlencode($ndSgCur); // в ссылки постранички (list_elements_1.php)
 		$APPLICATION->AddHeadString('<meta name="robots" content="noindex, follow" />', true);
 	}
 }
