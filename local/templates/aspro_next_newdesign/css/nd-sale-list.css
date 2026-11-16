@@ -519,3 +519,44 @@ html.nd-view-list .nd-sale-host .nd-sku--dlina li {
 }
 html.nd-view-list .nd-sale-host .nd-sku--dlina li .cnt,
 html.nd-view-list .nd-sale-host .nd-sku--dlina li .cnt::after { font-size: 12px !important; line-height: 26px !important; }
+
+/* Артикул как на детальной (.nd-pd__article в newdesign-element.css): значок «копировать» перед номером,
+   по клику номер в буфер и «Скопировано» над ним (newdesign-catalog.js). Ирина, 16.11.2026. */
+.nd-lrow-art__num {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    color: rgba(82, 82, 100, .5);
+    transition: color .15s;
+}
+.nd-lrow-art__num:hover,
+.nd-lrow-art__num:focus-visible { color: #525264; outline: none; }
+.nd-lrow-art__num:not(:empty)::before {
+    content: "";
+    display: inline-block;
+    width: 1.15em;
+    height: 1.15em;
+    margin-right: .3em;
+    vertical-align: -.2em;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Crect x='8' y='8' width='12' height='12' rx='2'/%3E%3Cpath d='M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Crect x='8' y='8' width='12' height='12' rx='2'/%3E%3Cpath d='M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.nd-lrow-art__num::after {
+    content: "Скопировано";
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 6px);
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #101014;
+    color: #fff;
+    font-size: 12px;
+    line-height: 16px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s;
+    z-index: 5;
+}
+.nd-lrow-art__num.nd-art-copied::after { opacity: 1; }

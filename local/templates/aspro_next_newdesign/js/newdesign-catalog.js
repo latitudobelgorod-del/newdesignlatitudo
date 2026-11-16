@@ -2307,3 +2307,43 @@
 			});
 	});
 })();
+
+/* Артикул в виде списком копируется по клику – как на детальной (newdesign-element.js, .nd-pd__article):
+   значок перед номером, после клика на секунду «Скопировано». Номер в момент клика – тот, что
+   стоит сейчас (при смене длины его переписывает catalog.section/script.js). Ирина, 16.11.2026. */
+(function () {
+    'use strict';
+    function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+        return new Promise(function (resolve, reject) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy') ? resolve() : reject(); } catch (e) { reject(e); }
+            document.body.removeChild(ta);
+        });
+    }
+    document.addEventListener('click', function (e) {
+        var el = e.target && e.target.closest ? e.target.closest('.nd-lrow-art__num') : null;
+        if (!el) return;
+        var text = (el.textContent || '').trim();
+        if (!text) return;
+        e.preventDefault();
+        e.stopPropagation(); // не открывать карточку товара
+        copyText(text).then(function () {
+            el.classList.add('nd-art-copied');
+            clearTimeout(el.__ndCopied);
+            el.__ndCopied = setTimeout(function () { el.classList.remove('nd-art-copied'); }, 1500);
+        }, function () {});
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        var el = e.target && e.target.closest ? e.target.closest('.nd-lrow-art__num') : null;
+        if (!el) return;
+        e.preventDefault();
+        el.click();
+    });
+})();
