@@ -297,7 +297,8 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.sku_props) .nd-lrow-art { grid-row: 1; }
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.sku_props) .item-title { grid-row: 2; padding-top: 0; min-height: 42px; }
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.sku_props) .nd-price-row { grid-row: 1 / 3; }
-    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.sku_props) .nd-old-row,
+    /* старая цена – сразу под ценой с переключателем (их высота постоянна, ~59 px), а не ниже названия */
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.sku_props) .nd-old-row { grid-row: 1 / -1; margin: 64px 0 0 !important; }
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.sku_props) .nd-lrow-units { grid-row: 3 / -1; }
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .sku_props,
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .item_info > .sku_props {
