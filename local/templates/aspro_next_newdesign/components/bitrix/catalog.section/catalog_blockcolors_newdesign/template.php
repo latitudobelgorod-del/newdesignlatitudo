@@ -885,7 +885,8 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 								$v = round((float) $v, 2);
 								return number_format($v, $v == floor($v) ? 0 : 2, ',', ' ');
 							};?>
-							<div class="nd-lrow-art" hidden>Арт. <?=htmlspecialcharsbx($ndRow['ARTICLE'])?></div>
+							<?if(!empty($ndRow['OFFER_ART'])) { $ndRow['ARTICLE'] = $ndRow['OFFER_ART'][(int)($arItem['CURRENT_OFFER_ID'] ?? 0)] ?? $ndRow['ARTICLE']; }?>
+							<div class="nd-lrow-art" hidden<?if(!empty($ndRow['OFFER_ART'])):?> data-nd-offer-art="<?=htmlspecialcharsbx(json_encode($ndRow['OFFER_ART'], JSON_UNESCAPED_UNICODE))?>"<?endif;?>>Арт. <span><?=htmlspecialcharsbx($ndRow['ARTICLE'])?></span></div>
 							<div class="nd-lrow-units" hidden<?if(!empty($ndRow['OFFER_UNITS'])):?> data-nd-offer-units="<?=htmlspecialcharsbx(json_encode($ndRow['OFFER_UNITS'], JSON_UNESCAPED_UNICODE))?>"<?endif;?>>
 								<?foreach($ndRow['UNITS'] as $ndSym => $ndUnitPrice):?>
 									<span class="nd-lrow-units__item"><?=number_format(round($ndUnitPrice), 0, ',', ' ')?> ₽/<?=htmlspecialcharsbx($ndSym)?></span>

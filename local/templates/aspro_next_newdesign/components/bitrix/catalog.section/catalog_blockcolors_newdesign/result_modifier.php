@@ -1378,8 +1378,16 @@ if (($arParams['ND_SALE_LIST'] ?? '') === 'Y' && !empty($arResult['ITEMS'])) {
 			}
 		}
 
+		// артикул длины (предложения): её CML2_ARTICLE, иначе ID предложения – как ищет поиск (23549, а не 27973)
+		$ndOfferArt = array();
+		foreach ((array) ($ndItem['OFFERS'] ?? array()) as $ndOff) {
+			$a = trim((string) ($ndOff['PROPERTIES']['CML2_ARTICLE']['VALUE'] ?? $ndOff['PROPERTIES']['ARTICLE']['VALUE'] ?? ''));
+			$ndOfferArt[(int) $ndOff['ID']] = $a !== '' ? $a : (string) $ndOff['ID'];
+		}
+
 		$ndArt = $ndProps[(int) $ndItem['ID']]['ARTICLE'] ?? '';
 		$ndItem['ND_SALE_LIST_ROW'] = array(
+			'OFFER_ART' => $ndOfferArt,
 			'OFFER_UNITS' => $ndOfferUnits,
 			'ARTICLE' => $ndArt !== '' ? $ndArt : (string) $ndItem['ID'],
 			'UNITS' => $ndUnits,

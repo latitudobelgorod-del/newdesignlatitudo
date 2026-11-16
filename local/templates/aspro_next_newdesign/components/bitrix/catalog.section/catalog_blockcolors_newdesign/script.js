@@ -811,6 +811,15 @@ window.JCCatalogSection.prototype.ndUpdateListRow = function(offerId)
     var self = this;
     var fmt = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
 
+    // артикул выбранной длины (data-nd-offer-art из template.php)
+    var art = root.querySelector('.nd-lrow-art[data-nd-offer-art]');
+    if (art) {
+        var arts = {};
+        try { arts = JSON.parse(art.getAttribute('data-nd-offer-art')) || {}; } catch (e) {}
+        var artSpan = art.querySelector('span');
+        if (artSpan && arts[offerId]) artSpan.textContent = arts[offerId];
+    }
+
     var units = root.querySelector('.nd-lrow-units[data-nd-offer-units]');
     if (units) {
         var all = {};
