@@ -832,14 +832,22 @@ window.JCCatalogSection.prototype.ndUpdateListRow = function(offerId)
         try { data = JSON.parse(storesBox.getAttribute('data-offers-stores')) || {}; } catch (e) {}
         if (!data[offerId] && Object.keys(data).length === 0) return;
         var meas = self.htmlspecialchars(stock.getAttribute('data-measure') || 'шт');
-        var list = [], total = 0;
+        // клетки по складам – как в template.php: четыре склада всегда, «–», если нет
+        var cells = {'Москва': 'МСК', 'Краснодар': 'КРД', 'Белгород': 'БЕЛ', 'Воронеж': 'ВРН'};
+        var amt = {'Москва': 0, 'Краснодар': 0, 'Белгород': 0, 'Воронеж': 0};
         (data[offerId] || []).forEach(function (st) {
             var a = Math.floor(parseFloat(st.AMOUNT) + 1e-9);
-            if (a > 0) { list.push('<li><span>' + self.htmlspecialchars(st.NAME) + '</span> <b>' + fmt(a) + ' ' + meas + '</b></li>'); total += a; }
+            var n = String(st.NAME || '').trim();
+            if (!(n in cells)) { cells[n] = n.slice(0, 3).toUpperCase(); amt[n] = 0; }
+            if (a > 0) amt[n] += a;
         });
-        stock.innerHTML = total > 0
-            ? '<div class="nd-lrow-stock__total is-in">В наличии ' + fmt(total) + ' ' + meas + '</div><ul class="nd-lrow-stock__list">' + list.join('') + '</ul>'
-            : '<div class="nd-lrow-stock__total">Под заказ</div>';
+        var li = '';
+        for (var n in cells) {
+            if (cells.hasOwnProperty(n)) {
+                li += '<li class="nd-scell' + (amt[n] > 0 ? ' is-in' : '') + '" title="' + self.htmlspecialchars(n) + '"><span>' + self.htmlspecialchars(cells[n]) + '</span><b>' + (amt[n] > 0 ? fmt(amt[n]) : '–') + '</b></li>';
+            }
+        }
+        stock.innerHTML = '<div class="nd-lrow-stock__cap">Наличие, ' + meas + '</div><ul class="nd-scell-list">' + li + '</ul>';
     }
 };
 

@@ -882,19 +882,27 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 									<span class="nd-lrow-units__item"><?=number_format(round($ndUnitPrice), 0, ',', ' ')?> ₽/<?=htmlspecialcharsbx($ndSym)?></span>
 								<?endforeach;?>
 							</div>
+							<?/* наличие клетками по складам (16.11.2026, по образцу Ирины): четыре склада всегда,
+							   «—», если нет; прочие склады – дописываются. Тот же вывод в script.js (ndStockCells) */
+							$ndCells = array('Москва' => 'МСК', 'Краснодар' => 'КРД', 'Белгород' => 'БЕЛ', 'Воронеж' => 'ВРН');
+							$ndAmt = array_fill_keys(array_keys($ndCells), 0);
+							foreach ($ndRow['STORES'] as $ndStore) {
+								$ndN = trim((string)$ndStore['NAME']);
+								if (!isset($ndCells[$ndN])) {
+									$ndCells[$ndN] = mb_strtoupper(mb_substr($ndN, 0, 3));
+									$ndAmt[$ndN] = 0;
+								}
+								$ndAmt[$ndN] += $ndStore['AMOUNT'];
+							}
+							?>
 							<div class="nd-lrow-stock" hidden data-measure="<?=htmlspecialcharsbx($ndRow['MEASURE'])?>">
-								<?if($ndRow['TOTAL'] > 0):?>
-									<div class="nd-lrow-stock__total is-in">В наличии <?=$ndNum($ndRow['TOTAL'])?> <?=htmlspecialcharsbx($ndRow['MEASURE'])?></div>
-									<?if($ndRow['STORES']):?>
-										<ul class="nd-lrow-stock__list">
-											<?foreach($ndRow['STORES'] as $ndStore):?>
-												<li><span><?=htmlspecialcharsbx($ndStore['NAME'])?></span> <b><?=$ndNum($ndStore['AMOUNT'])?> <?=htmlspecialcharsbx($ndRow['MEASURE'])?></b></li>
-											<?endforeach;?>
-										</ul>
-									<?endif;?>
-								<?else:?>
-									<div class="nd-lrow-stock__total">Под заказ</div>
-								<?endif;?>
+								<div class="nd-lrow-stock__cap">Наличие, <?=htmlspecialcharsbx($ndRow['MEASURE'])?></div>
+								<ul class="nd-scell-list">
+									<?foreach($ndCells as $ndN => $ndAbbr):?>
+										<li class="nd-scell<?=$ndAmt[$ndN] > 0 ? ' is-in' : ''?>" title="<?=htmlspecialcharsbx($ndN)?>"><span><?=htmlspecialcharsbx($ndAbbr)?></span><b><?=$ndAmt[$ndN] > 0 ? $ndNum($ndAmt[$ndN]) : '–'?></b></li>
+									<?endforeach;?>
+								</ul>
+								<?if(!$ndRow['STORES'] && $ndRow['TOTAL'] > 0):?><div class="nd-lrow-stock__total is-in">В наличии <?=$ndNum($ndRow['TOTAL'])?> <?=htmlspecialcharsbx($ndRow['MEASURE'])?></div><?endif;?>
 							</div>
 						<?endif;?>
 						
