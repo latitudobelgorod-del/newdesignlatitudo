@@ -905,7 +905,11 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 								$ndAmt[$ndN] += $ndStore['AMOUNT'];
 							}
 							?>
-							<div class="nd-lrow-stock" hidden data-measure="<?=htmlspecialcharsbx($ndRow['MEASURE'])?>">
+							<?/* ни на одном складе нет – блок наличия не показываем (Ирина, 16.11.2026); сам узел остаётся
+							   пустым: при смене длины script.js заполнит его, если у другой длины остаток есть */
+							$ndNone = !array_filter($ndAmt) && $ndRow['TOTAL'] <= 0;?>
+							<div class="nd-lrow-stock<?=$ndNone ? ' nd-lrow-stock--none' : ''?>" hidden data-measure="<?=htmlspecialcharsbx($ndRow['MEASURE'])?>">
+							<?if(!$ndNone):?>
 								<div class="nd-lrow-stock__cap">Наличие, <?=htmlspecialcharsbx($ndRow['MEASURE'])?></div>
 								<ul class="nd-scell-list">
 									<?foreach($ndCells as $ndN => $ndAbbr):?>
@@ -913,6 +917,7 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 									<?endforeach;?>
 								</ul>
 								<?if(!$ndRow['STORES'] && $ndRow['TOTAL'] > 0):?><div class="nd-lrow-stock__total is-in">В наличии <?=$ndNum($ndRow['TOTAL'])?> <?=htmlspecialcharsbx($ndRow['MEASURE'])?></div><?endif;?>
+							<?endif;?>
 							</div>
 						<?endif;?>
 						

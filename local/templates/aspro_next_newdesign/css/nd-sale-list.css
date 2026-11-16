@@ -578,3 +578,6 @@ html.nd-view-list .nd-sale-host .nd-sku--dlina li .cnt::after { font-size: 12px 
     z-index: 5;
 }
 .nd-lrow-art__num.nd-art-copied::after { opacity: 1; }
+
+/* ни на одном складе нет – блок наличия в списке не показываем (Ирина, 16.11.2026) */
+html.nd-view-list .nd-sale-host .nd-lrow-stock.nd-lrow-stock--none { display: none !important; }

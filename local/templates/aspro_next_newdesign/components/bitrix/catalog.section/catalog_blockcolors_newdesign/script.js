@@ -856,7 +856,11 @@ window.JCCatalogSection.prototype.ndUpdateListRow = function(offerId)
                 li += '<li class="nd-scell' + (amt[n] > 0 ? ' is-in' : '') + '" title="' + self.htmlspecialchars(n) + '"><span>' + self.htmlspecialchars(cells[n]) + '</span><b>' + (amt[n] > 0 ? fmt(amt[n]) : '–') + '</b></li>';
             }
         }
-        stock.innerHTML = '<div class="nd-lrow-stock__cap">Наличие, ' + meas + '</div><ul class="nd-scell-list">' + li + '</ul>';
+        var any = false;
+        for (var k in amt) { if (amt.hasOwnProperty(k) && amt[k] > 0) any = true; }
+        // ни на одном складе нет – блок не показываем
+        stock.classList.toggle('nd-lrow-stock--none', !any);
+        stock.innerHTML = any ? '<div class="nd-lrow-stock__cap">Наличие, ' + meas + '</div><ul class="nd-scell-list">' + li + '</ul>' : '';
     }
 };
 
