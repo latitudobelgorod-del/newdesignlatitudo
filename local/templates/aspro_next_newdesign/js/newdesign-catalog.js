@@ -937,7 +937,19 @@
             /* На телефоне показываем три строки: раньше в одну строку не влезал
                ни один длинный тег и посетитель видел только «…» (Ирина, 23.09.2026).
                На компьютере по макету по-прежнему одна строка. */
-            var rows = window.matchMedia && window.matchMedia('(max-width: 767px)').matches ? 3 : 1;
+            var isMob = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+            var rows = isMob ? 3 : 1;
+
+            /* Группы «Распродажи» (include/sale_groups_newdesign.php): на компьютере их мало –
+               показываем все; на телефоне сворачиваем в две строки (Ирина, 16.11.2026). */
+            var isSale = box.classList.contains('nd-sale-groups');
+            if (isSale && !isMob) {
+                var extra = box.querySelector('.nd-catlist-sort__more');
+                if (extra) extra.remove();
+                chips.forEach(function (c) { c.classList.remove('nd-tag-hidden'); });
+                return;
+            }
+            if (isSale) rows = 2;
 
             var btn = box.querySelector('.nd-catlist-sort__more');
             if (!btn) {
@@ -988,6 +1000,21 @@
                 cut--;
                 chips[cut].classList.add('nd-tag-hidden');
                 btn.textContent = 'Ещё ' + (chips.length - cut);
+            }
+
+            /* Выбранный чип (группа распродажи) под «Ещё» не прячем: показываем его вместо
+               последнего видимого, и снова следим, чтобы кнопка не уехала на новую строку. */
+            var act = -1;
+            chips.forEach(function (c, k) { if (c.querySelector('a.active')) act = k; });
+            if (act >= cut && cut > 1) {
+                chips[act].classList.remove('nd-tag-hidden');
+                var vis = function () { return chips.filter(function (c) { return !c.classList.contains('nd-tag-hidden'); }); };
+                for (var h = cut - 1; h > 0; h--) {
+                    chips[h].classList.add('nd-tag-hidden');
+                    btn.textContent = 'Ещё ' + (chips.length - vis().length);
+                    var lastVis = chips[act].getBoundingClientRect();
+                    if (btn.getBoundingClientRect().top <= lastVis.top + 2) break;
+                }
             }
         } catch (e) { }
     }

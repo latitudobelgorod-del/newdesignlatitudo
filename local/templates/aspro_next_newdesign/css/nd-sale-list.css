@@ -299,6 +299,8 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
 /* --- телефон: строка-карточка, фото слева ---------------------------------- */
 @media (max-width: 767px) {
     .nd-viewsw { margin-right: 8px; }
+    /* чипы групп – первой строкой, «плитка/список» и сортировка – под ними, сразу над товарами */
+    .nd-catlist-sort--viewsw .nd-catlist-sort__tags { order: -1; }
     .nd-viewsw__btn { width: 32px; height: 32px; }
 
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap {

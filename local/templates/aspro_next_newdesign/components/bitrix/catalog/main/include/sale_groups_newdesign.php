@@ -65,7 +65,8 @@ if ($ndSgData && $ndSgData['enums']) {
 		$ndSgCur = '';
 	}
 	$ndSgUrl = $APPLICATION->GetCurPage(false);
-	$ndSgHtml = '<div class="section_tag_top nd-sale-groups nd-tags-open">';
+	// сворачивание: на компьютере все чипы, на телефоне две строки и «Ещё» (collapseTags, newdesign-catalog.js)
+	$ndSgHtml = '<div class="section_tag_top nd-sale-groups">';
 	$ndSgChip = function ($href, $title, $cnt, $active) {
 		return '<span class="tag_ank"><a href="' . htmlspecialcharsbx($href) . '"' . ($active ? ' class="active" aria-current="page"' : '')
 			. ($href !== '' && strpos($href, '?') !== false ? ' rel="nofollow"' : '') . '>'
@@ -80,7 +81,6 @@ if ($ndSgData && $ndSgData['enums']) {
 	}
 	$ndSgHtml .= '</div>';
 	// число в чипе – приглушённое; стили здесь: newdesign-catalog.css на проде отдаётся урезанной копией
-	// nd-tags-open: групп мало, в один ряд с «…» (collapseTags в newdesign-catalog.js) не сворачиваем
 	// по клику список меняется без перезагрузки и смены адреса (js/newdesign-catalog.js, 16.11.2026),
 	// .nd-sale-loading – бледный список, пока идёт ответ
 	$ndSgHtml .= '<style>.nd-sale-groups .nd-sale-groups__cnt{opacity:.5;margin-left:2px}'
