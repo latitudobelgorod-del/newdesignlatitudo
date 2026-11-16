@@ -1217,7 +1217,14 @@ unset($ndItem);
       обычной карточке: цена за единицу = цена в базовой единице × коэффициент;
    2) нет связи – по размерам из названия «146х22х3000»: самое большое число от 1000 мм – длина
       (цена за п.м), для досок (группы доска/ступени/заборы/фасад/грядки) ещё ширина от 90 мм
-      (цена за м²). */
+      (цена за м²).
+
+   С 16.11.2026 вид списком во всех разделах каталога (ND_SALE_LIST передаётся всем):
+   – простой товар каталога – коэффициенты UNIT_KOEF его самого (как в карточке);
+   – товар с предложениями (длины) – цена в единицах для КАЖДОГО предложения (OFFER_UNITS),
+     строку под выбранную длину переписывает script.js (updateStoresList);
+   – размеры из названия – только у товаров распродажи;
+   – остаток по складам считает template.php: склады там уже взяты у выбранного предложения. */
 if (($arParams['ND_SALE_LIST'] ?? '') === 'Y' && !empty($arResult['ITEMS'])) {
 	$ndMeasSym = function ($id) use ($arResult) {
 		$m = $arResult['MEASURE_ALL'][$id] ?? null;
@@ -1248,10 +1255,16 @@ if (($arParams['ND_SALE_LIST'] ?? '') === 'Y' && !empty($arResult['ITEMS'])) {
 	if (is_file($ndMapFile)) {
 		$ndMap = json_decode((string) file_get_contents($ndMapFile), true) ?: array();
 	}
-	$ndLinked = array(); // ID товара распродажи => ID товара каталога
+	$ndLinked = array(); // ID товара распродажи => ID товара каталога; простой товар каталога – сам себе
+	$ndIsSale = array();
 	foreach ($arResult['ITEMS'] as $ndItem) {
-		if (preg_match('~^rasprodaja-([0-9a-f-]{36})$~i', $ndProps[(int) $ndItem['ID']]['XML_ID'] ?? '', $m) && !empty($ndMap[$m[1]]['offer_id'])) {
-			$ndLinked[(int) $ndItem['ID']] = (int) $ndMap[$m[1]]['offer_id'];
+		if (preg_match('~^rasprodaja-([0-9a-f-]{36})$~i', $ndProps[(int) $ndItem['ID']]['XML_ID'] ?? '', $m)) {
+			$ndIsSale[(int) $ndItem['ID']] = true;
+			if (!empty($ndMap[$m[1]]['offer_id'])) {
+				$ndLinked[(int) $ndItem['ID']] = (int) $ndMap[$m[1]]['offer_id'];
+			}
+		} elseif (empty($ndItem['OFFERS'])) {
+			$ndLinked[(int) $ndItem['ID']] = (int) $ndItem['ID'];
 		}
 	}
 	unset($ndMap);
@@ -1298,8 +1311,8 @@ if (($arParams['ND_SALE_LIST'] ?? '') === 'Y' && !empty($arResult['ITEMS'])) {
 			}
 		}
 
-		// размеры – цепочка «146х22х3000» / «40*43*4000» (х русская и латинская, ×, *)
-		if (!$ndUnits && $ndPrice > 0 && preg_match('~\d{2,5}(?:\s*[xх×*]\s*\d{2,5})+~ui', (string) $ndItem['NAME'], $mm)) {
+		// размеры – цепочка «146х22х3000» / «40*43*4000» (х русская и латинская, ×, *); только распродажа
+		if (!$ndUnits && $ndPrice > 0 && !empty($ndIsSale[(int) $ndItem['ID']]) && preg_match('~\d{2,5}(?:\s*[xх×*]\s*\d{2,5})+~ui', (string) $ndItem['NAME'], $mm)) {
 			$nums = array_map('intval', preg_split('~\s*[xх×*]\s*~ui', $mm[0]));
 			rsort($nums);
 			if (count($nums) >= 2 && $nums[0] >= 1000 && $nums[0] <= 12000) {
@@ -1335,8 +1348,39 @@ if (($arParams['ND_SALE_LIST'] ?? '') === 'Y' && !empty($arResult['ITEMS'])) {
 			$ndTotal = floor((float) ($ndItem['CATALOG_QUANTITY'] ?? $ndItem['PRODUCT']['QUANTITY']) + 1e-9);
 		}
 
+		// товар с предложениями: цены во всех единицах для каждого предложения (UNIT_KOEF предложения)
+		$ndOfferUnits = array();
+		foreach ((array) ($ndItem['OFFERS'] ?? array()) as $ndOff) {
+			$p = (float) ($ndOff['MIN_PRICE']['DISCOUNT_VALUE'] ?? $ndOff['PRICES']['BASE']['DISCOUNT_VALUE'] ?? 0);
+			if ($p <= 0) {
+				continue;
+			}
+			$u = array();
+			$baseSym = $ndMeasSym((int) ($ndOff['ITEM_MEASURE']['ID'] ?? 0)) ?: (string) ($ndOff['ITEM_MEASURE']['TITLE'] ?? '');
+			if ($baseSym !== '') {
+				$u[$baseSym] = round($p);
+			}
+			$kv = (array) ($ndOff['PROPERTIES']['UNIT_KOEF']['VALUE'] ?? array());
+			$kd = (array) ($ndOff['PROPERTIES']['UNIT_KOEF']['DESCRIPTION'] ?? array());
+			foreach ($kv as $i => $k) {
+				$k = (float) str_replace(',', '.', (string) $k);
+				$sym = $ndMeasSym((int) ($kd[$i] ?? 0));
+				if ($k > 0 && $sym !== '' && !isset($u[$sym])) {
+					$u[$sym] = round($p * $k);
+				}
+			}
+			if (count($u) > 1) {
+				uksort($u, function ($a, $b) {
+					$w = array('шт' => 0, 'п.м' => 1, 'м²' => 2);
+					return ($w[$a] ?? 9) <=> ($w[$b] ?? 9) ?: strcmp($a, $b);
+				});
+				$ndOfferUnits[(int) $ndOff['ID']] = $u;
+			}
+		}
+
 		$ndArt = $ndProps[(int) $ndItem['ID']]['ARTICLE'] ?? '';
 		$ndItem['ND_SALE_LIST_ROW'] = array(
+			'OFFER_UNITS' => $ndOfferUnits,
 			'ARTICLE' => $ndArt !== '' ? $ndArt : (string) $ndItem['ID'],
 			'UNITS' => $ndUnits,
 			'UNITS_SRC' => $ndSrc,

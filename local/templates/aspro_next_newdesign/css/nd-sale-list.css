@@ -285,6 +285,48 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
     z-index: 2;
 }
 
+/* --- товары каталога с длинами (с 16.11.2026 вид списком во всех разделах) -----------------
+   У товара с предложениями своя разметка покупки: кнопки длин .sku_props и блок
+   .offer_buy_block (счётчик и корзина) вместо .counter_wrapp. Без явных мест в сетке
+   браузер раскладывает их сам и раздвигает строки. */
+@media (min-width: 768px) {
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .sku_props,
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .item_info > .sku_props {
+        grid-column: 5;
+        grid-row: 1;
+        margin: 0 0 8px !important;
+    }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .offer_buy_block {
+        grid-column: 5;
+        grid-row: 2 / -1;
+        margin: 0 !important;
+        width: auto !important;
+    }
+    /* переключатель единиц, если скрипт вынес его из строки цены */
+    html.nd-view-list .nd-sale-host .item_info > .measure-unit-block { grid-column: 3; grid-row: 2; margin: 4px 0 0 !important; }
+}
+/* название сразу под артикулом: обе в колонке 2 с первой строки сетки, название ниже на высоту
+   артикула (иначе между ними пустота высотой первой строки – цена, кнопки длин) */
+@media (min-width: 768px) {
+    html.nd-view-list .nd-sale-host .item-title { grid-row: 1 / -1; align-self: start; padding-top: 22px; }
+    html.nd-view-list .nd-sale-host .nd-lrow-art { align-self: start; position: relative; z-index: 1; }
+}
+/* служебная «минимальная цена» над блоком покупки (template.php, buttonHTML1) – в строке не нужна */
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > div:not([class]) { display: none !important; }
+/* код товара в углу плитки – в строке уже есть «Арт.» */
+html.nd-view-list .nd-sale-host .article_block.item-article { display: none !important; }
+
+/* цена и переключатель единиц (шт / м² / п.м): переключатель – второй строкой под ценой */
+html.nd-view-list .nd-sale-host .nd-price-row {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+}
+html.nd-view-list .nd-sale-host .nd-price-row .cost { flex: 0 0 100%; margin: 0 !important; }
+html.nd-view-list .nd-sale-host .nd-price-row .price { white-space: nowrap; }
+html.nd-view-list .nd-sale-host .nd-price-row .measure-unit-block { margin: 0 !important; }
+
 /* --- планшет: уже колонки -------------------------------------------------- */
 @media (max-width: 1199px) {
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap {
@@ -352,4 +394,13 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
     }
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn svg { width: 24px; height: 24px; }
     /* на телефоне увеличение по наведению не нужно – фото открывается в карточке товара */
+
+    /* товары каталога с длинами: переключатель единиц под ценой (скрипт на телефоне выносит его
+       из строки цены), кнопки длин и покупка – во всю ширину под складами */
+    html.nd-view-list .nd-sale-host .item_info > .measure-unit-block { grid-column: 2; grid-row: 4; margin: 0 !important; }
+    html.nd-view-list .nd-sale-host .item_info > .sku_props,
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .sku_props { grid-column: 1 / -1; grid-row: 7; margin: 12px 0 0 !important; }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .offer_buy_block { grid-column: 1 / -1; grid-row: 8; margin: 10px 0 0 !important; width: auto !important; }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(> .offer_buy_block) > .nd-cmp-btn { grid-row: 8; margin-top: 10px !important; }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(> .nd-cmp-btn) > .offer_buy_block { margin-left: 56px !important; }
 }

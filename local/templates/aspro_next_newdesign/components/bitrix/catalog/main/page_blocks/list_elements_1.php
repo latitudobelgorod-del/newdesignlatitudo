@@ -154,6 +154,15 @@ if($isAjaxFilter == "Y")
 	$ndNoFilter = in_array((string)($arResult["VARIABLES"]["SECTION_CODE"] ?? ''), array('rasprodazha'), true);
 	if($ndNoFilter)
 		$GLOBALS['ND_HIDE_FILTER'] = true;
+
+	/* «Плитка / список» во всех разделах каталога (Ирина, 16.11.2026; сначала была только «Распродажа»).
+	   Кнопки печатает sort_newdesign.php по флагу ND_VIEW_SWITCH, вид списком – css/nd-sale-list.css
+	   (обёртка .nd-sale-host ниже), данные строки – result_modifier шаблона по ND_SALE_LIST.
+	   SEO: адрес не меняется, выбор – только в браузере (localStorage), робот видит плитку.
+	   Стили прямой ссылкой: сборка шаблона на проде отдаётся урезанной копией (css/purged). */
+	$GLOBALS['ND_VIEW_SWITCH'] = true;
+	$ndSlCss = SITE_TEMPLATE_PATH . '/css/nd-sale-list.css';
+	$APPLICATION->AddHeadString('<link href="' . $ndSlCss . '?' . (int)@filemtime($_SERVER['DOCUMENT_ROOT'] . $ndSlCss) . '" rel="stylesheet">', true);
 	?>
 	<?if($arTheme["FILTER_VIEW"]["VALUE"] === "VERTICAL" && !$ndNoFilter):?>
 		<?//add filter with ajax?>
@@ -1026,7 +1035,7 @@ $ar_res = $res->GetNext();
 
 				<?/* nd-sale-host – «Распродажа», вид списком (css/nd-sale-list.css). Шапки колонок нет:
 				   Ирина 16.11.2026 – «не нужны, и так всё понятно» */?>
-				<div class="ajax_load <?=$display;?><?=($ndNoFilter ? ' nd-sale-host' : '')?>">
+				<div class="ajax_load <?=$display;?> nd-sale-host">
 			<?}?>
 				<?
                 if($_SESSION['SMART_FILTER_VAR']) {
@@ -1198,9 +1207,9 @@ $ar_res = $res->GetNext();
 						"HIDE_ELEMENT_LIST" => $APPLICATION->GetProperty("HIDE_ELEMENT_LIST"),
 						"SEO_DEOPTIMIZING" => $arParams['SEO_DEOPTIMIZING']
 
-					/* «Распродажа»: данные для вида списком (result_modifier шаблона, 16.11.2026). Ключ
-					   добавляем только ей – у остальных разделов параметры, а с ними и кеш, прежние. */
-					) + ($ndNoFilter ? array("ND_SALE_LIST" => "Y") : array()), $component, array("HIDE_ICONS" => $isAjax)
+					/* Данные для вида списком (result_modifier шаблона): с 16.11.2026 во всех разделах,
+					   сначала была только «Распродажа». */
+					) + array("ND_SALE_LIST" => "Y"), $component, array("HIDE_ICONS" => $isAjax)
 				);?>
 					<?/* Плитки акций для сетки товаров: разметку собрали выше,
 					   по ячейкам её раскладывает js/newdesign-catalog.js. */?>

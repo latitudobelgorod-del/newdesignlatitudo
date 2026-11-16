@@ -667,6 +667,7 @@ window.JCCatalogSection.prototype.Init = function()
 };
 window.JCCatalogSection.prototype.updateStoresList = function(offerId)
 {
+    this.ndUpdateListRow(offerId);
     var $storesContainer = $(this.obProduct).find('.product-item-stores');
     if (!$storesContainer.length) return;
 
@@ -800,6 +801,48 @@ window.JCCatalogSection.prototype.hideDefaultStock = function()
 /**
  * Простейшее экранирование спецсимволов HTML
  */
+/* Вид списком (16.11.2026): строка товара с длинами – цены в единицах и склады выбранного
+   предложения. Данные печатает template.php: data-nd-offer-units (цены по предложениям) и
+   data-offers-stores у плашки «В наличии». Только целые остатки, как в шаблоне. */
+window.JCCatalogSection.prototype.ndUpdateListRow = function(offerId)
+{
+    var root = this.obProduct;
+    if (!root || !root.querySelector) return;
+    var self = this;
+    var fmt = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
+
+    var units = root.querySelector('.nd-lrow-units[data-nd-offer-units]');
+    if (units) {
+        var all = {};
+        try { all = JSON.parse(units.getAttribute('data-nd-offer-units')) || {}; } catch (e) {}
+        var u = all[offerId] || {};
+        var html = '';
+        for (var sym in u) {
+            if (u.hasOwnProperty(sym)) {
+                html += '<span class="nd-lrow-units__item">' + fmt(u[sym]) + ' ₽/' + self.htmlspecialchars(sym) + '</span>';
+            }
+        }
+        units.innerHTML = html;
+    }
+
+    var stock = root.querySelector('.nd-lrow-stock');
+    var storesBox = root.querySelector('.product-item-stores');
+    if (stock && storesBox && storesBox.getAttribute('data-offers-stores')) {
+        var data = {};
+        try { data = JSON.parse(storesBox.getAttribute('data-offers-stores')) || {}; } catch (e) {}
+        if (!data[offerId] && Object.keys(data).length === 0) return;
+        var meas = self.htmlspecialchars(stock.getAttribute('data-measure') || 'шт');
+        var list = [], total = 0;
+        (data[offerId] || []).forEach(function (st) {
+            var a = Math.floor(parseFloat(st.AMOUNT) + 1e-9);
+            if (a > 0) { list.push('<li><span>' + self.htmlspecialchars(st.NAME) + '</span> <b>' + fmt(a) + ' ' + meas + '</b></li>'); total += a; }
+        });
+        stock.innerHTML = total > 0
+            ? '<div class="nd-lrow-stock__total is-in">В наличии ' + fmt(total) + ' ' + meas + '</div><ul class="nd-lrow-stock__list">' + list.join('') + '</ul>'
+            : '<div class="nd-lrow-stock__total">Под заказ</div>';
+    }
+};
+
 window.JCCatalogSection.prototype.htmlspecialchars = function(str)
 {
     if (!str) return '';
