@@ -246,7 +246,7 @@ html.nd-view-list .nd-sale-host .nd-lrow-stock {
     padding: 2px 10px !important;
     background: #f2f9f4;
     border: 1px solid #d6ecdd;
-    border-radius: 8px;
+    border-radius: 3px; /* как у счётчика рядом (Ирина, 16.11.2026) */
 }
 .nd-lrow-stock__list li {
     display: flex;
@@ -306,7 +306,8 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
         grid-template-rows: none;
         column-gap: 12px;
         row-gap: 6px;
-        padding: 14px 0 !important;
+        /* поля по бокам и снизу: без них наличие и счётчик липли к краю и к следующей строке (16.11.2026) */
+        padding: 18px 14px 20px !important;
     }
     html.nd-view-list .nd-sale-host .image_wrapper_block { grid-row: 1 / span 3; }
     html.nd-view-list .nd-sale-host .nd-lrow-art { grid-column: 2; grid-row: 1; margin: 0; }
@@ -316,8 +317,8 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
     html.nd-view-list .nd-sale-host .nd-lrow-units { grid-column: 2; grid-row: 5; margin: 0; }
     html.nd-view-list .nd-sale-host .nd-lrow-units__item { display: inline; }
     html.nd-view-list .nd-sale-host .nd-lrow-units__item + .nd-lrow-units__item::before { content: " · "; color: #bdbdbd; }
-    html.nd-view-list .nd-sale-host .nd-lrow-stock { grid-column: 1 / -1; grid-row: 6; margin-top: 4px; }
-    /* на телефоне склады в строку – каждый своей пилюлей */
+    html.nd-view-list .nd-sale-host .nd-lrow-stock { grid-column: 1 / -1; grid-row: 6; margin-top: 12px; }
+    /* на телефоне склады в строку – каждый своей плашкой, скругление как у счётчика */
     html.nd-view-list .nd-sale-host .nd-lrow-stock__list {
         display: flex; flex-wrap: wrap; gap: 6px;
         padding: 0 !important; background: none; border: 0; border-radius: 0;
@@ -325,9 +326,9 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
     html.nd-view-list .nd-sale-host .nd-lrow-stock__list li {
         justify-content: flex-start; gap: 6px;
         padding: 4px 10px !important;
-        background: #f2f9f4; border: 1px solid #d6ecdd; border-radius: 999px;
+        background: #f2f9f4; border: 1px solid #d6ecdd; border-radius: 3px;
     }
     html.nd-view-list .nd-sale-host .nd-lrow-stock__list li + li { border-top: 1px solid #d6ecdd; }
-    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .counter_wrapp { grid-column: 1 / -1; grid-row: 7; margin-top: 6px !important; }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .counter_wrapp { grid-column: 1 / -1; grid-row: 7; margin-top: 14px !important; }
     /* на телефоне увеличение по наведению не нужно – фото открывается в карточке товара */
 }
