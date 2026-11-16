@@ -593,3 +593,17 @@ html.nd-view-list .nd-sale-host .nd-lrow-stock.nd-lrow-stock--none { display: no
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.nd-lrow-stock--none):not(:has(.sku_props)) > .offer_buy_block,
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.nd-lrow-stock--none):not(:has(.sku_props)) > .nd-cmp-btn { margin-top: -12px !important; }
 }
+
+/* «Распродажа» во всю ширину без левой колонки, плитки по 5 в ряд (Ирина, 16.11.2026).
+   Левую колонку не печатает footer.php (HIDE_LEFT_BLOCK из list_elements_1.php); .right_block печатается
+   раньше раздела, класс ширины ей ставит строчка скрипта перед списком – так же сделан поиск. */
+.right_block.nd-sale-wide-col {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 0 !important;
+    float: none !important;
+}
+html:not(.nd-view-list) .nd-sale-wide .nd-catlist .catalog_block { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 1500px) { html:not(.nd-view-list) .nd-sale-wide .nd-catlist .catalog_block { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 1199px) { html:not(.nd-view-list) .nd-sale-wide .nd-catlist .catalog_block { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 767px)  { html:not(.nd-view-list) .nd-sale-wide .nd-catlist .catalog_block { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

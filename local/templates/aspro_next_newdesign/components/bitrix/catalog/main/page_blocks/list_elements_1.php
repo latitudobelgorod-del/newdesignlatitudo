@@ -154,6 +154,11 @@ if($isAjaxFilter == "Y")
 	$ndNoFilter = in_array((string)($arResult["VARIABLES"]["SECTION_CODE"] ?? ''), array('rasprodazha'), true);
 	if($ndNoFilter)
 		$GLOBALS['ND_HIDE_FILTER'] = true;
+	/* «Распродажа» во всю ширину: без левой колонки («Уточните наличие…»), плитки по 5 в ряд
+	   (Ирина, 16.11.2026). Колонку не печатает footer.php по свойству HIDE_LEFT_BLOCK (как на поиске),
+	   ширину правой колонки и 5 плиток задаёт css/nd-sale-list.css (.nd-sale-wide). */
+	if($ndNoFilter)
+		$APPLICATION->SetPageProperty('HIDE_LEFT_BLOCK', 'Y');
 
 	/* «Плитка / список» во всех разделах каталога (Ирина, 16.11.2026; сначала была только «Распродажа»).
 	   Кнопки печатает sort_newdesign.php по флагу ND_VIEW_SWITCH, вид списком – css/nd-sale-list.css
@@ -1035,7 +1040,8 @@ $ar_res = $res->GetNext();
 
 				<?/* nd-sale-host – «Распродажа», вид списком (css/nd-sale-list.css). Шапки колонок нет:
 				   Ирина 16.11.2026 – «не нужны, и так всё понятно» */?>
-				<div class="ajax_load <?=$display;?> nd-sale-host">
+				<div class="ajax_load <?=$display;?> nd-sale-host<?=$ndNoFilter ? ' nd-sale-wide' : ''?>">
+				<?if($ndNoFilter):?><script>(function(s){var b=s&&s.parentNode&&s.parentNode.closest?s.parentNode.closest(".right_block"):null;if(b)b.classList.add("nd-sale-wide-col");})(document.currentScript);</script><?endif;?>
 			<?}?>
 				<?
                 if($_SESSION['SMART_FILTER_VAR']) {
