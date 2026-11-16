@@ -320,6 +320,15 @@ AddEventHandler('iblock', 'OnAfterIBlockElementSetPropertyValuesEx', ['LatitudoV
 AddEventHandler('iblock', 'OnAfterIBlockElementDelete', ['LatitudoVideoSync', 'onElementDelete']);
 
 /**
+ * «Цена по запросу» (16.11.2026): у товара без цены (4SIS «под заказ») над
+ * кнопкой «Узнать цену» вместо «Заказать». Новый дизайн, все шаблоны сразу.
+ *
+ * Логика в local/php_interface/include/latitudo_price_request.php.
+ */
+require_once $_SERVER['DOCUMENT_ROOT'].'/local/php_interface/include/latitudo_price_request.php';
+AddEventHandler('aspro.next', 'OnAsproGetBuyBlockElement', 'ndPriceRequestBuyBlock');
+
+/**
  * Расчёт доставки из корзины (фрейм LATITUDO, галочка «С доставкой») —
  * в комментарий нового заказа, если состав с расчёта не менялся. Сумма
  * заказа не меняется: цена из браузера, для менеджера — «предварительно».
