@@ -404,3 +404,8 @@ html.nd-view-list .nd-sale-host .nd-price-row .measure-unit-block { margin: 0 !i
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(> .offer_buy_block) > .nd-cmp-btn { grid-row: 8; margin-top: 10px !important; }
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(> .nd-cmp-btn) > .offer_buy_block { margin-left: 56px !important; }
 }
+
+/* Плитки акций и сквозной баннер (.nd-promo-cell, .nd-catbanner) рассчитаны на сетку плиток;
+   в строке списка растягиваются на всю ширину и становятся огромными – в списке их не показываем
+   (Ирина, 16.11.2026). В плитке остаются. */
+html.nd-view-list .nd-sale-host .nd-promo-cell { display: none !important; }
