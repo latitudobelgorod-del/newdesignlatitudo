@@ -51,9 +51,14 @@ html.nd-view-list .nd-viewsw__btn--list {
         row-gap: 8px;
         align-items: start;
     }
-    .nd-catlist-sort--viewsw .nd-catlist-sort__tags { grid-column: 1; grid-row: 1 / span 2; }
-    .nd-catlist-sort--viewsw .nd-catlist-sort__select { grid-column: 2; grid-row: 1; justify-self: end; }
-    .nd-catlist-sort--viewsw .nd-viewsw { grid-column: 2; grid-row: 2; justify-self: end; margin: 0; }
+    /* 16.11.2026 (Ирина, скриншот): чипы – первой строкой во всю ширину, под ними слева сортировка,
+       справа «плитка/список» – одной строкой */
+    .nd-catlist-sort--viewsw .nd-catlist-sort__tags { grid-column: 1 / -1; grid-row: 1; }
+    .nd-catlist-sort--viewsw .nd-catlist-sort__select { grid-column: 1; grid-row: 2; justify-self: start; align-self: center; }
+    .nd-catlist-sort--viewsw .nd-viewsw { grid-column: 2; grid-row: 2; justify-self: end; align-self: center; margin: 0; }
+    .nd-catlist-sort--viewsw .nd-catlist-sort__tags:empty { display: none; }
+    /* сортировка теперь слева – список вариантов открываем вправо, а не поверх фильтра */
+    .nd-catlist-sort--viewsw .nd-catlist-sort__list { left: 0 !important; right: auto !important; }
 }
 
 /* --- вид списком: общая сетка ------------------------------------------- */
@@ -153,6 +158,9 @@ html.nd-view-list .nd-sale-host .image_wrapper_block .thumb img {
         box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
         border-radius: 3px;
     }
+    /* фото поверх всего в своей строке тоже: кнопки длин, цены, склады – соседние элементы той же
+       сетки, без своего z-index у блока картинки увеличенное фото уходило под длины (16.11.2026) */
+    html.nd-view-list .nd-sale-host .image_wrapper_block:hover { z-index: 30 !important; }
 }
 html.nd-view-list .nd-sale-host .colproduct_video { display: none !important; }
 
