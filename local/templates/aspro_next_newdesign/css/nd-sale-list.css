@@ -409,7 +409,7 @@ html.nd-view-list .nd-sale-host .nd-price-row .measure-unit-block { margin: 0 !i
 
     /* товары каталога с длинами: переключатель единиц под ценой (скрипт на телефоне выносит его
        из строки цены), кнопки длин и покупка – во всю ширину под складами */
-    html.nd-view-list .nd-sale-host .item_info > .measure-unit-block { grid-column: 2; grid-row: 4; margin: 0 !important; }
+    html.nd-view-list .nd-sale-host .item_info > .measure-unit-block { grid-column: 2; grid-row: 5; margin: 6px 0 0 !important; } /* строка 4 – старая цена со скидкой, 5 – переключатель (строку цен в единицах он прячет) */
     html.nd-view-list .nd-sale-host .item_info > .sku_props,
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .sku_props { grid-column: 1 / -1; grid-row: 7; margin: 12px 0 0 !important; }
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .offer_buy_block { grid-column: 1 / -1; grid-row: 8; margin: 10px 0 0 !important; width: auto !important; }
