@@ -2172,3 +2172,99 @@
 	document.addEventListener('DOMContentLoaded', init);
 	document.addEventListener('nd:appended', init);
 })();
+
+/* ---------------------------------------------------------------------------
+   «Распродажа»: чипы групп (Все · Террасная доска · Ступени · …) переключают
+   список без перезагрузки и без смены адреса (Ирина, 16.11.2026: «чтобы url
+   не менялся, страница пересобиралась не обновляясь»).
+
+   Чипы печатает include/sale_groups_newdesign.php обычными ссылками ?group=…:
+   без JS, в новой вкладке и для робота они работают как раньше. По клику
+   берём ту же страницу с группой и подменяем два узла — строку сортировки
+   (там чипы и ссылки сортировки с группой) и .ajax_load (карточки
+   и постраничка, «Показать ещё» уже с группой). Скрипты карточек
+   пересоздаём сами, дальше nd:appended: по нему перепривязываются
+   сортировка (старая шторка из body убирается) и раскладка карточек.
+   ------------------------------------------------------------------------ */
+(function () {
+	'use strict';
+
+	var ctrl = null;
+	var loaded = null; // адреса внешних скриптов, уже загруженных на странице
+
+	/* Скрипты, попавшие через импорт узлов, браузер не выполняет — пересоздаём.
+	   Атрибуты копируем все: у JSON-LD type="application/ld+json", без него
+	   разметка товара выполнилась бы как JS. data-nd-run — чтобы
+	   runAppendedScripts() не запустил их второй раз.
+	   Внешние скрипты, которые уже стоят на странице, второй раз не грузим:
+	   шаблон списка сам подключает newdesign-catalog.js и newdesign-ui.js,
+	   и повторная загрузка навешивала обработчики заново – «Показать ещё»
+	   добавлял каждую порцию по три раза. */
+	function runScripts(root, loaded) {
+		[].forEach.call(root.querySelectorAll('script'), function (old) {
+			if (old.src && loaded.indexOf(old.src) !== -1) {
+				old.parentNode.removeChild(old);
+				return;
+			}
+			if (old.src) loaded.push(old.src);
+			var s = document.createElement('script');
+			[].forEach.call(old.attributes, function (at) { s.setAttribute(at.name, at.value); });
+			s.textContent = old.textContent;
+			s.setAttribute('data-nd-run', '1');
+			old.parentNode.replaceChild(s, old);
+		});
+	}
+
+	document.addEventListener('click', function (e) {
+		var chip = e.target.closest ? e.target.closest('.nd-sale-groups a[href]') : null;
+		/* Ctrl/Shift/колёсико — пусть открывается новая вкладка, как обычная ссылка */
+		if (!chip || e.defaultPrevented || e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+
+		var sort = chip.closest('.nd-catlist-sort');
+		var list = document.querySelector('.ajax_load');
+		var href = chip.getAttribute('href');
+		if (!sort || !list || !href) return;
+
+		e.preventDefault();
+		if (chip.classList.contains('active')) return;
+
+		/* Сразу отмечаем выбранный чип — ответ идёт до секунды */
+		[].forEach.call(sort.querySelectorAll('.nd-sale-groups a'), function (a) {
+			a.classList.toggle('active', a === chip);
+		});
+
+		if (ctrl) ctrl.abort();
+		ctrl = window.AbortController ? new AbortController() : null;
+		list.classList.add('nd-sale-loading');
+
+		fetch(href, { credentials: 'same-origin', signal: ctrl ? ctrl.signal : undefined })
+			.then(function (r) {
+				if (!r.ok) throw new Error('HTTP ' + r.status);
+				return r.text();
+			})
+			.then(function (html) {
+				var doc = new DOMParser().parseFromString(html, 'text/html');
+				var freshSort = doc.querySelector('.nd-catlist-sort');
+				var freshList = doc.querySelector('.ajax_load');
+				if (!freshSort || !freshList) throw new Error('в ответе нет списка');
+
+				/* Адреса загруженных скриптов запоминаем один раз, до первой подмены, и дальше
+				   только пополняем: старый список уносит свои теги, и со второго переключения
+				   по document.scripts повтор уже не видно – «Показать ещё» добавлял порцию трижды. */
+				if (!loaded) loaded = [].map.call(document.scripts, function (x) { return x.src; }).filter(Boolean);
+				var newSort = document.importNode(freshSort, true);
+				var newList = document.importNode(freshList, true);
+				sort.parentNode.replaceChild(newSort, sort);
+				list.parentNode.replaceChild(newList, list);
+				runScripts(newList, loaded);
+
+				document.dispatchEvent(new CustomEvent('nd:appended'));
+				window.dispatchEvent(new Event('resize'));
+			})
+			.catch(function (err) {
+				if (err && err.name === 'AbortError') return;
+				/* не вышло — обычный переход: лучше перезагрузка, чем застывший список */
+				window.location.href = href;
+			});
+	});
+})();

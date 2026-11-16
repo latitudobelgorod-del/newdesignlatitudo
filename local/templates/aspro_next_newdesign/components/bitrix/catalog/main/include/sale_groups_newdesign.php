@@ -74,7 +74,10 @@ if ($ndSgData && $ndSgData['enums']) {
 	$ndSgHtml .= '</div>';
 	// число в чипе – приглушённое; стили здесь: newdesign-catalog.css на проде отдаётся урезанной копией
 	// nd-tags-open: групп мало, в один ряд с «…» (collapseTags в newdesign-catalog.js) не сворачиваем
-	$ndSgHtml .= '<style>.nd-sale-groups .nd-sale-groups__cnt{opacity:.5;margin-left:2px}</style>';
+	// по клику список меняется без перезагрузки и смены адреса (js/newdesign-catalog.js, 16.11.2026),
+	// .nd-sale-loading – бледный список, пока идёт ответ
+	$ndSgHtml .= '<style>.nd-sale-groups .nd-sale-groups__cnt{opacity:.5;margin-left:2px}'
+		. '.ajax_load.nd-sale-loading{opacity:.4;pointer-events:none;transition:opacity .2s}</style>';
 	$GLOBALS['ND_CATALOG_TAGS_HTML'] = $ndSgHtml;
 
 	if ($ndSgCur !== '') {

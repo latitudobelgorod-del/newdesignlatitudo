@@ -223,7 +223,10 @@
 				// навигацию заменяем целиком: у неё сдвинулась текущая страница
 				nav.innerHTML = nextNav ? nextNav.innerHTML : '';
 				document.dispatchEvent(new CustomEvent('nd:appended'));
-				if (window.history && window.history.replaceState) {
+				/* На «Распродаже» адрес не трогаем: группы там переключаются без смены
+				   адреса (newdesign-catalog.js), и ?group=…&PAGEN_1=2 выдавал бы
+				   выбранную группу (Ирина, 16.11.2026) */
+				if (window.history && window.history.replaceState && !document.querySelector('.nd-sale-groups')) {
 					window.history.replaceState(null, '', href);
 				}
 			})
