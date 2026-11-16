@@ -424,3 +424,31 @@ html.nd-view-list .nd-sale-host .nd-promo-cell { display: none !important; }
 
 /* цены в шт / п.м / м² строкой ниже не нужны, если у товара есть переключатель единиц (Ирина, 16.11.2026) */
 html.nd-view-list .nd-sale-host .catalog_item_wrapp:has(.measure-unit-block) .nd-lrow-units { display: none !important; }
+
+/* Пока newdesign-catalog.js не собрал карточку (.nd-ready ставит arrangeCard, у товаров с длинами –
+   после компонента единиц, ~0,5 с), цена, переключатель, длины и покупка ещё не в своих обёртках
+   и в сетке списка наезжают друг на друга. До сборки показываем только фото, артикул, название и
+   наличие, остальное – невидимым, но с местом (без скачка высоты). Ирина, 16.11.2026. */
+html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .inner_wrap > *:not(.image_wrapper_block):not(.item_info),
+html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .item_info > *:not(.item-title):not(.nd-lrow-art):not(.nd-lrow-stock) {
+    visibility: hidden;
+}
+@media (min-width: 768px) {
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .item_info > .cost.prices { grid-column: 3; grid-row: 1 / 3; }
+}
+
+/* «Цена по запросу» и «Узнать цену» в строке списка – мельче, чем в плитке (там 18 px и кнопка 48 px):
+   по размеру как цена и счётчик соседних строк (Ирина, 16.11.2026) */
+html.nd-view-list .nd-sale-host .nd-price-request {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0 0 8px;
+}
+html.nd-view-list .nd-sale-host .button_block:has(> .nd-price-request) .btn {
+    height: 40px !important;
+    min-height: 0 !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+    line-height: 38px !important;
+}
