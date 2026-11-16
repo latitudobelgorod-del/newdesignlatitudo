@@ -10,20 +10,16 @@ FROM = 'info@latitudo.ru'
 log = io.open(sys.argv[1], encoding='utf-8', errors='replace').read()
 date = os.path.basename(sys.argv[1])[:10]
 
-# отчёт цен этого прогона: последняя папка *_apply от sync_4sis.php
-reports = sorted(d for d in glob.glob(os.path.expanduser('~/4sis-sync/' + date.replace('-', '-') + '_*_apply')) if '_new_' not in d and '_vendor_' not in d)
-# за ночь цены пишутся дважды (по фиду и по сайту 4sis.ru) — собираем изменения из всех прогонов этого дня
+# цены с 16.11.2026 – по сайту 4sis.ru (site_price_4sis.php), строки журнала:
+# «цена<TAB>ID<TAB>было → стало<TAB>название<TAB>пояснение» и «убрать<TAB>…» (цена по запросу)
+changed = re.findall(r'^(цена|убрать)\t(\d+)\t(.+?)\t(.+?)\t', log, re.M)
+# report.csv сопоставления с фидом (сухой прогон sync_4sis.php) – во вложение
+reports = sorted(glob.glob(os.path.expanduser('~/4sis-sync/' + date + '_*_dry')))
 reports = [d for d in reports if os.path.getmtime(d) > __import__('time').time() - 6 * 3600]
-changed = []
-for d in reports:
-    if os.path.exists(d + '/report.csv'):
-        for r in csv.reader(io.open(d + '/report.csv', encoding='utf-8-sig'), delimiter=';'):
-            if r and (r[0].startswith('поднять') or r[0].startswith('снизить') or r[0].startswith('поставить')):
-                changed.append(r)
-report = reports[0] + '/report.csv' if reports else ''
+report = reports[-1] + '/report.csv' if reports else ''
 
 created = re.findall(r'^(\d+) (.+?) — фото \d+$', log, re.M)
-activated = re.findall(r'^  (\d+) (.+)$', log.split('== включить')[1].split('== цены')[0], re.M) if '== включить' in log and '== цены' in log else []
+activated = re.findall(r'^  (\d+) (.+)$', log.split('== включить')[1].split('== артикул')[0], re.M) if '== включить' in log and '== артикул' in log else []
 deactivated = re.findall(r'^  выключить (\d+) (.+)$', log, re.M)
 error = 'ОШИБКА' in log or 'Traceback' in log
 xlsx = os.path.expanduser('~/4sis-sync/daily/Сверка_цен_4SIS_%s.xlsx' % date)
@@ -52,9 +48,9 @@ promo_del = re.findall(r'^  − (\d+ .+ — акция у 4SIS закончил�
 lines = ['Ежедневная сверка товаров 4SIS с фидом поставщика (https://4sis.ru/images/111/XML_OCT_EACH.xml), ' + date + '.', '']
 if error:
     lines += ['ВНИМАНИЕ, ошибки:'] + ['  ' + e for e in errors] + ['']
-lines += ['Цены изменены: %d' % len(changed)]
+lines += ['Цены изменены по сайту 4sis.ru: %d (нет цены на 4sis.ru – у нас «Цена по запросу»)' % len(changed)]
 for r in changed[:100]:
-    lines.append('  %s — %s → %s ₽ (%s%%) %s' % (r[4], r[5], r[6], r[7], r[11]))
+    lines.append('  %s %s — %s' % (r[1], r[3], r[2] + ('' if 'запросу' in r[2] else ' ₽')))
 if len(changed) > 100:
     lines.append('  … полный список во вложении')
 lines += ['', 'Включены (снова есть у 4SIS): %d' % len(activated)] + ['  %s %s' % a for a in activated]
@@ -75,7 +71,7 @@ if stats:
     lines += ['', 'Сопоставление цен:'] + ['  ' + s for s in stats]
 if weekly:
     lines += ['', 'Еженедельно: ' + '; '.join(weekly)]
-lines += ['', 'Цена у нас — цена 4SIS без акции. Во вложении — таблица сверки (xlsx), отчёт по ценам (csv) и полный журнал (txt).',
+lines += ['', 'Цена у нас — розничная цена с карточки 4sis.ru (без акции); фид — только список товаров. Во вложении — таблица сверки (xlsx), отчёт по ценам (csv) и полный журнал (txt).',
           'Журнал на сервере: ~/4sis-sync/' + sys.argv[1]]
 if '--print' in sys.argv:  # проверка без отправки
     print('\n'.join(lines))
