@@ -40,6 +40,22 @@ html.nd-view-list .nd-viewsw__btn--list {
     border-color: #1a1a1a;
 }
 
+/* На компьютере переключатель – под сортировкой, прижат вправо (Ирина, 16.11.2026, скриншот):
+   строка сортировки сеткой, чипы групп слева на обе строки. Класс nd-catlist-sort--viewsw ставит
+   sort_newdesign.php вместе с кнопками. На телефоне порядок прежний (newdesign-catalog.css). */
+@media (min-width: 768px) {
+    .nd-catlist-sort.nd-catlist-sort--viewsw {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        column-gap: 24px;
+        row-gap: 8px;
+        align-items: start;
+    }
+    .nd-catlist-sort--viewsw .nd-catlist-sort__tags { grid-column: 1; grid-row: 1 / span 2; }
+    .nd-catlist-sort--viewsw .nd-catlist-sort__select { grid-column: 2; grid-row: 1; justify-self: end; }
+    .nd-catlist-sort--viewsw .nd-viewsw { grid-column: 2; grid-row: 2; justify-self: end; margin: 0; }
+}
+
 /* --- вид списком: общая сетка ------------------------------------------- */
 html.nd-view-list .nd-sale-host .nd-lhead,
 html.nd-view-list .nd-sale-host .nd-lrow-art,

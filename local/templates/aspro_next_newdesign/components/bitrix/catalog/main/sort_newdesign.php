@@ -71,7 +71,7 @@ foreach($sortArr as $value){
 // чипы посадочных страниц собираются в list_elements_1.php — здесь только печатаем
 $ndTagsHtml = isset($GLOBALS['ND_CATALOG_TAGS_HTML']) ? trim($GLOBALS['ND_CATALOG_TAGS_HTML']) : '';
 ?>
-<div class="sort_header nd-catlist-sort view_<?=$display?>">
+<div class="sort_header nd-catlist-sort view_<?=$display?><?=(!empty($GLOBALS['ND_VIEW_SWITCH']) ? ' nd-catlist-sort--viewsw' : '')?>">
 	<?/* «Найдено N» на поиске (Ирина, 2026-08-12): по макету стоит в этой же
 	   строке слева, на одном уровне с сортировкой. Цифру печатает список —
 	   отдаёт её в отложенную область `nd_search_count`; флаг ND_SEARCH_COUNT

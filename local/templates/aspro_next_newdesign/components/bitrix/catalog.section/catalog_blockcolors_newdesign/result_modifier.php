@@ -1323,14 +1323,16 @@ if (($arParams['ND_SALE_LIST'] ?? '') === 'Y' && !empty($arResult['ITEMS'])) {
 		$ndStores = array();
 		$ndTotal = 0;
 		foreach ((array) ($ndItem['STORES_DATA'] ?? array()) as $st) {
-			$a = (float) $st['AMOUNT'];
+			/* только целые: фид распродажи бывает с дробью (5,25 шт), купить можно только целые,
+			   плашка «В наличии» в плитке тоже отбрасывает дробь (int) */
+			$a = floor((float) $st['AMOUNT'] + 1e-9);
 			if ($a > 0) {
 				$ndStores[] = array('NAME' => $st['NAME'], 'AMOUNT' => $a);
 				$ndTotal += $a;
 			}
 		}
 		if (!$ndStores && (float) ($ndItem['CATALOG_QUANTITY'] ?? $ndItem['PRODUCT']['QUANTITY'] ?? 0) > 0) {
-			$ndTotal = (float) ($ndItem['CATALOG_QUANTITY'] ?? $ndItem['PRODUCT']['QUANTITY']);
+			$ndTotal = floor((float) ($ndItem['CATALOG_QUANTITY'] ?? $ndItem['PRODUCT']['QUANTITY']) + 1e-9);
 		}
 
 		$ndArt = $ndProps[(int) $ndItem['ID']]['ARTICLE'] ?? '';
