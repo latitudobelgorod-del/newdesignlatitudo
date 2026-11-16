@@ -1024,13 +1024,9 @@ $ar_res = $res->GetNext();
 			<?if($isAjax === 'N'){?>
 			
 
+				<?/* nd-sale-host – «Распродажа», вид списком (css/nd-sale-list.css). Шапки колонок нет:
+				   Ирина 16.11.2026 – «не нужны, и так всё понятно» */?>
 				<div class="ajax_load <?=$display;?><?=($ndNoFilter ? ' nd-sale-host' : '')?>">
-				<?if($ndNoFilter):?>
-					<?/* шапка колонок вида списком (css/nd-sale-list.css), в плитке скрыта */?>
-					<div class="nd-lhead" hidden>
-						<span class="nd-lhead__img"></span><span>Товар</span><span>Цена</span><span>Наличие</span><span></span>
-					</div>
-				<?endif;?>
 			<?}?>
 				<?
                 if($_SESSION['SMART_FILTER_VAR']) {
