@@ -94,6 +94,22 @@ $ndTagsHtml = isset($GLOBALS['ND_CATALOG_TAGS_HTML']) ? trim($GLOBALS['ND_CATALO
 	   свой поиск по релевантности, и «сначала дешёвые» ломало бы этот
 	   порядок. Флаг ставит шаблон catalog.search/main; сами переменные
 	   сортировки ниже считаются как обычно — список без них не соберётся. */?>
+	<?/* «Плитка / список» – пока только в «Распродаже» (флаг ставит include/sale_groups_newdesign.php).
+	   Вид – класс nd-view-list на <html>, выбор помнит localStorage; плитка по умолчанию. Скрипт
+	   стоит до списка, поэтому список сразу рисуется в нужном виде, без мигания плиткой.
+	   Клик – js/newdesign-catalog.js. */?>
+	<?if(!empty($GLOBALS['ND_VIEW_SWITCH'])):?>
+	<div class="nd-viewsw" role="group" aria-label="Вид списка">
+		<button type="button" class="nd-viewsw__btn nd-viewsw__btn--tile" data-nd-view="tile" title="Плиткой" aria-label="Плиткой">
+			<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M2 2h7v7H2zm9 0h7v7h-7zM2 11h7v7H2zm9 0h7v7h-7z"/></svg>
+		</button>
+		<button type="button" class="nd-viewsw__btn nd-viewsw__btn--list" data-nd-view="list" title="Списком" aria-label="Списком">
+			<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M2 3h4v4H2zm6 1h10v2H8zM2 8h4v4H2zm6 1h10v2H8zM2 13h4v4H2zm6 1h10v2H8z"/></svg>
+		</button>
+	</div>
+	<script data-skip-moving="true">try{document.documentElement.classList.toggle('nd-view-list',localStorage.getItem('nd_sale_view')==='list')}catch(e){}</script>
+	<?endif;?>
+
 	<?if(empty($GLOBALS['ND_HIDE_SORT'])):?>
 	<div class="nd-catlist-sort__select">
 		<span class="nd-catlist-sort__current"><?=$ndCurrentSortTitle?></span>

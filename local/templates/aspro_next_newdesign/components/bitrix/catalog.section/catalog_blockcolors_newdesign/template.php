@@ -849,6 +849,37 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 								<?}?>
 							</div>
 						<?/*item_info*/?>
+						<?/* «Распродажа», вид списком (Ирина, 16.11.2026): артикул, цена в других единицах,
+						   остаток общий и по складам. Данные – result_modifier.php (ND_SALE_LIST_ROW), печатаются
+						   только в распродаже; в плитке скрыты (hidden), показывает их css/nd-sale-list.css
+						   при html.nd-view-list. */?>
+						<?if(!empty($arItem['ND_SALE_LIST_ROW'])):
+							$ndRow = $arItem['ND_SALE_LIST_ROW'];
+							$ndNum = function ($v) {
+								$v = round((float) $v, 2);
+								return number_format($v, $v == floor($v) ? 0 : 2, ',', ' ');
+							};?>
+							<div class="nd-lrow-art" hidden>Арт. <?=htmlspecialcharsbx($ndRow['ARTICLE'])?></div>
+							<div class="nd-lrow-units" hidden>
+								<?foreach($ndRow['UNITS'] as $ndSym => $ndUnitPrice):?>
+									<span class="nd-lrow-units__item"><?=number_format(round($ndUnitPrice), 0, ',', ' ')?> ₽/<?=htmlspecialcharsbx($ndSym)?></span>
+								<?endforeach;?>
+							</div>
+							<div class="nd-lrow-stock" hidden>
+								<?if($ndRow['TOTAL'] > 0):?>
+									<div class="nd-lrow-stock__total is-in">В наличии <?=$ndNum($ndRow['TOTAL'])?> <?=htmlspecialcharsbx($ndRow['MEASURE'])?></div>
+									<?if($ndRow['STORES']):?>
+										<ul class="nd-lrow-stock__list">
+											<?foreach($ndRow['STORES'] as $ndStore):?>
+												<li><span><?=htmlspecialcharsbx($ndStore['NAME'])?></span> <b><?=$ndNum($ndStore['AMOUNT'])?> <?=htmlspecialcharsbx($ndRow['MEASURE'])?></b></li>
+											<?endforeach;?>
+										</ul>
+									<?endif;?>
+								<?else:?>
+									<div class="nd-lrow-stock__total">Нет в наличии</div>
+								<?endif;?>
+							</div>
+						<?endif;?>
 						
 						
 						

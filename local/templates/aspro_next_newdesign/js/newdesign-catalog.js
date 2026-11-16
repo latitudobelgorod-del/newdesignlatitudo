@@ -2215,6 +2215,18 @@
 		});
 	}
 
+	/* «Плитка / список» (кнопки – sort_newdesign.php, вид – css/nd-sale-list.css). Вид держит класс
+	   на <html>: он переживает подмену списка по группам и «Показать ещё». */
+	document.addEventListener('click', function (e) {
+		var btn = e.target.closest ? e.target.closest('[data-nd-view]') : null;
+		if (!btn) return;
+		var list = btn.getAttribute('data-nd-view') === 'list';
+		document.documentElement.classList.toggle('nd-view-list', list);
+		try { localStorage.setItem('nd_sale_view', list ? 'list' : 'tile'); } catch (err) { }
+		/* раскладка карточек (цены, счётчик) считает ширины – пусть пересчитает */
+		window.dispatchEvent(new Event('resize'));
+	});
+
 	document.addEventListener('click', function (e) {
 		var chip = e.target.closest ? e.target.closest('.nd-sale-groups a[href]') : null;
 		/* Ctrl/Shift/колёсико — пусть открывается новая вкладка, как обычная ссылка */

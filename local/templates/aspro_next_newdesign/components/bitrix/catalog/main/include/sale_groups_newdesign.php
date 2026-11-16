@@ -16,6 +16,13 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
  */
 \Bitrix\Main\Loader::includeModule('iblock');
 
+/* Переключатель «плитка / список» (Ирина, 16.11.2026): кнопки печатает sort_newdesign.php по флагу,
+   вид списком – css/nd-sale-list.css. Стили прямой ссылкой: сборка шаблона на проде отдаётся
+   урезанной копией (css/purged), новые правила туда без пересборки не попадают. */
+$GLOBALS['ND_VIEW_SWITCH'] = true;
+$ndSlCss = SITE_TEMPLATE_PATH . '/css/nd-sale-list.css';
+$APPLICATION->AddHeadString('<link href="' . $ndSlCss . '?' . (int)@filemtime($_SERVER['DOCUMENT_ROOT'] . $ndSlCss) . '" rel="stylesheet">', true);
+
 $ndSgIblock = (int)$arParams['IBLOCK_ID'];
 $ndSgSection = (int)($arResult['VARIABLES']['SECTION_ID'] ?? 0);
 if (!$ndSgSection && !empty($arResult['VARIABLES']['SECTION_CODE'])) {

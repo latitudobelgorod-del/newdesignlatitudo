@@ -1205,4 +1205,145 @@ foreach ($arResult['ITEMS'] as &$ndItem) {
 }
 unset($ndItem);
 
+/* «Распродажа» – вид списком (Ирина, 16.11.2026). Параметр ND_SALE_LIST передаёт только раздел
+   распродажи (catalog/main/page_blocks/list_elements_1.php), у остальных разделов ни данных, ни
+   ключа кеша не прибавляется. Шаблон печатает из ND_SALE_LIST_ROW строку для вида списком:
+   артикул, цена в других единицах, общий остаток и по складам (template.php, блок nd-lrow-*).
+
+   Цена в других единицах. Товары распродажи – простые, в штуках, без коэффициентов (так решили
+   при заведении, корзина считает штуки). Коэффициенты берём:
+   1) у того же товара каталога: XML_ID распродажи = rasprodaja-<guid 1С>, guid → ID на сайте по
+      таблице обмена остатками local/stock-sync/stock_mapping.json, у него UNIT_KOEF – как на
+      обычной карточке: цена за единицу = цена в базовой единице × коэффициент;
+   2) нет связи – по размерам из названия «146х22х3000»: самое большое число от 1000 мм – длина
+      (цена за п.м), для досок (группы доска/ступени/заборы/фасад/грядки) ещё ширина от 90 мм
+      (цена за м²). */
+if (($arParams['ND_SALE_LIST'] ?? '') === 'Y' && !empty($arResult['ITEMS'])) {
+	$ndMeasSym = function ($id) use ($arResult) {
+		$m = $arResult['MEASURE_ALL'][$id] ?? null;
+		return $m ? (string) ($m['SYMBOL_RUS'] ?: $m['SYMBOL']) : '';
+	};
+
+	$ndBoardGroups = array('terrasnaya-doska', 'stupeni', 'zabory', 'fasad', 'gryadki');
+	$ndGroupCode = array();
+	$rs = CIBlockPropertyEnum::GetList(array(), array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'CODE' => 'ND_SALE_GROUP'));
+	while ($e = $rs->Fetch()) {
+		$ndGroupCode[(int) $e['ID']] = $e['XML_ID'];
+	}
+	// группа и артикул – отдельным запросом: в PROPERTIES карточки их может не быть (PROPERTY_CODE раздела)
+	$ndProps = array();
+	$rs = CIBlockElement::GetList(array(), array('IBLOCK_ID' => $arParams['IBLOCK_ID'], 'ID' => array_column($arResult['ITEMS'], 'ID')),
+		false, false, array('ID', 'XML_ID', 'PROPERTY_ND_SALE_GROUP', 'PROPERTY_CML2_ARTICLE'));
+	while ($r = $rs->Fetch()) {
+		$ndProps[(int) $r['ID']] = array(
+			'GROUP' => $ndGroupCode[(int) $r['PROPERTY_ND_SALE_GROUP_ENUM_ID']] ?? '',
+			'ARTICLE' => trim((string) $r['PROPERTY_CML2_ARTICLE_VALUE']),
+			'XML_ID' => (string) $r['XML_ID'],
+		);
+	}
+
+	// guid → ID товара/ТП каталога
+	$ndMap = array();
+	$ndMapFile = $_SERVER['DOCUMENT_ROOT'] . '/local/stock-sync/stock_mapping.json';
+	if (is_file($ndMapFile)) {
+		$ndMap = json_decode((string) file_get_contents($ndMapFile), true) ?: array();
+	}
+	$ndLinked = array(); // ID товара распродажи => ID товара каталога
+	foreach ($arResult['ITEMS'] as $ndItem) {
+		if (preg_match('~^rasprodaja-([0-9a-f-]{36})$~i', $ndProps[(int) $ndItem['ID']]['XML_ID'] ?? '', $m) && !empty($ndMap[$m[1]]['offer_id'])) {
+			$ndLinked[(int) $ndItem['ID']] = (int) $ndMap[$m[1]]['offer_id'];
+		}
+	}
+	unset($ndMap);
+
+	// коэффициенты и базовая единица связанных товаров
+	$ndKoef = array();
+	if ($ndLinked) {
+		$rs = CIBlockElement::GetList(array(), array('ID' => array_values(array_unique($ndLinked))), false, false, array('ID', 'IBLOCK_ID'));
+		while ($el = $rs->Fetch()) {
+			$rows = array();
+			$rp = CIBlockElement::GetProperty($el['IBLOCK_ID'], $el['ID'], array(), array('CODE' => 'UNIT_KOEF'));
+			while ($p = $rp->Fetch()) {
+				$k = (float) str_replace(',', '.', trim((string) $p['VALUE']));
+				if ($k > 0 && (int) $p['DESCRIPTION'] > 0) {
+					$rows[(int) $p['DESCRIPTION']] = $k;
+				}
+			}
+			$pr = CCatalogProduct::GetByID($el['ID']);
+			$ndKoef[(int) $el['ID']] = array('BASE' => (int) ($pr['MEASURE'] ?? 0), 'ROWS' => $rows);
+		}
+	}
+
+	foreach ($arResult['ITEMS'] as &$ndItem) {
+		$ndPrice = (float) ($ndItem['MIN_PRICE']['DISCOUNT_VALUE'] ?? 0);
+		$ndBase = (int) ($ndItem['ITEM_MEASURE']['ID'] ?? 0);
+		$ndUnits = array(); // символ единицы => цена
+		$ndSrc = '';
+
+		$ndK = $ndKoef[$ndLinked[(int) $ndItem['ID']] ?? 0] ?? null;
+		if ($ndPrice > 0 && $ndK && $ndK['ROWS']) {
+			// цена в базовой единице связанного товара: та же единица – как есть, иначе через её коэффициент
+			$ndKBase = $ndK['BASE'] ?: $ndBase;
+			$ndPriceBase = $ndKBase === $ndBase ? $ndPrice : (!empty($ndK['ROWS'][$ndBase]) ? $ndPrice / $ndK['ROWS'][$ndBase] : 0);
+			if ($ndPriceBase > 0) {
+				$ndSrc = 'koef';
+				foreach ($ndK['ROWS'] as $mid => $k) {
+					if ($mid !== $ndBase && ($sym = $ndMeasSym($mid)) !== '') {
+						$ndUnits[$sym] = $ndPriceBase * $k;
+					}
+				}
+				if ($ndKBase !== $ndBase && ($sym = $ndMeasSym($ndKBase)) !== '') {
+					$ndUnits[$sym] = $ndPriceBase;
+				}
+			}
+		}
+
+		// размеры – цепочка «146х22х3000» / «40*43*4000» (х русская и латинская, ×, *)
+		if (!$ndUnits && $ndPrice > 0 && preg_match('~\d{2,5}(?:\s*[xх×*]\s*\d{2,5})+~ui', (string) $ndItem['NAME'], $mm)) {
+			$nums = array_map('intval', preg_split('~\s*[xх×*]\s*~ui', $mm[0]));
+			rsort($nums);
+			if (count($nums) >= 2 && $nums[0] >= 1000 && $nums[0] <= 12000) {
+				$ndSrc = 'name';
+				$len = $nums[0] / 1000;
+				$ndUnits['п.м'] = $ndPrice / $len;
+				$grp = $ndProps[(int) $ndItem['ID']]['GROUP'] ?? '';
+				if (in_array($grp, $ndBoardGroups, true) && $nums[1] >= 90 && $nums[1] <= 400) {
+					$ndUnits['м²'] = $ndPrice / ($len * $nums[1] / 1000);
+				}
+			}
+		}
+
+		// порядок единиц везде один: п.м, м², остальные
+		uksort($ndUnits, function ($a, $b) {
+			$w = array('п.м' => 1, 'м²' => 2);
+			return ($w[$a] ?? 9) <=> ($w[$b] ?? 9) ?: strcmp($a, $b);
+		});
+
+		// остаток: общий и по складам (склады – как в плашке «В наличии»)
+		$ndStores = array();
+		$ndTotal = 0;
+		foreach ((array) ($ndItem['STORES_DATA'] ?? array()) as $st) {
+			$a = (float) $st['AMOUNT'];
+			if ($a > 0) {
+				$ndStores[] = array('NAME' => $st['NAME'], 'AMOUNT' => $a);
+				$ndTotal += $a;
+			}
+		}
+		if (!$ndStores && (float) ($ndItem['CATALOG_QUANTITY'] ?? $ndItem['PRODUCT']['QUANTITY'] ?? 0) > 0) {
+			$ndTotal = (float) ($ndItem['CATALOG_QUANTITY'] ?? $ndItem['PRODUCT']['QUANTITY']);
+		}
+
+		$ndArt = $ndProps[(int) $ndItem['ID']]['ARTICLE'] ?? '';
+		$ndItem['ND_SALE_LIST_ROW'] = array(
+			'ARTICLE' => $ndArt !== '' ? $ndArt : (string) $ndItem['ID'],
+			'UNITS' => $ndUnits,
+			'UNITS_SRC' => $ndSrc,
+			'MEASURE' => (string) ($ndItem['ITEM_MEASURE']['TITLE'] ?? 'шт'),
+			'TOTAL' => $ndTotal,
+			'STORES' => $ndStores,
+		);
+	}
+	unset($ndItem);
+}
+
 ?>

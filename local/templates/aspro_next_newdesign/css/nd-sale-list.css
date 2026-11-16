@@ -1,0 +1,314 @@
+/* «Распродажа»: переключатель «плитка / список» и вид списком (Ирина, 16.11.2026).
+   Подключает catalog/main/include/sale_groups_newdesign.php прямой ссылкой.
+
+   Список собран из той же карточки, что и плитка: корзина, счётчик, цены и
+   скидки работают теми же скриптами. Карточку раскладываем сеткой в строку,
+   .item_info растворяем (display: contents), чтобы его части встали в свои
+   колонки. Строки nd-lrow-* (артикул, цена в других единицах, склады) печатает
+   шаблон только в распродаже, в плитке они скрыты атрибутом hidden.
+
+   Колонки: фото | артикул и название | цена | наличие | количество и корзина. */
+
+/* --- переключатель ------------------------------------------------------- */
+.nd-viewsw {
+    display: inline-flex;
+    gap: 4px;
+    margin-left: auto;
+    margin-right: 16px;
+    flex: none;
+    align-self: center;
+}
+.nd-viewsw__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid #e6e6e6;
+    border-radius: 8px;
+    background: #fff;
+    color: #9a9a9a;
+    cursor: pointer;
+    transition: color .15s, border-color .15s, background .15s;
+}
+.nd-viewsw__btn:hover { color: #1a1a1a; border-color: #c8c8c8; }
+html:not(.nd-view-list) .nd-viewsw__btn--tile,
+html.nd-view-list .nd-viewsw__btn--list {
+    color: #fff;
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+}
+
+/* --- вид списком: общая сетка ------------------------------------------- */
+html.nd-view-list .nd-sale-host .nd-lhead,
+html.nd-view-list .nd-sale-host .nd-lrow-art,
+html.nd-view-list .nd-sale-host .nd-lrow-units,
+html.nd-view-list .nd-sale-host .nd-lrow-stock { display: block; }
+
+html.nd-view-list .nd-sale-host .catalog_block.nd-catlist__list {
+    display: block !important;
+    margin: 0 !important;
+}
+html.nd-view-list .nd-sale-host .catalog_block > .item_block {
+    width: 100% !important;
+    max-width: none !important;
+    flex: none !important;
+    float: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: relative;
+}
+/* увеличенное фото строки должно лечь поверх соседних строк */
+html.nd-view-list .nd-sale-host .catalog_block > .item_block:hover { z-index: 5; }
+
+html.nd-view-list .nd-sale-host .catalog_item_wrapp.item {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid #ececec !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff;
+}
+html.nd-view-list .nd-sale-host .catalog_item_wrapp.item:hover { background: #fafafa; }
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .catalog_item,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap {
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* шапка и строка – одна и та же сетка колонок */
+html.nd-view-list .nd-sale-host .nd-lhead,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap {
+    display: grid !important;
+    grid-template-columns: 80px minmax(0, 1fr) 160px 180px 222px;
+    column-gap: 20px;
+    align-items: start;
+}
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap {
+    grid-template-rows: auto auto auto 1fr;
+    padding: 16px 12px !important;
+    text-align: left !important;
+}
+html.nd-view-list .nd-sale-host .nd-lhead {
+    padding: 0 12px 10px;
+    border-bottom: 1px solid #ececec;
+    font-size: 13px;
+    line-height: 1.3;
+    color: #8c8c8c;
+}
+
+/* .item_info растворяем – его дети встают прямо в сетку */
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .item_info { display: contents !important; }
+
+/* --- фото (колонка 1) ------------------------------------------------------ */
+html.nd-view-list .nd-sale-host .image_wrapper_block {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    width: 80px !important;
+    height: 80px !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    position: relative;
+}
+html.nd-view-list .nd-sale-host .image_wrapper_block .nd-badges { display: none !important; }
+html.nd-view-list .nd-sale-host .image_wrapper_block .thumb {
+    display: block;
+    width: 80px !important;
+    height: 80px !important;
+    overflow: visible !important;
+    position: relative;
+}
+html.nd-view-list .nd-sale-host .image_wrapper_block .thumb::before,
+html.nd-view-list .nd-sale-host .image_wrapper_block .thumb::after { display: none !important; } /* блик .shine */
+html.nd-view-list .nd-sale-host .image_wrapper_block .thumb img {
+    width: 80px !important;
+    height: 80px !important;
+    max-width: none !important;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 6px;
+    transform-origin: 0 0;
+    transition: transform .2s ease, box-shadow .2s ease;
+    position: relative;
+}
+/* при наведении – крупно, поверх строки и соседей; только там, где есть мышь */
+@media (hover: hover) and (pointer: fine) {
+    html.nd-view-list .nd-sale-host .image_wrapper_block .thumb:hover img {
+        transform: scale(3.4);
+        z-index: 20;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
+        border-radius: 3px;
+    }
+}
+html.nd-view-list .nd-sale-host .colproduct_video { display: none !important; }
+
+/* --- артикул и название (колонка 2) ------------------------------------ */
+html.nd-view-list .nd-sale-host .nd-lrow-art {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 13px;
+    line-height: 1.3;
+    color: #8c8c8c;
+    margin-bottom: 4px;
+}
+html.nd-view-list .nd-sale-host .item-title {
+    grid-column: 2;
+    grid-row: 2 / -1;
+    margin: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    font-size: 15px;
+    line-height: 1.4;
+}
+html.nd-view-list .nd-sale-host .item-title a,
+html.nd-view-list .nd-sale-host .item-title span {
+    height: auto !important;
+    max-height: none !important;
+    -webkit-line-clamp: unset !important;
+    display: inline !important;
+    overflow: visible !important;
+}
+html.nd-view-list .nd-sale-host .article_block_nooffer,
+html.nd-view-list .nd-sale-host .list__catalog_sku,
+html.nd-view-list .nd-sale-host .nd-tline { display: none !important; }
+
+/* --- цена (колонка 3) ------------------------------------------------------ */
+html.nd-view-list .nd-sale-host .nd-price-row {
+    grid-column: 3;
+    grid-row: 1;
+    margin: 0 !important;
+}
+html.nd-view-list .nd-sale-host .nd-price-row .price { font-size: 20px; }
+html.nd-view-list .nd-sale-host .nd-old-row {
+    grid-column: 3;
+    grid-row: 2;
+    margin: 4px 0 0 !important;
+    flex-wrap: wrap;
+    row-gap: 4px;
+}
+html.nd-view-list .nd-sale-host .nd-lrow-units {
+    grid-column: 3;
+    grid-row: 3;
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #595959;
+}
+html.nd-view-list .nd-sale-host .nd-lrow-units__item { display: block; white-space: nowrap; }
+html.nd-view-list .nd-sale-host .nd-lrow-units:empty { display: none; }
+
+/* --- наличие (колонка 4) ---------------------------------------------------- */
+html.nd-view-list .nd-sale-host .nd-lrow-stock {
+    grid-column: 4;
+    grid-row: 1 / -1;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #595959;
+}
+.nd-lrow-stock__total {
+    font-size: 14px;
+    font-weight: 600;
+    color: #8c8c8c;
+    margin-bottom: 4px;
+}
+.nd-lrow-stock__total.is-in { color: #1f9d55; }
+.nd-lrow-stock__total.is-in::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    vertical-align: 1px;
+}
+/* отступы списков темы (ul/li) гасим с !important – иначе под складами пустое место */
+.nd-lrow-stock__list {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.nd-lrow-stock__list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.5 !important;
+}
+.nd-lrow-stock__list li::before { display: none !important; } /* маркеры списков темы */
+.nd-lrow-stock__list b { font-weight: 500; color: #1a1a1a; white-space: nowrap; }
+
+/* --- количество и корзина (колонка 5) -------------------------------------- */
+/* селектор длинный нарочно: newdesign-catalog.css прижимает счётчик книзу плитки
+   (.nd-catlist .catalog_item_wrapp .inner_wrap > .counter_wrapp { margin-top: auto !important }) */
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .counter_wrapp {
+    grid-column: 5;
+    grid-row: 1 / -1;
+    margin: 0 !important;
+    width: auto !important;
+    flex-wrap: wrap;
+    row-gap: 8px;
+}
+/* «Сравнить» (видно только группе тестирования) – в правый нижний угол строки, высоту не прибавляет */
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap { position: relative; }
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
+    position: absolute !important;
+    right: 12px !important;
+    bottom: 10px !important;
+    top: auto !important;
+    left: auto !important;
+    margin: 0 !important;
+}
+
+/* --- планшет: уже колонки -------------------------------------------------- */
+@media (max-width: 1199px) {
+    html.nd-view-list .nd-sale-host .nd-lhead,
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap {
+        grid-template-columns: 72px minmax(0, 1fr) 140px 160px 210px;
+        column-gap: 16px;
+    }
+    html.nd-view-list .nd-sale-host .image_wrapper_block,
+    html.nd-view-list .nd-sale-host .image_wrapper_block .thumb,
+    html.nd-view-list .nd-sale-host .image_wrapper_block .thumb img { width: 72px !important; height: 72px !important; }
+}
+
+/* --- телефон: строка-карточка, фото слева ---------------------------------- */
+@media (max-width: 767px) {
+    .nd-viewsw { margin-right: 8px; }
+    .nd-viewsw__btn { width: 32px; height: 32px; }
+
+    html.nd-view-list .nd-sale-host .nd-lhead { display: none !important; }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap {
+        grid-template-columns: 72px minmax(0, 1fr);
+        grid-template-rows: none;
+        column-gap: 12px;
+        row-gap: 6px;
+        padding: 14px 0 !important;
+    }
+    html.nd-view-list .nd-sale-host .image_wrapper_block { grid-row: 1 / span 3; }
+    html.nd-view-list .nd-sale-host .nd-lrow-art { grid-column: 2; grid-row: 1; margin: 0; }
+    html.nd-view-list .nd-sale-host .item-title { grid-column: 2; grid-row: 2; font-size: 14px; }
+    html.nd-view-list .nd-sale-host .nd-price-row { grid-column: 2; grid-row: 3; }
+    html.nd-view-list .nd-sale-host .nd-old-row { grid-column: 2; grid-row: 4; margin: 0 !important; }
+    html.nd-view-list .nd-sale-host .nd-lrow-units { grid-column: 2; grid-row: 5; margin: 0; }
+    html.nd-view-list .nd-sale-host .nd-lrow-units__item { display: inline; }
+    html.nd-view-list .nd-sale-host .nd-lrow-units__item + .nd-lrow-units__item::before { content: " · "; color: #bdbdbd; }
+    html.nd-view-list .nd-sale-host .nd-lrow-stock { grid-column: 1 / -1; grid-row: 6; margin-top: 4px; }
+    html.nd-view-list .nd-sale-host .nd-lrow-stock__list { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+    html.nd-view-list .nd-sale-host .nd-lrow-stock__list li { justify-content: flex-start; }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .counter_wrapp { grid-column: 1 / -1; grid-row: 7; margin-top: 6px !important; }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn { top: 10px !important; right: 0 !important; bottom: auto !important; }
+    html.nd-view-list .nd-sale-host .nd-lrow-art { padding-right: 32px; }
+    /* на телефоне увеличение по наведению не нужно – фото открывается в карточке товара */
+}

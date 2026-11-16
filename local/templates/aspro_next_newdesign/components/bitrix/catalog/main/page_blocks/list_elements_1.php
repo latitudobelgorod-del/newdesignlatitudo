@@ -1024,7 +1024,13 @@ $ar_res = $res->GetNext();
 			<?if($isAjax === 'N'){?>
 			
 
-				<div class="ajax_load <?=$display;?>">
+				<div class="ajax_load <?=$display;?><?=($ndNoFilter ? ' nd-sale-host' : '')?>">
+				<?if($ndNoFilter):?>
+					<?/* шапка колонок вида списком (css/nd-sale-list.css), в плитке скрыта */?>
+					<div class="nd-lhead" hidden>
+						<span class="nd-lhead__img"></span><span>Товар</span><span>Цена</span><span>Наличие</span><span></span>
+					</div>
+				<?endif;?>
 			<?}?>
 				<?
                 if($_SESSION['SMART_FILTER_VAR']) {
@@ -1196,7 +1202,9 @@ $ar_res = $res->GetNext();
 						"HIDE_ELEMENT_LIST" => $APPLICATION->GetProperty("HIDE_ELEMENT_LIST"),
 						"SEO_DEOPTIMIZING" => $arParams['SEO_DEOPTIMIZING']
 
-					), $component, array("HIDE_ICONS" => $isAjax)
+					/* «Распродажа»: данные для вида списком (result_modifier шаблона, 16.11.2026). Ключ
+					   добавляем только ей – у остальных разделов параметры, а с ними и кеш, прежние. */
+					) + ($ndNoFilter ? array("ND_SALE_LIST" => "Y") : array()), $component, array("HIDE_ICONS" => $isAjax)
 				);?>
 					<?/* Плитки акций для сетки товаров: разметку собрали выше,
 					   по ячейкам её раскладывает js/newdesign-catalog.js. */?>
