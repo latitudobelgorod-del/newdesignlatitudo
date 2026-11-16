@@ -509,12 +509,13 @@ html.nd-view-list .nd-sale-host .button_block:has(> .nd-price-request) .btn {
 
 /* Кнопки длин в строке списка – компактнее, чтобы 3–4 длины (3000/4000/6000 мм) вставали в одну
    строку под названием (в плитке размер прежний). Ирина, 16.11.2026. */
-html.nd-view-list .nd-sale-host .nd-sku--dlina ul { gap: 4px !important; }
+html.nd-view-list .nd-sale-host .nd-sku--dlina ul { gap: 3px !important; }
 html.nd-view-list .nd-sale-host .nd-sku--dlina li {
-    padding: 0 7px !important;
-    font-size: 13px !important;
+    padding: 0 6px !important;
+    font-size: 12px !important;
     min-height: 0 !important;
     height: 28px !important;
     line-height: 26px !important;
 }
-html.nd-view-list .nd-sale-host .nd-sku--dlina li .cnt { font-size: 13px !important; line-height: 26px !important; }
+html.nd-view-list .nd-sale-host .nd-sku--dlina li .cnt,
+html.nd-view-list .nd-sale-host .nd-sku--dlina li .cnt::after { font-size: 12px !important; line-height: 26px !important; }
