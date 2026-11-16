@@ -409,7 +409,16 @@ html.nd-view-list .nd-sale-host .nd-price-row .measure-unit-block { margin: 0 !i
 
     /* товары каталога с длинами: переключатель единиц под ценой (скрипт на телефоне выносит его
        из строки цены), кнопки длин и покупка – во всю ширину под складами */
-    html.nd-view-list .nd-sale-host .item_info > .measure-unit-block { grid-column: 2; grid-row: 5; margin: 6px 0 0 !important; } /* строка 4 – старая цена со скидкой, 5 – переключатель (строку цен в единицах он прячет) */
+    /* переключатель единиц – в строке цены справа, как в плитке (Ирина, 16.11.2026); цена ~100 px +
+       переключатель ~110 px в колонку 244 px на 390-м экране помещаются */
+    html.nd-view-list .nd-sale-host .item_info > .measure-unit-block {
+        grid-column: 2;
+        grid-row: 3;
+        justify-self: end;
+        align-self: center;
+        width: auto !important;
+        margin: 0 !important;
+    }
     html.nd-view-list .nd-sale-host .item_info > .sku_props,
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .sku_props { grid-column: 1 / -1; grid-row: 7; margin: 12px 0 0 !important; }
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .offer_buy_block { grid-column: 1 / -1; grid-row: 8; margin: 10px 0 0 !important; width: auto !important; }
