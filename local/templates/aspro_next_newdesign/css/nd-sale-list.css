@@ -427,10 +427,10 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp:has(.measure-unit-block) .nd
 
 /* Пока newdesign-catalog.js не собрал карточку (.nd-ready ставит arrangeCard, у товаров с длинами –
    после компонента единиц, ~0,5 с), цена, переключатель, длины и покупка ещё не в своих обёртках
-   и в сетке списка наезжают друг на друга. До сборки показываем только фото, артикул, название и
-   наличие, остальное – невидимым, но с местом (без скачка высоты). Ирина, 16.11.2026. */
-html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .inner_wrap > *:not(.image_wrapper_block):not(.item_info),
-html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .item_info > *:not(.item-title):not(.nd-lrow-art):not(.nd-lrow-stock) {
+   и в сетке списка наезжают друг на друга. До сборки цена сразу встаёт в свою колонку, а переключатель
+   единиц невидим (скрипт его переносит). Ирина, 16.11.2026. */
+/* (уточнено: у товара без цены .nd-ready не ставится вовсе – прячем только то, что скрипт переносит) */
+html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .measure-unit-block {
     visibility: hidden;
 }
 @media (min-width: 768px) {
