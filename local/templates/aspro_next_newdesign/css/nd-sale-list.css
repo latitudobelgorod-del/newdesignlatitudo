@@ -427,12 +427,21 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp:has(.measure-unit-block) .nd
 
 /* Пока newdesign-catalog.js не собрал карточку (.nd-ready ставит arrangeCard, у товаров с длинами –
    после компонента единиц, ~0,5 с), цена, переключатель, длины и покупка ещё не в своих обёртках
-   и в сетке списка наезжают друг на друга. До сборки цена сразу встаёт в свою колонку, а переключатель
-   единиц невидим (скрипт его переносит). Ирина, 16.11.2026. */
+   и в сетке списка наезжают друг на друга (цена, старая цена, цены в единицах – поочерёдно). До сборки
+   колонки цены и покупки невидимы (место держат), цена заранее в своей колонке. Ирина, 16.11.2026. */
 /* (уточнено: у товара без цены .nd-ready не ставится вовсе – прячем только то, что скрипт переносит) */
-html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .measure-unit-block {
+html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .measure-unit-block,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .item_info > .cost.prices,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .nd-price-row,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .nd-old-row,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .nd-lrow-units,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .inner_wrap > .offer_buy_block,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .inner_wrap > .counter_wrapp {
     visibility: hidden;
+    /* у товара без цены .nd-ready не ставится вовсе – показываем сами через 1,5 с */
+    animation: nd-lrow-reveal 0s 1.5s forwards;
 }
+@keyframes nd-lrow-reveal { to { visibility: visible; } }
 @media (min-width: 768px) {
     html.nd-view-list .nd-sale-host .catalog_item_wrapp:not(.nd-ready) .item_info > .cost.prices { grid-column: 3; grid-row: 1 / 3; }
 }
