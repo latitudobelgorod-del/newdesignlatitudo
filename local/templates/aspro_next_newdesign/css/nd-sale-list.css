@@ -330,5 +330,24 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
     }
     html.nd-view-list .nd-sale-host .nd-lrow-stock__list li + li { border-top: 1px solid #d6ecdd; }
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .counter_wrapp { grid-column: 1 / -1; grid-row: 7; margin-top: 14px !important; }
+    /* «Сравнить» на телефоне – квадратом в ряду покупки, первым слева от счётчика, как на детальной
+       (newdesign-compare.css, .nd-cmp-btn--detail). Кнопка и счётчик в одной ячейке сетки,
+       счётчик сдвинут на ширину кнопки; высоту кнопка берёт у ряда (Ирина, 16.11.2026). */
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(> .nd-cmp-btn) > .counter_wrapp { margin-left: 56px !important; }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
+        position: static !important;
+        grid-column: 1 / -1; grid-row: 7;
+        justify-self: start; align-self: stretch;
+        width: 48px; height: auto; min-height: 44px;
+        margin: 14px 0 0 !important; padding: 0 !important;
+        justify-content: center;
+        border-radius: 3px;
+        background: rgba(82, 82, 100, 0.1);
+        color: #101014;
+    }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn.is-active {
+        background: #fdecec; color: #c60000; box-shadow: inset 0 0 0 1px #f0c2c2;
+    }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn svg { width: 24px; height: 24px; }
     /* на телефоне увеличение по наведению не нужно – фото открывается в карточке товара */
 }
