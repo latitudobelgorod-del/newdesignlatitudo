@@ -860,6 +860,15 @@ $APPLICATION->AddHeadScript(SITE_TEMPLATE_PATH.'/bitrix/components/maxyss/measur
 								$ndSelId = (int)($arItem['CURRENT_OFFER_ID'] ?? 0);
 								$ndRow['UNITS'] = $ndRow['OFFER_UNITS'][$ndSelId] ?? array();
 							}
+							/* остатки у товара с длинами – по длине (предложению), единица тоже её: у карточки
+							   бывает своя (27973 Евро Венге – «м²»), а длины в шт */
+							if (!empty($arItem['OFFERS'])) {
+								foreach ($arItem['OFFERS'] as $ndOf) {
+									if ((int)$ndOf['ID'] === (int)($arItem['CURRENT_OFFER_ID'] ?? 0) && !empty($ndOf['ITEM_MEASURE']['TITLE'])) {
+										$ndRow['MEASURE'] = (string)$ndOf['ITEM_MEASURE']['TITLE'];
+									}
+								}
+							}
 							$ndRow['STORES'] = array();
 							$ndRow['TOTAL'] = 0;
 							foreach ((array)($arItem['STORES_DATA'] ?? array()) as $ndSt) {
