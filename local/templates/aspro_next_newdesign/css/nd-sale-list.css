@@ -581,3 +581,15 @@ html.nd-view-list .nd-sale-host .nd-sku--dlina li .cnt::after { font-size: 12px 
 
 /* ни на одном складе нет – блок наличия в списке не показываем (Ирина, 16.11.2026) */
 html.nd-view-list .nd-sale-host .nd-lrow-stock.nd-lrow-stock--none { display: none !important; }
+@media (max-width: 767px) {
+    /* без блока наличия на телефоне пустые строки сетки 4–6 всё равно дают по 6 px (row-gap) плюс
+       12 px сверху у длин – получалась дыра ~36 px; оставляем 12 px от цены (или старой цены) */
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.nd-lrow-stock--none) > .sku_props,
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.nd-lrow-stock--none) .item_info > .sku_props { margin-top: -12px !important; }
+}
+@media (max-width: 767px) {
+    /* то же для товара без длин: между ценой и счётчиком пустые строки 4–7 */
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.nd-lrow-stock--none):not(:has(.sku_props)) > .counter_wrapp,
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.nd-lrow-stock--none):not(:has(.sku_props)) > .offer_buy_block,
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap:has(.nd-lrow-stock--none):not(:has(.sku_props)) > .nd-cmp-btn { margin-top: -12px !important; }
+}
