@@ -110,7 +110,7 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap {
 
 html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap {
     display: grid !important;
-    grid-template-columns: 80px minmax(0, 1fr) 160px 236px 222px; /* склады клетками – 4 × ~56 px */
+    grid-template-columns: 80px minmax(0, 1fr) 260px 236px 200px; /* цена с единицами; склады клетками – 4 × ~56 px */
     column-gap: 20px;
     align-items: start;
 }
@@ -410,14 +410,21 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > div:not([class
 /* код товара в углу плитки – в строке уже есть «Арт.» */
 html.nd-view-list .nd-sale-host .article_block.item-article { display: none !important; }
 
-/* цена и переключатель единиц (шт / м² / п.м): переключатель – второй строкой под ценой */
+/* При смене вида цвет корзины применяется сразу, без перехода .transition_bg темы.
+   Правило действует в обоих видах, чтобы обратное переключение тоже не мигало. */
+.nd-sale-host .catalog_item_wrapp .button_block .to-cart {
+    transition: none !important;
+}
+
+/* Цена и единицы в одной строке, как в плитке; на узкой колонке разрешён перенос. */
 html.nd-view-list .nd-sale-host .nd-price-row {
     display: flex !important;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: 6px 8px;
 }
-html.nd-view-list .nd-sale-host .nd-price-row .cost { flex: 0 0 100%; margin: 0 !important; }
+html.nd-view-list .nd-sale-host .nd-price-row .cost { flex: 0 1 auto; margin: 0 !important; }
 html.nd-view-list .nd-sale-host .nd-price-row .price { white-space: nowrap; }
 html.nd-view-list .nd-sale-host .nd-price-row .measure-unit-block { margin: 0 !important; }
 
