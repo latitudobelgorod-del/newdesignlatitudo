@@ -1,0 +1,70 @@
+name: Deploy latitudo.ru
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "plan: show files; deploy: apply approved changes"
+        type: choice
+        options: [plan, deploy]
+        default: plan
+      base:
+        description: "Full SHA whose file versions are on production"
+        required: true
+        type: string
+      target:
+        description: "Full SHA whose file versions should be on production"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: List changed production files
+        env:
+          BASE: ${{ inputs.base }}
+          TARGET: ${{ inputs.target }}
+        run: python3 tools/regru-deploy/deploy.py "$BASE" "$TARGET"
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && inputs.operation == 'deploy'
+    needs: plan
+    environment: production
+    concurrency: latitudo-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify production files and apply changes
+        env:
+          BASE: ${{ inputs.base }}
+          TARGET: ${{ inputs.target }}
+          REG_RU_DEPLOY_KEY: ${{ secrets.REG_RU_DEPLOY_KEY }}
+          REG_RU_KNOWN_HOSTS: ${{ secrets.REG_RU_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${REG_RU_DEPLOY_KEY:?Missing production secret REG_RU_DEPLOY_KEY}"
+          : "${REG_RU_KNOWN_HOSTS:?Missing production secret REG_RU_KNOWN_HOSTS}"
+          umask 077
+          ssh_dir="$(mktemp -d)"
+          trap 'rm -rf -- "$ssh_dir"' EXIT
+          printf '%s\n' "$REG_RU_DEPLOY_KEY" > "$ssh_dir/key"
+          printf '%s\n' "$REG_RU_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
+          unset REG_RU_DEPLOY_KEY REG_RU_KNOWN_HOSTS
+          python3 tools/regru-deploy/deploy.py "$BASE" "$TARGET" \
+            --ssh-files "$ssh_dir/key" "$ssh_dir/known_hosts"
+      - name: Check the public homepage
+        run: curl --fail --silent --show-error --max-time 20 --output /dev/null https://latitudo.ru/
