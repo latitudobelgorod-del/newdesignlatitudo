@@ -78,6 +78,9 @@ html.nd-view-list .nd-sale-host .catalog_block > .item_block {
     padding: 0 !important;
     margin: 0 !important;
     position: relative;
+    /* Изолируем слои строки: у кнопок длин темы z-index: 9, и без контекста
+       они перекрывают фото соседней строки, поднятой до z-index: 5. */
+    z-index: 0;
 }
 /* увеличенное фото строки должно лечь поверх соседних строк */
 html.nd-view-list .nd-sale-host .catalog_block > .item_block:hover { z-index: 5; }
@@ -281,6 +284,77 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .counter_wrapp
     flex-wrap: wrap;
     row-gap: 8px;
 }
+/* Компактная покупка по образцу дилер-шопа (18.11.2026).
+   Оба счётчика сохраняют свою разметку и обработчики. Не переопределяем display:
+   после добавления товара скрипт скрывает счётчик и показывает «В корзине». */
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp {
+    --nd-list-control-size: 40px;
+    gap: 8px;
+}
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp .measure-wrapper .measure-block,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block {
+    height: var(--nd-list-control-size) !important;
+    background: #fff;
+    border: 1px solid #e3e5e9 !important;
+    border-radius: 8px;
+}
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp .measure-button,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block :is(.minus, .plus) {
+    width: 24px !important;
+    height: 32px !important;
+    background-size: 14px 14px !important;
+    border-radius: 4px;
+}
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp .measure-button:hover,
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block :is(.minus, .plus):hover {
+    background-color: #f3f4f6 !important;
+}
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp .button_block :is(.to-cart, .to-cart.btn.btn-default.white, a.in-cart.btn.btn-default) {
+    height: var(--nd-list-control-size) !important;
+    border-radius: 8px !important;
+    background: #f3f4f6 !important;
+}
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp .button_block :is(.to-cart, .to-cart.btn.btn-default.white) {
+    width: var(--nd-list-control-size) !important;
+    min-width: var(--nd-list-control-size) !important;
+}
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp .to-cart::after {
+    width: 20px;
+    height: 20px;
+    background-size: 18px;
+    filter: brightness(.4);
+}
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp .button_block :is(.to-cart, .to-cart.btn.btn-default.white):hover {
+    background: #c60000 !important;
+}
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp .to-cart:hover::after { filter: none; }
+html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp :is(.to-cart, .in-cart, .measure-button, .minus, .plus):focus-visible {
+    outline: 2px solid #525264;
+    outline-offset: -2px;
+}
+@media (min-width: 768px) {
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .counter_wrapp,
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .offer_buy_block {
+        max-width: 200px;
+        justify-self: end;
+        width: 100% !important;
+    }
+}
+@media (max-width: 767px) {
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp { --nd-list-control-size: 44px; }
+}
+/* На сенсорном экране сохраняем крупную область нажатия при маленьком значке. */
+@media (pointer: coarse) {
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp { --nd-list-control-size: 48px; }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp .measure-button,
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .counter_wrapp.nd-native-counter .counter_block :is(.minus, .plus) {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .counter_wrapp,
+    html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .offer_buy_block { max-width: none; }
+}
+
 /* «Сравнить» (видно только группе тестирования) – в верхний левый угол строки, поверх угла фото (Ирина, 16.11.2026) */
 html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap { position: relative; }
 html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
@@ -320,7 +394,7 @@ html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap > .nd-cmp-btn {
         grid-row: 1 / -1;
         align-self: start;
         margin: 0 !important;
-        width: auto !important;
+        width: 100% !important;
     }
     /* переключатель единиц, если скрипт вынес его из строки цены */
     html.nd-view-list .nd-sale-host .item_info > .measure-unit-block { grid-column: 3; grid-row: 2; margin: 4px 0 0 !important; }
