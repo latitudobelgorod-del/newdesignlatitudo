@@ -428,6 +428,15 @@ html.nd-view-list .nd-sale-host .nd-price-row .cost { flex: 0 1 auto; margin: 0 
 html.nd-view-list .nd-sale-host .nd-price-row .price { white-space: nowrap; }
 html.nd-view-list .nd-sale-host .nd-price-row .measure-unit-block { margin: 0 !important; }
 
+/* Склады выше строки цены: скидка не должна отступать на высоту соседней колонки. */
+@media (min-width: 1200px) {
+    html.nd-view-list .nd-sale-host .nd-old-row {
+        grid-row: 1;
+        align-self: start;
+        margin-top: 34px !important;
+    }
+}
+
 /* --- планшет: уже колонки -------------------------------------------------- */
 @media (max-width: 1199px) {
     html.nd-view-list .nd-sale-host .catalog_item_wrapp .inner_wrap {
