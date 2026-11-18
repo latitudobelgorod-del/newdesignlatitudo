@@ -1,0 +1,25 @@
+name: Check REG.RU SSH connectivity
+
+on:
+  push:
+    branches: [codex/regru-ssh-check]
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  ssh-connectivity:
+    if: github.event_name == 'push' || (github.head_ref == 'codex/regru-ssh-check' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check SSH handshake on port 22
+        shell: bash
+        run: |
+          if timeout 15s ssh-keyscan -T 8 -p 22 -t ed25519,rsa vip125.hosting.reg.ru >/dev/null; then
+            echo 'REG.RU answered the SSH handshake.'
+          else
+            echo '::error::REG.RU did not answer the SSH handshake on port 22.'
+            exit 1
+          fi
