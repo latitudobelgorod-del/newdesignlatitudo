@@ -41,9 +41,36 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
     <form class="ltd-form" id="lfcForm" novalidate>
       <section class="ltd-step">
         <div class="ltd-step-h"><b>1</b>Ограждение</div>
+        <div class="ltd-field"><span>Вид ограждения</span>
+          <div class="ltd-tiles lfc-types" role="radiogroup" aria-label="Вид ограждения" id="lfcTypes"></div>
+        </div>
+        <div id="lfcPanelOptions" hidden>
+          <div class="ltd-row2">
+            <label class="ltd-field"><span>Что считаем</span><select class="iks-ignore" id="lfcPanelUse">
+              <option value="terrace">Ограждение террасы</option>
+              <option value="fence">Забор</option>
+            </select></label>
+            <label class="ltd-field"><span>Верхний поручень</span><select class="iks-ignore" id="lfcPanelRail">
+              <option value="yes">С поручнем</option>
+              <option value="no">Без поручня</option>
+            </select></label>
+          </div>
+          <div id="lfcPanelEnds" hidden>
+            <div class="ltd-row2">
+              <label class="ltd-field"><span>Опора слева</span><select class="iks-ignore" id="lfcPanelLeft">
+                <option value="wpc">Столб ДПК</option>
+                <option value="concrete">Готовый бетонный столб</option>
+              </select></label>
+              <label class="ltd-field"><span>Опора справа</span><select class="iks-ignore" id="lfcPanelRight">
+                <option value="wpc">Столб ДПК</option>
+                <option value="concrete">Готовый бетонный столб</option>
+              </select></label>
+            </div>
+          </div>
+        </div>
         <?/* 23.10.2026 (менеджеры через Ирину): кроме длины в погонных метрах — по схеме террасы: форма как в калькуляторе
              террасы, стороны с ограждением включаются кликом на плане или галочкой. */?>
-        <div class="ltd-field"><span>Как считать</span>
+        <div class="ltd-field" id="lfcModeField"><span>Как считать</span>
           <div class="ltd-tiles lfc-mode" role="radiogroup" aria-label="Как считать ограждение">
             <label><input type="radio" name="lfcMode" value="len" checked><span><svg viewBox="0 0 48 34" aria-hidden="true"><path d="M3 24h42M7 12v18M24 12v18M41 12v18M7 15h34"/></svg>По длине, пог. м</span></label>
             <label><input type="radio" name="lfcMode" value="plan"><span><svg viewBox="0 0 48 34" aria-hidden="true"><path d="M4 5h26v10h14v14H4z"/></svg>По схеме террасы</span></label>
@@ -74,12 +101,9 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
         </div>
         <div class="ltd-row2">
           <label class="ltd-field" data-f="N" id="lfcNField" style="display:none"><span>Количество проёмов</span><input type="number" id="lfcN" inputmode="numeric" min="1" max="100" step="1" value="1"><em class="ltd-err"></em></label>
-          <label class="ltd-field" data-f="H"><span>Высота ограждения, мм</span><input type="number" id="lfcH" inputmode="numeric" min="600" max="1500" step="10" value="1100"><em class="ltd-err"></em></label>
+          <label class="ltd-field" data-f="H"><span id="lfcHeightLabel">Высота ограждения, мм</span><input type="number" id="lfcH" inputmode="numeric" min="600" max="1500" step="10" value="1100"><em class="ltd-err"></em></label>
         </div>
         <small class="ltd-hint" id="lfcStepHint"></small>
-        <div class="ltd-field"><span>Вид ограждения</span>
-          <div class="ltd-tiles lfc-types" role="radiogroup" aria-label="Вид ограждения" id="lfcTypes"></div>
-        </div>
       </section>
 
       <section class="ltd-step">
@@ -114,7 +138,7 @@ foreach (['css/newdesign-terrace-calc.css', 'css/newdesign-fence-calc.css'] as $
             <em id="lfcCap"></em>
           </div>
           <svg id="lfcSvg" viewBox="0 0 640 300" role="img" aria-label="Схема секций ограждения"></svg>
-          <div class="ltd-legend"><span><i style="background:var(--ltd-joist);height:8px"></i>столб</span><span><i style="background:var(--ltd-joist);opacity:.55;width:12px;height:6px;border-radius:1px"></i>юбка столба</span><span><i style="background:var(--ltd-board);height:4px"></i>перила, поручень</span><span><i style="background:var(--ltd-board-2);width:4px;height:12px"></i>балясина</span><span id="lfcLegendNote"></span></div>
+          <div class="ltd-legend"><span><i style="background:var(--ltd-joist);height:8px"></i>столб</span><span><i style="background:var(--ltd-joist);opacity:.55;width:12px;height:6px;border-radius:1px"></i>юбка столба</span><span id="lfcLegendRail"><i style="background:var(--ltd-board);height:4px"></i>перила, поручень</span><span id="lfcLegendBal"><i style="background:var(--ltd-board-2);width:4px;height:12px"></i>балясина</span><span id="lfcLegendNote"></span></div>
         </figure>
       </div>
 
