@@ -17,6 +17,9 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
 }
 
+// REST-отправка формы TOORDER включается отдельно после миграции настроек.
+require_once __DIR__.'/php_interface/include/latitudo_form_crm.php';
+
 /**
  * Не даём модулю капчи ломать JSON-ответы.
  *
