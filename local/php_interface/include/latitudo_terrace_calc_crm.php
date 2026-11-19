@@ -150,6 +150,12 @@ function Latitudo_TerraceCalcAttach($resultId, $submitTs)
 		}
 		$q = $answers = array();
 		CFormResult::GetDataByID($resultId, array(), $q, $answers);
+        $queued = class_exists('LatitudoFormCrm') && LatitudoFormCrm::enabled(19)
+            ? (new LatitudoFormCrmBitrixStore())->load((int)$resultId) : null;
+        if ($queued) {
+            $leadId = (int)$queued['lead_id'];
+            if (!$leadId) return $self;
+        } else {
 		$phone = substr(preg_replace('/\D+/', '', ndTerraceCalcAnswer($answers, 'PHONE')), -10);
 		if (strlen($phone) < 10) {
 			return $done();
@@ -170,6 +176,7 @@ function Latitudo_TerraceCalcAttach($resultId, $submitTs)
 			return $self; // лид ещё не создан
 		}
 		$leadId = max($ids);
+        }
 		$lead = ndTerraceCalcB24('crm.lead.get', array('id' => $leadId));
 		$created = !empty($lead['result']['DATE_CREATE']) ? strtotime($lead['result']['DATE_CREATE']) : 0;
 		if ($created && $created < (int)$submitTs - 120) {

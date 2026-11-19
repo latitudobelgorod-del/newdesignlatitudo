@@ -70,7 +70,7 @@ check($r['status']==='busy' && !$calls,'Concurrent worker cannot create duplicat
 $s=new MemoryCrmStore();$s->record['SENT_TO_CRM']='Y';$calls=[];$r=delivery($s,[],$calls)->send(42);
 check($r['status']==='legacy' && !$calls,'Do not resend historical successful results');$count++;
 
-$s=new MemoryCrmStore();$s->record['FORM_ID']=19;$calls=[];
+$s=new MemoryCrmStore();$s->record['FORM_ID']=24;$calls=[];
 try { delivery($s,[],$calls)->send(42); throw new LogicException('Wrong form accepted'); }
 catch (RuntimeException $e) { check(!$calls && $s->released,'Wrong form rejected and lock released'); }$count++;
 

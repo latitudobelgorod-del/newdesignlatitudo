@@ -68,3 +68,4 @@ $store->save($id,['status'=>'error','lead_id'=>0,'attempts'=>1,'error'=>'<script
 LatitudoFormCrm::adminList($list);
 verifyCrm(strpos($row->fields['SENT_TO_CRM'],'<script>')===false && strpos($row->fields['SENT_TO_CRM'],'&lt;script&gt;')!==false,'CRM errors must be escaped');
 echo "Bitrix/MySQL integration OK: temporary results, native field mapping, queue, cross-connection lock, native CRM flag, lead link, escaped errors. No real leads or mail.\n";
+require __DIR__.'/test_all_forms.inc.php';

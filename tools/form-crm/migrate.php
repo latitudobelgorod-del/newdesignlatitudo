@@ -3,6 +3,12 @@
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 $mode = $argv[1] ?? 'check';
 if (!in_array($mode, ['check', 'enable', 'disable'], true)) throw new RuntimeException('Use check|enable|disable');
+$formId = (int)($argv[2] ?? 1);
+$audit = json_decode(file_get_contents(__DIR__.'/mappings.json'), true, 512, JSON_THROW_ON_ERROR);
+if (!isset($audit[$formId])) throw new RuntimeException('Unaudited form');
+$expected = $audit[$formId];
+$option = 'nd_form'.$formId.'_rest_enabled';
+$cutoverOption = 'nd_form'.$formId.'_rest_cutover';
 $root = realpath(__DIR__.'/../..');
 if ($mode !== 'check' && str_replace('\\', '/', $root) !== '/var/www/u0916578/data/www/latitudo.ru') {
     throw new RuntimeException('Mutation is restricted to the verified latitudo.ru document root.');
@@ -18,25 +24,16 @@ require $root.'/bitrix/modules/main/include/prolog_before.php';
 CModule::IncludeModule('form');
 require_once $root.'/local/php_interface/include/latitudo_form_crm.php';
 $db = $GLOBALS['DB'];
-$form = CForm::GetByID(1)->Fetch();
-$link = CFormCrm::GetByFormID(1)->Fetch();
-if (($form['SID'] ?? '') !== 'TOORDER' || (int)($link['CRM_ID'] ?? 0) !== 3) throw new RuntimeException('Unexpected form/connection');
+$form = CForm::GetByID($formId)->Fetch();
+$link = CFormCrm::GetByFormID($formId)->Fetch();
+if (($form['SID'] ?? '') !== $expected['sid'] || (int)($link['CRM_ID'] ?? 0) !== $expected['crm']) throw new RuntimeException('Unexpected form/connection');
 $mapping = [];
 $q = CFormCrm::GetFields($link['ID']);
 while ($r = $q->Fetch()) $mapping[] = $r;
-if (count($mapping) !== 15) throw new RuntimeException('Expected 15 verified field mappings; re-audit before migration');
-$expected = ['TITLE'=>0, 'NAME'=>1, 'PHONE_WORK'=>2, 'EMAIL_WORK'=>3,
-    'UF_CRM_1670914333154'=>97, 'UF_CRM_1670914240846'=>96, 'UF_CRM_1671023828597'=>58,
-    'UF_CRM_1674473471'=>111, 'UF_CRM_1674473526'=>112, 'UF_CRM_1674473492'=>113,
-    'UF_CRM_1674473502'=>114, 'UF_CRM_1674473509'=>115, 'UF_CRM_1670914076118'=>6,
-    'COMMENTS'=>4, 'UF_CRM_1674473518'=>123];
-foreach ($mapping as $m) {
-    if (!isset($expected[$m['CRM_FIELD']]) || $expected[$m['CRM_FIELD']] !== (int)$m['FIELD_ID']
-        || ($m['CRM_FIELD'] === 'TITLE' && $m['FIELD_ALT'] !== 'FORM_NAME')) throw new RuntimeException('Field mapping changed');
-}
-echo 'Form TOORDER; mappings=15; legacy mode='.$link['LINK_TYPE'].'; REST='.(LatitudoFormCrm::enabled() ? 'Y' : 'N')."\n";
+if ($mapping !== $expected['fields']) throw new RuntimeException('Mappings changed since audit');
+echo 'Form '.$form['SID'].'; mappings='.count($mapping).'; legacy mode='.$link['LINK_TYPE'].'; REST='.(LatitudoFormCrm::enabled($formId) ? 'Y' : 'N')."\n";
 if ($mode === 'check') exit;
-if ($mode === 'enable' && LatitudoFormCrm::enabled()) {
+if ($mode === 'enable' && LatitudoFormCrm::enabled($formId)) {
     if ($link['LINK_TYPE'] !== 'M') throw new RuntimeException('REST active but legacy automatic mode is enabled');
     echo "Already enabled; nothing changed.\n"; exit;
 }
@@ -44,9 +41,9 @@ if ($mode === 'enable' && LatitudoFormCrm::enabled()) {
 // Snapshot schema and all rows touched by the migration outside the public root.
 $snapshot = [];
 $tables = [
-    'b_form_crm_link' => 'FORM_ID=1',
+    'b_form_crm_link' => 'FORM_ID='.$formId,
     'b_form_crm_field' => 'LINK_ID='.(int)$link['ID'],
-    'b_option' => "MODULE_ID='form' AND NAME IN ('nd_form1_rest_enabled','nd_form1_rest_cutover')",
+    'b_option' => "MODULE_ID='form' AND NAME IN ('$option','$cutoverOption')",
     'b_agent' => "NAME='".$db->ForSql(LatitudoFormCrm::AGENT)."'",
 ];
 foreach ($tables as $table => $where) {
@@ -64,7 +61,7 @@ if ($exists) {
 }
 $dir = dirname(dirname($root)).'/codex-backups';
 if (!is_dir($dir) && !mkdir($dir,0700,true)) throw new RuntimeException('Cannot create backup directory');
-$file = $dir.'/form1-rest-'.$mode.'-'.date('Ymd-His').'-'.bin2hex(random_bytes(3)).'.json';
+$file = $dir.'/form'.$formId.'-rest-'.$mode.'-'.date('Ymd-His').'-'.bin2hex(random_bytes(3)).'.json';
 $json = json_encode($snapshot, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
 if (file_put_contents($file,$json) === false) throw new RuntimeException('Cannot write backup');
 chmod($file,0600);
@@ -72,8 +69,8 @@ if (json_decode(file_get_contents($file),true,512,JSON_THROW_ON_ERROR) !== $snap
 echo 'Verified backup: '.$file."\n";
 
 if ($mode === 'disable') {
-    COption::SetOptionString('form', LatitudoFormCrm::OPTION, 'N');
-    CAgent::RemoveAgent(LatitudoFormCrm::AGENT, 'form');
+    COption::SetOptionString('form', $option, 'N');
+    if (!array_filter(LatitudoFormCrmDelivery::FORMS, [LatitudoFormCrm::class,'enabled'])) CAgent::RemoveAgent(LatitudoFormCrm::AGENT, 'form');
     // Do not reactivate a broken OTP connection or replay pending results.
     // Retain mappings, all saved forms, queue records and confirmed lead IDs.
     echo "REST stopped. Legacy connection remains manual. Results/mail remain active. Queue and IDs preserved.\n";
@@ -97,25 +94,26 @@ if (!$exists) {
 $cols = []; $q=$db->Query('SHOW COLUMNS FROM b_latitudo_form_crm');
 while ($r=$q->Fetch()) $cols[]=$r['Field'];
 if ($cols !== ['result_id','status','lead_id','attempts','last_error','updated_at']) throw new RuntimeException('Unexpected queue schema');
-$cutover = $db->Query('SELECT COALESCE(MAX(ID),0) AS ID FROM b_form_result WHERE FORM_ID=1')->Fetch()['ID'];
+$cutover = $db->Query('SELECT COALESCE(MAX(ID),0) AS ID FROM b_form_result WHERE FORM_ID='.$formId)->Fetch()['ID'];
 // Persist the cutover before changing routing; missing new queue rows can be recovered.
-COption::SetOptionString('form', 'nd_form1_rest_cutover', (string)$cutover);
-$db->Query("UPDATE b_form_crm_link SET LINK_TYPE='M' WHERE ID=".(int)$link['ID']." AND FORM_ID=1 AND CRM_ID=3");
+COption::SetOptionString('form', $cutoverOption, (string)$cutover);
+$db->Query("UPDATE b_form_crm_link SET LINK_TYPE='M' WHERE ID=".(int)$link['ID']." AND FORM_ID=".$formId." AND CRM_ID=".$expected['crm']);
 try {
-    $agent = CAgent::AddAgent(LatitudoFormCrm::AGENT, 'form', 'N', 60, '', 'Y', ConvertTimeStamp(time()+120,'FULL'), 100);
+    $existingAgent = CAgent::GetList([], ['NAME'=>LatitudoFormCrm::AGENT])->Fetch();
+    $agent = $existingAgent ? $existingAgent['ID'] : CAgent::AddAgent(LatitudoFormCrm::AGENT, 'form', 'N', 60, '', 'Y', ConvertTimeStamp(time()+120,'FULL'), 100);
     if (!$agent) throw new RuntimeException('Cannot schedule REST queue');
     // Enable last. Other forms and email templates are never changed.
-    COption::SetOptionString('form', LatitudoFormCrm::OPTION, 'Y');
-    if (!LatitudoFormCrm::enabled() || CFormCrm::GetByFormID(1)->Fetch()['LINK_TYPE'] !== 'M') {
+    COption::SetOptionString('form', $option, 'Y');
+    if (!LatitudoFormCrm::enabled($formId) || CFormCrm::GetByFormID($formId)->Fetch()['LINK_TYPE'] !== 'M') {
         throw new RuntimeException('Activation verification failed');
     }
 } catch (Throwable $e) {
-    COption::SetOptionString('form', LatitudoFormCrm::OPTION, 'N');
-    CAgent::RemoveAgent(LatitudoFormCrm::AGENT, 'form');
+    COption::SetOptionString('form', $option, 'N');
+    if (!array_filter(LatitudoFormCrmDelivery::FORMS, [LatitudoFormCrm::class,'enabled'])) CAgent::RemoveAgent(LatitudoFormCrm::AGENT, 'form');
     // Routing was changed but REST has not been validated. Keep it manual rather
     // than silently resume the known failing OTP sender.
     throw $e;
 }
 $after = []; $q=CFormCrm::GetFields($link['ID']);while($r=$q->Fetch())$after[]=$r;
 if ($after !== $mapping) throw new RuntimeException('Mapping verification failed');
-echo "Enabled for new TOORDER results after #$cutover, responsible 65. Legacy sender is manual; mappings preserved.\n";
+echo "Enabled for new form #$formId results after #$cutover, responsible 65. Legacy sender is manual; mappings preserved.\n";

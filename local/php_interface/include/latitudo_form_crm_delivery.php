@@ -13,6 +13,7 @@ interface LatitudoFormCrmStore
 
 final class LatitudoFormCrmDelivery
 {
+    public const FORMS = [1, 19, 21, 22, 23, 26, 27];
     public const ORIGIN = 'latitudo.ru:webform';
     private LatitudoFormCrmStore $store;
     private $request;
@@ -30,8 +31,8 @@ final class LatitudoFormCrmDelivery
         }
         try {
             $result = $this->store->result($id);
-            if ((int)($result['FORM_ID'] ?? 0) !== 1) {
-                throw new RuntimeException('Заявка не относится к форме «Товар под заказ».');
+            if (!in_array((int)($result['FORM_ID'] ?? 0), self::FORMS, true)) {
+                throw new RuntimeException('Форма не подключена к REST.');
             }
             $state = $this->store->load($id);
             if (!empty($state['lead_id'])) {
@@ -46,7 +47,7 @@ final class LatitudoFormCrmDelivery
             // Search before every attempt. Do not use phone matching: different requests
             // from the same customer must remain distinct leads.
             $found = ($this->request)('crm.lead.list', [
-                'filter' => ['=ORIGINATOR_ID' => self::ORIGIN, '=ORIGIN_ID' => '1:'.$id],
+                'filter' => ['=ORIGINATOR_ID' => self::ORIGIN, '=ORIGIN_ID' => (int)$result['FORM_ID'].':'.$id],
                 'select' => ['ID'], 'order' => ['ID' => 'ASC'],
             ]);
             if (!isset($found['result']) || !is_array($found['result'])) {
@@ -73,7 +74,7 @@ final class LatitudoFormCrmDelivery
             }
             $fields['ASSIGNED_BY_ID'] = 65;
             $fields['ORIGINATOR_ID'] = self::ORIGIN;
-            $fields['ORIGIN_ID'] = '1:'.$id;
+            $fields['ORIGIN_ID'] = (int)$result['FORM_ID'].':'.$id;
             $state['status'] = 'sending';
             $state['error'] = '';
             $state['attempts']++;
