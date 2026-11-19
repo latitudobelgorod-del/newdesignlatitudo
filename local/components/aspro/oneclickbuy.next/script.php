@@ -1034,7 +1034,7 @@ $ParamLid = http_build_query(array(
                "VALUE_TYPE" => "WORK",
            ),
        ), // Рабочая эл. почта
-	'ASSIGNED_BY_ID' => 1, // Ид ответственного  
+	'ASSIGNED_BY_ID' => 65, // Ид ответственного
   ),
   'params' => array("REGISTER_SONET_EVENT" => "Y")
 ));
