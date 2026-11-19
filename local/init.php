@@ -1321,8 +1321,31 @@ function ndRubleSign(&$content)
  */
 AddEventHandler('main', 'OnEndBufferContent', 'ndOpenGraphFallback', 10050);
 
+// Скрипт старого редактора кешируется на 30 дней; его ETag учитывает только
+// исходники редактора, но не обработчики буфера. Обходим уже испорченный кеш.
+AddEventHandler('main', 'OnEndBufferContent', 'ndAdminEditorScriptCacheVersion', 10051);
+
+function ndAdminEditorScriptCacheVersion(&$content)
+{
+    if (!defined('ADMIN_SECTION') || ADMIN_SECTION !== true || !is_string($content)) {
+        return;
+    }
+
+    $content = str_replace(
+        '<script src="/bitrix/admin/fileman_common_js.php?s=',
+        '<script src="/bitrix/admin/fileman_common_js.php?nd_og_fix=20261119&amp;s=',
+        $content
+    );
+}
+
 function ndOpenGraphFallback(&$content)
 {
+    // В админке HTML встречается внутри JS визуального редактора.
+    // Вставка метатегов в такую строку ломает скрипт и запуск вкладок формы.
+    if (defined('ADMIN_SECTION') && ADMIN_SECTION === true) {
+        return;
+    }
+
     if (!is_string($content) || $content === '' || stripos($content, '</head>') === false) {
         return;   // не html-страница (ajax, xml, картинка) — уходим
     }
