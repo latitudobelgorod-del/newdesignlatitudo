@@ -1039,7 +1039,12 @@ $ParamLid = http_build_query(array(
   'params' => array("REGISTER_SONET_EVENT" => "Y")
 ));
 // обращаемся к сформированному URL при помощи функции curl_exec для создания лида
-if ($Url) {
+if ($Url || (class_exists('SiteOrderCrm') && SiteOrderCrm::enabled())) {
+if (class_exists('SiteOrderCrm') && SiteOrderCrm::enabled()) {
+    parse_str($ParamLid, $siteOrderPayload);
+    SiteOrderCrm::enqueue((int)$orderID, (array)($siteOrderPayload['fields'] ?? []),
+        (float)$arOrderQuery['PRICE'] + (float)($ndDeliveryPrice ?? 0));
+} else {
 $ch = curl_init();
 curl_setopt_array($ch, array(
   CURLOPT_SSL_VERIFYPEER => 0,
@@ -1051,6 +1056,7 @@ curl_setopt_array($ch, array(
 ));
 $result2 = curl_exec($ch);
 curl_close($ch);
+}
 }
 
 

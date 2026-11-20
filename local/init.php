@@ -17,6 +17,8 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
     die();
 }
 
+require_once __DIR__.'/php_interface/include/order-crm/OrderCrm.php';
+
 // REST-отправка формы TOORDER включается отдельно после миграции настроек.
 require_once __DIR__.'/php_interface/include/latitudo_form_crm.php';
 

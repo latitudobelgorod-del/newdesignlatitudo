@@ -1,0 +1,31 @@
+<?php
+if(PHP_SAPI!=='cli')exit;
+$root=realpath(__DIR__.'/../..');$cfg=require $root.'/local/php_interface/include/order-crm/config.php';
+if($root!==$cfg['document_root']||posix_getpwuid(posix_geteuid())['name']!==$cfg['user'])throw new RuntimeException('Wrong production target');
+$mode=$argv[1]??'check';if(!in_array($mode,['check','enable'],true))throw new RuntimeException('Use check|enable');
+$_SERVER['DOCUMENT_ROOT']=$root;$_SERVER['HTTP_HOST']=$_SERVER['SERVER_NAME']=$cfg['domain'];$_SERVER['REQUEST_METHOD']='GET';
+define('NO_AGENT_CHECK',true);define('NO_KEEP_STATISTIC',true);define('NOT_CHECK_PERMISSIONS',true);
+require $root.'/bitrix/modules/main/include/prolog_before.php';require_once $root.'/local/php_interface/include/order-crm/OrderCrm.php';
+$db=$GLOBALS['DB'];
+$probe=SiteOrderCrm::request('crm.lead.list',['filter'=>['=ORIGINATOR_ID'=>$cfg['domain'].':order','=ORIGIN_ID'=>'preflight-no-order'],'select'=>['ID']]);
+if(!isset($probe['result'])||!is_array($probe['result']))throw new RuntimeException('Webhook read preflight failed');
+echo 'CRM_PREFLIGHT_OK '.$cfg['domain']."\n";
+if($mode==='check')exit;
+if(SiteOrderCrm::enabled())throw new RuntimeException('Already enabled; inspect current state');
+$tables=['b_option'=>"MODULE_ID='sale' AND NAME IN ('site_order_crm_enabled','site_order_crm_cutover')",'b_agent'=>"NAME='SiteOrderCrm::runQueue();'"];
+$exists=(bool)$db->Query("SHOW TABLES LIKE 'b_site_order_crm'")->Fetch();if($exists)$tables['b_site_order_crm']='1=1';
+$snapshot=[];foreach($tables as $table=>$where){$schema=$db->Query('SHOW CREATE TABLE '.$table)->Fetch()['Create Table'];$rows=[];$q=$db->Query('SELECT * FROM '.$table.' WHERE '.$where);while($r=$q->Fetch())$rows[]=$r;$snapshot[$table]=['schema'=>$schema,'rows'=>$rows];}
+$dir=dirname(dirname($root)).'/codex-backups';if(!is_dir($dir))mkdir($dir,0700,true);
+$backup=$dir.'/order-crm-enable-'.date('Ymd-His').'-'.bin2hex(random_bytes(3)).'.json';
+umask(0077);$json=json_encode($snapshot,JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_THROW_ON_ERROR);
+if(file_put_contents($backup,$json)===false||json_decode(file_get_contents($backup),true)!==$snapshot)throw new RuntimeException('Backup verification failed');
+if(!$exists)$db->Query("CREATE TABLE b_site_order_crm (order_id INT UNSIGNED NOT NULL PRIMARY KEY,status VARCHAR(16) NOT NULL,lead_id BIGINT UNSIGNED NOT NULL DEFAULT 0,attempts INT UNSIGNED NOT NULL DEFAULT 0,last_error TEXT NOT NULL,payload_json MEDIUMTEXT NOT NULL,context_json TEXT NOT NULL,updated_at DATETIME NOT NULL,KEY queue_status(status,updated_at)) ENGINE=InnoDB");
+$cols=[];$q=$db->Query('SHOW COLUMNS FROM b_site_order_crm');while($r=$q->Fetch())$cols[]=$r['Field'];
+if($cols!==['order_id','status','lead_id','attempts','last_error','payload_json','context_json','updated_at'])throw new RuntimeException('Unexpected queue schema');
+$cutover=$db->Query('SELECT COALESCE(MAX(ID),0) AS ID FROM b_sale_order')->Fetch()['ID'];
+COption::SetOptionString('sale','site_order_crm_cutover',(string)$cutover);
+$agent=CAgent::GetList([],['NAME'=>SiteOrderCrm::AGENT])->Fetch();
+if(!$agent && !CAgent::AddAgent(SiteOrderCrm::AGENT,'sale','N',60,'','Y',ConvertTimeStamp(time()+120,'FULL'),100))throw new RuntimeException('Agent creation failed');
+COption::SetOptionString('sale','site_order_crm_enabled','Y');
+if(!SiteOrderCrm::enabled())throw new RuntimeException('Activation failed');
+echo "ORDER_CRM_ENABLED new orders only; cutover=$cutover; backup=$backup\n";
