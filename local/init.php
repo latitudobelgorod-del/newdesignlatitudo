@@ -687,6 +687,16 @@ function ndIsUtmVisit(): bool
 }
 
 /**
+ * 23.11.2026: рекламная подмена контактов отключена по решению владельца.
+ * Шаблоны и обработчики вывода используют это правило. Сбор UTM,
+ * срок хранения меток и передача в CRM остаются независимыми.
+ */
+function ndShouldReplaceContacts(): bool
+{
+    return false;
+}
+
+/**
  * Узкий признак «источник из списка колл-трекинга» — ya / tg / vk / maps.
  *
  * СЕЙЧАС НЕ ИСПОЛЬЗУЕТСЯ: и почта, и телефон подменяются при любой метке
@@ -756,7 +766,7 @@ function ndRegionMailPodmena(&$content)
         }
     }
 
-    if (!ndIsUtmVisit()) {
+    if (!ndShouldReplaceContacts()) {
         return;
     }
 
@@ -806,7 +816,7 @@ AddEventHandler('main', 'OnEndBufferContent', 'ndOfficePhonePodmena', 10001);
 
 function ndOfficePhonePodmena(&$content)
 {
-    if (defined('ADMIN_SECTION') || !is_string($content) || $content === '' || !ndIsUtmVisit()) {
+    if (defined('ADMIN_SECTION') || !is_string($content) || $content === '' || !ndShouldReplaceContacts()) {
         return;
     }
 

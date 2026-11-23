@@ -36,8 +36,7 @@ $ndIco = SITE_TEMPLATE_PATH.'/images/newdesign/contacts/';
 
 $ndUtmSource = !empty($_SESSION['UTM']['utm_source']) ? $_SESSION['UTM']['utm_source'] : 'empty';
 $ndIsAdSource = (
-	str_contains($ndUtmSource, 'ya') || str_contains($ndUtmSource, 'tg')
-	|| str_contains($ndUtmSource, 'vk') || str_contains($ndUtmSource, 'maps')
+	ndShouldReplaceContacts()
 );
 $ndTel = static function ($phone) {
 	return 'tel:'.preg_replace('/[^0-9+]/', '', $phone);
@@ -48,7 +47,7 @@ $ndTel = static function ($phone) {
    PHONE_PODMENA). Раньше на странице региона почта не подменялась вовсе —
    в шапке стояла подменная, а в карточке офиса настоящая (Ирина, 4 сентября 2026). */
 global $arRegion;
-$ndMailPodmena = (ndIsUtmVisit() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
+$ndMailPodmena = (ndShouldReplaceContacts() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
 	? '#REGION_TAG_EMAIL_PODMENA#'
 	: '';
 ?>
@@ -59,7 +58,7 @@ $ndMailPodmena = (ndIsUtmVisit() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_
 	$props = $arItem['DISPLAY_PROPERTIES'];
 
 	$phones = [];
-	if (ndIsUtmVisit() && !empty($props['PHONE_PODMENA']['VALUE'])) {
+	if (ndShouldReplaceContacts() && !empty($props['PHONE_PODMENA']['VALUE'])) {
 		$phones[] = $props['PHONE_PODMENA']['VALUE'];
 	} elseif (!empty($props['PHONE']['VALUE'])) {
 		$phones = (array) $props['PHONE']['VALUE'];

@@ -115,7 +115,7 @@ if ($ob = $res->GetNextElement()){;
 							<br />
 							<span itemprop="email">
 
-<?if ((str_contains($utm_source, "ya") || str_contains($utm_source, "tg") || str_contains($utm_source, "vk") || str_contains($utm_source, "maps")) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
+<?if ((ndShouldReplaceContacts()) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
 <a href="mailto:<?=$REGION_TAG_EMAIL_PODMENA?>"><?=$REGION_TAG_EMAIL_PODMENA?></a>
 <?else:?>
 <a href="mailto:<?=$arItem['DISPLAY_PROPERTIES']['EMAIL']['DISPLAY_VALUE']?>"><?=$arItem['DISPLAY_PROPERTIES']['EMAIL']['DISPLAY_VALUE']?></a>
@@ -170,7 +170,7 @@ if ($ob = $res->GetNextElement()){;
 							<?/*ЕСЛИ НОМЕР ОБЫЧНЫЙ*/?>
 												
 
-	<?if (str_contains($utm_source, "ya") || str_contains($utm_source, "tg") || str_contains($utm_source, "vk") || str_contains($utm_source, "maps")) :?>    											
+	<?if (ndShouldReplaceContacts()) :?>
 														<?if ($arItem["DISPLAY_PROPERTIES"]['PHONE_PODMENA']['VALUE']) :
 															$href1 = 'tel:'.str_replace(array(' ', '-', '(', ')'), '', $arItem["DISPLAY_PROPERTIES"]["PHONE_PODMENA"]['VALUE']);
 															?>

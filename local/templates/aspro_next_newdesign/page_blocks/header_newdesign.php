@@ -38,9 +38,9 @@ $REGION_TAG_LINKVIDEO       = "#REGION_TAG_LINKVIDEO#";
 
 // Подмена номера для платного трафика — как в боевой шапке header_8.php.
 $utm_source = (!empty($_SESSION['UTM']['utm_source']) ? $_SESSION['UTM']['utm_source'] : 'empty');
-/* Подмена контактов — при любой utm-метке (ndIsUtmVisit из local/init.php).
+/* Подмена контактов — при любой utm-метке (ndShouldReplaceContacts из local/init.php).
    Раньше здесь был список источников ya/tg/vk/maps. */
-$bPodmena = ndIsUtmVisit();
+$bPodmena = ndShouldReplaceContacts();
 
 // Регионы, у которых в шапке показываем шоурум и склад (списки из header_8.php).
 $arShowroomRegions = array(9277, 9278, 9568, 10039, 22018);
@@ -231,9 +231,9 @@ $basketCount = (int)$arBasketPrices['BASKET_COUNT'];
 				<?endif;?>
 
 				<?
-				/* Почта — при любой метке (ndIsUtmVisit из local/init.php), телефон выше —
+				/* Почта — при любой метке (ndShouldReplaceContacts из local/init.php), телефон выше —
 				   только для источников колл-трекинга. Разные правила намеренно. */
-				$bMailPodmena = (ndIsUtmVisit() && $ndRegion('REGION_TAG_EMAIL_PODMENA'));
+				$bMailPodmena = (ndShouldReplaceContacts() && $ndRegion('REGION_TAG_EMAIL_PODMENA'));
 				$mailValue = $bMailPodmena
 					? $ndRegion('REGION_TAG_EMAIL_PODMENA')
 					: $ndRegion('REGION_TAG_MAIL');

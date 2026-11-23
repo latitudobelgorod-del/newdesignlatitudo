@@ -7,9 +7,9 @@ if($_SESSION['UTM'][$val]) $v=$_SESSION['UTM'][$val]; else $v='empty';
 if ($val=='utm_source')
 	$utm_source =$v;
 }
-/* 22.09.2026: подмена — как в шапке: только пока идёт рекламный визит (ndIsUtmVisit, сутки с перехода);
+/* 22.09.2026: подмена — как в шапке: только пока идёт рекламный визит (ndShouldReplaceContacts, сутки с перехода);
    метка в сессии живёт 30 дней. 'ya_visit' лишь включает проверки str_contains(..., 'ya') ниже. */
-$utm_source = (function_exists('ndIsUtmVisit') && ndIsUtmVisit()) ? 'ya_visit' : 'empty';
+$utm_source = (function_exists('ndShouldReplaceContacts') && ndShouldReplaceContacts()) ? 'ya_visit' : 'empty';
 ?>
 
 <div class="zak_rascket_head">Получите бесплатную консультацию</div>
@@ -59,7 +59,7 @@ $utm_source = (function_exists('ndIsUtmVisit') && ndIsUtmVisit()) ? 'ya_visit' :
 				  	<?/*ЕСЛИ НОМЕР ОБЫЧНЫЙ*/?>
 				
 				<?else:?>
-						<?if (str_contains($utm_source, "ya") || str_contains($utm_source, "tg") || str_contains($utm_source, "vk") || str_contains($utm_source, "maps")) :?>
+						<?if (ndShouldReplaceContacts()) :?>
 							  
 							<?if ($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):?>
 								<p><span class="fa fa-phone"></span><a rel="nofollow" href="tel:+<?=$dump1?>">#REGION_TAG_PHONE_PODMENA#</a></p>
@@ -78,7 +78,7 @@ $utm_source = (function_exists('ndIsUtmVisit') && ndIsUtmVisit()) ? 'ya_visit' :
 				<div class="block">
 					<span class="btn white animate-load" data-event="jqm" data-param-form_id="MAINFORM" data-name="question" style="width:100%;"><span>Заказать звонок</span></span>
 				</div>
-				<?if ((str_contains($utm_source, "ya") || str_contains($utm_source, "tg") || str_contains($utm_source, "vk") || str_contains($utm_source, "maps")) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
+				<?if ((ndShouldReplaceContacts()) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
 				<span class="fa fa-envelope-o"></span><a href="mailto:#REGION_TAG_EMAIL_PODMENA#">#REGION_TAG_EMAIL_PODMENA#</a>
 				<?else:?>
 				<span class="fa fa-envelope-o"></span><a href="mailto:#REGION_TAG_MAIL#">#REGION_TAG_MAIL#</a>

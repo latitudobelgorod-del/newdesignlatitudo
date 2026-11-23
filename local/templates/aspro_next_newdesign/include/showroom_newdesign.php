@@ -29,8 +29,7 @@ $ndSrImage = (string) ($ndShowroom['image'] ?? '');
 $ndSrLists = (array) ($ndShowroom['lists'] ?? []);
 
 $ndSrUtm = !empty($_SESSION['UTM']['utm_source']) ? (string) $_SESSION['UTM']['utm_source'] : 'empty';
-$ndSrPodmena = (str_contains($ndSrUtm, 'ya') || str_contains($ndSrUtm, 'tg')
-	|| str_contains($ndSrUtm, 'vk') || str_contains($ndSrUtm, 'maps'))
+$ndSrPodmena = (ndShouldReplaceContacts())
 	&& !empty($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);
 $ndSrPhoneRaw = $ndSrPodmena
 	? (string) $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']

@@ -518,7 +518,7 @@ if ($val=='utm_medium')
 									$href1 = 'tel:'.str_replace(array(' ', '-', '(', ')'), '',  $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);?>	
 				
 						
-								<?if ($utm_medium == "cpc") :?>   
+								<?if (ndShouldReplaceContacts()) :?>
 								<?if ($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):?>
 								<div class="head_phon"> 
 									<a  rel="nofollow" href="<?=$href1?>"><?=$REGION_TAG_PHONE_PODMENA?><span><?=$REGION_TAG_PHONE_PODP?></span></a>

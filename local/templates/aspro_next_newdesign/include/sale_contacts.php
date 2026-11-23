@@ -33,7 +33,7 @@ $ndSaleOffices = array(
 );
 
 $ndSalePodmena = array();
-if (function_exists('ndIsUtmVisit') && ndIsUtmVisit() && CModule::IncludeModule('iblock')) {
+if (function_exists('ndShouldReplaceContacts') && ndShouldReplaceContacts() && CModule::IncludeModule('iblock')) {
 	$ndSaleRes = CIBlockElement::GetList(
 		array(),
 		array('IBLOCK_ID' => 10, 'ID' => array_column($ndSaleOffices, 'id'), 'CHECK_PERMISSIONS' => 'N'),

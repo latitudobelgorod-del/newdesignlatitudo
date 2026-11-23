@@ -254,19 +254,19 @@ $ndCoProIcon = static function ($key) {
 			   пробелов и скобок: так сделано в шапке
 			   (page_blocks/header_newdesign.php).
 
-			   Подмена и телефона, и почты — при любой utm-метке (ndIsUtmVisit). */
+			   Подмена и телефона, и почты — при любой utm-метке (ndShouldReplaceContacts). */
 			global $arRegion;
 
 			$ndCoRegion = static function ($prop) use ($arRegion) {
 				return trim((string)($arRegion['PROPERTY_'.$prop.'_VALUE'] ?? ''));
 			};
 
-			$ndCoPhonePodmena = ndIsUtmVisit() && $ndCoRegion('REGION_TAG_PHONE_PODMENA');
+			$ndCoPhonePodmena = ndShouldReplaceContacts() && $ndCoRegion('REGION_TAG_PHONE_PODMENA');
 			$ndCoPhoneValue   = $ndCoPhonePodmena
 				? $ndCoRegion('REGION_TAG_PHONE_PODMENA')
 				: $ndCoRegion('REGION_TAG_PHONE');
 
-			$ndCoMailPodmena = ndIsUtmVisit() && $ndCoRegion('REGION_TAG_EMAIL_PODMENA');
+			$ndCoMailPodmena = ndShouldReplaceContacts() && $ndCoRegion('REGION_TAG_EMAIL_PODMENA');
 			$ndCoMailValue   = $ndCoMailPodmena
 				? $ndCoRegion('REGION_TAG_EMAIL_PODMENA')
 				: $ndCoRegion('REGION_TAG_MAIL');

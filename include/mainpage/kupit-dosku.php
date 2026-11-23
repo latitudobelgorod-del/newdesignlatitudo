@@ -17,9 +17,9 @@ if($_SESSION['UTM'][$val]) $v=$_SESSION['UTM'][$val]; else $v='empty';
 if ($val=='utm_source')
 	$utm_source =$v;
 }
-/* 22.09.2026: подмена — как в шапке: только пока идёт рекламный визит (ndIsUtmVisit, сутки с перехода);
+/* 22.09.2026: подмена — как в шапке: только пока идёт рекламный визит (ndShouldReplaceContacts, сутки с перехода);
    метка в сессии живёт 30 дней. 'ya_visit' лишь включает проверки str_contains(..., 'ya') ниже. */
-$utm_source = (function_exists('ndIsUtmVisit') && ndIsUtmVisit()) ? 'ya_visit' : 'empty';
+$utm_source = (function_exists('ndShouldReplaceContacts') && ndShouldReplaceContacts()) ? 'ya_visit' : 'empty';
 ?>
 
 
@@ -84,7 +84,7 @@ $utm_source = (function_exists('ndIsUtmVisit') && ndIsUtmVisit()) ? 'ya_visit' :
 
 
 		
-		  	<?if (str_contains($utm_source, "ya") || str_contains($utm_source, "tg") || str_contains($utm_source, "vk") || str_contains($utm_source, "maps")) :?>       
+		  	<?if (ndShouldReplaceContacts()) :?>
 				<?if ($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):?>
 					<div style="margin: 0px 0 20px 40px;text-indent: -20px;">
 					<p><span class="fa fa-phone" style="margin-right: 20px;"></span> <a rel="nofollow" href="<?=$href1?>"><?=$REGION_TAG_PHONE_PODMENA?></a></p>

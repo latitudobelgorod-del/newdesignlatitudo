@@ -32,8 +32,7 @@ if (!empty($_SESSION['UTM']['utm_source'])) {
 	$ndUtmSource = $_SESSION['UTM']['utm_source'];
 }
 $ndIsAdSource = (
-	str_contains($ndUtmSource, 'ya') || str_contains($ndUtmSource, 'tg')
-	|| str_contains($ndUtmSource, 'vk') || str_contains($ndUtmSource, 'maps')
+	ndShouldReplaceContacts()
 );
 
 /** Ссылка «позвонить» из человекочитаемого номера. */
@@ -51,7 +50,7 @@ $ndTel = static function ($phone) {
 		$props = $arItem['DISPLAY_PROPERTIES'];
 
 		$phones = [];
-		if (ndIsUtmVisit() && !empty($props['PHONE_PODMENA']['VALUE'])) {
+		if (ndShouldReplaceContacts() && !empty($props['PHONE_PODMENA']['VALUE'])) {
 			$phones[] = $props['PHONE_PODMENA']['VALUE'];
 		} elseif (!empty($props['PHONE']['VALUE'])) {
 			$phones = (array) $props['PHONE']['VALUE'];
@@ -61,7 +60,7 @@ $ndTel = static function ($phone) {
 		if (!empty($props['EMAIL'])) {
 			/* И почту, и телефон подменяем при ЛЮБОЙ метке (правило Ирины
 			   от 4 сентября 2026). */
-			$email = (ndIsUtmVisit() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
+			$email = (ndShouldReplaceContacts() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
 				? $ndEmailPodmena
 				: $props['EMAIL']['DISPLAY_VALUE'];
 		}

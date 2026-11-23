@@ -25,10 +25,10 @@ $this->setFrameMode(true);
 
 use Bitrix\Main\Localization\Loc;
 
-// Подмена телефона — по тому же правилу, что в шапке: ndIsUtmVisit() (сутки с рекламного
+// Подмена телефона — по тому же правилу, что в шапке: ndShouldReplaceContacts() (сутки с рекламного
 // перехода). Раньше решала метка в сессии/куке ND_UTM, которая живёт 30 дней, — в окне городов
 // оставались подменные номера, когда в шапке уже обычный (Ирина, 24.09.2026).
-$bPodmena = function_exists('ndIsUtmVisit') && ndIsUtmVisit();
+$bPodmena = function_exists('ndShouldReplaceContacts') && ndShouldReplaceContacts();
 
 $imgPath = SITE_TEMPLATE_PATH.'/images/newdesign/mobile';
 ?>

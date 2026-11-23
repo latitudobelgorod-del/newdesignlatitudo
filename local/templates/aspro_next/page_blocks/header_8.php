@@ -537,7 +537,7 @@ if ($val=='utm_source')
 								<div class="phone">
 								
 									
-								<?if (str_contains($utm_source, "ya") || str_contains($utm_source, "tg") || str_contains($utm_source, "vk") || str_contains($utm_source, "maps")) :?>
+								<?if (ndShouldReplaceContacts()) :?>
 							
 									<?if ($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):
 									$href1 = 'tel:'.str_replace(array(' ', '-', '(', ')'), '', $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);?>
@@ -589,7 +589,7 @@ if ($val=='utm_source')
 								</div>
 								
 									<?if ($arRegion['PROPERTY_REGION_TAG_MAIL_VALUE'] || $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
-									<?if ((str_contains($utm_source, "ya") || str_contains($utm_source, "tg") || str_contains($utm_source, "vk") || str_contains($utm_source, "maps")) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
+									<?if ((ndShouldReplaceContacts()) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
 								<div> <span class="fa fa-envelope-o"></span><a class="_border"  href="mailto:<?=$REGION_TAG_EMAIL_PODMENA?>"><?=$REGION_TAG_EMAIL_PODMENA?></a></div>
 									<?else:?>
 								<div> <span class="fa fa-envelope-o"></span><a class="_border"  href="mailto:<?=$REGION_TAG_MAIL?>"><?=$REGION_TAG_MAIL?></a></div>

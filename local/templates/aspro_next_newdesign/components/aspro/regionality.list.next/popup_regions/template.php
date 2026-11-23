@@ -147,7 +147,7 @@ div.city_chooser_frame {
                                             class="<?= ($bCurrentFavourites ? 'current_shownf' : ''); ?>"></span>
                                     </div>
 
-										<?if ($utm_medium == "cpc") :?>
+										<?if (ndShouldReplaceContacts()) :?>
 										    <?if ($arItem['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):?>
                                                 <div class="phone"><?=$arItem['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']; ?></div>
                                             <?else:?>

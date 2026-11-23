@@ -46,9 +46,9 @@ $utm_source = 'empty';
 if(isset($_SESSION['UTM']['utm_source']) && $_SESSION['UTM']['utm_source'])
 	$utm_source = $_SESSION['UTM']['utm_source'];
 /* 22.09.2026: подмена — как в шапке, только пока идёт рекламный визит
-   (ndIsUtmVisit, сутки с перехода). Метка в сессии живёт 30 дней, и проверка
+   (ndShouldReplaceContacts, сутки с перехода). Метка в сессии живёт 30 дней, и проверка
    по ней одной показывала в подвале подменный номер, когда в шапке уже обычный. */
-$bUtmPodmena = ndIsUtmVisit();
+$bUtmPodmena = ndShouldReplaceContacts();
 
 if(!function_exists('ndFooterPhoneHref'))
 {

@@ -40,7 +40,7 @@ if ($val=='utm_source')
 				<div class="col" >
 					<div class="item">
 					<div class="name"><a href="https://<?=$arItem["PROPERTIES"]["MAIN_DOMAIN"]['VALUE']?>"><?=$arItem["NAME"]?></a></div>
-						<?if (str_contains($utm_source, "ya") || str_contains($utm_source, "tg") || str_contains($utm_source, "vk") || str_contains($utm_source, "maps")) :?>
+						<?if (ndShouldReplaceContacts()) :?>
 							 
 							<?if ($arItem["PROPERTIES"]["REGION_TAG_PHONE_PODMENA"]['VALUE']):?>
 								<a rel="nofollow" href="<?=$href1?>"><?=$arItem["PROPERTIES"]["REGION_TAG_PHONE_PODMENA"]['VALUE']?></a>	<br>		

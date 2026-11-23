@@ -36,9 +36,9 @@ $REGION_TAG_EMAIL_PODMENA = "#REGION_TAG_EMAIL_PODMENA#";
 
 // Подмена номера и почты для платного трафика — как в шапке.
 $utm_source = (!empty($_SESSION['UTM']['utm_source']) ? $_SESSION['UTM']['utm_source'] : 'empty');
-/* Подмена контактов — при любой utm-метке (ndIsUtmVisit из local/init.php).
+/* Подмена контактов — при любой utm-метке (ndShouldReplaceContacts из local/init.php).
    Раньше здесь был список источников ya/tg/vk/maps. */
-$bPodmena = ndIsUtmVisit();
+$bPodmena = ndShouldReplaceContacts();
 
 $ndTelHref = function($value) {
 	$value = trim((string)$value);
@@ -270,7 +270,7 @@ include(__DIR__.'/header_drops_newdesign.php');
 
 			<?
 			/* Почта — при любой метке, телефон выше — только по списку источников. */
-			$bMailPodmena = (ndIsUtmVisit() && $ndRegion('REGION_TAG_EMAIL_PODMENA'));
+			$bMailPodmena = (ndShouldReplaceContacts() && $ndRegion('REGION_TAG_EMAIL_PODMENA'));
 			$mailValue = $bMailPodmena
 				? $ndRegion('REGION_TAG_EMAIL_PODMENA')
 				: $ndRegion('REGION_TAG_MAIL');

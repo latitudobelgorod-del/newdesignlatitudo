@@ -38,9 +38,9 @@ if (!$isShowCompany || !$arRegion) {
 $ndPhoneDigits = preg_replace('/[^0-9]/', '', $arRegion['PROPERTY_REGION_TAG_PHONE_VALUE']);
 $ndPhonePodmenaDigits = preg_replace('/[^0-9]/', '', $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);
 /* 22.09.2026: подмена телефона — как в шапке, только пока идёт рекламный визит
-   (ndIsUtmVisit, сутки с перехода). Метка в сессии живёт 30 дней, и проверка
+   (ndShouldReplaceContacts, сутки с перехода). Метка в сессии живёт 30 дней, и проверка
    по ней одной показывала подменный номер, когда в шапке уже обычный. */
-$ndPodmena = ndIsUtmVisit();
+$ndPodmena = ndShouldReplaceContacts();
 
 $ndPhoto = '';
 $res = CIBlockElement::GetList(['ID' => 'ASC'], ['ID' => $arRegion['ID'], 'IBLOCK_ID' => 7], false, false, ['ID', 'NAME', 'PREVIEW_PICTURE']);
@@ -72,7 +72,7 @@ while ($ob = $res->GetNextElement()) {
 				<?php endif; ?>
 
 				<?php /* Почта — при любой метке, телефон выше — по списку источников. */ ?>
-				<?php if (ndIsUtmVisit() && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']): ?>
+				<?php if (ndShouldReplaceContacts() && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']): ?>
 					<a class="nd-infochat__contact" href="mailto:#REGION_TAG_EMAIL_PODMENA#"><?= $ndIconMail ?><span>#REGION_TAG_EMAIL_PODMENA#</span></a>
 				<?php else: ?>
 					<a class="nd-infochat__contact" href="mailto:#REGION_TAG_MAIL#"><?= $ndIconMail ?><span>#REGION_TAG_MAIL#</span></a>

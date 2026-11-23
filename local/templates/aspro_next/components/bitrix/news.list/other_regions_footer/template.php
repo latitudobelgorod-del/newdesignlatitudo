@@ -21,7 +21,7 @@ if ($val=='utm_medium')
 		$href = 'tel:'.str_replace(array(' ', '-', '(', ')'), '', $arItem["PROPERTIES"]["REGION_TAG_PHONE"]['VALUE']);
 		$href1 = 'tel:'.str_replace(array(' ', '-', '(', ')'), '', $arItem["PROPERTIES"]["REGION_TAG_PHONE_PODMENA"]['VALUE']);?>										
 					<div><span class="bold"><?=$arItem["NAME"]?></span>
-						<?if ($utm_medium == "cpc") :?> 
+						<?if (ndShouldReplaceContacts()) :?>
 							<?if ($arItem["PROPERTIES"]["REGION_TAG_PHONE_PODMENA"]['VALUE']):?>
 								<a style="margin-left:20px;" rel="nofollow" href="<?=$href1?>"><?=$arItem["PROPERTIES"]["REGION_TAG_PHONE_PODMENA"]['VALUE']?></a>			
 							<?else:?>

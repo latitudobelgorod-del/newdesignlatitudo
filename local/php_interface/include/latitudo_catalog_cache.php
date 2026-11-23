@@ -71,8 +71,8 @@ function ndCurrentPathKey(): string
  */
 function ndUtmCacheKey(): string
 {
-    if (!function_exists('ndIsUtmVisit') || !ndIsUtmVisit()) {
-        return 'n';
+    if (!function_exists('ndShouldReplaceContacts') || !ndShouldReplaceContacts()) {
+        return 'contacts-original-v1';
     }
     global $arRegion;
     return 'utm-' . (is_array($arRegion) ? (int)($arRegion['ID'] ?? 0) : 0);

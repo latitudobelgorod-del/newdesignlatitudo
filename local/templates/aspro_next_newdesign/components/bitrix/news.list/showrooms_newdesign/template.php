@@ -30,15 +30,14 @@ $ndTel = static function ($phone) {
 global $arRegion;
 $ndUtmSource = !empty($_SESSION['UTM']['utm_source']) ? $_SESSION['UTM']['utm_source'] : 'empty';
 $ndIsAdSource = (
-	str_contains($ndUtmSource, 'ya') || str_contains($ndUtmSource, 'tg')
-	|| str_contains($ndUtmSource, 'vk') || str_contains($ndUtmSource, 'maps')
+	ndShouldReplaceContacts()
 );
-$ndMailPodmena = (ndIsUtmVisit() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
+$ndMailPodmena = (ndShouldReplaceContacts() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
 	? '#REGION_TAG_EMAIL_PODMENA#'
 	: '';
 
 /* Телефон подменяем по тому же правилу, что и почту, — при любой метке. */
-$ndPhonePodmena = ndIsUtmVisit();
+$ndPhonePodmena = ndShouldReplaceContacts();
 $ndTotal = count($arResult['ITEMS']);
 ?>
 <section class="nd-co__sec nd-shr" data-nd-shr>
@@ -71,7 +70,7 @@ $ndTotal = count($arResult['ITEMS']);
 				   номер этого же офиса (свойство PHONE_PODMENA инфоблока
 				   контактов): городские номера рядом с ним сводили подмену на
 				   нет — звонили по настоящему (Ирина, 4 сентября 2026).
-				   Правило то же, что в шапке: ndIsUtmVisit() из local/init.php. */
+				   Правило то же, что в шапке: ndShouldReplaceContacts() из local/init.php. */
 				$ndOfficePodmena = trim((string) ($props['PHONE_PODMENA']['VALUE'] ?? ''));
 				$phones = ($ndPhonePodmena && $ndOfficePodmena)
 					? array($ndOfficePodmena)
