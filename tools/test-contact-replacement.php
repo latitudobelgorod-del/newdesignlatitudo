@@ -2,6 +2,11 @@
 // Isolated checks: no Bitrix bootstrap, database, mail or CRM requests.
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 $root = dirname(__DIR__);
+$_SERVER['DOCUMENT_ROOT'] = $root;
+set_error_handler(static function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
 function loadFunctions(string $file, array $names): void
 {
     $tokens = token_get_all(file_get_contents($file));
