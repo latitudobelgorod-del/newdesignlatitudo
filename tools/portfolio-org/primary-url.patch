@@ -1,0 +1,43 @@
+diff --git a/bitrix/templates/aspro_next/components/bitrix/news/projects_org/detail.php b/bitrix/templates/aspro_next/components/bitrix/news/projects_org/detail.php
+index 83cbc3b..0dedef8 100644
+--- a/bitrix/templates/aspro_next/components/bitrix/news/projects_org/detail.php
++++ b/bitrix/templates/aspro_next/components/bitrix/news/projects_org/detail.php
+@@ -13,7 +13,37 @@ if($arParams['CACHE_GROUPS'] == 'Y')
+ 	$arItemFilter['GROUPS'] = $GLOBALS["USER"]->GetGroups();
+ }
+ 
+-$arElement = CNextCache::CIblockElement_GetList(array('CACHE' => array('TAG' => CNextCache::GetIBlockCacheTag($arParams['IBLOCK_ID']), 'MULTI' => 'N')), $arItemFilter, false, false, array('ID', 'NAME', 'PREVIEW_TEXT', 'IBLOCK_SECTION_ID', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'DETAIL_PAGE_URL', 'LIST_PAGE_URL', 'PROPERTY_LINK_PROJECTS', 'PROPERTY_LINK_YOUTUBE', 'PROPERTY_LINK_GOODS', 'PROPERTY_LINK_REVIEWS', 'PROPERTY_LINK_STAFF', 'PROPERTY_LINK_SERVICES', 'PROPERTY_FORM_QUESTION', 'PROPERTY_FORM_ORDER'));
++$arElement = CNextCache::CIblockElement_GetList(array('CACHE' => array('TAG' => CNextCache::GetIBlockCacheTag($arParams['IBLOCK_ID']), 'MULTI' => 'N')), $arItemFilter, false, false, array('ID', 'CODE', 'NAME', 'PREVIEW_TEXT', 'IBLOCK_SECTION_ID', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'DETAIL_PAGE_URL', 'LIST_PAGE_URL', 'PROPERTY_LINK_PROJECTS', 'PROPERTY_LINK_YOUTUBE', 'PROPERTY_LINK_GOODS', 'PROPERTY_LINK_REVIEWS', 'PROPERTY_LINK_STAFF', 'PROPERTY_LINK_SERVICES', 'PROPERTY_FORM_QUESTION', 'PROPERTY_FORM_ORDER'));
++
++if ($arElement) {
++    // Aspro returns all section IDs and keeps the primary section separately.
++    $primarySectionId = (int)($arElement['IBLOCK_SECTION_ID_SELECTED'] ?? 0);
++    if ($primarySectionId > 0 && !empty($arElement['CODE'])) {
++        $primaryElement = [
++            'ID' => $arElement['ID'],
++            'CODE' => $arElement['~CODE'] ?? $arElement['CODE'],
++            'IBLOCK_SECTION_ID' => $primarySectionId,
++        ];
++        $detailTemplate = $arResult['FOLDER'].$arResult['URL_TEMPLATES']['detail'];
++        $primaryPath = CIBlock::ReplaceDetailUrl($detailTemplate, $primaryElement, false, 'E');
++        if (preg_match('~^/portfolio/(?:[^/?#]+/){2,}$~D', $primaryPath)) {
++            $request = parse_url($_SERVER['REQUEST_URI'] ?? '');
++            $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
++            if (in_array($method, ['GET', 'HEAD'], true)
++                && isset($request['path'])
++                && rawurldecode($request['path']) !== rawurldecode($primaryPath)
++            ) {
++                // A relative target keeps the regional host and the existing query.
++                $query = $request['query'] ?? '';
++                LocalRedirect($primaryPath.($query !== '' ? '?'.$query : ''), false, '301 Moved Permanently');
++            }
++
++            $context = \Bitrix\Main\Context::getCurrent();
++            $scheme = $context->getRequest()->isHttps() ? 'https' : 'http';
++            $APPLICATION->SetPageProperty('canonical', $scheme.'://'.$context->getServer()->getHttpHost().$primaryPath);
++        }
++    }
++}
+ 
+ if($arParams["SHOW_NEXT_ELEMENT"] == "Y")
+ {
