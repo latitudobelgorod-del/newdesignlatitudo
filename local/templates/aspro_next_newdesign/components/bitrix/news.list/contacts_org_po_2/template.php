@@ -4,18 +4,9 @@ $this->setFrameMode(true);
 
 <?global $arRegion ,$arTheme, $APPLICATION;
 $regionID = ($arRegion ? $arRegion['ID'] : '');
-$REGION_TAG_EMAIL_PODMENA = "#REGION_TAG_EMAIL_PODMENA#";?>
-<?=bitrix_sessid_post();?>
-<?
-foreach (array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term') as $val) {
-if($_SESSION['UTM'][$val]) $v=$_SESSION['UTM'][$val]; else $v='empty';
-if ($val=='utm_source')
-	$utm_source =$v;
-}
-/* 22.09.2026: подмена — как в шапке: только пока идёт рекламный визит (ndShouldReplaceContacts, сутки с перехода);
-   метка в сессии живёт 30 дней. 'ya_visit' лишь включает проверки str_contains(..., 'ya') ниже. */
-$utm_source = (function_exists('ndShouldReplaceContacts') && ndShouldReplaceContacts()) ? 'ya_visit' : 'empty';
 ?>
+<?=bitrix_sessid_post();?>
+
 
 <div class="news-list-regions  item-views table-type-block table-elements">
 	<div class="items row flexbox" style="margin-bottom:40px;">
@@ -135,30 +126,7 @@ if ($ob = $res->GetNextElement()){;
 											</span>
 										</div>
 						<?endif;?>
-						<?if (ndShouldReplaceContacts()) :?>
-								<?if ($arItem["DISPLAY_PROPERTIES"]['PHONE_PODMENA']) :?>
-											<div>
-												<span>
-												<? $href1 = 'tel:'.str_replace(array(' ', '-', '(', ')'), '', $arItem["DISPLAY_PROPERTIES"]["PHONE_PODMENA"]["VALUE"]);?>
-												<a itemprop="telephone" rel="nofollow" href="<?=$href1?>"><?=$arItem["DISPLAY_PROPERTIES"]["PHONE_PODMENA"]["VALUE"]?></a><br>
-												</span>	
-											</div>
-								<?else:?>
-									 <?if ($arItem["DISPLAY_PROPERTIES"]['PHONE']) :?>
-										<div>
-												<span>
-													<?foreach($arItem["DISPLAY_PROPERTIES"]["PHONE"]["VALUE"] as $value):?>
-													<? $dump = preg_replace("/[^0-9]/", '', $value); 
-												$href = 'tel:'.str_replace(array(' ', '-', '(', ')'), '', $value);?>
-												<a itemprop="telephone" rel="nofollow" href="<?=$href?>"><?=$value?></a><br>
-
-												<?endforeach;?>
-												</span>
-										</div>
-									<?endif;?>
-								<?endif;?>
-						<?else:?>
-									<?if ($arItem["DISPLAY_PROPERTIES"]['PHONE']) :?>
+															<?if ($arItem["DISPLAY_PROPERTIES"]['PHONE']) :?>
 										<div>
 												<span>
 													<?foreach($arItem["DISPLAY_PROPERTIES"]["PHONE"]["VALUE"] as $value):?>
@@ -172,16 +140,13 @@ if ($ob = $res->GetNextElement()){;
 									
 									<?endif;?>
 						
-						<?endif;?>
+
 			
 						<?if ($arItem["DISPLAY_PROPERTIES"]['EMAIL']) :?>
 						<div>
 							<span>
-							<?if ((ndShouldReplaceContacts()) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
-							<a itemprop="email" href="mailto:<?=$REGION_TAG_EMAIL_PODMENA?>"><?=$REGION_TAG_EMAIL_PODMENA?></a>
-							<?else:?>
-							<a itemprop="email" href="mailto:<?=$arItem['DISPLAY_PROPERTIES']['EMAIL']['DISPLAY_VALUE']?>"><?=$arItem['DISPLAY_PROPERTIES']['EMAIL']['DISPLAY_VALUE']?></a>
-							<?endif;?>
+														<a itemprop="email" href="mailto:<?=$arItem['DISPLAY_PROPERTIES']['EMAIL']['DISPLAY_VALUE']?>"><?=$arItem['DISPLAY_PROPERTIES']['EMAIL']['DISPLAY_VALUE']?></a>
+
 							</span>	
 						</div>
 						<?endif;?>

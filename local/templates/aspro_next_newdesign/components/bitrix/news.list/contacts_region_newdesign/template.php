@@ -1,31 +1,6 @@
 <? if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die(); ?>
 <?
-/**
- * Контакты региона (Москва, Воронеж, Белгород, Краснодар, Ростов) в новом дизайне.
- *
- * Размеры из макета Figma («Чистовик», фрейм «Контакты» 20493:77152):
- * галерея — три кадра 441×294 с зазором 6, радиус 4, рамка rgba(14,17,23,.12);
- * под ней ряд из трёх плашек 441 (поля 24, радиус 4, заливка rgba(82,82,100,.05)):
- * адрес офиса, телефоны с почтой, режим работы с кнопкой «Заказать пропуск»;
- * ниже ряд склада — широкая плашка с адресом и узкая с режимом работы;
- * в конце карта и кнопки «Схема проезда».
- *
- * Склад есть не у всех регионов (в Ростове нет) — весь его ряд и кнопка
- * появляются только при заполненных ADDRESS_SKLAD / SCHEDULE_SKLAD.
- *
- * Карты берём из отдельных свойств YMAP_CONSTR_OFFICE и YMAP_CONSTR_SKLAD
- * (готовый <iframe> из конструктора Яндекса) — на каждую своя кнопка-
- * переключатель. Если они не заполнены, работает старое общее YMAP_CONSTR.
- *
- * Кнопка «Заказать пропуск» — только у московского офиса.
- *
- * Подмена телефона и почты по utm-метке перенесена из старого шаблона
- * contacts_org2. Телефон подменный лежит у самого офиса (свойство
- * PHONE_PODMENA), а почта — у РЕГИОНА: печатаем тег
- * #REGION_TAG_EMAIL_PODMENA#, его заменяет обработчик из
- * bitrix/php_interface/init.php. Так же сделано в шапке
- * (page_blocks/header_newdesign.php) и на общей странице контактов.
- */
+
 $this->setFrameMode(true);
 
 if (!$arResult['ITEMS']) {
@@ -34,22 +9,15 @@ if (!$arResult['ITEMS']) {
 
 $ndIco = SITE_TEMPLATE_PATH.'/images/newdesign/contacts/';
 
-$ndUtmSource = !empty($_SESSION['UTM']['utm_source']) ? $_SESSION['UTM']['utm_source'] : 'empty';
-$ndIsAdSource = (
-	ndShouldReplaceContacts()
-);
+
+
 $ndTel = static function ($phone) {
 	return 'tel:'.preg_replace('/[^0-9+]/', '', $phone);
 };
 
-/* Почта у платного трафика — подменная почта РЕГИОНА, а не адрес офиса:
-   у элемента контактов своего подменного адреса нет (в инфоблоке есть только
-   PHONE_PODMENA). Раньше на странице региона почта не подменялась вовсе —
-   в шапке стояла подменная, а в карточке офиса настоящая (Ирина, 4 сентября 2026). */
+
 global $arRegion;
-$ndMailPodmena = (ndShouldReplaceContacts() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
-	? '#REGION_TAG_EMAIL_PODMENA#'
-	: '';
+
 ?>
 <? foreach ($arResult['ITEMS'] as $arItem): ?>
 	<?
@@ -58,9 +26,7 @@ $ndMailPodmena = (ndShouldReplaceContacts() && !empty($arRegion['PROPERTY_REGION
 	$props = $arItem['DISPLAY_PROPERTIES'];
 
 	$phones = [];
-	if (ndShouldReplaceContacts() && !empty($props['PHONE_PODMENA']['VALUE'])) {
-		$phones[] = $props['PHONE_PODMENA']['VALUE'];
-	} elseif (!empty($props['PHONE']['VALUE'])) {
+	if (!empty($props['PHONE']['VALUE'])) {
 		$phones = (array) $props['PHONE']['VALUE'];
 	}
 
@@ -153,7 +119,7 @@ $ndMailPodmena = (ndShouldReplaceContacts() && !empty($arRegion['PROPERTY_REGION
 						<img src="<?= $ndIco ?>mail.svg" alt="" width="20" height="20">Электронная почта
 					</div>
 					<div class="nd-region__links">
-						<? $ndMail = $ndMailPodmena ?: $props['EMAIL']['DISPLAY_VALUE']; ?>
+						<? $ndMail = $props['EMAIL']['DISPLAY_VALUE']; ?>
 						<a itemprop="email" href="mailto:<?= $ndMail ?>"><?= $ndMail ?></a>
 					</div>
 				<? endif; ?>

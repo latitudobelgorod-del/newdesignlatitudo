@@ -1,24 +1,6 @@
 <?if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();?>
 <?
-/**
- * Подвал нового дизайна. Макет Figma — узлы 20463:355744 (десктоп)
- * и 20497:93041 (мобильный).
- *
- * Копия рабочего подвала старого дизайна: page_blocks/footer_1.php →
- * include/footer/f-desk.php + include/footer/footer_block/footer_6_col.php
- * (мобильный — include/footer/f-mobile.php) + include/region_info_new_footer.php.
- * Оттуда без изменений перенесены: логика регионов (адрес, режим работы,
- * телефоны с подменой по utm-метке, «Заказать пропуск»), формы мессенджеров
- * и ссылки соцсетей.
- *
- * Подключается напрямую из footer.php шаблона, а не через
- * CNext::ShowPageType('footer'): тот выбирает файл по настройке темы
- * FOOTER_TYPE, а она одна на весь сайт — как HEADER_TYPE и INDEX_TYPE.
- *
- * По просьбе Ирины (2026-07-31) в новом подвале не выводим: e-mail и рейтинг
- * Яндекса, «Скачать брошюру», курс ЦБ РФ и два юридических абзаца — в макете
- * их нет. В старом дизайне всё осталось на месте.
- */
+
 global $arRegion, $arTheme, $APPLICATION;
 
 $sImg = SITE_TEMPLATE_PATH.'/images/newdesign/footer/';
@@ -30,25 +12,22 @@ $regionID = ($arRegion ? $arRegion['ID'] : '');
 $arOfficeRegions = array(9277, 9278, 9568, 10039, 22018);
 $bOffice = in_array($regionID, $arOfficeRegions);
 
-// Теги региона подменяются на значения свойств уже в буфере страницы.
+
 $REGION_TAG_ADDRESSMY      = '#REGION_TAG_ADDRESSMY#';
 $REGION_TAG_TIME           = '#REGION_TAG_TIME#';
 $REGION_TAG_PHONE          = '#REGION_TAG_PHONE#';
 $REGION_TAG_PHONE_8800     = '#REGION_TAG_PHONE_8800#';
 $REGION_TAG_PHONE_MOBILE   = '#REGION_TAG_PHONE_MOBILE#';
-$REGION_TAG_PHONE_PODMENA  = '#REGION_TAG_PHONE_PODMENA#';
+
 $REGION_TAG_PHONESKLAD     = '#REGION_TAG_PHONESKLAD#';
 $REGION_TAG_PHONE3         = '#REGION_TAG_PHONE3#';
 $REGION_TAG_SEO_OBLAST_PP  = '#REGION_TAG_SEO_OBLAST_PP#';
 
-// Подмена телефона по utm-метке — перенесено из region_info_new_footer.php.
-$utm_source = 'empty';
-if(isset($_SESSION['UTM']['utm_source']) && $_SESSION['UTM']['utm_source'])
-	$utm_source = $_SESSION['UTM']['utm_source'];
-/* 22.09.2026: подмена — как в шапке, только пока идёт рекламный визит
-   (ndShouldReplaceContacts, сутки с перехода). Метка в сессии живёт 30 дней, и проверка
-   по ней одной показывала в подвале подменный номер, когда в шапке уже обычный. */
-$bUtmPodmena = ndShouldReplaceContacts();
+
+
+
+
+
 
 if(!function_exists('ndFooterPhoneHref'))
 {
@@ -209,9 +188,6 @@ if(!function_exists('ndFooterMenuColumn'))
 							<?if($arRegion['PROPERTY_REGION_TAG_PHONE_MOBILE_VALUE']):?>
 								<div class="nd-fcont__phone"><a rel="nofollow" href="<?=ndFooterPhoneHref($arRegion['PROPERTY_REGION_TAG_PHONE_MOBILE_VALUE'])?>"><?=$REGION_TAG_PHONE_MOBILE?></a></div>
 							<?endif;?>
-						<?elseif($bUtmPodmena && $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):?>
-							<?// Пришли с метки — показываем подменный номер ?>
-							<div class="nd-fcont__phone"><a rel="nofollow" href="<?=ndFooterPhoneHref($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE'])?>"><?=$REGION_TAG_PHONE_PODMENA?></a></div>
 						<?else:?>
 							<div class="nd-fcont__phone"><a rel="nofollow" href="<?=ndFooterPhoneHref($arRegion['PROPERTY_REGION_TAG_PHONE_VALUE'])?>"><?=$REGION_TAG_PHONE?></a></div>
 							<?if($arRegion['PROPERTY_REGION_TAG_PHONESKLAD_VALUE']):?>

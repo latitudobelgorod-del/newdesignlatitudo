@@ -1,23 +1,7 @@
 <?if(!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();?>
 <?$this->setFrameMode(true);?>
 <?
-/**
- * «Шоу-румы компании» на странице «О компании» (макет 21399:66000).
- *
- * Карточка: слева адрес, телефоны, почта, режим работы и адрес склада,
- * справа фото офиса с кнопкой видео. Города листаются стрелками справа
- * от заголовка, счётчик «01/05» — там же. Скрипт карусели в script.js.
- *
- * Данные — инфоблок контактов (ID 10), тот же, что у раздела /contacts/.
- * Порядок городов задаётся списком ID в вызове компонента.
- *
- * Почта для платного трафика подменяется — как в шапке и на страницах
- * контактов: печатаем тег #REGION_TAG_EMAIL_PODMENA#, его заменяет обработчик
- * из bitrix/php_interface/init.php на подменный адрес РЕГИОНА. Без этого в
- * блоке оставалась настоящая почта, хотя по всему сайту уже стояла подменная
- * (Ирина, 4 сентября 2026). Телефоны здесь намеренно свои у каждого города —
- * это витрина шоу-румов, а не контакты текущего региона.
- */
+
 if (!$arResult['ITEMS']) {
 	return;
 }
@@ -28,16 +12,12 @@ $ndTel = static function ($phone) {
 };
 
 global $arRegion;
-$ndUtmSource = !empty($_SESSION['UTM']['utm_source']) ? $_SESSION['UTM']['utm_source'] : 'empty';
-$ndIsAdSource = (
-	ndShouldReplaceContacts()
-);
-$ndMailPodmena = (ndShouldReplaceContacts() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
-	? '#REGION_TAG_EMAIL_PODMENA#'
-	: '';
 
-/* Телефон подменяем по тому же правилу, что и почту, — при любой метке. */
-$ndPhonePodmena = ndShouldReplaceContacts();
+
+
+
+
+
 $ndTotal = count($arResult['ITEMS']);
 ?>
 <section class="nd-co__sec nd-shr" data-nd-shr>
@@ -66,16 +46,10 @@ $ndTotal = count($arResult['ITEMS']);
 
 				$props = $arItem['PROPERTIES'];
 
-				/* Телефон офиса. У рекламного трафика показываем ОДИН подменный
-				   номер этого же офиса (свойство PHONE_PODMENA инфоблока
-				   контактов): городские номера рядом с ним сводили подмену на
-				   нет — звонили по настоящему (Ирина, 4 сентября 2026).
-				   Правило то же, что в шапке: ndShouldReplaceContacts() из local/init.php. */
-				$ndOfficePodmena = trim((string) ($props['PHONE_PODMENA']['VALUE'] ?? ''));
-				$phones = ($ndPhonePodmena && $ndOfficePodmena)
-					? array($ndOfficePodmena)
-					: array_filter((array) ($props['PHONE']['VALUE'] ?? array()));
-				$email = $ndMailPodmena ?: ($props['EMAIL']['VALUE'] ?? '');
+
+
+				$phones = array_filter((array) ($props['PHONE']['VALUE'] ?? array()));
+				$email = ($props['EMAIL']['VALUE'] ?? '');
 				$address = $props['ADDRESS']['VALUE'] ?? '';
 				$schedule = $props['SCHEDULE']['VALUE']['TEXT'] ?? '';
 				$store = $props['ADDRESS_SKLAD']['VALUE'] ?? '';

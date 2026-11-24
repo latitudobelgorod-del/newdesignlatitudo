@@ -2,26 +2,10 @@
 
 <?=bitrix_sessid_post();?>
 <?
-/**
- * Блок «Получите бесплатную консультацию» в правой колонке материалов —
- * новый дизайн.
- *
- * Рядом лежит include/infochat_materials.php — он не тронут, им пользуется
- * старый дизайн. От infochat_newdesign.php отличается только заголовком —
- * так же устроены и исходные файлы старого дизайна.
- * Вся логика телефонов скопирована оттуда один в один: резервные номера,
- * подмена номера и почты для переходов с Яндекса, Telegram, VK и карт.
- * Отличается только разметка (классы .nd-infochat*, стили в css/newdesign.css)
- * и порядок по макету: телефон, почта, а кнопка последней.
- */
-foreach (array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term') as $val) {
-	if($_SESSION['UTM'][$val]) $v=$_SESSION['UTM'][$val]; else $v='empty';
-	if ($val=='utm_source')
-		$utm_source =$v;
-}
-/* 22.09.2026: подмена — как в шапке: только пока идёт рекламный визит (ndShouldReplaceContacts, сутки с перехода);
-   метка в сессии живёт 30 дней. 'ya_visit' лишь включает проверки str_contains(..., 'ya') ниже. */
-$utm_source = (function_exists('ndShouldReplaceContacts') && ndShouldReplaceContacts()) ? 'ya_visit' : 'empty';
+
+
+
+
 
 $ndIconPhone = '<svg class="nd-infochat__icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
 	.'<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .3 1.8.6 2.7a2 2 0 0 1-.5 2.1L7.6 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2Z"/></svg>';
@@ -48,8 +32,8 @@ $ndIconMail = '<svg class="nd-infochat__icon" width="20" height="20" viewBox="0 
 
 		<?if($arRegion):
 			$dump = preg_replace("/[^0-9]/", '', $arRegion['PROPERTY_REGION_TAG_PHONE_VALUE']);
-			$dump1 = preg_replace("/[^0-9]/", '', $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);
-			$ndPodmena = (ndShouldReplaceContacts());
+
+
 			?>
 
 			<div class="nd-infochat__contacts">
@@ -68,19 +52,13 @@ $ndIconMail = '<svg class="nd-infochat__icon" width="20" height="20" viewBox="0 
 
 				<?else:?>
 					<?/*ЕСЛИ НОМЕР ОБЫЧНЫЙ*/?>
-					<?if ($ndPodmena && $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):?>
-						<a class="nd-infochat__contact" rel="nofollow" href="tel:+<?=$dump1?>"><?=$ndIconPhone?><span>#REGION_TAG_PHONE_PODMENA#</span></a>
-					<?else:?>
-						<a class="nd-infochat__contact" rel="nofollow" href="tel:+<?=$dump?>"><?=$ndIconPhone?><span>#REGION_TAG_PHONE#</span></a>
-					<?endif;?>
+											<a class="nd-infochat__contact" rel="nofollow" href="tel:+<?=$dump?>"><?=$ndIconPhone?><span>#REGION_TAG_PHONE#</span></a>
+
 					<?/*ЕСЛИ НОМЕР ОБЫЧНЫЙ*/?>
 				<?endif;?>
 
-				<?if ($ndPodmena && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
-					<a class="nd-infochat__contact" href="mailto:#REGION_TAG_EMAIL_PODMENA#"><?=$ndIconMail?><span>#REGION_TAG_EMAIL_PODMENA#</span></a>
-				<?else:?>
-					<a class="nd-infochat__contact" href="mailto:#REGION_TAG_MAIL#"><?=$ndIconMail?><span>#REGION_TAG_MAIL#</span></a>
-				<?endif;?>
+									<a class="nd-infochat__contact" href="mailto:#REGION_TAG_MAIL#"><?=$ndIconMail?><span>#REGION_TAG_MAIL#</span></a>
+
 			</div>
 
 			<?/* data-nd-form-title обязателен: иначе в заголовок формы уедет имя

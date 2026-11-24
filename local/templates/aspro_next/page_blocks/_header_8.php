@@ -11,7 +11,7 @@ if($arRegion)
 else
 $bPhone = ((int)$arTheme['HEADER_PHONES'] ? true : false);
 $REGION_TAG_PHONE = "#REGION_TAG_PHONE#";
-$REGION_TAG_PHONE_PODMENA = "#REGION_TAG_PHONE_PODMENA#";
+
 $REGION_TAG_PHONE_PODP = "#REGION_TAG_PHONEPODP#";
 $REGION_TAG_PHONESKLAD = "#REGION_TAG_PHONESKLAD#";
 $REGION_TAG_PHONESKLAD_PODP = "#REGION_TAG_PHONESKLAD_PODP#";
@@ -22,13 +22,7 @@ $logoClass = ($arTheme['COLORED_LOGO']['VALUE'] !== 'Y' ? '' : ' colored');
 ?>
 
 <?=bitrix_sessid_post();?>
-<?
-foreach (array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term') as $val) {
-if($_SESSION['UTM'][$val]) $v=$_SESSION['UTM'][$val]; else $v='empty';
-if ($val=='utm_medium')
-	$utm_medium =$v;
-}
-?>
+
 <div class="top-block top-block-v1">
 	<div class="maxwidth-theme">
 			<div class="wrapp_block">
@@ -301,7 +295,6 @@ if ($val=='utm_medium')
 			0 => "EMAIL",
 			1 => "ADDRESS",
 			2 => "REGION_TAG_PHONE",
-			3 => "REGION_TAG_PHONE_PODMENA",
 			4 => "ADDRESS_SKLAD",
 			5 => "PHONE",
 			6 => "PHONE",
@@ -514,32 +507,11 @@ if ($val=='utm_medium')
 					<?
 									$dump = preg_replace("/[^0-9]/", '', $arRegion['PROPERTY_REGION_TAG_PHONE_VALUE']);
 									$href = 'tel:'.str_replace(array(' ', '-', '(', ')'), '',  $arRegion['PROPERTY_REGION_TAG_PHONE_VALUE']);
-									$dump1 = preg_replace("/[^0-9]/", '', $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);
-									$href1 = 'tel:'.str_replace(array(' ', '-', '(', ')'), '',  $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);?>	
+
+									?>
 				
 						
-								<?if (ndShouldReplaceContacts()) :?>
-								<?if ($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):?>
-								<div class="head_phon"> 
-									<a  rel="nofollow" href="<?=$href1?>"><?=$REGION_TAG_PHONE_PODMENA?><span><?=$REGION_TAG_PHONE_PODP?></span></a>
-								</div>
-								<br/>
-								 <?else:?>
-								  <div class="head_phon"> 
-									<a  rel="nofollow" href="<?=$href?>"><?=$REGION_TAG_PHONE?><span><?=$REGION_TAG_PHONE_PODP?></span></a>
-								</div>
-								<br/>
-									<?if ($arRegion['PROPERTY_REGION_TAG_PHONESKLAD_VALUE']):
-				$dump = preg_replace("/[^0-9]/", '', $arRegion['PROPERTY_REGION_TAG_PHONESKLAD_VALUE']);
-				$hrefskl = 'tel:'.str_replace(array(' ', '-', '(', ')'), '', $arRegion['PROPERTY_REGION_TAG_PHONESKLAD_VALUE']);?>				
-				<div class="head_phon"> 
-				<a rel="nofollow" href="<?=$hrefskl?>"><?=$REGION_TAG_PHONESKLAD?><span><?=$REGION_TAG_PHONESKLAD_PODP?></span></a>
-				</div>	 
-				<?endif;?>
-				
-								<?endif;?>
-								 <?else:?>
-								 <div class="head_phon"> 
+																 <div class="head_phon">
 									<a  rel="nofollow" href="<?=$href?>"><?=$REGION_TAG_PHONE?><span><?=$REGION_TAG_PHONE_PODP?></span></a>
 								</div>
 								<br/>
@@ -551,7 +523,7 @@ if ($val=='utm_medium')
 				</div>	 
 				<?endif;?>
 				
-								<?endif;?>
+
 						
 								
 						

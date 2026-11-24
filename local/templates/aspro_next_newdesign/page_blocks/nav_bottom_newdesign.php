@@ -27,18 +27,17 @@ $ndRegion = function($prop) use ($arRegion) {
 	return isset($arRegion['PROPERTY_'.$prop.'_VALUE']) ? $arRegion['PROPERTY_'.$prop.'_VALUE'] : '';
 };
 
-// Регион-теги подменяются обработчиком из bitrix/php_interface/init.php.
+
 $REGION_TAG_PHONE         = "#REGION_TAG_PHONE#";
-$REGION_TAG_PHONE_PODMENA = "#REGION_TAG_PHONE_PODMENA#";
+
 $REGION_TAG_PHONESKLAD    = "#REGION_TAG_PHONESKLAD#";
 $REGION_TAG_MAIL          = "#REGION_TAG_MAIL#";
-$REGION_TAG_EMAIL_PODMENA = "#REGION_TAG_EMAIL_PODMENA#";
 
-// Подмена номера и почты для платного трафика — как в шапке.
-$utm_source = (!empty($_SESSION['UTM']['utm_source']) ? $_SESSION['UTM']['utm_source'] : 'empty');
-/* Подмена контактов — при любой utm-метке (ndShouldReplaceContacts из local/init.php).
-   Раньше здесь был список источников ya/tg/vk/maps. */
-$bPodmena = ndShouldReplaceContacts();
+
+
+
+
+
 
 $ndTelHref = function($value) {
 	$value = trim((string)$value);
@@ -242,24 +241,20 @@ include(__DIR__.'/header_drops_newdesign.php');
 
 		<div class="nd-contacts">
 			<?
-			$bMainPodmena = ($bPodmena && $ndRegion('REGION_TAG_PHONE_PODMENA'));
-			$mainPhoneValue = $bMainPodmena
-				? $ndRegion('REGION_TAG_PHONE_PODMENA')
-				: $ndRegion('REGION_TAG_PHONE');
+
+			$mainPhoneValue = $ndRegion('REGION_TAG_PHONE');
 			?>
 			<?if($mainPhoneValue):?>
 				<a class="nd-contacts__row" rel="nofollow" href="<?=$ndTelHref($mainPhoneValue)?>">
 					<i class="nd-ico nd-contacts__ico" style="-webkit-mask-image:url('<?=$imgPath?>/phone24.svg');mask-image:url('<?=$imgPath?>/phone24.svg')"></i>
 					<span class="nd-contacts__body">
-						<span class="nd-contacts__val"><?=($bMainPodmena ? $REGION_TAG_PHONE_PODMENA : $REGION_TAG_PHONE)?></span>
+						<span class="nd-contacts__val"><?=($REGION_TAG_PHONE)?></span>
 					</span>
 				</a>
 			<?endif;?>
 
-			<?/* При подмене показываем ТОЛЬКО подменный номер: второй (складской)
-			   рядом с ним сводил подмену на нет — звонили по настоящему, и звонок
-			   не засчитывался рекламному источнику (Ирина, 4 сентября 2026). */?>
-			<?if(!$bMainPodmena && $ndRegion('REGION_TAG_PHONESKLAD')):?>
+
+			<?if($ndRegion('REGION_TAG_PHONESKLAD')):?>
 				<a class="nd-contacts__row" rel="nofollow" href="<?=$ndTelHref($ndRegion('REGION_TAG_PHONESKLAD'))?>">
 					<i class="nd-ico nd-contacts__ico" style="-webkit-mask-image:url('<?=$imgPath?>/phone24.svg');mask-image:url('<?=$imgPath?>/phone24.svg')"></i>
 					<span class="nd-contacts__body">
@@ -270,16 +265,14 @@ include(__DIR__.'/header_drops_newdesign.php');
 
 			<?
 			/* Почта — при любой метке, телефон выше — только по списку источников. */
-			$bMailPodmena = (ndShouldReplaceContacts() && $ndRegion('REGION_TAG_EMAIL_PODMENA'));
-			$mailValue = $bMailPodmena
-				? $ndRegion('REGION_TAG_EMAIL_PODMENA')
-				: $ndRegion('REGION_TAG_MAIL');
+
+			$mailValue = $ndRegion('REGION_TAG_MAIL');
 			?>
 			<?if($mailValue):?>
 				<a class="nd-contacts__row" href="mailto:<?=htmlspecialcharsbx($mailValue)?>">
 					<i class="nd-ico nd-contacts__ico" style="-webkit-mask-image:url('<?=$imgPath?>/mail24.svg');mask-image:url('<?=$imgPath?>/mail24.svg')"></i>
 					<span class="nd-contacts__body">
-						<span class="nd-contacts__val"><?=($bMailPodmena ? $REGION_TAG_EMAIL_PODMENA : $REGION_TAG_MAIL)?></span>
+						<span class="nd-contacts__val"><?=($REGION_TAG_MAIL)?></span>
 					</span>
 				</a>
 			<?endif;?>

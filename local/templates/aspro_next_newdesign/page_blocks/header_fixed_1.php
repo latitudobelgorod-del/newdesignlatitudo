@@ -8,26 +8,17 @@ $bPhone = ((int)$arTheme['HEADER_PHONES'] ? true : false);
 $REGION_TAG_PHONE = "#REGION_TAG_PHONE#";
 $REGION_TAG_PHONE_8800 = "#REGION_TAG_PHONE_8800#";
 $REGION_TAG_PHONE_MOBILE = "#REGION_TAG_PHONE_MOBILE#";
-$REGION_TAG_PHONE_PODMENA = "#REGION_TAG_PHONE_PODMENA#";
+
 $REGION_TAG_PHONE_PODP = "#REGION_TAG_PHONEPODP#";
 $REGION_TAG_PHONESKLAD = "#REGION_TAG_PHONESKLAD#";
 $REGION_TAG_PHONESKLAD_PODP = "#REGION_TAG_PHONESKLAD_PODP#";
 $REGION_TAG_MAIL = "#REGION_TAG_MAIL#";
-$REGION_TAG_EMAIL_PODMENA = "#REGION_TAG_EMAIL_PODMENA#";
+
 $REGION_TAG_USE_NUMBERS_PHONE = "#REGION_TAG_USE_NUMBERS_PHONE#";
 $logoClass = ($arTheme['COLORED_LOGO']['VALUE'] !== 'Y' ? '' : ' colored');
 ?>
 <?=bitrix_sessid_post();?>
-<?
-foreach (array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term') as $val) {
-if($_SESSION['UTM'][$val]) $v=$_SESSION['UTM'][$val]; else $v='empty';
-if ($val=='utm_source')
-	$utm_source =$v;
-}
-/* 22.09.2026: подмена — как в шапке: только пока идёт рекламный визит (ndShouldReplaceContacts, сутки с перехода);
-   метка в сессии живёт 30 дней. 'ya_visit' лишь включает проверки str_contains(..., 'ya') ниже. */
-$utm_source = (function_exists('ndShouldReplaceContacts') && ndShouldReplaceContacts()) ? 'ya_visit' : 'empty';
-?>
+
 
 
 <div class="wrapper_inner">
@@ -154,32 +145,10 @@ $utm_source = (function_exists('ndShouldReplaceContacts') && ndShouldReplaceCont
 				<?
 				$dump = preg_replace("/[^0-9]/", '', $arRegion['PROPERTY_REGION_TAG_PHONE_VALUE']);
 				$href = 'tel:'.str_replace(array(' ', '-', '(', ')'), '',  $arRegion['PROPERTY_REGION_TAG_PHONE_VALUE']);			
-				$dump1 = preg_replace("/[^0-9]/", '', $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);
-				$href1 = 'tel:'.str_replace(array(' ', '-', '(', ')'), '',  $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);
+
+
 				?>	
-		<?if (ndShouldReplaceContacts()) :?>
-							    
-								<?if ($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):?>
-								<div class="head_phon"> 
-									<a  rel="nofollow" href="<?=$href1?>"><?=$REGION_TAG_PHONE_PODMENA?><span><?=$REGION_TAG_PHONE_PODP?></span></a>
-								</div>
-								<br/>
-								 <?else:?>
-								  <div class="head_phon"> 
-									<a  rel="nofollow" href="<?=$href?>"><?=$REGION_TAG_PHONE?><span><?=$REGION_TAG_PHONE_PODP?></span></a>
-								</div>
-								<br/>
-									<?if ($arRegion['PROPERTY_REGION_TAG_PHONESKLAD_VALUE']):
-				$dump = preg_replace("/[^0-9]/", '', $arRegion['PROPERTY_REGION_TAG_PHONESKLAD_VALUE']);
-				$hrefskl = 'tel:'.str_replace(array(' ', '-', '(', ')'), '', $arRegion['PROPERTY_REGION_TAG_PHONESKLAD_VALUE']);?>				
-				<div class="head_phon"> 
-				<a rel="nofollow" href="<?=$hrefskl?>"><?=$REGION_TAG_PHONESKLAD?><span><?=$REGION_TAG_PHONESKLAD_PODP?></span></a>
-				</div>	 
-				<?endif;?>
-				
-								<?endif;?>
-								 <?else:?>
-								 <div class="head_phon"> 
+										 <div class="head_phon">
 									<a  rel="nofollow" href="<?=$href?>"><?=$REGION_TAG_PHONE?><span><?=$REGION_TAG_PHONE_PODP?></span></a>
 								</div>
 								<br/>
@@ -191,17 +160,14 @@ $utm_source = (function_exists('ndShouldReplaceContacts') && ndShouldReplaceCont
 				</div>	 
 				<?endif;?>
 				
-								<?endif;?>
+
 				
 				
 				</div>
 				<div> 
 				<span class="fa fa-envelope-o"></span>
-				<?if ((ndShouldReplaceContacts()) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
-				<a style="border-bottom:1px dashed; margin-left:10px;color:unset;font-size:13px;" href="mailto:<?=$REGION_TAG_EMAIL_PODMENA?>"><?=$REGION_TAG_EMAIL_PODMENA?></a>
-				<?else:?>
-				<a style="border-bottom:1px dashed; margin-left:10px;color:unset;font-size:13px;" href="mailto:<?=$REGION_TAG_MAIL?>"><?=$REGION_TAG_MAIL?></a>
-				<?endif;?>
+								<a style="border-bottom:1px dashed; margin-left:10px;color:unset;font-size:13px;" href="mailto:<?=$REGION_TAG_MAIL?>"><?=$REGION_TAG_MAIL?></a>
+
 				</div>
 			</div>
 		</div>

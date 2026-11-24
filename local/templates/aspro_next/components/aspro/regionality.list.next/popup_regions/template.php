@@ -15,11 +15,7 @@ use Bitrix\Main\Localization\Loc;
 <?
 //if(isset($_SESSION['UTM']) && !empty($_SESSION['UTM'])){
 
-foreach (array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term') as $val) {
-if($_SESSION['UTM'][$val]) $v=$_SESSION['UTM'][$val]; else $v='empty';
-if ($val=='utm_medium')
-	$utm_medium =$v;
-}
+
 ?>
 
 <style>
@@ -147,15 +143,8 @@ div.city_chooser_frame {
                                             class="<?= ($bCurrentFavourites ? 'current_shownf' : ''); ?>"></span>
                                     </div>
 
-										<?if (ndShouldReplaceContacts()) :?>
-										    <?if ($arItem['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):?>
-                                                <div class="phone"><?=$arItem['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']; ?></div>
-                                            <?else:?>
-                                                <div class="phone"><?=$arItem['PROPERTY_REGION_TAG_PHONE_VALUE'];?></div>
-                                            <?endif;?>
-                                        <?else:?>
-                                              <div class="phone"><?= $arItem['PROPERTY_REGION_TAG_PHONE_VALUE']; ?></div>
-                                        <?endif;?>
+										                                              <div class="phone"><?= $arItem['PROPERTY_REGION_TAG_PHONE_VALUE']; ?></div>
+
 			
 			
 									

@@ -1,24 +1,5 @@
 <?php
-/* Блок «Приезжайте в шоурум» — новый дизайн (макет Ирины, 11 сентября 2026).
-   Раньше на его месте был .photo_ter_block старой темы: фото, адрес с
-   телефоном и режимом работы, два списка с галочками и плашка «Архитекторам».
 
-   Разметка — здесь, в шаблоне (он в Git). Тексты списков и фото остаются во
-   включаемых файлах, откуда их правит контент-менеджер
-   (/include/catalog/tizer_block_service.php — услуги, tizer_ter_doska.php —
-   каталог): в новом дизайне они собирают $ndShowroom и подключают этот файл,
-   старому дизайну печатают прежний блок.
-
-   $ndShowroom = [
-       'image' => '/путь/к/фото.jpg',
-       'lists' => ['Заголовок карточки' => ['пункт', 'пункт с <a href="…">ссылкой</a>', …], …],
-   ];
-
-   Адрес, телефон и режим работы — теги региона (#REGION_TAG_…#, их
-   подставляет обработчик темы), как и в старом блоке; подменный телефон для
-   переходов с Яндекса, Telegram, VK и карт — тем же правилом. Кнопка
-   «Заказать пропуск» (форма PROPUSK) — только в Москве: пропуск нужен в
-   бизнес-парк «Румянцево», в других городах его нет (как на /contacts/). */
 
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
@@ -28,13 +9,10 @@ $ndShowroom = (array) ($ndShowroom ?? []);
 $ndSrImage = (string) ($ndShowroom['image'] ?? '');
 $ndSrLists = (array) ($ndShowroom['lists'] ?? []);
 
-$ndSrUtm = !empty($_SESSION['UTM']['utm_source']) ? (string) $_SESSION['UTM']['utm_source'] : 'empty';
-$ndSrPodmena = (ndShouldReplaceContacts())
-	&& !empty($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);
-$ndSrPhoneRaw = $ndSrPodmena
-	? (string) $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']
-	: (string) ($arRegion['PROPERTY_REGION_TAG_PHONE_VALUE'] ?? '');
-$ndSrPhoneTag = $ndSrPodmena ? '#REGION_TAG_PHONE_PODMENA#' : '#REGION_TAG_PHONE#';
+
+
+$ndSrPhoneRaw = (string) ($arRegion['PROPERTY_REGION_TAG_PHONE_VALUE'] ?? '');
+$ndSrPhoneTag = '#REGION_TAG_PHONE#';
 $ndSrHasAddress = !empty($arRegion['PROPERTY_REGION_TAG_ADDRESSMY_VALUE']);
 $ndSrIsMoscow = $arRegion && mb_stripos((string) ($arRegion['NAME'] ?? ''), 'москв') !== false;
 

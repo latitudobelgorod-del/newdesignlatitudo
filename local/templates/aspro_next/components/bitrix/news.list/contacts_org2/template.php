@@ -2,13 +2,7 @@
 $this->setFrameMode(true);
 ?>
 <?=bitrix_sessid_post();?>
-<?
-foreach (array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term') as $val) {
-if($_SESSION['UTM'][$val]) $v=$_SESSION['UTM'][$val]; else $v='empty';
-if ($val=='utm_source')
-	$utm_source =$v;
-}
-?>
+
 <?if ($_SERVER['REQUEST_URI'] !== '/contacts/'):?>
  <? $APPLICATION->SetPageProperty("robots", "noindex, nofollow"); ?>
 <?endif;?>
@@ -20,7 +14,7 @@ if ($val=='utm_source')
 
 <?global $arRegion;
 $regionID = ($arRegion ? $arRegion['ID'] : '');
-$REGION_TAG_EMAIL_PODMENA = "#REGION_TAG_EMAIL_PODMENA#";?>
+?>
 
 
 <?foreach($arResult["ITEMS"] as $arItem):?>
@@ -115,11 +109,8 @@ if ($ob = $res->GetNextElement()){;
 							<br />
 							<span itemprop="email">
 
-<?if ((ndShouldReplaceContacts()) && $arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']):?>
-<a href="mailto:<?=$REGION_TAG_EMAIL_PODMENA?>"><?=$REGION_TAG_EMAIL_PODMENA?></a>
-<?else:?>
 <a href="mailto:<?=$arItem['DISPLAY_PROPERTIES']['EMAIL']['DISPLAY_VALUE']?>"><?=$arItem['DISPLAY_PROPERTIES']['EMAIL']['DISPLAY_VALUE']?></a>
-<?endif;?>
+
 
 
 
@@ -170,26 +161,7 @@ if ($ob = $res->GetNextElement()){;
 							<?/*ЕСЛИ НОМЕР ОБЫЧНЫЙ*/?>
 												
 
-	<?if (ndShouldReplaceContacts()) :?>
-														<?if ($arItem["DISPLAY_PROPERTIES"]['PHONE_PODMENA']['VALUE']) :
-															$href1 = 'tel:'.str_replace(array(' ', '-', '(', ')'), '', $arItem["DISPLAY_PROPERTIES"]["PHONE_PODMENA"]['VALUE']);
-															?>
-															<span >
-																<a itemprop="telephone" rel="nofollow" href="<?=$href1?>"><?=$arItem["DISPLAY_PROPERTIES"]['PHONE_PODMENA']['VALUE']?></a><br>
-															</span>
-																<?else:?>
-																
-												<?foreach($arItem["DISPLAY_PROPERTIES"]["PHONE"]['VALUE'] as $value):?>
-												<? $dump = preg_replace("/[^0-9]/", '', $value); 
-											$href = 'tel:'.str_replace(array(' ', '-', '(', ')'), '', $value);?>
-											<a rel="nofollow" href="<?=$href?>"><?=$value?></a><br>
 
-											<?endforeach;?>
-											</span>
-														<?endif;?>
-												
-												<?else:?>
-														
 														<span itemprop="telephone">
 
 												<?foreach($arItem["DISPLAY_PROPERTIES"]["PHONE"]['VALUE'] as $value):?>
@@ -203,7 +175,7 @@ if ($ob = $res->GetNextElement()){;
 														
 														
 												
-												<?endif;?>
+
 												<?/*ЕСЛИ НОМЕР ОБЫЧНЫЙ*/?>
 												<?endif;?>
 						</td>

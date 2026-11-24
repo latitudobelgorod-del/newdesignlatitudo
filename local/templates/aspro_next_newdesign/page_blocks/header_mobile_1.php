@@ -5,23 +5,14 @@ $regionID = ($arRegion ? $arRegion['ID'] : '');
 $REGION_TAG_NAME = "#REGION_TAG_NAME#";
 $REGION_TAG_ADDRESSMY = "#REGION_TAG_ADDRESSMY#";
 $REGION_TAG_PHONE = "#REGION_TAG_PHONE#";
-$REGION_TAG_PHONE_PODMENA = "#REGION_TAG_PHONE_PODMENA#";
+
 $REGION_TAG_TIME = "#REGION_TAG_TIME#";
 $REGION_TAG_USE_NUMBERS_PHONE = "#REGION_TAG_USE_NUMBERS_PHONE#";
 $REGION_TAG_PHONE_8800 = "#REGION_TAG_PHONE_8800#";
 $REGION_TAG_PHONE_MOBILE = "#REGION_TAG_PHONE_MOBILE#";
 ?>
 <?=bitrix_sessid_post();?>
-<?
-foreach (array('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term') as $val) {
-if($_SESSION['UTM'][$val]) $v=$_SESSION['UTM'][$val]; else $v='empty';
-if ($val=='utm_source')
-	$utm_source =$v;
-}
-/* 22.09.2026: подмена — как в шапке: только пока идёт рекламный визит (ndShouldReplaceContacts, сутки с перехода);
-   метка в сессии живёт 30 дней. 'ya_visit' лишь включает проверки str_contains(..., 'ya') ниже. */
-$utm_source = (function_exists('ndShouldReplaceContacts') && ndShouldReplaceContacts()) ? 'ya_visit' : 'empty';
-?>
+
 
 <div class="mobileheader-v1">
 	<div class="burger pull-left">
@@ -60,21 +51,9 @@ $utm_source = (function_exists('ndShouldReplaceContacts') && ndShouldReplaceCont
 	<div class="inner-table-block phones" >
 										<?
 										$href = 'tel:'.str_replace(array(' ', '-', '(', ')'), '',  $arRegion['PROPERTY_REGION_TAG_PHONE_VALUE']);
-										$href1 = 'tel:'.str_replace(array(' ', '-', '(', ')'), '',  $arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']);?>
-		<?if (ndShouldReplaceContacts()) :?>
-											
-					<?if ($arRegion['PROPERTY_REGION_TAG_PHONE_PODMENA_VALUE']):?>
-						
-					 <div class="phone"><a rel="nofollow" href="<?=$href1?>"><?=$REGION_TAG_PHONE_PODMENA?></a></div>
-						
-					<?else:?>
-						
-						 <div class="phone"><a rel="nofollow" href="<?=$href?>"><?=$REGION_TAG_PHONE?></a></div>
-						
-					<?endif;?>
-				<?else:?>
-						<div class="phone"><a rel="nofollow" href="<?=$href?>"><?=$REGION_TAG_PHONE?></a></div>
-				<?endif;?>
+										?>
+								<div class="phone"><a rel="nofollow" href="<?=$href?>"><?=$REGION_TAG_PHONE?></a></div>
+
 	</div>
 		<?/*ЕСЛИ НОМЕР ОБЫЧНЫЙ*/?>
 	<?endif;?>

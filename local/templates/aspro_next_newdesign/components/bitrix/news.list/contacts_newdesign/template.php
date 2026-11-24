@@ -1,22 +1,6 @@
 <? if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die(); ?>
 <?
-/**
- * Общая страница контактов /contacts/ (регионы без своего офиса).
- *
- * Размеры из макета Figma («Чистовик», фрейм «Контакты» 20493:83740):
- * сетка 1336 в две колонки по 656 с зазором 24; карточка радиус 6, заливка
- * rgba(82,82,100,.05); слева колонка 400 с полями 24 и шагом 16 (город 28/34
- * 700, адрес 16/19 700, телефоны и почта 14/20 красные, режим работы 14/20,
- * линия, адрес склада 14/20 500 серым), справа фото 256 во всю высоту с
- * кнопкой «Видео офиса».
- *
- * Иконки выгружены из макета в images/newdesign/contacts/ — цвета в них уже
- * зашиты (телефон и почта красные, остальные тёмные), поэтому подключаем
- * картинками, а не через currentColor.
- *
- * Подмена телефона и почты по utm-метке перенесена из старого шаблона
- * contacts_org_po_2 без изменений — это работающая логика колл-трекинга.
- */
+
 $this->setFrameMode(true);
 
 if (!$arResult['ITEMS']) {
@@ -25,15 +9,11 @@ if (!$arResult['ITEMS']) {
 
 global $arRegion;
 $ndIco = SITE_TEMPLATE_PATH.'/images/newdesign/contacts/';
-$ndEmailPodmena = '#REGION_TAG_EMAIL_PODMENA#';
 
-$ndUtmSource = 'empty';
-if (!empty($_SESSION['UTM']['utm_source'])) {
-	$ndUtmSource = $_SESSION['UTM']['utm_source'];
-}
-$ndIsAdSource = (
-	ndShouldReplaceContacts()
-);
+
+
+
+
 
 /** Ссылка «позвонить» из человекочитаемого номера. */
 $ndTel = static function ($phone) {
@@ -50,19 +30,14 @@ $ndTel = static function ($phone) {
 		$props = $arItem['DISPLAY_PROPERTIES'];
 
 		$phones = [];
-		if (ndShouldReplaceContacts() && !empty($props['PHONE_PODMENA']['VALUE'])) {
-			$phones[] = $props['PHONE_PODMENA']['VALUE'];
-		} elseif (!empty($props['PHONE']['VALUE'])) {
+		if (!empty($props['PHONE']['VALUE'])) {
 			$phones = (array) $props['PHONE']['VALUE'];
 		}
 
 		$email = '';
 		if (!empty($props['EMAIL'])) {
-			/* И почту, и телефон подменяем при ЛЮБОЙ метке (правило Ирины
-			   от 4 сентября 2026). */
-			$email = (ndShouldReplaceContacts() && !empty($arRegion['PROPERTY_REGION_TAG_EMAIL_PODMENA_VALUE']))
-				? $ndEmailPodmena
-				: $props['EMAIL']['DISPLAY_VALUE'];
+
+			$email = $props['EMAIL']['DISPLAY_VALUE'];
 		}
 
 		$video = $props['VIDEO_OFFICE']['VALUE'] ?? '';
