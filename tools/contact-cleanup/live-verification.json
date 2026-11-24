@@ -1,0 +1,249 @@
+[
+  {
+    "host": "latitudo.org",
+    "path": "/",
+    "contacts": [
+      "mailto:m@latitudo.ru",
+      "tel:+74951485112"
+    ],
+    "same": true
+  },
+  {
+    "host": "latitudo.org",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:m@latitudo.ru",
+      "tel:+74951485112"
+    ],
+    "same": true
+  },
+  {
+    "host": "latitudo.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:m@latitudo.ru",
+      "tel:+74951359305",
+      "tel:+79250053337"
+    ],
+    "same": true
+  },
+  {
+    "host": "latitudo.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:m@latitudo.ru",
+      "tel:+74951359305",
+      "tel:+79250053337"
+    ],
+    "same": true
+  },
+  {
+    "host": "belgorod.latitudo.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:belgorod@latitudo.ru",
+      "tel:+74722407337",
+      "tel:+79205835605"
+    ],
+    "same": true
+  },
+  {
+    "host": "belgorod.latitudo.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:belgorod@latitudo.ru",
+      "tel:+74722407337",
+      "tel:+79205835605"
+    ],
+    "same": true
+  },
+  {
+    "host": "vrn.latitudo.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:voronezh@latitudo.ru",
+      "tel:+74732299800",
+      "tel:+79202250775"
+    ],
+    "same": true
+  },
+  {
+    "host": "vrn.latitudo.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:voronezh@latitudo.ru",
+      "tel:+74732299800",
+      "tel:+79202250775"
+    ],
+    "same": true
+  },
+  {
+    "host": "krasnodar.latitudo.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:krasnodar@latitudo.ru",
+      "tel:+78612900717",
+      "tel:+79280363060"
+    ],
+    "same": true
+  },
+  {
+    "host": "krasnodar.latitudo.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:krasnodar@latitudo.ru",
+      "tel:+78612900717",
+      "tel:+79280363060"
+    ],
+    "same": true
+  },
+  {
+    "host": "rostov.latitudo.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:rostov@latitudo.ru",
+      "tel:+78632299950",
+      "tel:+79286107999"
+    ],
+    "same": true
+  },
+  {
+    "host": "rostov.latitudo.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:rostov@latitudo.ru",
+      "tel:+78632299950",
+      "tel:+79286107999"
+    ],
+    "same": true
+  },
+  {
+    "host": "belgorod.easydecking.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:info@easydecking.ru",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "belgorod.easydecking.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:info@easydecking.ru",
+      "mailto:sale@stenom.ru",
+      "mailto:stv@deckmarket.ru",
+      "mailto:voronezh@latitudo.ru",
+      "mailto:zakaz@sadburg.com",
+      "tel:+78122373944",
+      "tel:+79283217313",
+      "tel:+79883679960",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "vrn.easydecking.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:voronezh@latitudo.ru",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "vrn.easydecking.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:voronezh@latitudo.ru",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "shop.easydecking.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:info@easydecking.ru",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "shop.easydecking.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:info@easydecking.ru",
+      "mailto:sale@stenom.ru",
+      "mailto:stv@deckmarket.ru",
+      "mailto:voronezh@latitudo.ru",
+      "mailto:zakaz@sadburg.com",
+      "tel:+78122373944",
+      "tel:+79283217313",
+      "tel:+79883679960",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "krasnodar.easydecking.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:info@easydecking.ru",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "krasnodar.easydecking.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:info@easydecking.ru",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "rostov.easydecking.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:info@easydecking.ru",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "rostov.easydecking.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:info@easydecking.ru",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "regions.easydecking.ru",
+    "path": "/",
+    "contacts": [
+      "mailto:info@easydecking.ru",
+      "tel:88005056687"
+    ],
+    "same": true
+  },
+  {
+    "host": "regions.easydecking.ru",
+    "path": "/contacts/",
+    "contacts": [
+      "mailto:info@easydecking.ru",
+      "mailto:sale@stenom.ru",
+      "mailto:stv@deckmarket.ru",
+      "mailto:voronezh@latitudo.ru",
+      "mailto:zakaz@sadburg.com",
+      "tel:+78122373944",
+      "tel:+79283217313",
+      "tel:+79883679960",
+      "tel:88005056687"
+    ],
+    "same": true
+  }
+]
