@@ -1,0 +1,278 @@
+[
+  {
+    "site": "ru",
+    "path": "include/catalog/tizer_block_service.php",
+    "before": "4ace3890f90b372a213e35ed5fb3bcfb61a89625ad4fecad7d18b62bcbab8a44",
+    "after": "b00ef1a23e819f5a67094f73feddbcd1b6a246b55de36f617591a87d52334482"
+  },
+  {
+    "site": "ru",
+    "path": "include/catalog/tizer_ter_doska.php",
+    "before": "a8d8d80e63ef1ff05bf8ca0a5f8e0e58eb43448142fd2ab5e18cfdbe37294aa7",
+    "after": "0d7da1a889cf9d294983ec68e0895a6f2489f43911fcb80f931fb0184798b4cd"
+  },
+  {
+    "site": "ru",
+    "path": "include/infochat.php",
+    "before": "0ad102be40926c507c496c751add4dfbd72e84b60dc4e91cd58860cf1a260344",
+    "after": "d6eb5cd3be3c470eac8d72f0e12831d1d0827c5a573d593747a2e99384eb2b9f"
+  },
+  {
+    "site": "ru",
+    "path": "include/infochat_materials.php",
+    "before": "28536898e7d5957c3493efc976357dd7e050c598b4ef29b1b6b1da4f0cdf01df",
+    "after": "a2925ca9bd379474e3f21ec319acd5bb665e3e68d281d485148256a2e1c27d55"
+  },
+  {
+    "site": "ru",
+    "path": "include/infochat_materials_newdesign.php",
+    "before": "d6d4be09e6b453ef307c5b381f05dfc480d3b63e85211976366e0d8c8adb01fb",
+    "after": "97b83fae16ee456061134c32e9a24cb732194522f643b7c1969ed58d53d9c07c"
+  },
+  {
+    "site": "ru",
+    "path": "include/infochat_newdesign.php",
+    "before": "46f373d4bbce23b97a2561895c4f27862ce9288605b003e7bedc5af8b423b31d",
+    "after": "0ca039e84fcd3a658ad9b371b581d939a576394d6c135e19f920bc613296b4a1"
+  },
+  {
+    "site": "ru",
+    "path": "include/infochat_projects.php",
+    "before": "ff37de758f6d2554c8441db048a68b2d6a3dac97bc0bc498878274d529d7c8cc",
+    "after": "97e1c8ea9d4665cad6e208e767c80c15ca82a5665461f9f4a0154979aa76b0b5"
+  },
+  {
+    "site": "ru",
+    "path": "include/infochat_projects_newdesign.php",
+    "before": "6120ddf5f04d2f022d52d8d52866af564671eeb56b893de28d773a45776f00bd",
+    "after": "2668cc18662e04cb31391a5784d8881a53c7bfdb45eafc7236331d8715c832ae"
+  },
+  {
+    "site": "ru",
+    "path": "include/mainpage/kupit-dosku.php",
+    "before": "d419970aff384e8b678cf5235b70f42c45718669f8c8e608d55387d4f52dc1cc",
+    "after": "0a4746c7ba4f4ec705d6d94ee6d28e1a4b9bd22671ab90375c401afc5fd76146"
+  },
+  {
+    "site": "ru",
+    "path": "include/region_info_new_footer.php",
+    "before": "37bc97b19e4e00baea4670039433a02013c890cdec7e4b2e983700f3f943db01",
+    "after": "3b0e284d991eebadb1d9470d23021b573c68d62caa863b1fb62c419fe88aae85"
+  },
+  {
+    "site": "ru",
+    "path": "include/region_info_new_footer_mobile.php",
+    "before": "3ced1659fe451bb4b373ca0b24be6091b7a159a9cd5aa6c69e44c4c936d24da0",
+    "after": "753b21fb1b3dae3779ef0d910419b61ad11486ab878d38daa7df3bf2da882d82"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/components/aspro/regionality.list.next/popup_regions/template.php",
+    "before": "1ed47ff9ff497d98d5ebf0e7d907c4eb5d6019073237dc6f77a633d9217cd79a",
+    "after": "8b29fdb3058bcb8510c4cec5b5d0ad520f720165a835359c398229b53de6eba2"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/components/aspro/regionality.list.next/popup_regions2/template.php",
+    "before": "a561446ae890322cf4f34d121eaffe6664501f06b761d237a34e62b5f5bd9df9",
+    "after": "6927f34c2e0d13431c8200dab69d9da5c52bc2d4c6c13454eee060bd39321d80"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/components/bitrix/news.list/contacts_header_other_regions/template.php",
+    "before": "fceb5056642f88c43ac06c3b785842d6921bed566c2716152adcfb71e95e24d2",
+    "after": "f75b7cadef85685f6cc2c38bf1a14033dc87755f918f8712456394690fc38aae"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/components/bitrix/news.list/contacts_org2/template.php",
+    "before": "c8074b4c89812ce315ca01bb31d2642ea4b5e25ad6ebba9509d5fa792abf0b73",
+    "after": "f38663da7e970dad2f9fbef4936505a7c8599f3dacaf5ab2519f1a4b2c9f645e"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/components/bitrix/news.list/contacts_org_po_2/template.php",
+    "before": "b7edb2efda0fbfd1eb036a3daa91b46d467865624f3a69135c7fac7a22693480",
+    "after": "3b1c8f4827bde5da1b1318ae80b1802cffe464d56fe9b2747d36b6ced45237a8"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/components/bitrix/news.list/other_regions_footer/template.php",
+    "before": "e411f850f1b7af5264ff009855b757733874aa81ba7b7c95c983e8719d863572",
+    "after": "211630ae1c85f88d67f2a070e154aea81084732164ae253cd83ab9d0c540e77a"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/page_blocks/header_8.php",
+    "before": "4a9ebe1e542ba2a50a325ca9c09f86ebf47e3efe8245d50ccff31f72e4d02242",
+    "after": "eceffd51b0d9866215fe7c46773ee564bedf21dbe3dfc70f94ce3744daf70aff"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/page_blocks/header_custom.php",
+    "before": "ba447f8ba441f0afb4da5b79ca781d04922a7ddc2ac88813dc9e603b0c847546",
+    "after": "b7d7cef5354c2496c196fcda548455636fc586b0ccb7228033d390fdf18a5994"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/page_blocks/header_fixed_1.php",
+    "before": "bedb589877c10475aa1090fc79ac8d4d43431ba077f637bb008a6c0570102a38",
+    "after": "9f17f362cb5c98c7c220ec0f7ba04c9dc5e70c0176d64511b78f32f0bba4cf5c"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/page_blocks/header_mobile_1.php",
+    "before": "75e76f56638e5b4beb99eb2dae81926ee0dac74389507896f617c68bd05e0828",
+    "after": "c5b98b9c8e1c207a473803636df6354e78462cc6dfaa143e99433f3e82dd0203"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next/page_blocks/_header_8.php",
+    "before": "d5a70ea9d563fbea10c90ff19d22497db3e70e3dcf25b77fc0975f98578a3019",
+    "after": "e4ed0bbb956bf1768d4bd5bcc37abe69d2a3e0bfd447bdae7dfa633140bafaec"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/components/aspro/regionality.list.next/popup_regions/template.php",
+    "before": "1ed47ff9ff497d98d5ebf0e7d907c4eb5d6019073237dc6f77a633d9217cd79a",
+    "after": "8b29fdb3058bcb8510c4cec5b5d0ad520f720165a835359c398229b53de6eba2"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/components/aspro/regionality.list.next/popup_regions2/template.php",
+    "before": "a561446ae890322cf4f34d121eaffe6664501f06b761d237a34e62b5f5bd9df9",
+    "after": "6927f34c2e0d13431c8200dab69d9da5c52bc2d4c6c13454eee060bd39321d80"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/components/aspro/regionality.list.next/popup_regions_newdesign/template.php",
+    "before": "790b7789f591933418c0bd9db05c280573bdf651be6318d7c3236a67b77b80de",
+    "after": "4662eb5cbd2ff2fc98aef6f3b5c27adf0c0d8bb249e47b21c809995bf2adaac9"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/components/bitrix/news.list/contacts_header_other_regions/template.php",
+    "before": "935edee1ea937edea33d94f7391d15070214c0c740fa3be235428778f388eec8",
+    "after": "f75b7cadef85685f6cc2c38bf1a14033dc87755f918f8712456394690fc38aae"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/components/bitrix/news.list/contacts_newdesign/template.php",
+    "before": "b3701308e97458d234a8474c86b49307df0353ef0d9aabd91ee0000a3ee2d338",
+    "after": "1095ae444c8e262c904e1cacc36e6c6e0c65d4cbbce595ffbbf92f0453596dfa"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/components/bitrix/news.list/contacts_org2/template.php",
+    "before": "f85d4e167c2b6b7cc7fc76e094b0e1d7385f218ef780cc6b8ef1ff5a527e10b5",
+    "after": "f38663da7e970dad2f9fbef4936505a7c8599f3dacaf5ab2519f1a4b2c9f645e"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/components/bitrix/news.list/contacts_org_po_2/template.php",
+    "before": "ffac5f5bcb1b7cf5022a9c45b5f920431d5b161c3dd262440dbc85b5b79fa114",
+    "after": "3b1c8f4827bde5da1b1318ae80b1802cffe464d56fe9b2747d36b6ced45237a8"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/components/bitrix/news.list/contacts_region_newdesign/template.php",
+    "before": "177318a5427a28bd1097c210f17268f975d2744bb52fbb3305a2b61f48fc4bd1",
+    "after": "32d06c3fc9b2cf5ba981fddd92e2968eb2d095f50b8942d8642bf45cceaf0835"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/components/bitrix/news.list/other_regions_footer/template.php",
+    "before": "e411f850f1b7af5264ff009855b757733874aa81ba7b7c95c983e8719d863572",
+    "after": "211630ae1c85f88d67f2a070e154aea81084732164ae253cd83ab9d0c540e77a"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/components/bitrix/news.list/showrooms_newdesign/template.php",
+    "before": "56717c25185518d30f0cd183a422440e5bc5bcad45465e313200b41c62a09dfc",
+    "after": "a2fc19293b53745df7b4888eeb7a49d50a0906753f51bb422d8143b8b43a4d31"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/include/company/about_page.php",
+    "before": "093416b1e8a4dd5362b21755cb8ee6084f4612cd2e04059318fe2c65dc241366",
+    "after": "602efe87e3b0df3a8249064db2b7f526fd0b67d322aa33cd17adeaa4ba004ce6"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/include/infochat_projects.php",
+    "before": "9858088d13e252b3fd18f40dcc0c996c55cd18477235648f93e610e495373905",
+    "after": "c5a55134ae4b3f4d9e5d28b32db17f343f2eec0e5d4767c3364647238ab73b28"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/include/sale_contacts.php",
+    "before": "7754980e21f53d7064975c4eeb82b8d38b2863fc0e75a5bc6ac5bcd9fd5803e7",
+    "after": "2a9ca1b45c66c54680587a78ef77cc00f3b534f3a8decc732db56df23e2e03a1"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/include/showroom_newdesign.php",
+    "before": "e1f963e39f1b0ec2e7b5566bdebbd5f3ba2f5c9048fa1ab743fcf7ec90fd7e4c",
+    "after": "2df366b1e6414299194ef0203b1f7065db30c8132fca91b0469e34fb7445966d"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/page_blocks/footer_newdesign.php",
+    "before": "d5ad40646f293c43861b5ac8feceb574a9b1eff3e3fb017ae530a17682330dfc",
+    "after": "884ec85e53d0204abe46a7ae9e0f79b93bf46534daf979a87669a639902bd44c"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/page_blocks/header_8.php",
+    "before": "da6c5da130ec047f7316d2a41cf832c78423460c09f67c8487bde3394373a503",
+    "after": "eceffd51b0d9866215fe7c46773ee564bedf21dbe3dfc70f94ce3744daf70aff"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/page_blocks/header_custom.php",
+    "before": "ba447f8ba441f0afb4da5b79ca781d04922a7ddc2ac88813dc9e603b0c847546",
+    "after": "b7d7cef5354c2496c196fcda548455636fc586b0ccb7228033d390fdf18a5994"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/page_blocks/header_fixed_1.php",
+    "before": "f5291e4939d1d3e97fe19a156e7c6b92faa6db637d6e44ad30c1d8f23f25a54b",
+    "after": "9f17f362cb5c98c7c220ec0f7ba04c9dc5e70c0176d64511b78f32f0bba4cf5c"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/page_blocks/header_mobile_1.php",
+    "before": "4cbb032d176fae6fc13cf82449c7b25ed6a153537fb6e68c9acf9bece920c7fa",
+    "after": "c5b98b9c8e1c207a473803636df6354e78462cc6dfaa143e99433f3e82dd0203"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/page_blocks/header_newdesign.php",
+    "before": "62302b7306338357feb55ef3aed1f912fd7f7dcfffc93a9cc8348f3333237c30",
+    "after": "9f60fe289d2961c9a325bf3fcd7426bcbea38b95679a487634cf115d45616aa1"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/page_blocks/nav_bottom_newdesign.php",
+    "before": "47ae377884633f6c88db7bd4cb370b621b65391de49bca6996dadcd5e677e0a9",
+    "after": "b54cd2a2c0319362aa33dd1acbef1b40d71b49be550f7f01139d4980c6ad0dfe"
+  },
+  {
+    "site": "ru",
+    "path": "local/templates/aspro_next_newdesign/page_blocks/_header_8.php",
+    "before": "d5a70ea9d563fbea10c90ff19d22497db3e70e3dcf25b77fc0975f98578a3019",
+    "after": "e4ed0bbb956bf1768d4bd5bcc37abe69d2a3e0bfd447bdae7dfa633140bafaec"
+  },
+  {
+    "site": "org",
+    "path": "bitrix/templates/aspro_next/page_blocks/header_fixed_1.php",
+    "before": "b877d5e123881c06a7d88cd97ea5b31082ac9bf0414ca7d7eb53333fa8dec7c9",
+    "after": "94934ba5bae79e60dbee50e0b31cdd4a9305308c7c91df154587ce2705d67dbb"
+  },
+  {
+    "site": "easy",
+    "path": "local/templates/aspro_next/page_blocks/_header_8.php",
+    "before": "8aa8bac106fff5af2e93fe16c67ff4dd56ed37d90f4294b29d6d64d68658ab87",
+    "after": "822d8691ce4ac735dce35469fc54ff55f660c715ec3dd6831ea6b3bfda00bbb5"
+  }
+]
