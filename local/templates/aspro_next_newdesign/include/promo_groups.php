@@ -1,7 +1,19 @@
 <?php
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
-
-// Группы распродажи считаем только среди товаров текущей акции.
+/**
+ * Группы «Распродажи» на странице акции — те же чипы, что в разделе каталога
+ * (components/bitrix/catalog/main/include/sale_groups_newdesign.php):
+ * .section_tag_top .tag_ank, лишние прячет collapseTags() с кнопкой «Ещё N».
+ *
+ * Ирина, 25.11.2026: «полосу прокрутки делать не нужно, сделай как в разделе
+ * каталога — показать ещё». Поэтому никакой горизонтальной прокрутки: на
+ * компьютере чипы идут в одну строку с переносом, на телефоне две строки и «Ещё».
+ *
+ * Ссылки «?group=…» работают и без скрипта: фильтр применяется на сервере
+ * (news.detail/news_newdesign/template.php), скрипт лишь подменяет список без
+ * перезагрузки. Группа — свойство ND_SALE_GROUP (список), значения считаем
+ * только среди товаров текущей акции.
+ */
 $ndPromoGroups = [];
 $ndPromoCounts = [];
 $ndPromoIblock = (int)\Bitrix\Main\Config\Option::get('aspro.next', 'CATALOG_IBLOCK_ID', 19);
@@ -11,7 +23,7 @@ $ndPromoEnums = CIBlockPropertyEnum::GetList(['SORT' => 'ASC', 'ID' => 'ASC'], [
 while ($row = $ndPromoEnums->Fetch()) {
     $ndPromoGroups[(int)$row['ID']] = $row['VALUE'];
 }
-if ($ndPromoGroups) {
+if ($ndPromoGroups && !empty($ndSaleGoods)) {
     $rows = CIBlockElement::GetList([], [
         'IBLOCK_ID' => $ndPromoIblock, 'ID' => $ndSaleGoods, 'ACTIVE' => 'Y',
     ], ['PROPERTY_ND_SALE_GROUP']);
@@ -22,12 +34,18 @@ if ($ndPromoGroups) {
         return !empty($ndPromoCounts[$id]);
     }, ARRAY_FILTER_USE_KEY);
 }
+$ndPromoTotal = (int)($ndPromoTotal ?? count((array)$ndSaleGoods));
+$ndPromoCur = (int)($_GET['group'] ?? 0);
+if (!isset($ndPromoGroups[$ndPromoCur])) {
+    $ndPromoCur = 0;
+}
+$ndPromoUrl = $APPLICATION->GetCurPage(false);
 ?>
 <?if($ndPromoGroups):?>
-<div class="nd-promo-tabs nd-promo-groups" data-nd-promo-groups="<?=(int)$arResult['ID']?>" role="group" aria-label="Группы товаров по акции" hidden>
-    <button type="button" class="nd-promo-tabs__tab is-active" data-nd-promo-group="0" aria-pressed="true">Все товары <span class="nd-promo-tabs__cnt"><?=count($ndSaleGoods)?></span></button>
-    <?foreach($ndPromoGroups as $id => $name):?>
-    <button type="button" class="nd-promo-tabs__tab" data-nd-promo-group="<?=$id?>" aria-pressed="false"><?=htmlspecialcharsbx($name)?> <span class="nd-promo-tabs__cnt"><?=$ndPromoCounts[$id]?></span></button>
-    <?endforeach;?>
-</div>
+<div class="nd-catlist-sort__tags"><div class="section_tag_top nd-promo-groups" data-nd-promo-groups="<?=(int)$arResult['ID']?>" role="group" aria-label="Группы товаров по акции" hidden>
+	<span class="tag_ank"><a href="<?=htmlspecialcharsbx($ndPromoUrl)?>" data-nd-promo-group="0"<?=($ndPromoCur === 0 ? ' class="active" aria-current="true"' : '')?>>Все товары <span class="nd-sale-groups__cnt"><?=$ndPromoTotal?></span></a></span>
+	<?foreach($ndPromoGroups as $ndPromoId => $ndPromoName):?>
+	<span class="tag_ank"><a href="<?=htmlspecialcharsbx($ndPromoUrl)?>" data-nd-promo-group="<?=(int)$ndPromoId?>" rel="nofollow"<?=($ndPromoCur === $ndPromoId ? ' class="active" aria-current="true"' : '')?>><?=htmlspecialcharsbx($ndPromoName)?> <span class="nd-sale-groups__cnt"><?=(int)$ndPromoCounts[$ndPromoId]?></span></a></span>
+	<?endforeach;?>
+</div></div>
 <?endif;?>

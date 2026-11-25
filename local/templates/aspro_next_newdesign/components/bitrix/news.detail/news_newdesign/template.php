@@ -248,6 +248,7 @@ if (!empty($arResult['PROPERTIES']['LINK_GOODS']['VALUE']) && CModule::IncludeMo
 		   прокрутке. Вкладки рисуются скрытыми — открывает их
 		   js/newdesign-catalog.js; без скрипта видны все разделы подряд. */
 		$ndSaleTabs = array();
+		$ndPromoTotal = count($ndSaleGoods);
 		include $_SERVER['DOCUMENT_ROOT'].SITE_TEMPLATE_PATH.'/include/promo_groups.php';
 		if (!$ndPromoGroups && count($ndSaleGoods) > 10)
 		{

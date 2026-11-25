@@ -1018,6 +1018,10 @@
             }
         } catch (e) { }
     }
+    /* Сворачивание чипов нужно и блоку групп «Распродажи» на странице акции, а он
+       живёт в другой IIFE (ниже) — отдаём функцию наружу, чтобы не дублировать
+       измерение строк (Ирина, 25.11.2026). */
+    window.ndCollapseTags = collapseTags;
 
     /* ---------------------------------------------------------------------
        Сортировка — выпадающий список
@@ -1739,37 +1743,46 @@
         });
     }
 
-    /* Распродажа живёт в одном разделе: фильтруем по ND_SALE_GROUP.
-       Сохраняем текущие карточки до успешного ответа и используем обычную
-       инициализацию карточек/«Показать ещё», включая цены и корзину. */
+    /* Группы «Распродажи» на странице акции: чипы печатает include/promo_groups.php
+       в разметке каталога (.section_tag_top .tag_ank), лишние прячет collapseTags()
+       с кнопкой «Ещё N» — без горизонтальной прокрутки (Ирина, 25.11.2026).
+       Клик подменяет список без перезагрузки, адрес меняется на ?group=…;
+       без скрипта те же ссылки работают серверным фильтром. */
     function initPromoGroups() {
         [].forEach.call(document.querySelectorAll('[data-nd-promo-groups]'), function (bar) {
-            var list = bar.parentNode.querySelector('.nd-catlist');
+            var wrap = (bar.closest && bar.closest('.nd-catlist-sort__tags')) || bar;
+            var block = wrap.parentNode;
+            var list = block && block.querySelector('.nd-catlist');
             var grid = list && list.querySelector('.catalog_block');
-            if (!grid) return;
+            if (!list || !grid) return;
             var head = list.querySelector('h5');
-            if (head) list.insertBefore(bar, head.nextSibling);
+            if (head) head.parentNode.insertBefore(wrap, head.nextSibling);
             bar.hidden = false;
-            var tabs = [].slice.call(bar.querySelectorAll('[data-nd-promo-group]'));
+            if (window.ndCollapseTags) window.ndCollapseTags();
+
+            var chips = [].slice.call(bar.querySelectorAll('a[data-nd-promo-group]'));
             var busy = false;
             var message = document.createElement('p');
+            message.className = 'nd-promo-groups__msg';
             message.setAttribute('role', 'status');
             message.hidden = true;
-            bar.parentNode.insertBefore(message, bar.nextSibling);
-            bar.addEventListener('click', function (e) {
-                var tab = e.target.closest('[data-nd-promo-group]');
-                if (!tab || busy || tab.getAttribute('aria-pressed') === 'true' ||
-                    list.querySelector('[data-nd-brand-more].is-loading')) return;
+            wrap.parentNode.insertBefore(message, wrap.nextSibling);
+
+            wrap.addEventListener('click', function (e) {
+                var link = e.target.closest ? e.target.closest('a[data-nd-promo-group]') : null;
+                if (!link || busy) return;
+                e.preventDefault();
+                if (link.classList.contains('active')) return;
                 busy = true;
                 message.hidden = true;
                 grid.setAttribute('aria-busy', 'true');
-                tabs.forEach(function (t) { t.setAttribute('aria-disabled', 'true'); });
+                var group = link.getAttribute('data-nd-promo-group');
                 var oldMore = grid.nextElementSibling;
                 if (oldMore && !oldMore.classList.contains('nd-brandsect__more')) oldMore = null;
                 var oldButton = oldMore && oldMore.querySelector('button');
                 if (oldButton) oldButton.disabled = true;
                 var url = '/local/ajax/promo_products.php?promo=' + bar.getAttribute('data-nd-promo-groups') +
-                    '&group=' + tab.getAttribute('data-nd-promo-group') + '&offset=0&per=20';
+                    '&group=' + encodeURIComponent(group) + '&offset=0&per=20';
                 fetch(url, { credentials: 'same-origin' }).then(function (r) {
                     if (!r.ok) throw new Error('HTTP ' + r.status);
                     return r.text();
@@ -1789,21 +1802,21 @@
                     more.appendChild(button);
                     grid.parentNode.insertBefore(more, grid.nextSibling);
                     placePortion(button, [].slice.call(holder.childNodes));
-                    tabs.forEach(function (t) {
-                        t.classList.toggle('is-active', t === tab);
-                        t.setAttribute('aria-pressed', t === tab ? 'true' : 'false');
+                    chips.forEach(function (c) {
+                        var on = c === link;
+                        c.classList.toggle('active', on);
+                        if (on) c.setAttribute('aria-current', 'true');
+                        else c.removeAttribute('aria-current');
                     });
-                    // Прокручиваем только строку кнопок, не всю страницу.
-                    var rect = tab.getBoundingClientRect(), bounds = bar.getBoundingClientRect();
-                    if (rect.left < bounds.left) bar.scrollLeft -= bounds.left - rect.left;
-                    else if (rect.right > bounds.right) bar.scrollLeft += rect.right - bounds.right;
+                    /* Адрес не меняем: компонент кэшируется без учёта ?group=,
+                       и после перезагрузки фильтр всё равно сбросился бы. */
+                    if (window.ndCollapseTags) window.ndCollapseTags();
                 }).catch(function () {
                     message.textContent = 'Не удалось загрузить товары. Попробуйте выбрать группу ещё раз.';
                     message.hidden = false;
                 }).then(function () {
                     busy = false;
                     grid.removeAttribute('aria-busy');
-                    tabs.forEach(function (t) { t.removeAttribute('aria-disabled'); });
                     if (oldButton) oldButton.disabled = false;
                 });
             });

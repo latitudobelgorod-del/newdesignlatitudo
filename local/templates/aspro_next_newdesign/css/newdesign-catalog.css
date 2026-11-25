@@ -2196,24 +2196,24 @@ body .nd-catlist .nd-brandsect__title {
     color: #8f8f9a;
     font-weight: 400;
 }
-.nd-promo-groups {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-block: 4px;
+/* Группы «Распродажи» на странице акции — чипы те же, что в разделе каталога
+   (include/promo_groups.php печатает .section_tag_top .tag_ank): горизонтальной
+   прокрутки нет, лишние чипы прячет collapseTags() и показывает «Ещё N».
+   Ирина, 25.11.2026: «полосу прокрутки делать не нужно, как в разделе каталога». */
+.nd-catlist > .nd-catlist-sort__tags {
+    margin: 0 0 16px;
 }
-.nd-promo-groups .nd-promo-tabs__tab {
-    flex: 0 0 auto;
+.nd-promo-groups .nd-sale-groups__cnt {
+    opacity: .5;
+    margin-left: 2px;
 }
-.nd-promo-groups [aria-pressed="true"] {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-}
-.nd-promo-groups .nd-promo-tabs__tab:focus-visible {
+.nd-promo-groups .tag_ank a:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 2px;
 }
-.nd-promo-groups [aria-disabled="true"] {
-    cursor: progress;
+.nd-promo-groups__msg {
+    margin: 8px 0;
+    font-size: 14px;
 }
 .nd-promo-tabs__tab.is-active .nd-promo-tabs__cnt {
     color: rgba(255, 255, 255, .75);
