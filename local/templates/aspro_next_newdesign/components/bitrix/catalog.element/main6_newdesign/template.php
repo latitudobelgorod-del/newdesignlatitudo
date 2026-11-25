@@ -1726,6 +1726,50 @@ if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
 					<a class="nd-pd__tcalc nd-pd__fcalc" href="<?=htmlspecialcharsbx($ndFenceCalcUrl)?>">Калькулятор<span class="nd-pd__tcalc-w">&nbsp;ограждений</span></a>
 					<?endif;?>
 					</div>
+<?
+/* 25.11.2026 (Ирина): у мебели, грилей и пергол третий логистический параметр —
+   высота изделия, а не толщина доски: «Толщина, мм 765» у стола ЛОТУС D930 и
+   «толщина 2500» у перголы читаются как ошибка. Подпись меняем только в
+   поддеревьях «Садовая и уличная мебель», «Грили» и «Перголы»; у декинга,
+   ограждений, фасадов и МПК толщина — правильное слово.
+
+   Раздел ищем по границам дерева, как кнопки калькулятора выше: главный раздел
+   товара не обязательно нужный, а подразделов у мебели и грилей много. */
+$ndLogisticLabel = 'Толщина, мм';
+if (CModule::IncludeModule('iblock'))
+{
+	$ndHeightRoots = CIBlockSection::GetList(
+		array(),
+		array(
+			'IBLOCK_ID' => $arResult['IBLOCK_ID'],
+			'=CODE' => array('sadovaya-mebel', 'grili', 'pergoly'),
+			'DEPTH_LEVEL' => 1,
+		),
+		false,
+		array('ID', 'LEFT_MARGIN', 'RIGHT_MARGIN')
+	);
+	$ndHeightRanges = array();
+	while ($arHeightRoot = $ndHeightRoots->Fetch())
+	{
+		$ndHeightRanges[] = array((int)$arHeightRoot['LEFT_MARGIN'], (int)$arHeightRoot['RIGHT_MARGIN']);
+	}
+	if ($ndHeightRanges)
+	{
+		$ndHeightGroups = CIBlockElement::GetElementGroups($arResult['ID'], true, array('LEFT_MARGIN'));
+		while ($arHeightGroup = $ndHeightGroups->Fetch())
+		{
+			foreach ($ndHeightRanges as $ndHeightRange)
+			{
+				if ($arHeightGroup['LEFT_MARGIN'] >= $ndHeightRange[0] && $arHeightGroup['LEFT_MARGIN'] <= $ndHeightRange[1])
+				{
+					$ndLogisticLabel = 'Высота, мм';
+					break 2;
+				}
+			}
+		}
+	}
+}
+?>
 	<?// Метка кнопки «Сравнить» — кнопку ставит ndCompareTokens на отдаче страницы,
 	// только группе тестирования (шаблон кешируется; см. latitudo_compare.php).?>
 	<!--ND_CMP_D:<?=(int)$arResult['ID']?>-->
@@ -1735,7 +1779,7 @@ if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
 
 		<?//Вывод в правой колонке логистических параметров?>		
 		<?if($arResult['OFFERS']):?>
-	<div class="logistic col-md-12" style="display:none;" >
+	<div class="logistic col-md-12" style="display:none;" data-nd-tolwina="<?=htmlspecialcharsbx($ndLogisticLabel)?>">
 						<div class="logistic_title" style="display:none;"></div>
 						<div class="product-dlina" style="display:none;"></div>
 						<div class="product-shirina" style="display:none;"></div>
@@ -1745,7 +1789,7 @@ if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
 						<?else:?>
 						<?if((isset($arResult["CATALOG_LENGTH"])) || (isset($arResult["CATALOG_WIDTH"])) || (isset($arResult["CATALOG_HEIGHT"])) || 
 						(isset($arResult["CATALOG_WEIGHT"])) && ($arResult["CATALOG_WEIGHT"] !=="0") ):?>
-						<div class="logistic col-md-12">
+						<div class="logistic col-md-12" data-nd-tolwina="<?=htmlspecialcharsbx($ndLogisticLabel)?>">
 						
 						<?/* В макете заголовок короткий — «Логистические параметры», без «единицы товара» */?>
 						<div class="logistic_title">Логистические параметры</div>
@@ -1763,7 +1807,7 @@ if (!$ndTerraceCalcUrl && CModule::IncludeModule('iblock'))
 						<?endif;?>
 
 						<?if(($arResult["CATALOG_HEIGHT"] !=="0") && (isset($arResult["CATALOG_HEIGHT"]))):?>
-						<div class="product-tolwina" ><span>Толщина, мм</span> <?=$arResult["CATALOG_HEIGHT"]?></div>
+						<div class="product-tolwina" ><span><?=htmlspecialcharsbx($ndLogisticLabel)?></span> <?=$arResult["CATALOG_HEIGHT"]?></div>
 						<?endif;?>
 
 						<?if(($arResult["CATALOG_WEIGHT"] !=="0") && (isset($arResult["CATALOG_WEIGHT"]))):?>

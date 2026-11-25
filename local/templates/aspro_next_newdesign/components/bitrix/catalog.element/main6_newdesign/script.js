@@ -3008,7 +3008,10 @@ else
 			$('.product-weight').css('display', 'none');	
 				}
 			if(this.offers[this.offerNum]['HEIGHT']){
-			$('.product-tolwina').html('<span>Толщина, мм</span> ' + this.offers[this.offerNum]['HEIGHT']);
+			/* Подпись плитки приходит из шаблона (data-nd-tolwina): у мебели,
+			   грилей и пергол это «Высота, мм», у декинга — «Толщина, мм». */
+			var ndTolwinaLabel = $('.logistic').attr('data-nd-tolwina') || 'Толщина, мм';
+			$('.product-tolwina').html('<span>' + ndTolwinaLabel + '</span> ' + this.offers[this.offerNum]['HEIGHT']);
 			$('.product-tolwina').css('display', 'block');
 			}
 			else{
