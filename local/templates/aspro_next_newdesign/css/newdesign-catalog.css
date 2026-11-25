@@ -2207,8 +2207,14 @@ body .nd-catlist .nd-brandsect__title {
     opacity: .5;
     margin-left: 2px;
 }
+/* Ирина, 25.11.2026: «при переключении вкладки — серая рамка видна». После клика
+   мышью браузер оставляет фокус на чипе и дорисовывает обводку. Гасим её; для
+   клавиатуры оставляем заметную тёмную рамку (:focus-visible). */
+.nd-promo-groups .tag_ank a:focus {
+    outline: none;
+}
 .nd-promo-groups .tag_ank a:focus-visible {
-    outline: 2px solid currentColor;
+    outline: 2px solid #101014;
     outline-offset: 2px;
 }
 .nd-promo-groups__msg {
