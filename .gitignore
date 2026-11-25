@@ -5,6 +5,7 @@
 !/local
 # документация и скрипт запуска — общие для всех машин, их версионируем
 !/WORKFLOW.md
+!/AGENTS.md
 !/CLAUDE.md
 !/WORKLOG-*.md
 !/start-latitudo-ru.cmd
