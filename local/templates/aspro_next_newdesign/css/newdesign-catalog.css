@@ -2196,16 +2196,63 @@ body .nd-catlist .nd-brandsect__title {
     color: #8f8f9a;
     font-weight: 400;
 }
-/* Группы «Распродажи» на странице акции — чипы те же, что в разделе каталога
-   (include/promo_groups.php печатает .section_tag_top .tag_ank): горизонтальной
-   прокрутки нет, лишние чипы прячет collapseTags() и показывает «Ещё N».
-   Ирина, 25.11.2026: «полосу прокрутки делать не нужно, как в разделе каталога». */
+/* Группы «Распродажи» на странице акции — вид как у вкладок остальных акций
+   (.nd-promo-tabs__tab): крупные, радиус 6, красная активная вкладка, категории
+   сначала, «Все товары» последней. Сворачивание в «Ещё N» на телефоне сохраняем
+   (collapseTags). Ирина, 25.11.2026: «сделай внешний вид как на остальных акциях». */
 .nd-catlist > .nd-catlist-sort__tags {
-    margin: 0 0 16px;
+    margin: 0 0 32px;
+}
+.nd-promo-groups {
+    gap: 12px;
+    /* блок не сворачиваем: у остальных акций вкладки просто переносятся */
+    max-height: none !important;
+    overflow: visible !important;
+}
+.nd-promo-groups .tag_ank {
+    /* обёртка не должна сжиматься: иначе текст ломается по буквам */
+    flex: 0 0 auto;
+}
+.nd-promo-groups .tag_ank a {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 20px !important;
+    border-radius: 6px !important;
+    background: rgba(82, 82, 100, .08) !important;
+    color: #101014 !important;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.nd-promo-groups .tag_ank a:hover {
+    background: rgba(82, 82, 100, .16) !important;
+}
+.nd-promo-groups .tag_ank a.active {
+    background: #c60000 !important;
+    color: #fff !important;
 }
 .nd-promo-groups .nd-sale-groups__cnt {
-    opacity: .5;
-    margin-left: 2px;
+    color: #8f8f9a;
+    font-weight: 400;
+}
+.nd-promo-groups .tag_ank a.active .nd-sale-groups__cnt {
+    color: rgba(255, 255, 255, .75);
+}
+.nd-promo-groups .nd-catlist-sort__more {
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 20px;
+    border-radius: 6px;
+    background: rgba(82, 82, 100, .08);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #101014;
+    cursor: pointer;
 }
 /* Ирина, 25.11.2026: «при переключении вкладки — серая рамка видна». После клика
    мышью браузер оставляет фокус на чипе и дорисовывает обводку. Гасим её; для
@@ -2216,6 +2263,26 @@ body .nd-catlist .nd-brandsect__title {
 .nd-promo-groups .tag_ank a:focus-visible {
     outline: 2px solid #101014;
     outline-offset: 2px;
+}
+/* Телефон — как у вкладок остальных акций: одна строка с прокруткой, полоса скрыта */
+@media (max-width: 767px) {
+    .nd-promo-groups {
+        flex-wrap: nowrap !important;
+        gap: 8px;
+        margin: 0 -16px 24px !important;
+        padding: 0 16px 4px;
+        overflow-x: auto !important;
+        scrollbar-width: none;
+    }
+    .nd-promo-groups::-webkit-scrollbar {
+        display: none;
+    }
+    .nd-promo-groups .tag_ank a {
+        flex: 0 0 auto;
+        height: 40px;
+        padding: 0 14px !important;
+        font-size: 15px;
+    }
 }
 .nd-promo-groups__msg {
     margin: 8px 0;

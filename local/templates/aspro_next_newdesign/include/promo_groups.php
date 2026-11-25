@@ -43,9 +43,12 @@ $ndPromoUrl = $APPLICATION->GetCurPage(false);
 ?>
 <?if($ndPromoGroups):?>
 <div class="nd-catlist-sort__tags"><div class="section_tag_top nd-promo-groups" data-nd-promo-groups="<?=(int)$arResult['ID']?>" role="group" aria-label="Группы товаров по акции" hidden>
-	<span class="tag_ank"><a href="<?=htmlspecialcharsbx($ndPromoUrl)?>" data-nd-promo-group="0"<?=($ndPromoCur === 0 ? ' class="active" aria-current="true"' : '')?>>Все товары <span class="nd-sale-groups__cnt"><?=$ndPromoTotal?></span></a></span>
+	<?/* Порядок как на остальных акциях: категории сначала, «Все товары» последней
+	   (Ирина, 25.11.2026). Внешний вид — крупные вкладки с красной активной,
+	   стили .nd-promo-groups в newdesign-catalog.css. */?>
 	<?foreach($ndPromoGroups as $ndPromoId => $ndPromoName):?>
 	<span class="tag_ank"><a href="<?=htmlspecialcharsbx($ndPromoUrl)?>" data-nd-promo-group="<?=(int)$ndPromoId?>" rel="nofollow"<?=($ndPromoCur === $ndPromoId ? ' class="active" aria-current="true"' : '')?>><?=htmlspecialcharsbx($ndPromoName)?> <span class="nd-sale-groups__cnt"><?=(int)$ndPromoCounts[$ndPromoId]?></span></a></span>
 	<?endforeach;?>
+	<span class="tag_ank"><a href="<?=htmlspecialcharsbx($ndPromoUrl)?>" data-nd-promo-group="0"<?=($ndPromoCur === 0 ? ' class="active" aria-current="true"' : '')?>>Все товары <span class="nd-sale-groups__cnt"><?=$ndPromoTotal?></span></a></span>
 </div></div>
 <?endif;?>
