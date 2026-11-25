@@ -2196,6 +2196,25 @@ body .nd-catlist .nd-brandsect__title {
     color: #8f8f9a;
     font-weight: 400;
 }
+.nd-promo-groups {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-block: 4px;
+}
+.nd-promo-groups .nd-promo-tabs__tab {
+    flex: 0 0 auto;
+}
+.nd-promo-groups [aria-pressed="true"] {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+.nd-promo-groups .nd-promo-tabs__tab:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+.nd-promo-groups [aria-disabled="true"] {
+    cursor: progress;
+}
 .nd-promo-tabs__tab.is-active .nd-promo-tabs__cnt {
     color: rgba(255, 255, 255, .75);
 }
