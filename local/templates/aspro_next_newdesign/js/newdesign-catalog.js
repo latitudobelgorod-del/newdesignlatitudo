@@ -1739,6 +1739,79 @@
         });
     }
 
+    /* Распродажа живёт в одном разделе: фильтруем по ND_SALE_GROUP.
+       Сохраняем текущие карточки до успешного ответа и используем обычную
+       инициализацию карточек/«Показать ещё», включая цены и корзину. */
+    function initPromoGroups() {
+        [].forEach.call(document.querySelectorAll('[data-nd-promo-groups]'), function (bar) {
+            var list = bar.parentNode.querySelector('.nd-catlist');
+            var grid = list && list.querySelector('.catalog_block');
+            if (!grid) return;
+            var head = list.querySelector('h5');
+            if (head) list.insertBefore(bar, head.nextSibling);
+            bar.hidden = false;
+            var tabs = [].slice.call(bar.querySelectorAll('[data-nd-promo-group]'));
+            var busy = false;
+            var message = document.createElement('p');
+            message.setAttribute('role', 'status');
+            message.hidden = true;
+            bar.parentNode.insertBefore(message, bar.nextSibling);
+            bar.addEventListener('click', function (e) {
+                var tab = e.target.closest('[data-nd-promo-group]');
+                if (!tab || busy || tab.getAttribute('aria-pressed') === 'true' ||
+                    list.querySelector('[data-nd-brand-more].is-loading')) return;
+                busy = true;
+                message.hidden = true;
+                grid.setAttribute('aria-busy', 'true');
+                tabs.forEach(function (t) { t.setAttribute('aria-disabled', 'true'); });
+                var oldMore = grid.nextElementSibling;
+                if (oldMore && !oldMore.classList.contains('nd-brandsect__more')) oldMore = null;
+                var oldButton = oldMore && oldMore.querySelector('button');
+                if (oldButton) oldButton.disabled = true;
+                var url = '/local/ajax/promo_products.php?promo=' + bar.getAttribute('data-nd-promo-groups') +
+                    '&group=' + tab.getAttribute('data-nd-promo-group') + '&offset=0&per=20';
+                fetch(url, { credentials: 'same-origin' }).then(function (r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.text();
+                }).then(function (html) {
+                    var holder = document.createElement('div');
+                    holder.innerHTML = html;
+                    if (!holder.querySelector('.item')) throw new Error('Empty product response');
+                    if (oldMore) oldMore.remove();
+                    grid.textContent = '';
+                    var more = document.createElement('div');
+                    more.className = 'nd-brandsect__more';
+                    var button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'nd-brandsect__more-btn';
+                    button.setAttribute('data-nd-brand-more', '');
+                    button.setAttribute('data-url', url);
+                    more.appendChild(button);
+                    grid.parentNode.insertBefore(more, grid.nextSibling);
+                    placePortion(button, [].slice.call(holder.childNodes));
+                    tabs.forEach(function (t) {
+                        t.classList.toggle('is-active', t === tab);
+                        t.setAttribute('aria-pressed', t === tab ? 'true' : 'false');
+                    });
+                    // Прокручиваем только строку кнопок, не всю страницу.
+                    var rect = tab.getBoundingClientRect(), bounds = bar.getBoundingClientRect();
+                    if (rect.left < bounds.left) bar.scrollLeft -= bounds.left - rect.left;
+                    else if (rect.right > bounds.right) bar.scrollLeft += rect.right - bounds.right;
+                }).catch(function () {
+                    message.textContent = 'Не удалось загрузить товары. Попробуйте выбрать группу ещё раз.';
+                    message.hidden = false;
+                }).then(function () {
+                    busy = false;
+                    grid.removeAttribute('aria-busy');
+                    tabs.forEach(function (t) { t.removeAttribute('aria-disabled'); });
+                    if (oldButton) oldButton.disabled = false;
+                });
+            });
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPromoGroups);
+    else initPromoGroups();
+
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPromoTabs);
     else initPromoTabs();
 })();

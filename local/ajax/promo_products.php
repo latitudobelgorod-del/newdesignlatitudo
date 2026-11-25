@@ -55,6 +55,19 @@ while ($ldRow = $ldRes->Fetch()) {
 }
 $ldIds = array_values(array_unique($ldIds));
 
+// Фильтр групп распродажи не расширяет состав акции: всегда пересекаем с LINK_GOODS.
+$ldGroupId = max(0, (int)($_GET['group'] ?? 0));
+if ($ldGroupId > 0 && $ldIds) {
+	$ldGroupIds = [];
+	$ldRes = CIBlockElement::GetList([], [
+		'ID' => $ldIds, 'ACTIVE' => 'Y', '=PROPERTY_ND_SALE_GROUP' => $ldGroupId,
+	], false, false, ['ID']);
+	while ($ldRow = $ldRes->Fetch()) {
+		$ldGroupIds[] = (int)$ldRow['ID'];
+	}
+	$ldIds = array_values(array_unique($ldGroupIds));
+}
+
 if (!$ldIds) {
 	$ldFail('404 Not Found');
 }
