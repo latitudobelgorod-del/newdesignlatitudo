@@ -595,7 +595,17 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 		/* Нажали, а количество не поменялось (упёрлись в предел) — снимаем отметку. */
 		if (!changed && !busy && quote && quote.pending && Date.now() - touchedAt > 3000) markPending(false);
 		if (!changed) return;
-		if ((bc && bc.result !== lastResult) || Date.now() - changedAt > 3000) {
+		/* Пока корзина сохраняет удаление или количество, её ответа может не
+		   быть дольше 3 с (со скидками бывает). Расчёт в этот момент возьмёт
+		   на сервере ещё старый состав и вернёт прежнюю цену, а повторного
+		   расчёта не будет — цена застынет до нажатия кнопки. Поэтому ждём
+		   ответ корзины (actionPool.isProcessing); 15 с — предохранитель,
+		   если запрос завис (проверено 26.11.2026, задержка ответа 6 с). */
+		var pool = bc && bc.actionPool;
+		var basketBusy = !!(pool && typeof pool.isProcessing === 'function' && pool.isProcessing());
+		if ((bc && bc.result !== lastResult)
+			|| (!basketBusy && Date.now() - changedAt > 3000)
+			|| Date.now() - changedAt > 15000) {
 			if (bc) lastResult = bc.result;
 			afterChange();
 		}
