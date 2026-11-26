@@ -123,7 +123,7 @@ function nd_logo(int $size, string $brand): ?GdImage
     $key = ($brand === 'easydecking') ? 'easy' : 'house';
     if (!array_key_exists($key, $cache)) {
         $path = $SITE_ROOT . ($key === 'easy'
-            ? '/images/company/easydecking-mark.png'
+            ? '/local/feed/assets/easydecking-mark.png'
             : '/images/company/logo.png');
         $info = @getimagesize($path);
         $img = $info ? match ($info[2]) {
