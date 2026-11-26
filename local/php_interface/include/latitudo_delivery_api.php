@@ -72,6 +72,68 @@ function ndDeliveryApiRequest(string $path, ?array $body = null, int $timeout = 
 	return array($code, is_array($data) ? $data : null);
 }
 
+/**
+ * Причина отказа калькулятора для покупателя (26.11.2026).
+ *
+ * 422 — это не «не влезло в машину», а любая причина: позиция не распознана,
+ * не хватает размеров/веса, не определился город. Конкретные причины
+ * калькулятор присылает в dataIssues (блокирующие: label + position) и
+ * unparsedPositions — показываем их и называем позицию. Поле message у него
+ * общее для всех 422 («уточните состав, размеры и вес груза»), поэтому его
+ * берём только когда конкретики нет: иначе покупатель читает не свою причину.
+ * Пустая строка — причину не назвать, ответ будет «Доставку посчитает менеджер».
+ *
+ * @param int        $code HTTP-код ответа API
+ * @param array|null $data разобранный ответ API
+ */
+function ndDeliveryRefusalReason(int $code, ?array $data): string
+{
+	if ($code !== 422 || !is_array($data)) {
+		return '';
+	}
+	/* Одинаковые замечания по разным позициям — одной строкой:
+	   «Товар не распознан… («Доска…», «Кляймер…»)». */
+	$byLabel = array();
+	$named = array();
+	foreach ((array)($data['dataIssues'] ?? array()) as $issue) {
+		if (!is_array($issue) || ($issue['severity'] ?? '') !== 'blocking' || empty($issue['label'])) {
+			continue;
+		}
+		$label = trim((string)$issue['label']);
+		if ($label === '') {
+			continue;
+		}
+		if (!isset($byLabel[$label])) {
+			$byLabel[$label] = array();
+		}
+		$position = trim((string)($issue['position'] ?? ''));
+		if ($position !== '') {
+			$byLabel[$label][$position] = true;
+			$named[$position] = true;
+		}
+	}
+	$parts = array();
+	foreach ($byLabel as $label => $positions) {
+		$parts[] = $positions
+			? $label . ' («' . implode('», «', array_keys($positions)) . '»)'
+			: $label;
+	}
+	$unparsed = array();
+	foreach ((array)($data['unparsedPositions'] ?? array()) as $position) {
+		$position = trim((string)$position);
+		if ($position !== '' && !isset($named[$position])) {
+			$unparsed[$position] = true;
+		}
+	}
+	if ($unparsed) {
+		$parts[] = 'Не распознаны позиции: ' . implode(', ', array_keys($unparsed));
+	}
+	if (!$parts && !empty($data['message']) && is_scalar($data['message'])) {
+		$parts[] = (string)$data['message'];
+	}
+	return rtrim(ndDeliveryQuoteClean(implode('; ', $parts), 400), '. ');
+}
+
 /** ID единицы «шт» в справочнике единиц каталога. */
 const ND_DELIVERY_MEASURE_PCS = 5;
 
