@@ -8,6 +8,10 @@
 !/AGENTS.md
 !/CLAUDE.md
 !/WORKLOG-*.md
+# инструкции по подсистемам — в Markdown; docx и служебные файлы в /docs не версионируем
+!/docs
+/docs/*
+!/docs/*.md
 !/start-latitudo-ru.cmd
 !/tools
 # страница «Видео о продукции» — код (компонент в режиме сетки), не контент
