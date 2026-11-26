@@ -34,7 +34,7 @@
  * Адрес фида: https://<город>.latitudo.ru/upload/feed/business-feed-<код>.yml
  */
 
-$opts = ['code' => 'rostov', 'source' => '', 'out' => '', 'dry-run' => false];
+$opts = ['code' => 'rostov', 'source' => '', 'out' => '', 'dry-run' => false, 'db' => false];
 foreach (array_slice($argv ?? [], 1) as $arg) {
     if (preg_match('/^--code=([a-z0-9-]+)$/i', $arg, $m)) {
         $opts['code'] = strtolower($m[1]);
@@ -44,6 +44,9 @@ foreach (array_slice($argv ?? [], 1) as $arg) {
         $opts['out'] = $m[1];
     } elseif ($arg === '--dry-run') {
         $opts['dry-run'] = true;
+    } elseif ($arg === '--db') {
+        // Читать из базы отметку «Выгрузка в Яндекс Бизнес» и картинки склада.
+        $opts['db'] = true;
     } else {
         fwrite(STDERR, "Неизвестный ключ: {$arg}\n");
         exit(2);
@@ -123,11 +126,94 @@ foreach ($xml->shop->categories->category as $c) {
     }
 }
 
+// --- Данные из базы (--db): отметка для фида и картинки склада ------------
+//
+// Отметка «Выгрузка в Яндекс Бизнес» (свойство LIST_BUSINESS в инфоблоке
+// товаров) задаёт состав фида: в карточку компании идут только отмеченные
+// товары. Картинка склада берётся из свойства предложения «Картинка фида
+// <город>» и ставится первой — вместо фото из общего фида.
+$feedHost = rtrim((string)($xml->shop->url ?? ''), '/');
+if ($feedHost === '') {
+    $feedHost = 'https://' . ($opts['code'] === 'msk' ? 'latitudo.ru' : $opts['code'] . '.latitudo.ru');
+}
+
+$markedOffers = []; // offerId => true
+$cityPics     = []; // offerId => файл
+
+if ($opts['db']) {
+    $cityPropMap = [
+        'krasnodar' => 456, 'krd' => 456,
+        'belgorod'  => 457, 'bel'  => 457,
+        'vrn'       => 458,
+        'msk'       => 459,
+        'rostov'    => 460, 'rnd'  => 460,
+    ];
+    $cityPropId = $cityPropMap[$opts['code']] ?? 0;
+
+    $_SERVER['DOCUMENT_ROOT']  = $root;
+    $_SERVER['HTTP_HOST']      = parse_url($feedHost, PHP_URL_HOST) ?: 'latitudo.ru';
+    $_SERVER['SERVER_NAME']    = $_SERVER['HTTP_HOST'];
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $_SERVER['REQUEST_URI']    = '/';
+    define('NO_KEEP_STATISTIC', true);
+    define('NOT_CHECK_PERMISSIONS', true);
+    define('BX_NO_ACCELERATOR_RESET', true);
+    define('DisableEventsCheck', true);
+    define('NO_AGENT_CHECK', true);
+    require $root . '/bitrix/modules/main/include/prolog_before.php';
+    if (!CModule::IncludeModule('iblock')) {
+        fwrite(STDERR, "Не подключился модуль iblock\n");
+        exit(1);
+    }
+    $conn = \Bitrix\Main\Application::getConnection();
+
+    // Товары с отметкой.
+    $markedProducts = [];
+    $rows = $conn->query(
+        "SELECT p.IBLOCK_ELEMENT_ID
+           FROM b_iblock_element_property p
+           JOIN b_iblock_property pr ON pr.ID = p.IBLOCK_PROPERTY_ID
+           JOIN b_iblock_property_enum e ON e.ID = p.VALUE
+          WHERE pr.IBLOCK_ID = 19 AND pr.CODE = 'LIST_BUSINESS' AND e.VALUE = 'Да'"
+    );
+    while ($row = $rows->fetch()) {
+        $markedProducts[(int)$row['IBLOCK_ELEMENT_ID']] = true;
+    }
+    if (!$markedProducts) {
+        fwrite(STDERR, "Нет товаров с отметкой «Выгрузка в Яндекс Бизнес» — фид не собран\n");
+        exit(1);
+    }
+
+    // Их предложения.
+    $rows = $conn->query(
+        "SELECT IBLOCK_ELEMENT_ID FROM b_iblock_element_property
+          WHERE IBLOCK_PROPERTY_ID = 167 AND VALUE IN (" . implode(',', array_keys($markedProducts)) . ")"
+    );
+    while ($row = $rows->fetch()) {
+        $markedOffers[(int)$row['IBLOCK_ELEMENT_ID']] = true;
+    }
+
+    // Картинки склада этого города.
+    if ($cityPropId) {
+        $rows = $conn->query(
+            "SELECT IBLOCK_ELEMENT_ID, VALUE FROM b_iblock_element_property
+              WHERE IBLOCK_PROPERTY_ID = {$cityPropId} AND VALUE > 0"
+        );
+        while ($row = $rows->fetch()) {
+            $cityPics[(int)$row['IBLOCK_ELEMENT_ID']] = (int)$row['VALUE'];
+        }
+    }
+
+    printf("отметка: товаров %d, предложений %d; картинок склада: %d\n",
+        count($markedProducts), count($markedOffers), count($cityPics));
+}
+
 // --- Позиции --------------------------------------------------------------
 $stats = [
     'total' => 0, 'included' => 0, 'no_price' => 0, 'no_category' => 0,
     'no_id' => 0, 'bad_id' => 0, 'no_vendor' => 0, 'no_picture' => 0,
     'no_description' => 0, 'unknown' => 0, 'truncated' => 0,
+    'unmarked' => 0, 'city_pic' => 0,
 ];
 $usedCats = [];
 $offers = [];
@@ -142,6 +228,11 @@ foreach ($xml->shop->offers->offer as $o) {
     $id = trim((string)$o['id']);
     if ($id === '') {
         $stats['no_id']++;
+        continue;
+    }
+    // Состав фида: только товары с отметкой «Выгрузка в Яндекс Бизнес».
+    if ($opts['db'] && !isset($markedOffers[(int)$id])) {
+        $stats['unmarked']++;
         continue;
     }
     // Яндекс Бизнес: цифры, латиница, кириллица (кроме «ё»), . , \ / ( ) [ ] - =
@@ -174,6 +265,14 @@ foreach ($xml->shop->offers->offer as $o) {
     }
 
     $picture = trim((string)($o->picture[0] ?? ''));
+    // Картинка склада города важнее обычного фото.
+    if (isset($cityPics[(int)$id])) {
+        $path = CFile::GetPath($cityPics[(int)$id]);
+        if ($path !== '' && is_file($_SERVER['DOCUMENT_ROOT'] . $path)) {
+            $picture = $feedHost . $path;
+            $stats['city_pic']++;
+        }
+    }
     if ($picture === '') {
         $stats['no_picture']++;
     }
@@ -272,13 +371,13 @@ if ($opts['dry-run']) {
 }
 
 printf(
-    "%s: позиций %d из %d | категорий %d | без наличия %d | без фото %d | без описания %d\n"
-    . "пропущено: без цены %d, без категории %d, без ID %d, битый ID %d | бренд подставлен %d | сверх лимита %d\n"
+    "%s: позиций %d из %d | категорий %d | с картинкой склада %d | без наличия %d | без фото %d | без описания %d\n"
+    . "пропущено: не отмечено для Бизнеса %d, без цены %d, без категории %d, без ID %d, битый ID %d | бренд подставлен %d | сверх лимита %d\n"
     . "файл: %s (%s МБ)\n",
     $opts['dry-run'] ? '[dry-run]' : 'Готово',
-    $stats['included'], $stats['total'], count($usedCats), $stats['unknown'],
+    $stats['included'], $stats['total'], count($usedCats), $stats['city_pic'], $stats['unknown'],
     $stats['no_picture'], $stats['no_description'],
-    $stats['no_price'], $stats['no_category'], $stats['no_id'], $stats['bad_id'],
+    $stats['unmarked'], $stats['no_price'], $stats['no_category'], $stats['no_id'], $stats['bad_id'],
     $stats['no_vendor'], $stats['truncated'],
     $outPath, number_format(strlen($xmlOut) / 1048576, 2, '.', ' ')
 );
