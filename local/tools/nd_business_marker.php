@@ -42,7 +42,7 @@ const IB_PRODUCTS     = 19;
 const PROP_BRAND      = 134;
 const PROP_CODE       = 'LIST_PRISE';
 const PROP_NAME       = 'Назначение фида';
-const ENUM_VALUE      = 'Яндекс Бизнес';
+const ENUM_VALUE      = 'Товары для Яндекс бизнес';
 const ENUM_XML_ID     = 'yandex-business';
 const OLD_PROP_CODE   = 'LIST_BUSINESS';
 const BRANDS          = [26365 => 'EasyDecking', 24936 => 'LATITUDO'];
@@ -73,6 +73,19 @@ $enum = $conn->query(
 $enumId = $enum ? (int)$enum['ID'] : 0;
 if ($enumId) {
     echo "значение уже есть: #{$enumId} «{$enum['VALUE']}»\n";
+    // Название могло меняться — приводим к текущему, XML_ID остаётся прежним,
+    // поэтому фид продолжает находить отметку.
+    if ($enum['VALUE'] !== ENUM_VALUE) {
+        if ($dry) {
+            echo "[dry-run] переименовать в «" . ENUM_VALUE . "»\n";
+        } else {
+            CIBlockPropertyEnum::Update($enumId, [
+                'VALUE'  => ENUM_VALUE,
+                'XML_ID' => ENUM_XML_ID,
+            ]);
+            echo "переименовано в «" . ENUM_VALUE . "»\n";
+        }
+    }
 } elseif ($dry) {
     echo "[dry-run] значение «" . ENUM_VALUE . "» будет добавлено\n";
 } else {
