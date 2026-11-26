@@ -173,12 +173,13 @@ if ($opts['db']) {
     $conn = \Bitrix\Main\Application::getConnection();
 
     // Товары с отметкой.
+    // Отметка — значение «Яндекс Бизнес» в свойстве «Назначение фида».
     $rows = $conn->query(
         "SELECT p.IBLOCK_ELEMENT_ID
            FROM b_iblock_element_property p
            JOIN b_iblock_property pr ON pr.ID = p.IBLOCK_PROPERTY_ID
            JOIN b_iblock_property_enum e ON e.ID = p.VALUE
-          WHERE pr.IBLOCK_ID = 19 AND pr.CODE = 'LIST_BUSINESS' AND e.VALUE = 'Да'"
+          WHERE pr.IBLOCK_ID = 19 AND pr.CODE = 'LIST_PRISE' AND e.XML_ID = 'yandex-business'"
     );
     while ($row = $rows->fetch()) {
         $markedProducts[(int)$row['IBLOCK_ELEMENT_ID']] = true;
