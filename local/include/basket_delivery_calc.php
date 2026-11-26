@@ -80,6 +80,7 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 .nd-delivery-calc__result.is-stale { opacity: .45; transition: opacity .2s; }
 .nd-delivery-calc__price { font-size: 24px; font-weight: 800; line-height: 32px; }
 .nd-delivery-calc__price small { font-size: 14px; font-weight: 500; color: #8f8f9a; }
+.nd-delivery-calc__pending { font-size: 20px; font-weight: 600; line-height: 32px; color: #8f8f9a; }
 .nd-delivery-calc__facts { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: #525264; }
 .nd-delivery-calc__warn { margin: 8px 0 0; font-size: 14px; line-height: 20px; color: #a85a00; }
 .nd-delivery-calc__error { font-size: 15px; line-height: 22px; color: #525264; }
@@ -346,6 +347,7 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 		busy = true;
 		btn.disabled = true;
 		setText(btn, 'Считаем…');
+		markPending(true);
 		post(URL_CALC, { action: 'quote', warehouse: whSelect.value, city_id: city.id, city: city.name })
 			.then(function (d) {
 				if (d && d.ok && d.quote) {
@@ -511,7 +513,18 @@ if ($ndDcQuote && isset(ND_DELIVERY_WAREHOUSES[$ndDcQuote['warehouse']])) {
 
 	function markPending(on) {
 		if (quote) quote.pending = on;
-		result.classList.toggle('is-stale', !!on);
+		/* Пока считаем — в блоке «Считаем…», а не прежняя цена: иначе кажется,
+		   что пересчёт не идёт, и хочется нажать кнопку (Ирина, 26.11.2026). */
+		if (on && quote) {
+			result.textContent = '';
+			var wait = document.createElement('div');
+			wait.className = 'nd-delivery-calc__pending';
+			wait.textContent = 'Считаем…';
+			result.appendChild(wait);
+			result.hidden = false;
+		} else if (!on && quote) {
+			showResult(quote, null);
+		}
 		applyTotal();
 	}
 
