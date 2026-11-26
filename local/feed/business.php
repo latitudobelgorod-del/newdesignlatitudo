@@ -58,6 +58,10 @@ $root = dirname(__DIR__, 2);
 $src = $opts['source'] !== ''
     ? $opts['source']
     : $root . '/bitrix/catalog_export/' . $opts['code'] . '_latitudo_full.xml';
+// У московского прайс-листа файл называется без кода города.
+if ($opts['source'] === '' && $opts['code'] === 'msk' && !is_file($src)) {
+    $src = $root . '/bitrix/catalog_export/latitudo_full.xml';
+}
 $out = $opts['out'] !== ''
     ? $opts['out']
     : '/upload/feed/business-feed-' . $opts['code'] . '.yml';
