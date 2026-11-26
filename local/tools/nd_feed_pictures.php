@@ -75,7 +75,7 @@ const JPEG_Q    = 88;
 // Ключи запуска
 // =========================================================================
 
-$opts = ['dry-run' => false, 'force' => false, 'limit' => 0, 'offer' => 0, 'cities' => ''];
+$opts = ['dry-run' => false, 'force' => false, 'limit' => 0, 'offer' => 0, 'cities' => '', 'brand' => 0, 'since' => ''];
 foreach (array_slice($argv ?? [], 1) as $arg) {
     if ($arg === '--dry-run') {
         $opts['dry-run'] = true;
@@ -87,6 +87,10 @@ foreach (array_slice($argv ?? [], 1) as $arg) {
         $opts['offer'] = (int)$m[1];
     } elseif (preg_match('/^--cities=([a-z,]+)$/i', $arg, $m)) {
         $opts['cities'] = strtolower($m[1]);
+    } elseif (preg_match('/^--brand=(\\d+)$/', $arg, $m)) {
+        $opts['brand'] = (int)$m[1];
+    } elseif (preg_match('/^--since=(.+)$/', $arg, $m)) {
+        $opts['since'] = trim($m[1]);
     } else {
         fwrite(STDERR, "Неизвестный ключ: {$arg}\n");
         exit(2);
@@ -107,46 +111,53 @@ if ($opts['cities'] !== '') {
 // Отрисовка картинки
 // =========================================================================
 
-/** Домик из общего логотипа: белый фон — прозрачный. */
-function nd_logo(int $size): ?GdImage
+/**
+ * Логотип в углу картинки: у LATITUDO — красный домик из общего логотипа,
+ * у EasyDecking — зелёный листик производителя.
+ */
+function nd_logo(int $size, string $brand): ?GdImage
 {
     global $SITE_ROOT;
 
-    static $trimmed = null;
-    if ($trimmed === null) {
-        $path = $SITE_ROOT . '/images/company/logo.png';
+    static $cache = [];
+    $key = ($brand === 'easydecking') ? 'easy' : 'house';
+    if (!array_key_exists($key, $cache)) {
+        $path = $SITE_ROOT . ($key === 'easy'
+            ? '/images/company/easydecking-mark.png'
+            : '/images/company/logo.png');
         $info = @getimagesize($path);
-        $logo = $info ? match ($info[2]) {
+        $img = $info ? match ($info[2]) {
             IMAGETYPE_PNG  => @imagecreatefrompng($path),
             IMAGETYPE_WEBP => @imagecreatefromwebp($path),
             IMAGETYPE_JPEG => @imagecreatefromjpeg($path),
             default        => false,
         } : false;
-        if (!$logo) {
-            $trimmed = false;
-        } else {
-            imagealphablending($logo, false);
-            imagesavealpha($logo, true);
-            $w = imagesx($logo);
-            $h = imagesy($logo);
+        if ($img) {
+            imagealphablending($img, false);
+            imagesavealpha($img, true);
+            $w = imagesx($img);
+            $h = imagesy($img);
             for ($x = 0; $x < $w; $x++) {
                 for ($y = 0; $y < $h; $y++) {
-                    $c = imagecolorat($logo, $x, $y);
-                    if ((($c >> 16) & 0xFF) > 246 && ((($c >> 8) & 0xFF)) > 246 && (($c & 0xFF)) > 246) {
-                        imagesetpixel($logo, $x, $y, imagecolorallocatealpha($logo, 255, 255, 255, 127));
+                    $c = imagecolorat($img, $x, $y);
+                    if ((($c >> 16) & 0xFF) > 240 && ((($c >> 8) & 0xFF)) > 240 && (($c & 0xFF)) > 240) {
+                        imagesetpixel($img, $x, $y, imagecolorallocatealpha($img, 255, 255, 255, 127));
                     }
                 }
             }
-            $trimmed = $logo;
         }
+        $cache[$key] = $img;
     }
-    if ($trimmed === false) {
+    if (empty($cache[$key])) {
         return null;
     }
-    $src = $trimmed;
+
+    $src = $cache[$key];
     $w = imagesx($src);
     $h = imagesy($src);
-    $cropW = min($w, (int)round($h * 0.95));
+    // Домик берём из общего логотипа (левая квадратная часть), листик — готовый файл.
+    $cropW = $key === 'house' ? min($w, (int)round($h * 0.95)) : $w;
+
     $dst = imagecreatetruecolor($size, $size);
     imagealphablending($dst, false);
     imagesavealpha($dst, true);
@@ -155,7 +166,6 @@ function nd_logo(int $size): ?GdImage
     imagecopyresampled($dst, $src, 0, 0, 0, 0, $size, $size, $cropW, $h);
     return $dst;
 }
-
 /** Жёлтый текст с мягкой тенью (тень — уменьшенный слой, растянутый обратно). */
 function nd_caption(GdImage $im, string $city, string $font): void
 {
@@ -225,7 +235,7 @@ function nd_load_image(string $path): ?GdImage
 }
 
 /** Собрать картинку города во временный файл; вернуть путь или null. */
-function nd_render(string $srcPath, array $city, string $font): ?string
+function nd_render(string $srcPath, array $city, string $font, string $brand): ?string
 {
     $src = nd_load_image($srcPath);
     if (!$src) {
@@ -242,7 +252,7 @@ function nd_render(string $srcPath, array $city, string $font): ?string
     imagecopyresampled($im, $src, 0, 0, 0, 0, $w, $h, $w0, $h0);
     imagedestroy($src);
 
-    $logo = nd_logo(max(56, (int)round($w * 0.13)));
+    $logo = nd_logo(max(56, (int)round($w * 0.13)), $brand);
     if ($logo) {
         $pad = max(12, (int)round($w * 0.035));
         imagecopy($im, $logo, $pad, $pad, 0, 0, imagesx($logo), imagesy($logo));
@@ -302,6 +312,30 @@ foreach (array_chunk($productIds, 500) as $chunk) {
         ];
     }
 }
+// Бренд товара: от него зависит логотип в углу картинки.
+$conn = \Bitrix\Main\Application::getConnection();
+$brandOf = [];
+foreach (array_chunk($productIds, 500) as $chunk) {
+    $rows = $conn->query(
+        'SELECT IBLOCK_ELEMENT_ID, VALUE FROM b_iblock_element_property
+          WHERE IBLOCK_PROPERTY_ID = ' . PROP_BRAND . '
+            AND IBLOCK_ELEMENT_ID IN (' . implode(',', $chunk) . ')'
+    );
+    while ($row = $rows->fetch()) {
+        $brandOf[(int)$row['IBLOCK_ELEMENT_ID']] = (int)$row['VALUE'];
+    }
+}
+$brandSlug = [26365 => 'easydecking', 24936 => 'latitudo'];
+foreach ($offers as $offerId => $offer) {
+    $offers[$offerId]['BRAND'] = $brandSlug[$brandOf[$offer['PRODUCT']] ?? 0] ?? 'latitudo';
+}
+if ($opts['brand']) {
+    $offers = array_filter($offers, static fn($o) => ($brandOf[$o['PRODUCT']] ?? 0) === $opts['brand']);
+    if (!$offers) {
+        fwrite(STDERR, "Нет активных предложений бренда {$opts['brand']}\n");
+        exit(1);
+    }
+}
 if ($opts['offer']) {
     $offers = array_intersect_key($offers, [$opts['offer'] => true]);
     if (!$offers) {
@@ -317,22 +351,37 @@ if (!$offers) {
 printf("Товаров брендов: %d, активных предложений: %d, городов: %d\n",
     count($productIds), count($offers), count($cities));
 
-// Уже заполненные свойства и фотографии — двумя пачками.
-$filled = [];   // offerId => [propId => true]
+// Уже заполненные свойства (с датой файла) и фотографии — пачками.
+$filled = [];   // offerId => [propId => ['file' => id, 'ts' => unixtime]]
 $photos = [];   // offerId => [fileId, ...] (MORE_PHOTO)
+$cityPropIds = array_column($cities, 0);
 foreach (array_chunk(array_keys($offers), 500) as $chunk) {
-    $propIds = array_merge([PROP_PHOTOS], array_column($cities, 0));
-    $values = [];
-    CIBlockElement::GetPropertyValuesArray($values, IB_OFFERS, ['ID' => $chunk], ['ID' => $propIds]);
-    foreach ($values as $offerId => $props) {
-        foreach ($props as $prop) {
-            $id = (int)$prop['ID'];
-            if ($id === PROP_PHOTOS) {
-                $photos[(int)$offerId] = array_values(array_filter(array_map('intval', (array)$prop['VALUE'])));
-            } elseif ((int)$prop['VALUE'] > 0) {
-                $filled[(int)$offerId][$id] = true;
+    $in = implode(',', $chunk);
+    if ($cityPropIds) {
+        $rows = $conn->query(
+            'SELECT p.IBLOCK_ELEMENT_ID oid, p.IBLOCK_PROPERTY_ID pid, p.VALUE fid, f.TIMESTAMP_X ts
+               FROM b_iblock_element_property p
+               LEFT JOIN b_file f ON f.ID = p.VALUE
+              WHERE p.IBLOCK_PROPERTY_ID IN (' . implode(',', $cityPropIds) . ')
+                AND p.IBLOCK_ELEMENT_ID IN (' . $in . ')'
+        );
+        while ($row = $rows->fetch()) {
+            if ((int)$row['fid'] > 0) {
+                $filled[(int)$row['oid']][(int)$row['pid']] = [
+                    'file' => (int)$row['fid'],
+                    'ts'   => $row['ts'] ? strtotime($row['ts']) : 0,
+                ];
             }
         }
+    }
+    $rows = $conn->query(
+        'SELECT IBLOCK_ELEMENT_ID oid, VALUE fid FROM b_iblock_element_property
+          WHERE IBLOCK_PROPERTY_ID = ' . PROP_PHOTOS . '
+            AND IBLOCK_ELEMENT_ID IN (' . $in . ')
+          ORDER BY ID'
+    );
+    while ($row = $rows->fetch()) {
+        $photos[(int)$row['oid']][] = (int)$row['fid'];
     }
 }
 
@@ -342,6 +391,7 @@ $stats = [
 ];
 $started = microtime(true);
 $processed = 0;
+$sinceTs = $opts['since'] !== '' ? (strtotime($opts['since']) ?: 0) : 0;
 
 foreach ($offers as $offerId => $offer) {
     if ($opts['limit'] && $processed >= $opts['limit']) {
@@ -350,10 +400,16 @@ foreach ($offers as $offerId => $offer) {
     $processed++;
     $stats['offers']++;
 
-    // Города, куда ещё не заполнено.
+    // Какие города перерисовываем: пустые, все (--force) или свои же файлы,
+    // созданные не раньше --since (ручные картинки не трогаем).
     $todo = [];
     foreach ($cities as $code => $city) {
-        if (!$opts['force'] && isset($filled[$offerId][$city[0]])) {
+        $have = $filled[$offerId][$city[0]] ?? null;
+        $need = true;
+        if ($have && !$opts['force']) {
+            $need = $sinceTs > 0 && ($have['ts'] ?? 0) >= $sinceTs;
+        }
+        if (!$need) {
             $stats['skip_existing_city']++;
             continue;
         }
@@ -383,7 +439,7 @@ foreach ($offers as $offerId => $offer) {
     }
 
     foreach ($todo as $code => $city) {
-        $tmp = nd_render($srcPath, $city, $font);
+        $tmp = nd_render($srcPath, $city, $font, $offer['BRAND']);
         if (!$tmp) {
             $stats['errors']++;
             continue;
