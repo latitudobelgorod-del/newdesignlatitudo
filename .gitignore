@@ -16,6 +16,15 @@
 !/info
 /info/*
 !/info/.left.menu_ext.php
+# правила обхода роботов: robots.php отдаёт aspro_regions/robots/robots_<хост>.txt,
+# корневой robots.txt — резерв. Это настройка, а не контент: правится и на проде,
+# поэтому версионируем, чтобы правки не терялись при выкладке
+!/robots.txt
+!/aspro_regions
+/aspro_regions/*
+!/aspro_regions/robots
+/aspro_regions/robots/*
+!/aspro_regions/robots/*.txt
 # внутри local исключаем служебное
 /local/**/*.log
 /local/php_interface/dbconn.php
