@@ -141,8 +141,9 @@ if ($feedHost === '') {
     $feedHost = 'https://' . ($opts['code'] === 'msk' ? 'latitudo.ru' : $opts['code'] . '.latitudo.ru');
 }
 
-$markedOffers = []; // offerId => true
-$cityPics     = []; // offerId => файл
+$markedOffers   = []; // offerId => true
+$markedProducts = []; // productId => true (для простых товаров без предложений)
+$cityPics       = []; // offerId => файл
 
 if ($opts['db']) {
     $cityPropMap = [
@@ -172,7 +173,6 @@ if ($opts['db']) {
     $conn = \Bitrix\Main\Application::getConnection();
 
     // Товары с отметкой.
-    $markedProducts = [];
     $rows = $conn->query(
         "SELECT p.IBLOCK_ELEMENT_ID
            FROM b_iblock_element_property p
@@ -235,7 +235,7 @@ foreach ($xml->shop->offers->offer as $o) {
         continue;
     }
     // Состав фида: только товары с отметкой «Выгрузка в Яндекс Бизнес».
-    if ($opts['db'] && !isset($markedOffers[(int)$id])) {
+    if ($opts['db'] && !isset($markedOffers[(int)$id]) && !isset($markedProducts[(int)$id])) {
         $stats['unmarked']++;
         continue;
     }
